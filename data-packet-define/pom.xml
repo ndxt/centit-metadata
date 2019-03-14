@@ -10,13 +10,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>data-packet-define</artifactId>
-    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>com.centit.product</groupId>
-            <artifactId>data-business-operation</artifactId>
+            <artifactId>business-operation-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 

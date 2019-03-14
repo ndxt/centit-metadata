@@ -1,0 +1,55 @@
+﻿<html>
+<div class="easyui-panel" >
+    <div class="search-item">
+      <label>数据库名</label>
+      <input id="database" />
+    </div>
+  <div class="search-item">
+    <input type="button" value="同步" id="sync" />
+  </div>
+
+</div>
+<!--<div id="ta"/>-->
+<table
+       idField="tableId"
+       sortName="createTime"
+       sortOrder="desc"
+       toolbar=".temp-toolbar"
+>
+  <thead data-options="frozen:true">
+  <tr>
+    <th data-options="field:'tableName'" width="15%" sortable="true">表名</th>
+    <th data-options="field:'tableLabelName'" width="20%" sortable="true">表中文名</th>
+    <th data-options="field:'tableType'" width="10%" align="center" sortable="true">表类型</th>
+    <th data-options="field:'tableComment'" width="20%" align="center" sortable="true">描述</th>
+    <th data-options="field:'lastModifyDate'" width="20%" align="center" sortable="true">最后修改日期</th>
+    <th data-options="field:'recorderName'" width="15%" sortable="true" align="center">修改人</th>
+  </tr>
+  </thead>
+</table>
+
+<div class="temp-toolbar">
+  <a iconCls="icon-edit"
+     href="modules/metadata/metadata-info.html"
+     trigger="single"
+     target="dialog"
+     rel="metadata_edit"
+     title="编辑 {{tableLabelName}} 元数据表"
+     width="550" height="430"
+     btnValue="更新"
+  >编辑</a>
+  <!--buttons="[{method:'testConnect',text:'连接测试'},{method:'submit',text:'更新'},{method:'close',text:'取消'}]"-->
+  <!--<a iconCls="icon-base icon-base-ban" trigger="none"-->
+     <!--target="confirm" rel="metadata_sync" title="确定同步？">同步</a>-->
+</div>
+<script>
+  $.parser.onComplete = function (panel) {
+    $.parser.onComplete = $.noop;
+    requirejs([
+      '../modules/metadata/ctrl/metadata',
+    ], function (Metadata) {
+      new Metadata('metadata', panel).load(panel);
+    });
+  };
+</script>
+</html>

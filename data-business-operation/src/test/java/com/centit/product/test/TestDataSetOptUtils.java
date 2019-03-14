@@ -1,4 +1,4 @@
-package com.centit.support.test;
+package com.centit.product.test;
 
 import com.alibaba.fastjson.JSON;
 import com.centit.support.dataopt.core.DataSet;

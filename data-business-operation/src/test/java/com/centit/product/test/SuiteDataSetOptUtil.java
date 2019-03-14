@@ -1,4 +1,4 @@
-package com.centit.support.test;
+package com.centit.product.test;
 
 import junit.framework.TestSuite;
 import org.junit.runner.RunWith;

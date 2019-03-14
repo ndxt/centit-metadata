@@ -38,6 +38,16 @@
             <groupId>com.centit.framework</groupId>
             <artifactId>framework-core</artifactId>
         </dependency>
+        <!-- 单元测试框架 -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
 
+        <dependency>
+            <groupId>com.centit.support</groupId>
+            <artifactId>centit-report-utils</artifactId>
+            <version>${common.module.version}</version>
+        </dependency>
     </dependencies>
 </project>

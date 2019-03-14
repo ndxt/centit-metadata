@@ -23,11 +23,16 @@
     </licenses>
 
     <modules>
+        <module>business-operation-core</module>
         <module>database-metadata</module>
         <module>data-business-operation</module>
         <module>data-packet-define</module>
-        <module>business-operation-core</module>
     </modules>
+
+    <properties>
+        <common.module.version>1.0-SNAPSHOT</common.module.version>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -101,7 +106,7 @@
             <!--sonatype release :
                mvn nexus-staging:release-->
 
-            <plugin>
+            <!--<plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <version>1.6.8</version>
@@ -111,7 +116,7 @@
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
-            </plugin>
+            </plugin>-->
         </plugins>
     </build>
 </project>

@@ -1,4 +1,4 @@
-package com.centit.support.dataopt.utils;
+package com.centit.product.dataopt.utils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.centit.support.dataopt.bizopt.BuiltInOperation;

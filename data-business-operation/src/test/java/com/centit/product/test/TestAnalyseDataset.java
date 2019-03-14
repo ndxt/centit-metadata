@@ -1,4 +1,4 @@
-package com.centit.support.test;
+package com.centit.product.test;
 
 import com.centit.support.dataopt.core.DataSet;
 import com.centit.support.dataopt.core.SimpleDataSet;
@@ -25,7 +25,7 @@ public class TestAnalyseDataset extends TestCase {
     //打印日志
     Logger logger = LoggerFactory.getLogger(TestCrossTabulation.class);
     //测试excel存放路径
-    private final String path = Class.class.getClass().getResource("/").getPath() + "com/centit/support/test/TestAnalyseDataset.xlsx";
+    private final String path = Class.class.getClass().getResource("/").getPath() + "com/centit/product/test/TestAnalyseDataset.xlsx";
     //输入数据集的数据存放sheet页名称
     private final String initDataSheetName = "initData";
     //分组（排序）字段、统计字段的数据存放sheet页名称

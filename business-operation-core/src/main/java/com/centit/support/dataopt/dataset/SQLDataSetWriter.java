@@ -42,6 +42,19 @@ public class SQLDataSetWriter implements DataSetWriter {
         connection = null;
     }
 
+    public SQLDataSetWriter(DataSourceDescription dataSource, TableInfo tableInfo){
+        this.saveAsWhole = true;
+        this.connection = null;
+        this.tableInfo = tableInfo;
+        this.dataSource = dataSource;
+    }
+
+    public SQLDataSetWriter(Connection connection, TableInfo tableInfo){
+        this.saveAsWhole = true;
+        this.connection = connection;
+        this.tableInfo = tableInfo;
+    }
+
     /**
      * 将 dataSet 数据集 持久化
      * @param dataSet 数据集

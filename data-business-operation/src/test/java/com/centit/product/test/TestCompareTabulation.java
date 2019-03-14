@@ -1,4 +1,4 @@
-package com.centit.support.test;
+package com.centit.product.test;
 
 import com.centit.support.dataopt.core.DataSet;
 import com.centit.support.dataopt.core.SimpleDataSet;
@@ -25,7 +25,7 @@ public class TestCompareTabulation extends TestCase {
     //打印日志
     Logger logger = LoggerFactory.getLogger(TestCrossTabulation.class);
     //测试excel存放路径
-    private final String path = Class.class.getClass().getResource("/").getPath() + "com/centit/support/test/TestCompareTabulation.xlsx";
+    private final String path = Class.class.getClass().getResource("/").getPath() + "com/centit/product/test/TestCompareTabulation.xlsx";
     //本期数据集的数据存放sheet页名称
     private final String currDataSheetName = "currData";
     //上期数据集的数据存放sheet页名称

@@ -12,17 +12,17 @@ import java.util.Set;
 public interface RmdbQueryService {
 
     /**
-     * 新增数据包
+     * 新增数据库查询
      */
-    void createDataResource(DataPacket dataResource);
+    void createDbQuery(RmdbQuery rmdbQuery);
 
-    void updateDataResource(DataPacket dataResource);
+    void updateDbQuery(RmdbQuery rmdbQuery);
 
-    void deleteDataResource(String resourceId);
+    void deleteDbQuery(String queryId);
 
-    List<DataPacket> listDataResource(Map<String, Object> params, PageDesc pageDesc);
+    List<RmdbQuery> listDbQuery(Map<String, Object> params, PageDesc pageDesc);
 
-    DataPacket getDataResource(String resourceId);
+    RmdbQuery getDbQuery(String queryId);
 
     List<RmdbQuery> generateRmdbQuery(String databaseCode, String sql);
 

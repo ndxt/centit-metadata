@@ -48,14 +48,14 @@ public class RmdbQueryController extends BaseController {
     @ApiOperation(value = "删除数据库查询")
     @DeleteMapping(value = "/{queryId}")
     @WrapUpResponseBody
-    public void deleteDataResource(@PathVariable String queryId){
+    public void deleteDbQuery(@PathVariable String queryId){
         rmdbQueryService.deleteDbQuery(queryId);
     }
 
     @ApiOperation(value = "查询数据库查询")
     @GetMapping
     @WrapUpResponseBody
-    public PageQueryResult<RmdbQuery> listDataResource(PageDesc pageDesc){
+    public PageQueryResult<RmdbQuery> listDbQuery(PageDesc pageDesc){
         List<RmdbQuery> list = rmdbQueryService.listDbQuery(new HashMap<>(), pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }

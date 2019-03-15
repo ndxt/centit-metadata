@@ -141,8 +141,8 @@ public class MetadataController {
         metaDataService.saveRelations(tableId, metaTable.getMdRelations());
     }
 
-    @ApiOperation(value = "元数据级联字段")
-    @GetMapping(value = "//tablecascade/{tableId}/{tableAlias}")
+    @ApiOperation(value = "元数据级联字段，只查询一层")
+    @GetMapping(value = "/tablecascade/{tableId}/{tableAlias}")
     @WrapUpResponseBody
     public MetaTableCascade getMetaTableCascade(@PathVariable String tableId, @PathVariable String tableAlias){
         return metaDataService.getMetaTableCascade(tableId, tableAlias);

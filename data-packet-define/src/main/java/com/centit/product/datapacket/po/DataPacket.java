@@ -80,7 +80,7 @@ public class DataPacket implements Serializable {
 
     @OneToMany(targetEntity = RmdbQuery.class)
     @JoinColumn(name = "packetId", referencedColumnName = "packetId")
-    private List<DataPacketParam> rmdbQueries;
+    private List<RmdbQuery> rmdbQueries;
 
 /*    @Transient
     private Map<String, Object> packetParams;*/

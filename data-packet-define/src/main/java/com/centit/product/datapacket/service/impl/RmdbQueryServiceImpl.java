@@ -39,32 +39,32 @@ public class RmdbQueryServiceImpl implements RmdbQueryService {
     private IntegrationEnvironment integrationEnvironment;
 
     @Override
-    public void createDataResource(DataPacket dataResource) {
-        dataPacketDao.saveNewObject(dataResource);
-        dataPacketDao.saveObjectReferences(dataResource);
+    public void createDbQuery(RmdbQuery rmdbQuery) {
+        resourceColumnDao.saveNewObject(rmdbQuery);
+        resourceColumnDao.saveObjectReferences(rmdbQuery);
     }
 
     @Override
-    public void updateDataResource(DataPacket dataResource) {
-        dataPacketDao.updateObject(dataResource);
-        dataPacketDao.saveObjectReferences(dataResource);
+    public void updateDbQuery(RmdbQuery rmdbQuery) {
+        resourceColumnDao.updateObject(rmdbQuery);
+        resourceColumnDao.saveObjectReferences(rmdbQuery);
     }
 
     @Override
-    public void deleteDataResource(String resourceId) {
-        DataPacket dataResource = dataPacketDao.getObjectById(resourceId);
-        dataPacketDao.deleteObjectById(resourceId);
-        dataPacketDao.deleteObjectReferences(dataResource);
+    public void deleteDbQuery(String queryId) {
+        RmdbQuery rmdbQuery = resourceColumnDao.getObjectById(queryId);
+        resourceColumnDao.deleteObjectById(queryId);
+        resourceColumnDao.deleteObjectReferences(rmdbQuery);
     }
 
     @Override
-    public List<DataPacket> listDataResource(Map<String, Object> params, PageDesc pageDesc) {
-        return dataPacketDao.listObjectsByProperties(params, pageDesc);
+    public List<RmdbQuery> listDbQuery(Map<String, Object> params, PageDesc pageDesc) {
+        return resourceColumnDao.listObjectsByProperties(params, pageDesc);
     }
 
     @Override
-    public DataPacket getDataResource(String resourceId) {
-        return dataPacketDao.getObjectWithReferences(resourceId);
+    public RmdbQuery getDbQuery(String queryId) {
+        return resourceColumnDao.getObjectWithReferences(queryId);
     }
 
     @Override

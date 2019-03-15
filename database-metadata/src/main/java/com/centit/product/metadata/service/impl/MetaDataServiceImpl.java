@@ -285,21 +285,26 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public MetaTableCascade getMetaTableCascade(String databaseCode, String tableCode) {
+    public MetaTableCascade getMetaTableCascade(String tableId, String token) {
         MetaTableCascade tableCascade = new MetaTableCascade();
-        DatabaseInfo dbInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
+
+        MetaTable metaTable = metaTableDao.getObjectById(tableId);
+        tableCascade.setTableInfo(metaTable);
+        String tableToken = StringUtils.isBlank(token)?"T":token;
+
+        DatabaseInfo dbInfo = integrationEnvironment.getDatabaseInfo(metaTable.getDatabaseCode());
         DBType dbType = DBType.mapDBType(dbInfo.getDatabaseUrl());
         tableCascade.setDatabaseType(dbType.toString());
-        MetaTable metaTable = metaTableDao.getObjectByProperties(
-            CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableName", tableCode));
-        tableCascade.addTable(metaTable);
+        tableCascade.setTableAlias(tableToken);
         metaTableDao.fetchObjectReferences(metaTable);
+        int n=0;
         for(MetaRelation relation :metaTable.getMdRelations()){
             String childTableId = relation.getChildTableId();
             MetaTable childTable = metaTableDao.getObjectById(childTableId);
 
             metaRelationDao.fetchObjectReferences(relation);
-            tableCascade.addTable(childTable, relation.getRelationDetails());
+            tableCascade.addRelationTable(childTable, relation.getRelationDetails(),tableToken + "_" + n);
+            n++;
         }
         tableCascade.setTableFields(metaTable.getMdColumns());
 

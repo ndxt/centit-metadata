@@ -10,14 +10,22 @@ import java.util.List;
 
 @Data
 public class MetaTableCascade {
+
     private String databaseType;
-
-    private List<Table> tableList;
-
-    private List<Table> tableFields;
+    private String databaseCode;
+    //表ID
+    private String tableId;
+    //表名
+    private String table;
+    private String tableAlias;
+    private String title;
+    private List<Column> tableFields;
+    // 关联的表
+    private List<Table> relationTable;
 
     @Data
     class Table{
+        String tableId;
         String table;
         String title;
         String tableAlias;
@@ -31,27 +39,30 @@ public class MetaTableCascade {
     }
 
     @Data
-    class Column extends Table{
+    class Column {
+        String title;
+        String tableAlias;
         String column;
+        String columnType;
     }
 
-    public void addTable(MetaTable metaTable){
-        if(this.tableList == null){
-            this.tableList = new ArrayList<>();
+    public void setTableInfo(MetaTable metaTable){
+        this.databaseCode = metaTable.getDatabaseCode();
+        this.table = metaTable.getTableName();
+        this.tableId = metaTable.getTableId();
+        this.title = metaTable.getTableLabelName();
+    }
+
+    public void addRelationTable(MetaTable metaTable, List<MetaRelDetail> relDetails, String tableAlias){
+        if(this.relationTable == null){
+            this.relationTable = new ArrayList<>();
         }
         Table table = new Table();
         table.setTable(metaTable.getTableName());
         table.setTitle(metaTable.getTableLabelName());
-        this.tableList.add(table);
-    }
+        table.setTableId(metaTable.getTableId());
+        table.setTableAlias(tableAlias);
 
-    public void addTable(MetaTable metaTable, List<MetaRelDetail> relDetails){
-        if(this.tableList == null){
-            this.tableList = new ArrayList<>();
-        }
-        Table table = new Table();
-        table.setTable(metaTable.getTableName());
-        table.setTitle(metaTable.getTableLabelName());
         if(table.getJoinColumns() == null){
             table.setJoinColumns(new ArrayList<>());
         }
@@ -61,15 +72,7 @@ public class MetaTableCascade {
             joinColumn.setRightColumn(relDetail.getChildColumnName());
             table.getJoinColumns().add(joinColumn);
         }
-        this.tableList.add(table);
-
-        if (this.tableFields == null) {
-            this.tableFields = new ArrayList<>();
-        }
-        Table table1 = new Table();
-        table1.setTitle(metaTable.getTableLabelName());
-        table1.setTable(metaTable.getTableName());
-        tableFields.add(table1);
+        this.relationTable.add(table);
     }
 
     public void setTableFields(List<MetaColumn> columns) {
@@ -80,6 +83,7 @@ public class MetaTableCascade {
             Column column = new Column();
             column.setColumn(metaColumn.getColumnName());
             column.setTitle(metaColumn.getFieldLabelName());
+            column.setColumnType(metaColumn.getColumnType());
             tableFields.add(column);
         }
     }

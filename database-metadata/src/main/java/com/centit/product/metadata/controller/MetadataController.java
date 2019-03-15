@@ -142,9 +142,9 @@ public class MetadataController {
     }
 
     @ApiOperation(value = "元数据级联字段")
-    @GetMapping(value = "/{databaseCode}/table_cascade/{tableCode}")
+    @GetMapping(value = "//tablecascade/{tableId}/{tableAlias}")
     @WrapUpResponseBody
-    public MetaTableCascade getMetaTableCascade(@PathVariable String databaseCode, @PathVariable String tableCode){
-        return metaDataService.getMetaTableCascade(databaseCode, tableCode);
+    public MetaTableCascade getMetaTableCascade(@PathVariable String tableId, @PathVariable String tableAlias){
+        return metaDataService.getMetaTableCascade(tableId, tableAlias);
     }
 }

@@ -8,9 +8,9 @@ import org.apache.commons.lang3.StringUtils;
 
 public class JSBizOperation implements BizOperation {
 
-    private String javaScript;
-    private String jsFuncName;
-    private JSRuntimeContext jsRuntimeContext;
+    protected String javaScript;
+    protected String jsFuncName;
+    protected JSRuntimeContext jsRuntimeContext;
 
     @Override
     public BizModel apply(BizModel bizModel) {

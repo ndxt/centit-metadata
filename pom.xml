@@ -27,6 +27,7 @@
         <module>database-metadata</module>
         <module>data-business-operation</module>
         <module>data-packet-define</module>
+        <module>database-metadata-graphql</module>
     </modules>
 
     <properties>

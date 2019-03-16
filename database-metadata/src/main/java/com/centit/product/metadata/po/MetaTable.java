@@ -173,8 +173,8 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     }
 
     public List<MetaRelation> getMdRelations() {
-        if (this.mdRelations == null)
-            this.mdRelations = new ArrayList<>();
+        /*if (this.mdRelations == null)
+            this.mdRelations = new ArrayList<>();*/
         return this.mdRelations;
     }
 
@@ -188,14 +188,6 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         if (this.mdRelations == null)
             return;
         this.mdRelations.remove(mdRelation);
-    }
-
-    public MetaRelation newMdRelation() {
-        MetaRelation res = new MetaRelation();
-
-        res.setChildTableId(this.getTableId());
-
-        return res;
     }
 
     //将数据库表同步到元数据表
@@ -302,7 +294,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @Override
     @ApiModelProperty(hidden = true)
     public List<? extends TableReference> getReferences() {
-        return null;
+        return this.mdRelations;
     }
 
     @Override

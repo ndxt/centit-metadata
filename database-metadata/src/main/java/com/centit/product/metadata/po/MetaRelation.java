@@ -10,11 +10,13 @@ import com.centit.support.database.orm.ValueGenerator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -123,12 +125,28 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     @Override
     @ApiModelProperty(hidden = true)
     public Map<String, String> getReferenceColumns() {
-        return null;
+        if(relationDetails == null || relationDetails.size()<1) {
+            return null;
+        }
+        Map<String, String> colMap = new HashMap<>(relationDetails.size()+1);
+        for(MetaRelDetail mrd : relationDetails){
+            colMap.put(mrd.getParentColumnName(), mrd.getChildColumnName());
+        }
+        return colMap;
     }
 
     @Override
     @ApiModelProperty(hidden = true)
     public boolean containColumn(String sCol) {
+        if(relationDetails == null || relationDetails.size()<1) {
+            return false;
+        }
+
+        for(MetaRelDetail mrd : relationDetails){
+            if(StringUtils.equals(sCol, mrd.getChildColumnName())){
+                return true;
+            }
+        }
         return false;
     }
 }

@@ -8,6 +8,7 @@ public interface BizModel {
     SimpleBizModel EMPTY_BIZ_MODEL
         = new SimpleBizModel("EMPTY_BIZ_MODEL");
     String DEFAULT_MODEL_NAME = "bizModel";
+    String DATABASE_CODE_TAG_NAME = "DATABASE_CODE_TAG_NAME";
     /**
      * @return 模型名称; 可以作为主DataSet的名称
      */
@@ -16,7 +17,7 @@ public interface BizModel {
      * 模型的标识， 就是对应的主键
      * @return  或者对应关系数据库查询的参数（数据源参数）
      */
-    Map<String, Object> getModeTag();
+    Map<String, Object> getModelTag();
     /**
      * @return  模型数据
      */

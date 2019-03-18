@@ -14,7 +14,7 @@ public class SimpleBizModel implements BizModel{
      * 模型的标识， 就是对应的主键
      * 或者对应关系数据库查询的参数（数据源参数）
      */
-    private Map<String, Object> modeTag;
+    private Map<String, Object> modelTag;
     /**
      * 模型数据
      */
@@ -61,12 +61,12 @@ public class SimpleBizModel implements BizModel{
         this.modelName = modelName;
     }
 
-    public Map<String, Object> getModeTag() {
-        return modeTag;
+    public Map<String, Object> getModelTag() {
+        return modelTag;
     }
 
-    public void setModeTag(Map<String, Object> modeTag) {
-        this.modeTag = modeTag;
+    public void setModeTag(Map<String, Object> modelTag) {
+        this.modelTag = modelTag;
     }
 
     public Map<String, DataSet> getBizData() {

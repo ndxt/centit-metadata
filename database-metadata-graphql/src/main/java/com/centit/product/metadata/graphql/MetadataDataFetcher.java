@@ -1,5 +1,7 @@
 package com.centit.product.metadata.graphql;
 
+import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.metadata.service.MetaDataService;
 import graphql.language.*;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -17,8 +19,12 @@ import java.util.stream.Collectors;
 
 public class MetadataDataFetcher implements DataFetcher {
 
-    public MetadataDataFetcher(EntityManager entityManager, EntityType<?> entityType) {
-        super(entityManager, entityType);
+    private final MetaDataService metaDataService;
+    protected MetaTable entityType;
+
+    public MetadataDataFetcher(MetaDataService metaDataService, MetaTable entityType) {
+        this.metaDataService = metaDataService;
+        this.entityType = entityType;
     }
 
     @Override

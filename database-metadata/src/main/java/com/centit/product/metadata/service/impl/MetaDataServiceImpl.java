@@ -211,6 +211,32 @@ public class MetaDataServiceImpl implements MetaDataService {
         return metaTableDao.getMetaTable(databaseCode,tableName);
     }
 
+    private void fetchMetaTableRelations(MetaTable metaTable){
+        metaTableDao.fetchObjectReference(metaTable, "mdColumns");//mdRelations
+        metaTableDao.fetchObjectReference(metaTable, "mdRelations");
+        if (metaTable.getMdRelations() != null) {
+            for (MetaRelation mr : metaTable.getMdRelations()) {
+                metaRelationDao.fetchObjectReference(mr, "relationDetails");
+            }
+        }
+    }
+
+
+    @Override
+    public MetaTable getMetaTableWithRelations(String tableId) {
+        MetaTable metaTable = metaTableDao.getObjectById(tableId);
+        fetchMetaTableRelations(metaTable);
+        return metaTable;
+    }
+
+    @Override
+    public MetaTable getMetaTableWithRelations(String databaseCode, String tableName){
+        MetaTable metaTable = metaTableDao.getMetaTable(databaseCode,tableName);
+        fetchMetaTableRelations(metaTable);
+        return metaTable;
+    }
+
+
     @Override
     public List<MetaRelation> listMetaRelation(String tableId, PageDesc pageDesc) {
         List<MetaRelation> list = metaRelationDao.listObjectsByProperty("parentTableId", tableId);

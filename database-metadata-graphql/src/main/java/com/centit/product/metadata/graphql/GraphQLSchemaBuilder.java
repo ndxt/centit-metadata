@@ -1,9 +1,9 @@
 package com.centit.product.metadata.graphql;
 
+import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.metadata.service.MetaDataService;
 import graphql.Scalars;
 import graphql.schema.*;
-import org.crygier.graphql.annotation.GraphQLIgnore;
-import org.crygier.graphql.annotation.SchemaDocumentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +32,9 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     public static final String PAGINATION_REQUEST_PARAM_NAME = "paginationRequest";
     private static final Logger log = LoggerFactory.getLogger(GraphQLSchemaBuilder.class);
 
-    private final EntityManager entityManager;
+    private final MetaDataService metaDataService;
+    private final String databaseId;
+
     private final Map<Class, GraphQLType> classCache = new HashMap<>();
     private final Map<EmbeddableType<?>, GraphQLObjectType> embeddableCache = new HashMap<>();
     private final Map<EntityType, GraphQLObjectType> entityCache = new HashMap<>();
@@ -41,19 +43,19 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     /**
      * Initialises the builder with the given {@link EntityManager} from which we immediately start to scan for
      * entities to include in the GraphQL schema.
-     * @param entityManager The manager containing the data models to include in the final GraphQL schema.
+     * @param metaDataService MetaDataService The manager containing the data models to include in the final GraphQL schema.
      */
-    public GraphQLSchemaBuilder(EntityManager entityManager) {
-        this.entityManager = entityManager;
-
+    public GraphQLSchemaBuilder(MetaDataService metaDataService, String databaseId) {
+        this.metaDataService = metaDataService;
+        this.databaseId = databaseId;
         populateStandardAttributeMappers();
 
         super.query(getQueryType());
     }
 
-    public GraphQLSchemaBuilder(EntityManager entityManager, Collection<AttributeMapper> attributeMappers) {
-        this.entityManager = entityManager;
-
+    public GraphQLSchemaBuilder(MetaDataService metaDataService, String databaseId, Collection<AttributeMapper> attributeMappers) {
+        this.metaDataService = metaDataService;
+        this.databaseId = databaseId;
         this.attributeMappers.addAll(attributeMappers);
         populateStandardAttributeMappers();
 
@@ -87,7 +89,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     }
 
     GraphQLObjectType getQueryType() {
-        GraphQLObjectType.Builder queryType = GraphQLObjectType.newObject().name("QueryType_JPA").description("All encompassing schema for this JPA environment");
+        GraphQLObjectType.Builder queryType = GraphQLObjectType.newObject().name("QueryType_MD").description("All encompassing schema for this database metadata environment");
         queryType.fields(entityManager.getMetamodel().getEntities().stream().filter(this::isNotIgnored).map(this::getQueryFieldDefinition).collect(Collectors.toList()));
         queryType.fields(entityManager.getMetamodel().getEntities().stream().filter(this::isNotIgnored).map(this::getQueryFieldPageableDefinition).collect(Collectors.toList()));
         queryType.fields(entityManager.getMetamodel().getEmbeddables().stream().filter(this::isNotIgnored).map(this::getQueryEmbeddedFieldDefinition).collect(Collectors.toList()));
@@ -95,12 +97,12 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
         return queryType.build();
     }
 
-    GraphQLFieldDefinition getQueryFieldDefinition(EntityType<?> entityType) {
+    GraphQLFieldDefinition getQueryFieldDefinition(MetaTable entityType) {
         return GraphQLFieldDefinition.newFieldDefinition()
                 .name(entityType.getName())
                 .description(getSchemaDocumentation(entityType.getJavaType()))
                 .type(new GraphQLList(getObjectType(entityType)))
-                .dataFetcher(new JpaDataFetcher(entityManager, entityType))
+                .dataFetcher(new MetadataDataFetcher(metaDataService, entityType))
                 .argument(entityType.getAttributes().stream().filter(this::isValidInput).filter(this::isNotIgnored).flatMap(this::getArgument).collect(Collectors.toList()))
                 .build();
     }
@@ -128,7 +130,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
                 .name(entityType.getName() + "Connection")
                 .description("'Connection' request wrapper object for " + entityType.getName() + ".  Use this object in a query to request things like pagination or aggregation in an argument.  Use the 'content' field to request actual fields ")
                 .type(pageType)
-                .dataFetcher(new ExtendedJpaDataFetcher(entityManager, entityType))
+                .dataFetcher(new MetadataDataFetcher(metaDataService, entityType))
                 .argument(paginationArgument)
                 .build();
     }
@@ -284,47 +286,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
                 attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.EMBEDDED;
     }
 
-    private String getSchemaDocumentation(Member member) {
-        if (member instanceof AnnotatedElement) {
-            return getSchemaDocumentation((AnnotatedElement) member);
-        }
 
-        return null;
-    }
-
-    private String getSchemaDocumentation(AnnotatedElement annotatedElement) {
-        if (annotatedElement != null) {
-            SchemaDocumentation schemaDocumentation = annotatedElement.getAnnotation(SchemaDocumentation.class);
-            return schemaDocumentation != null ? schemaDocumentation.value() : null;
-        }
-
-        return null;
-    }
-
-    private boolean isNotIgnored(Attribute attribute) {
-        return isNotIgnored(attribute.getJavaMember()) && isNotIgnored(attribute.getJavaType());
-    }
-
-    private boolean isNotIgnored(EmbeddableType<?> embeddableType) {
-        return isNotIgnored(embeddableType.getJavaType());
-    }
-
-    private boolean isNotIgnored(EntityType entityType) {
-        return isNotIgnored(entityType.getJavaType());
-    }
-
-    private boolean isNotIgnored(Member member) {
-        return member instanceof AnnotatedElement && isNotIgnored((AnnotatedElement) member);
-    }
-
-    private boolean isNotIgnored(AnnotatedElement annotatedElement) {
-        if (annotatedElement != null) {
-            GraphQLIgnore schemaDocumentation = annotatedElement.getAnnotation(GraphQLIgnore.class);
-            return schemaDocumentation == null;
-        }
-
-        return false;
-    }
 
     private GraphQLType getTypeFromJavaType(Class clazz) {
         if (clazz.isEnum()) {

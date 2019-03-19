@@ -12,4 +12,5 @@ public class MetaRelationDao extends BaseDaoImpl<MetaRelation, Long> {
     public Map<String, String> getFilterField() {
         return null;
     }
+
 }

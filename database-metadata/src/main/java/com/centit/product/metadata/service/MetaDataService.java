@@ -24,7 +24,11 @@ public interface MetaDataService {
 
     MetaTable getMetaTable(String tableId);
 
+    MetaTable getMetaTableWithRelations(String tableId);
+
     MetaTable getMetaTable(String databaseCode, String tableName);
+
+    MetaTable getMetaTableWithRelations(String databaseCode, String tableName);
 
     List<MetaRelation> listMetaRelation(String tableId, PageDesc pageDesc);
 

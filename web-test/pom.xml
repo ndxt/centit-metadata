@@ -42,8 +42,8 @@
         </dependency>
 
         <dependency>
-            <groupId>com.centit.support</groupId>
-            <artifactId>database-metadata</artifactId>
+            <groupId>com.centit.product</groupId>
+            <artifactId>database-metadata-graphql</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
@@ -99,7 +99,7 @@
             <artifactId>centit-persistence-jdbc-config</artifactId>
         </dependency>
     </dependencies>
-    
+
     <!--  end -->
 
     <build>

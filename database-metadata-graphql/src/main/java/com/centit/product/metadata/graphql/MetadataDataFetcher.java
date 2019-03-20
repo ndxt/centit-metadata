@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class MetadataDataFetcher implements DataFetcher {
 
-    private final MetaDataService metaDataService;
+    private MetaDataService metaDataService;
     protected MetaTable entityType;
 
     public MetadataDataFetcher(MetaDataService metaDataService, MetaTable entityType) {
@@ -44,7 +44,7 @@ public class MetadataDataFetcher implements DataFetcher {
             result.put("objList",
                 getQuery(environment, contentSelection.get()).setMaxResults(pageInformation.getPageSize()).setFirstResult((pageInformation.page - 1) * pageInformation.size).getResultList());
 
-        if (totalElementsSelection.isPresent() || totalPagesSelection.isPresent()) {
+        if (totalElementsSelection.isPresent() || pageSizeSelection.isPresent()) {
             final Long totalElements = contentSelection
                 .map(contentField -> getCountQuery(environment, contentField).getSingleResult())
                 // if no "content" was selected an empty Field can be used

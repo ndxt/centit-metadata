@@ -91,6 +91,17 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     @Column(name = "LAST_MODIFY_DATE")
     private Date lastModifyDate;
 
+    @ApiModelProperty(value = "主表信息")
+    @OneToMany(targetEntity = MetaRelDetail.class)
+    @JoinColumn(name = "parentTableId", referencedColumnName = "tableId")
+    private MetaTable parentTable;
+
+    @ApiModelProperty(value = "从表信息")
+    @OneToMany(targetEntity = MetaRelDetail.class)
+    @JoinColumn(name = "childTableId", referencedColumnName = "tableId")
+    private MetaTable childTable;
+
+
     @ApiModelProperty(value = "关联明细")
     @OneToMany(targetEntity = MetaRelDetail.class)
     @JoinColumn(name = "relationId", referencedColumnName = "relationId")
@@ -113,13 +124,13 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     @Override
     @ApiModelProperty(value = "子表名称")
     public String getTableName() {
-        return String.valueOf(this.childTableId);
+        return this.childTable==null?null:this.childTable.getTableName();
     }
 
     @Override
     @ApiModelProperty(value = "父表名称")
     public String getParentTableName() {
-        return String.valueOf(this.parentTableId);
+        return this.parentTable==null?null:this.parentTable.getTableName();
     }
 
     @Override

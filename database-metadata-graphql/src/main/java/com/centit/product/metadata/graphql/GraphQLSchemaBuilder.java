@@ -1,6 +1,7 @@
 package com.centit.product.metadata.graphql;
 
 import com.centit.product.metadata.po.MetaColumn;
+import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.support.database.utils.FieldType;
@@ -10,15 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.metamodel.*;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,10 +33,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     private final MetaDataService metaDataService;
     private final String databaseId;
 
-    private final Map<Class, GraphQLType> classCache = new HashMap<>();
-    private final Map<EmbeddableType<?>, GraphQLObjectType> embeddableCache = new HashMap<>();
-    private final Map<EntityType, GraphQLObjectType> entityCache = new HashMap<>();
-    private final List<AttributeMapper> attributeMappers = new ArrayList<>();
+    private final Map<String, GraphQLObjectType> entityCache = new HashMap<>();
 
     /**
      * Initialises the builder with the given {@link EntityManager} from which we immediately start to scan for
@@ -50,35 +43,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     public GraphQLSchemaBuilder(MetaDataService metaDataService, String databaseId) {
         this.metaDataService = metaDataService;
         this.databaseId = databaseId;
-        populateStandardAttributeMappers();
-
         super.query(getQueryType());
-    }
-
-    public GraphQLSchemaBuilder(MetaDataService metaDataService, String databaseId, Collection<AttributeMapper> attributeMappers) {
-        this.metaDataService = metaDataService;
-        this.databaseId = databaseId;
-        this.attributeMappers.addAll(attributeMappers);
-        populateStandardAttributeMappers();
-
-        super.query(getQueryType());
-    }
-
-    private void populateStandardAttributeMappers() {
-        attributeMappers.add(createStandardAttributeMapper(UUID.class, JavaScalars.GraphQLUUID));
-        attributeMappers.add(createStandardAttributeMapper(Date.class, JavaScalars.GraphQLDate));
-        attributeMappers.add(createStandardAttributeMapper(LocalDateTime.class, JavaScalars.GraphQLLocalDateTime));
-        attributeMappers.add(createStandardAttributeMapper(Instant.class, JavaScalars.GraphQLInstant));
-        attributeMappers.add(createStandardAttributeMapper(LocalDate.class, JavaScalars.GraphQLLocalDate));
-    }
-
-    private AttributeMapper createStandardAttributeMapper(final Class<?> assignableClass, final GraphQLType type) {
-        return (javaType) -> {
-            if (assignableClass.isAssignableFrom(javaType))
-                return Optional.of(type);
-
-            return Optional.empty();
-        };
     }
 
     /**
@@ -91,9 +56,10 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     }
 
     GraphQLObjectType getQueryType() {
+        List<MetaTable> metaTables = metaDataService.listAllMetaTablesWithDetail(databaseId);
         GraphQLObjectType.Builder queryType = GraphQLObjectType.newObject().name("QueryType_MD").description("All encompassing schema for this database metadata environment");
-        queryType.fields(metaDataService.listAllMetaTables(databaseId).stream().map(this::getQueryFieldDefinition).collect(Collectors.toList()));
-        queryType.fields(metaDataService.listAllMetaTables(databaseId).stream().map(this::getQueryFieldPageableDefinition).collect(Collectors.toList()));
+        queryType.fields(metaTables.stream().map(this::getQueryFieldDefinition).collect(Collectors.toList()));
+        queryType.fields(metaTables.stream().map(this::getQueryFieldPageableDefinition).collect(Collectors.toList()));
         return queryType.build();
     }
 
@@ -132,11 +98,10 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     private Stream<GraphQLArgument> getArgument(MetaColumn attribute) {
         return getAttributeType(attribute)
                 .filter(type -> type instanceof GraphQLInputType)
-                .filter(type -> attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.EMBEDDED ||
-                        (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.EMBEDDED && type instanceof GraphQLScalarType))
+                //.filter(type -> attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.EMBEDDED ||
+                //        (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.EMBEDDED && type instanceof GraphQLScalarType))
                 .map(type -> {
-                    String name = attribute.getName();
-
+                    String name = attribute.getPropertyName();///.getName();
                     return GraphQLArgument.newArgument()
                             .name(name)
                             .type((GraphQLInputType) type)
@@ -145,19 +110,38 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     }
 
     GraphQLObjectType getObjectType(MetaTable entityType) {
-        if (entityCache.containsKey(entityType))
-            return entityCache.get(entityType);
+
+        String entityName = FieldType.mapPropName(entityType.getTableName());
+        if (entityCache.containsKey(entityName))
+            return entityCache.get(entityName);
 
         GraphQLObjectType answer = GraphQLObjectType.newObject()
-                .name(entityType.getName())
-                .description(getSchemaDocumentation(entityType.getJavaType()))
-                .fields(entityType.getColumns().stream().filter(this::isNotIgnored).flatMap(this::getObjectField).collect(Collectors.toList()))
-                .fields(entityType.getMdRelations().stream().filter(this::isNotIgnored).flatMap(this::getObjectField).collect(Collectors.toList()))
+                .name(entityName)
+                .description(entityType.getTableLabelName() +":"+ entityType.getTableComment())
+                .fields(entityType.getColumns().stream().flatMap(this::getObjectField).collect(Collectors.toList()))
+                .fields(entityType.getMdRelations().stream().flatMap(this::getObjectRefenceField).collect(Collectors.toList()))
                 .build();
 
-        entityCache.put(entityType, answer);
+        entityCache.put(entityName, answer);
 
         return answer;
+    }
+
+
+    private Stream<GraphQLFieldDefinition> getObjectRefenceField(MetaRelation attribute) {
+        return getAttributeType(attribute)
+            .filter(type -> type instanceof GraphQLOutputType)
+            .map(type -> {
+                List<GraphQLArgument> arguments = new ArrayList<>();
+                arguments.add(GraphQLArgument.newArgument().name("orderBy").type(orderByDirectionEnum).build());            // Always add the orderBy argument
+                String name = attribute.getReferenceName();
+                return GraphQLFieldDefinition.newFieldDefinition()
+                    .name(name)
+                    .description(attribute.getRelationComment())
+                    .type((GraphQLOutputType) type)
+                    .argument(arguments)
+                    .build();
+            });
     }
 
 
@@ -168,139 +152,63 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
                     List<GraphQLArgument> arguments = new ArrayList<>();
                     arguments.add(GraphQLArgument.newArgument().name("orderBy").type(orderByDirectionEnum).build());            // Always add the orderBy argument
 
-                    // Get the fields that can be queried on (i.e. Simple Types, no Sub-Objects)
-                    if (attribute instanceof SingularAttribute
-                            && attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC) {
-                        ManagedType foreignType = (ManagedType) ((SingularAttribute) attribute).getType();
-
-                        Stream<Attribute> attributes = findBasicAttributes(foreignType.getAttributes());
-
-                        attributes.forEach(it -> {
-                            arguments.add(GraphQLArgument.newArgument()
-                                    .name(it.getName())
-                                    .type((GraphQLInputType) getAttributeType(it).findFirst().get())
-                                    .build());
-                        });
-                    }
-
-                    String name = attribute.getName();
-
-
+                    String name = attribute.getPropertyName();
                     return GraphQLFieldDefinition.newFieldDefinition()
                             .name(name)
-                            .description(getSchemaDocumentation(attribute.getJavaMember()))
+                            .description(attribute.getFieldLabelName())
                             .type((GraphQLOutputType) type)
                             .argument(arguments)
                             .build();
                 });
     }
 
-    private Stream<Attribute> findBasicAttributes(Collection<Attribute> attributes) {
-        return attributes.stream().filter(this::isNotIgnored).filter(it -> it.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC);
+
+
+    private GraphQLType getBasicAttributeType(MetaColumn attribute) {
+        // First check our 'standard' and 'customized' Attribute Mappers.  Use them if possible
+        String columnType = attribute.getColumnType();
+        if("NUMBER".equalsIgnoreCase(columnType) ||
+            "INTEGER".equalsIgnoreCase(columnType)||
+            "DECIMAL".equalsIgnoreCase(columnType) ){
+            if( attribute.getScale() > 0 ) {
+                return Scalars.GraphQLFloat;
+            } else {
+                return Scalars.GraphQLLong;
+            }
+        }else if("FLOAT".equalsIgnoreCase(columnType)){
+            return Scalars.GraphQLFloat;
+        }else if("CHAR".equalsIgnoreCase(columnType) ||
+            "VARCHAR".equalsIgnoreCase(columnType)||
+            "VARCHAR2".equalsIgnoreCase(columnType)||
+            "STRING".equalsIgnoreCase(columnType) ){
+            return Scalars.GraphQLString;
+        }else if("DATE".equalsIgnoreCase(columnType) ||
+            "TIME".equalsIgnoreCase(columnType)||
+            "DATETIME".equalsIgnoreCase(columnType) ){
+            return JavaScalars.GraphQLLocalDateTime;
+        }else if("TIMESTAMP".equalsIgnoreCase(columnType) ){
+            return JavaScalars.GraphQLLocalDateTime;
+        }else if("CLOB".equalsIgnoreCase(columnType) /*||
+                   "LOB".equalsIgnoreCase(columnType)||
+                   "BLOB".equalsIgnoreCase(columnType)*/ ){
+            return Scalars.GraphQLString;
+        }else if("BLOB".equalsIgnoreCase(columnType) ) {
+            return Scalars.GraphQLByte;
+        }else if("BOOLEAN".equalsIgnoreCase(columnType) ){
+            return Scalars.GraphQLBoolean;
+        }else if("MONEY".equalsIgnoreCase(columnType) ){
+            return Scalars.GraphQLBigDecimal;
+        }else {
+            return Scalars.GraphQLString;
+        }
     }
 
-    private GraphQLType getBasicAttributeType(Class javaType) {
-        // First check our 'standard' and 'customized' Attribute Mappers.  Use them if possible
-        Optional<AttributeMapper> customMapper = attributeMappers.stream()
-                .filter(it -> it.getBasicAttributeType(javaType).isPresent())
-                .findFirst();
-
-        if (customMapper.isPresent())
-            return customMapper.get().getBasicAttributeType(javaType).get();
-        else if (String.class.isAssignableFrom(javaType))
-            return Scalars.GraphQLString;
-        else if (Integer.class.isAssignableFrom(javaType) || int.class.isAssignableFrom(javaType))
-            return Scalars.GraphQLInt;
-        else if (Short.class.isAssignableFrom(javaType) || short.class.isAssignableFrom(javaType))
-            return Scalars.GraphQLShort;
-        else if (Float.class.isAssignableFrom(javaType) || float.class.isAssignableFrom(javaType)
-                || Double.class.isAssignableFrom(javaType) || double.class.isAssignableFrom(javaType))
-            return Scalars.GraphQLFloat;
-        else if (Long.class.isAssignableFrom(javaType) || long.class.isAssignableFrom(javaType))
-            return Scalars.GraphQLLong;
-        else if (Boolean.class.isAssignableFrom(javaType) || boolean.class.isAssignableFrom(javaType))
-            return Scalars.GraphQLBoolean;
-        else if (javaType.isEnum()) {
-            return getTypeFromJavaType(javaType);
-        } else if (BigDecimal.class.isAssignableFrom(javaType)) {
-            return Scalars.GraphQLBigDecimal;
-        }
-
-        throw new UnsupportedOperationException(
-                "Class could not be mapped to GraphQL: '" + javaType.getClass().getTypeName() + "'");
+    private Stream<GraphQLType> getAttributeType(MetaRelation attribute) {
+        return Stream.of(new GraphQLList(new GraphQLTypeReference( FieldType.mapPropName(attribute.getTableName()))));
     }
 
     private Stream<GraphQLType> getAttributeType(MetaColumn attribute) {
-        if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC) {
-            try {
-                return Stream.of(getBasicAttributeType(attribute.getJavaType()));
-            } catch (UnsupportedOperationException e) {
-                //fall through to the exception below
-                //which is more useful because it also contains the declaring member
-            }
-        } else if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY) {
-            EntityType foreignType = (EntityType) ((PluralAttribute) attribute).getElementType();
-            return Stream.of(new GraphQLList(new GraphQLTypeReference(foreignType.getName())));
-        } else if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE) {
-            EntityType foreignType = (EntityType) ((SingularAttribute) attribute).getType();
-            return Stream.of(new GraphQLTypeReference(foreignType.getName()));
-        } else if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ELEMENT_COLLECTION) {
-            Type foreignType = ((PluralAttribute) attribute).getElementType();
-            return Stream.of(new GraphQLList(getTypeFromJavaType(foreignType.getJavaType())));
-        } else if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.EMBEDDED) {
-            EmbeddableType<?> embeddableType = (EmbeddableType<?>) ((SingularAttribute<?,?>) attribute).getType();
-            return Stream.of(new GraphQLTypeReference(embeddableType.getJavaType().getSimpleName()));
-        }
-
-        final String declaringType = attribute.getDeclaringType().getJavaType().getName(); // fully qualified name of the entity class
-        final String declaringMember = attribute.getJavaMember().getName(); // field name in the entity class
-
-        throw new UnsupportedOperationException(
-                "Attribute could not be mapped to GraphQL: field '" + declaringMember + "' of entity class '" + declaringType + "'");
-    }
-
-    private boolean isValidInput(Attribute attribute) {
-        return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC ||
-                attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ELEMENT_COLLECTION ||
-                attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.EMBEDDED;
-    }
-
-
-
-    private GraphQLType getTypeFromJavaType(Class clazz) {
-        if (clazz.isEnum()) {
-            if (classCache.containsKey(clazz))
-                return classCache.get(clazz);
-
-            GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum().name(clazz.getSimpleName());
-            int ordinal = 0;
-            for (Enum enumValue : ((Class<Enum>) clazz).getEnumConstants())
-                enumBuilder.value(enumValue.name(), ordinal++);
-
-            GraphQLType answer = enumBuilder.build();
-            setIdentityCoercing(answer);
-
-            classCache.put(clazz, answer);
-
-            return answer;
-        }
-
-        return getBasicAttributeType(clazz);
-    }
-
-    /**
-     * A bit of a hack, since JPA will deserialize our Enum's for us...we don't want GraphQL doing it.
-     *
-     * @param type
-     */
-    private void setIdentityCoercing(GraphQLType type) {
-        try {
-            Field coercing = type.getClass().getDeclaredField("coercing");
-            coercing.setAccessible(true);
-            coercing.set(type, new IdentityCoercing());
-        } catch (Exception e) {
-            log.error("Unable to set coercing for " + type, e);
-        }
+        return Stream.of(getBasicAttributeType(attribute));
     }
 
     private static final GraphQLArgument paginationArgument =

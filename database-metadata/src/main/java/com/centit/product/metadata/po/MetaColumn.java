@@ -218,8 +218,6 @@ public class MetaColumn implements TableField,java.io.Serializable {
         return FieldType.mapPropName(this.columnName);
     }
 
-
-
     @Override
     public String getJavaType() {
         return FieldType.mapToJavaType(this.columnType,this.columnPrecision);

@@ -14,6 +14,8 @@ public interface MetaDataService {
 
     List<MetaTable> listAllMetaTables(String databaseCode);
 
+    List<MetaTable> listAllMetaTablesWithDetail(String databaseCode);
+
     List<MetaTable> listMetaTables(String databaseCode, PageDesc pageDes);
 
     List<DatabaseInfo> listDatabase();

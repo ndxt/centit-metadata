@@ -66,6 +66,20 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    public List<MetaTable> listAllMetaTablesWithDetail(String databaseCode) {
+        List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode));
+        for(MetaTable mt : metaTables){
+            metaTableDao.fetchObjectReferences(mt);
+            if(mt.getMdRelations() != null){
+                for(MetaRelation mr : mt.getMdRelations()) {
+                    metaRelationDao.fetchObjectReferences(mr);
+                }
+            }
+        }
+        return metaTables;
+    }
+
+    @Override
     public List<SimpleTableInfo> listRealTables(String databaseCode) {
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();

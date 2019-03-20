@@ -1,33 +1,33 @@
 package com.centit.product.metadata.controller;
 
-import com.centit.framework.common.ObjectException;
-import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.ip.po.DatabaseInfo;
-import com.centit.framework.security.model.CentitUserDetails;
-import com.centit.support.database.metadata.SimpleTableInfo;
-import com.centit.support.database.utils.PageDesc;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.vo.MetaTableCascade;
+import com.centit.support.database.metadata.SimpleTableInfo;
+import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.List;
 
 @Api(value = "数据库元数据", tags = "元数据")
 @RestController
-@RequestMapping(value = "metadata")
-public class MetadataController {
+@RequestMapping(value = "query")
+public class MetadataQueryController {
 
     @Autowired
     private MetaDataService metaDataService;
@@ -55,17 +55,6 @@ public class MetadataController {
         return metaDataService.listRealTables(databaseCode);
     }
 
-    @ApiOperation(value = "同步数据库")
-    @ApiImplicitParam(name = "databaseCode", value = "数据库ID")
-    @GetMapping(value = "/{databaseCode}/synchronization")
-    @WrapUpResponseBody
-    public void syncDb(@PathVariable String databaseCode){
-        CentitUserDetails userDetails = WebOptUtils.getLoginUser();
-        if(userDetails == null){
-            throw new ObjectException("未登录");
-        }
-        metaDataService.syncDb(databaseCode, userDetails.getUserCode());
-    }
 
     @ApiOperation(value = "查询单个表元数据")
     @ApiImplicitParam(name = "tableId", value = "表ID")
@@ -97,48 +86,12 @@ public class MetadataController {
         return metaDataService.getMetaColumn(tableId, columnName);
     }
 
-    @ApiOperation(value = "修改表元数据")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "tableId", value = "表ID"),
-        @ApiImplicitParam(name = "tableLabelName", value = "中文名"),
-        @ApiImplicitParam(name = "tableComment", value = "描述")
-    })
-    @PutMapping(value = "/table/{tableId}")
-    @WrapUpResponseBody
-    public void updateMetaTable(@PathVariable String tableId, String tableName, String tableComment, String tableState){
-        CentitUserDetails userDetails = WebOptUtils.getLoginUser();
-        if(userDetails == null){
-            throw new ObjectException("未登录");
-        }
-        metaDataService.updateMetaTable(tableId, tableName, tableComment, tableState, userDetails.getUserCode());
-    }
-
-    @ApiOperation(value = "修改列元数据")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "tableId", value = "表ID"),
-        @ApiImplicitParam(name = "fieldLabelName", value = "列名")
-    })
-    @PutMapping(value = "/column/{tableId}/{columnCode}")
-    @WrapUpResponseBody
-    public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode, MetaColumn metaColumn){
-        metaColumn.setTableId(tableId);
-        metaColumn.setColumnName(columnCode);
-        metaDataService.updateMetaColumn(metaColumn);
-    }
-
     @ApiOperation(value = "查询关联关系元数据")
     @GetMapping(value = "/{tableId}/relations")
     @WrapUpResponseBody
     public PageQueryResult<MetaRelation> metaRelation(@PathVariable String tableId, PageDesc pageDesc){
         List<MetaRelation> list = metaDataService.listMetaRelation(tableId, pageDesc);
         return PageQueryResult.createResultMapDict(list, pageDesc);
-    }
-
-    @ApiOperation(value = "新建关联关系元数据")
-    @PostMapping(value = "/{tableId}/relation")
-    @WrapUpResponseBody
-    public void createRelations(@PathVariable String tableId, MetaTable metaTable){
-        metaDataService.saveRelations(tableId, metaTable.getMdRelations());
     }
 
     @ApiOperation(value = "元数据级联字段，只查询一层")

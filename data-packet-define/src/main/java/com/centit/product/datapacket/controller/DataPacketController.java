@@ -23,7 +23,7 @@ import java.util.Set;
 
 @Api(value = "数据包", tags = "数据包")
 @RestController
-@RequestMapping(value = "data_resource")
+@RequestMapping(value = "packet")
 public class DataPacketController extends BaseController {
 
     @Autowired

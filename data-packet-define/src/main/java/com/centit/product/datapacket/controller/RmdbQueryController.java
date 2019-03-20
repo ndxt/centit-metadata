@@ -23,7 +23,7 @@ import java.util.Set;
 
 @Api(value = "数据库查询", tags = "数据库查询")
 @RestController
-@RequestMapping(value = "db_query")
+@RequestMapping(value = "query")
 public class RmdbQueryController extends BaseController {
 
     @Autowired

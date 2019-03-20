@@ -61,6 +61,11 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    public List<MetaTable> listAllMetaTables(String databaseCode) {
+        return metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode));
+    }
+
+    @Override
     public List<SimpleTableInfo> listRealTables(String databaseCode) {
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();

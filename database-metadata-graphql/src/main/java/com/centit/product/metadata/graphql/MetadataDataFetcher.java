@@ -2,12 +2,12 @@ package com.centit.product.metadata.graphql;
 
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.support.database.utils.PageDesc;
 import graphql.language.*;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLObjectType;
 
-import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import javax.persistence.metamodel.Attribute;
@@ -32,16 +32,17 @@ public class MetadataDataFetcher implements DataFetcher {
         Field field = environment.getFields().iterator().next();
         Map<String, Object> result = new LinkedHashMap<>();
 
-        PageInformation pageInformation = extractPageInformation(environment, field);
+        PageDesc pageInformation = extractPageInformation(environment, field);
 
         // See which fields we're requesting
-        Optional<Field> totalPagesSelection = getSelectionField(field, "totalPages");
-        Optional<Field> totalElementsSelection = getSelectionField(field, "totalElements");
-        Optional<Field> contentSelection = getSelectionField(field, "content");
+        Optional<Field> pageNoSelection = getSelectionField(field, "pageNo");
+        Optional<Field> pageSizeSelection = getSelectionField(field, "pageSize");
+        Optional<Field> totalElementsSelection = getSelectionField(field, "totalRows");
+        Optional<Field> contentSelection = getSelectionField(field, "objList");
 
         if (contentSelection.isPresent())
-            result.put("content",
-                getQuery(environment, contentSelection.get()).setMaxResults(pageInformation.size).setFirstResult((pageInformation.page - 1) * pageInformation.size).getResultList());
+            result.put("objList",
+                getQuery(environment, contentSelection.get()).setMaxResults(pageInformation.getPageSize()).setFirstResult((pageInformation.page - 1) * pageInformation.size).getResultList());
 
         if (totalElementsSelection.isPresent() || totalPagesSelection.isPresent()) {
             final Long totalElements = contentSelection
@@ -49,8 +50,9 @@ public class MetadataDataFetcher implements DataFetcher {
                 // if no "content" was selected an empty Field can be used
                 .orElseGet(() -> getCountQuery(environment, new Field()).getSingleResult());
 
-            result.put("totalElements", totalElements);
-            result.put("totalPages", ((Double) Math.ceil(totalElements / (double) pageInformation.size)).longValue());
+            result.put("pageSize", pageInformation.getPageSize());
+            result.put("totalRows", totalElements);
+            result.put("pageNo", pageInformation.getPageNo());
         }
 
         return result;
@@ -74,7 +76,7 @@ public class MetadataDataFetcher implements DataFetcher {
         return field.getSelectionSet().getSelections().stream().filter(it -> it instanceof Field).map(it -> (Field) it).filter(it -> fieldName.equals(it.getName())).findFirst();
     }
 
-    private PageInformation extractPageInformation(DataFetchingEnvironment environment, Field field) {
+    private PageDesc extractPageInformation(DataFetchingEnvironment environment, Field field) {
         Optional<Argument> paginationRequest = field.getArguments().stream().filter(it -> GraphQLSchemaBuilder.PAGINATION_REQUEST_PARAM_NAME.equals(it.getName())).findFirst();
         if (paginationRequest.isPresent()) {
             field.getArguments().remove(paginationRequest.get());
@@ -83,21 +85,13 @@ public class MetadataDataFetcher implements DataFetcher {
             IntValue page = (IntValue) paginationValues.getObjectFields().stream().filter(it -> "page".equals(it.getName())).findFirst().get().getValue();
             IntValue size = (IntValue) paginationValues.getObjectFields().stream().filter(it -> "size".equals(it.getName())).findFirst().get().getValue();
 
-            return new PageInformation(page.getValue().intValue(), size.getValue().intValue());
+            return new PageDesc(page.getValue().intValue(), size.getValue().intValue());
         }
 
-        return new PageInformation(1, Integer.MAX_VALUE);
+        return new PageDesc(1, Integer.MAX_VALUE);
     }
 
-    private static final class PageInformation {
-        public Integer page;
-        public Integer size;
 
-        public PageInformation(Integer page, Integer size) {
-            this.page = page;
-            this.size = size;
-        }
-    }
 
     protected TypedQuery getQuery(DataFetchingEnvironment environment, Field field) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();

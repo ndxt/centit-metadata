@@ -1,7 +1,9 @@
 package com.centit.product.metadata.graphql;
 
+import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.support.database.utils.FieldType;
 import graphql.Scalars;
 import graphql.schema.*;
 import org.slf4j.Logger;
@@ -90,52 +92,44 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
 
     GraphQLObjectType getQueryType() {
         GraphQLObjectType.Builder queryType = GraphQLObjectType.newObject().name("QueryType_MD").description("All encompassing schema for this database metadata environment");
-        queryType.fields(entityManager.getMetamodel().getEntities().stream().filter(this::isNotIgnored).map(this::getQueryFieldDefinition).collect(Collectors.toList()));
-        queryType.fields(entityManager.getMetamodel().getEntities().stream().filter(this::isNotIgnored).map(this::getQueryFieldPageableDefinition).collect(Collectors.toList()));
-        queryType.fields(entityManager.getMetamodel().getEmbeddables().stream().filter(this::isNotIgnored).map(this::getQueryEmbeddedFieldDefinition).collect(Collectors.toList()));
-
+        queryType.fields(metaDataService.listAllMetaTables(databaseId).stream().map(this::getQueryFieldDefinition).collect(Collectors.toList()));
+        queryType.fields(metaDataService.listAllMetaTables(databaseId).stream().map(this::getQueryFieldPageableDefinition).collect(Collectors.toList()));
         return queryType.build();
     }
 
     GraphQLFieldDefinition getQueryFieldDefinition(MetaTable entityType) {
         return GraphQLFieldDefinition.newFieldDefinition()
-                .name(entityType.getName())
-                .description(getSchemaDocumentation(entityType.getJavaType()))
+                .name(FieldType.mapPropName(entityType.getTableName()))
+                .description(entityType.getTableLabelName())
                 .type(new GraphQLList(getObjectType(entityType)))
                 .dataFetcher(new MetadataDataFetcher(metaDataService, entityType))
-                .argument(entityType.getAttributes().stream().filter(this::isValidInput).filter(this::isNotIgnored).flatMap(this::getArgument).collect(Collectors.toList()))
+                .argument(entityType.getColumns().stream().flatMap(this::getArgument).collect(Collectors.toList()))
                 .build();
     }
 
-    GraphQLFieldDefinition getQueryEmbeddedFieldDefinition(EmbeddableType<?> embeddableType) {
-    	String embeddedName = embeddableType.getJavaType().getSimpleName();
-        return GraphQLFieldDefinition.newFieldDefinition()
-                .name(embeddedName)
-                .description(getSchemaDocumentation(embeddableType.getJavaType()))
-                .type(new GraphQLList(getObjectType(embeddableType)))
-                .argument(embeddableType.getAttributes().stream().filter(this::isValidInput).filter(this::isNotIgnored).flatMap(this::getArgument).collect(Collectors.toList()))
-                .build();
-    }
 
-    private GraphQLFieldDefinition getQueryFieldPageableDefinition(EntityType<?> entityType) {
+
+    private GraphQLFieldDefinition getQueryFieldPageableDefinition(MetaTable entityType) {
+        String entityName = FieldType.mapPropName(entityType.getTableName());
         GraphQLObjectType pageType = GraphQLObjectType.newObject()
-                .name(entityType.getName() + "Connection")
-                .description("'Connection' response wrapper object for " + entityType.getName() + ".  When pagination or aggregation is requested, this object will be returned with metadata about the query.")
-                .field(GraphQLFieldDefinition.newFieldDefinition().name("totalPages").description("Total number of pages calculated on the database for this pageSize.").type(Scalars.GraphQLLong).build())
-                .field(GraphQLFieldDefinition.newFieldDefinition().name("totalElements").description("Total number of results on the database for this query.").type(Scalars.GraphQLLong).build())
-                .field(GraphQLFieldDefinition.newFieldDefinition().name("content").description("The actual object results").type(new GraphQLList(getObjectType(entityType))).build())
+                .name(entityName + "Connection")
+                .description("'Connection' response wrapper object for " + entityName + ".  When pagination or aggregation is requested, this object will be returned with metadata about the query.")
+                .field(GraphQLFieldDefinition.newFieldDefinition().name("pageNo").description("Total index of current page.").type(Scalars.GraphQLLong).build())
+                .field(GraphQLFieldDefinition.newFieldDefinition().name("pageSize").description("Total max number of one page.").type(Scalars.GraphQLLong).build())
+                .field(GraphQLFieldDefinition.newFieldDefinition().name("totalRows").description("Total number of results on the database for this query.").type(Scalars.GraphQLLong).build())
+                .field(GraphQLFieldDefinition.newFieldDefinition().name("objList").description("The actual object results").type(new GraphQLList(getObjectType(entityType))).build())
                 .build();
 
         return GraphQLFieldDefinition.newFieldDefinition()
-                .name(entityType.getName() + "Connection")
-                .description("'Connection' request wrapper object for " + entityType.getName() + ".  Use this object in a query to request things like pagination or aggregation in an argument.  Use the 'content' field to request actual fields ")
+                .name(entityName + "Connection")
+                .description("'Connection' request wrapper object for " + entityName + ".  Use this object in a query to request things like pagination or aggregation in an argument.  Use the 'content' field to request actual fields ")
                 .type(pageType)
                 .dataFetcher(new MetadataDataFetcher(metaDataService, entityType))
                 .argument(paginationArgument)
                 .build();
     }
 
-    private Stream<GraphQLArgument> getArgument(Attribute attribute) {
+    private Stream<GraphQLArgument> getArgument(MetaColumn attribute) {
         return getAttributeType(attribute)
                 .filter(type -> type instanceof GraphQLInputType)
                 .filter(type -> attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.EMBEDDED ||
@@ -150,14 +144,15 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
                 });
     }
 
-    GraphQLObjectType getObjectType(EntityType<?> entityType) {
+    GraphQLObjectType getObjectType(MetaTable entityType) {
         if (entityCache.containsKey(entityType))
             return entityCache.get(entityType);
 
         GraphQLObjectType answer = GraphQLObjectType.newObject()
                 .name(entityType.getName())
                 .description(getSchemaDocumentation(entityType.getJavaType()))
-                .fields(entityType.getAttributes().stream().filter(this::isNotIgnored).flatMap(this::getObjectField).collect(Collectors.toList()))
+                .fields(entityType.getColumns().stream().filter(this::isNotIgnored).flatMap(this::getObjectField).collect(Collectors.toList()))
+                .fields(entityType.getMdRelations().stream().filter(this::isNotIgnored).flatMap(this::getObjectField).collect(Collectors.toList()))
                 .build();
 
         entityCache.put(entityType, answer);
@@ -165,24 +160,8 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
         return answer;
     }
 
-    GraphQLObjectType getObjectType(EmbeddableType<?> embeddableType) {
 
-        if (embeddableCache.containsKey(embeddableType))
-            return embeddableCache.get(embeddableType);
-
-        String embeddableName= embeddableType.getJavaType().getSimpleName();
-        GraphQLObjectType answer = GraphQLObjectType.newObject()
-                .name(embeddableName)
-                .description(getSchemaDocumentation(embeddableType.getJavaType()))
-                .fields(embeddableType.getAttributes().stream().filter(this::isNotIgnored).flatMap(this::getObjectField).collect(Collectors.toList()))
-                .build();
-
-        embeddableCache.put(embeddableType, answer);
-
-        return answer;
-    }
-
-    private Stream<GraphQLFieldDefinition> getObjectField(Attribute attribute) {
+    private Stream<GraphQLFieldDefinition> getObjectField(MetaColumn attribute) {
         return getAttributeType(attribute)
                 .filter(type -> type instanceof GraphQLOutputType)
                 .map(type -> {
@@ -251,7 +230,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
                 "Class could not be mapped to GraphQL: '" + javaType.getClass().getTypeName() + "'");
     }
 
-    private Stream<GraphQLType> getAttributeType(Attribute attribute) {
+    private Stream<GraphQLType> getAttributeType(MetaColumn attribute) {
         if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC) {
             try {
                 return Stream.of(getBasicAttributeType(attribute.getJavaType()));
@@ -330,8 +309,8 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
                     .type(GraphQLInputObjectType.newInputObject()
                             .name("PaginationObject")
                             .description("Query object for Pagination Requests, specifying the requested page, and that page's size.\n\nNOTE: 'page' parameter is 1-indexed, NOT 0-indexed.\n\nExample: paginationRequest { page: 1, size: 20 }")
-                            .field(GraphQLInputObjectField.newInputObjectField().name("page").description("Which page should be returned, starting with 1 (1-indexed)").type(Scalars.GraphQLInt).build())
-                            .field(GraphQLInputObjectField.newInputObjectField().name("size").description("How many results should this page contain").type(Scalars.GraphQLInt).build())
+                            .field(GraphQLInputObjectField.newInputObjectField().name("pageNo").description("Which page should be returned, starting with 1 (1-indexed)").type(Scalars.GraphQLInt).build())
+                            .field(GraphQLInputObjectField.newInputObjectField().name("pageSize").description("How many results should this page contain").type(Scalars.GraphQLInt).build())
                             .build()
                     ).build();
 

@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collections;
 import java.util.List;
 
-@Api(value = "数据库元数据", tags = "元数据")
+@Api(value = "数据库元数据查询", tags = "元数据查询")
 @RestController
 @RequestMapping(value = "query")
 public class MetadataQueryController {

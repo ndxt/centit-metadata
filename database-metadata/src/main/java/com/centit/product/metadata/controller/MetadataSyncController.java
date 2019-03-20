@@ -14,7 +14,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-@Api(value = "数据库元数据", tags = "元数据")
+@Api(value = "数据库元数据信息完善", tags = "元数据信息完善")
 @RestController
 @RequestMapping(value = "update")
 public class MetadataSyncController {

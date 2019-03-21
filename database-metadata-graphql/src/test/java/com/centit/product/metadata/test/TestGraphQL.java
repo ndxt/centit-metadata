@@ -6,24 +6,22 @@ import com.centit.product.metadata.service.MetaDataService;
 import com.centit.support.database.utils.DataSourceDescription;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootContextLoader;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
+@PropertySource(value = "classpath:application.properties")
 @ComponentScan(basePackages = {"com.centit"},
     excludeFilters = @ComponentScan.Filter(value = org.springframework.stereotype.Controller.class))
-@PropertySource(value = "classpath:system.properties")
 @Import(value = {JdbcConfig.class})
-@SpringBootTest
-@ContextConfiguration(loader = SpringBootContextLoader.class, classes = TestGraphQL.class)
+@ContextConfiguration(classes = TestGraphQL.class)
+@RunWith(SpringRunner.class)
 public class TestGraphQL {
-    protected Logger logger = LoggerFactory.getLogger(getClass());
+    //protected Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private MetaDataService metaDataService;
@@ -38,6 +36,7 @@ public class TestGraphQL {
             "framework",
             "framework"
         );
+        //metaDataService.
         System.out.println(dataSource.getUrl());
         dataSourceDesc.setDatabaseCode("stat");
         GraphQLExecutor executor = new GraphQLExecutor(metaDataService, dataSourceDesc);

@@ -58,7 +58,7 @@ public class RmdbQuery implements Serializable {
     @DictionaryMap(fieldName = "recorderName", value = "userCode")
     private String recorder;
 
-    @Column(name = "RECORD_DATE")
+    @Column(name = "RECORDDATE")
     @ApiModelProperty(value = "修改时间", hidden = true)
     @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
     @JSONField(serialize = false)

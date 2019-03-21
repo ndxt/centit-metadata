@@ -2,23 +2,37 @@ package com.centit.product.metadata.graphql;
 
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.support.algorithm.CollectionsOpt;
+import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
+import com.centit.support.database.utils.DataSourceDescription;
+import com.centit.support.database.utils.DatabaseAccess;
 import com.centit.support.database.utils.PageDesc;
+import com.centit.support.database.utils.TransactionHandler;
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.language.IntValue;
 import graphql.language.ObjectValue;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 
 public class MetadataDataFetcher implements DataFetcher {
 
+    protected Logger logger = LoggerFactory.getLogger(MetadataDataFetcher.class);
+
     private MetaDataService metaDataService;
+    private DataSourceDescription dataSourceDesc;
     protected MetaTable entityType;
 
-    public MetadataDataFetcher(MetaDataService metaDataService, MetaTable entityType) {
+    public MetadataDataFetcher(MetaDataService metaDataService, DataSourceDescription dataSourceDesc, MetaTable entityType) {
         this.metaDataService = metaDataService;
+        this.dataSourceDesc = dataSourceDesc;
         this.entityType = entityType;
     }
 
@@ -54,8 +68,15 @@ public class MetadataDataFetcher implements DataFetcher {
     }
 
     private Long getCountQuery(DataFetchingEnvironment environment, Field field) {
-
-
+        try {
+            return TransactionHandler.executeQueryInTransaction(dataSourceDesc,
+                (conn) ->
+                    NumberBaseOpt.castObjectToLong(
+                        DatabaseAccess.getScalarObjectQuery(conn, "select count(1) as c from " + entityType.getTableName()))
+            );
+        } catch (SQLException | IOException e) {
+            logger.error(e.getLocalizedMessage(),e);
+        }
         return 0L;
     }
 
@@ -78,9 +99,16 @@ public class MetadataDataFetcher implements DataFetcher {
         return new PageDesc(1, Integer.MAX_VALUE);
     }
 
-
-
     protected List<Object> getQuery(DataFetchingEnvironment environment, Field field, PageDesc pageInformation) {
+        try {
+            return TransactionHandler.executeQueryInTransaction(dataSourceDesc,
+                (conn) ->
+                    GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
+                        new HashMap<>(1),pageInformation.getRowStart(), pageInformation.getPageSize())
+                    );
+         } catch (SQLException | IOException e) {
+            logger.error(e.getLocalizedMessage(),e);
+        }
         return new ArrayList<>();
     }
 

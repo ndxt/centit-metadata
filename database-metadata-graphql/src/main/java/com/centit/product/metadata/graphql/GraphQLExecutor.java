@@ -1,6 +1,7 @@
 package com.centit.product.metadata.graphql;
 
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.support.database.utils.DataSourceDescription;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -23,8 +24,8 @@ public class GraphQLExecutor {
 
     @Resource
     private MetaDataService metaDataService;
+    private DataSourceDescription dataSourceDesc;
 
-    private String databaseId;
     private GraphQL graphQL;
     private GraphQLSchema graphQLSchema;
     private GraphQLSchema.Builder builder;
@@ -39,8 +40,9 @@ public class GraphQLExecutor {
      * @param metaDataService The entity manager from which the JPA classes annotated with
      *                      {@link javax.persistence.Entity} is extracted as {@link GraphQLSchema} objects.
      */
-    public GraphQLExecutor(MetaDataService metaDataService) {
+    public GraphQLExecutor(MetaDataService metaDataService,DataSourceDescription databaseId) {
         this.metaDataService = metaDataService;
+        this.dataSourceDesc = databaseId;
         createGraphQL();
     }
 
@@ -49,7 +51,7 @@ public class GraphQLExecutor {
      protected synchronized void createGraphQL() {
         if (metaDataService != null) {
             if (builder == null) {
-                this.builder = new GraphQLSchemaBuilder(metaDataService, databaseId);
+                this.builder = new GraphQLSchemaBuilder(metaDataService, dataSourceDesc);
             }
             this.graphQLSchema = builder.build();
             this.graphQL = GraphQL.newGraphQL(graphQLSchema).build();
@@ -105,7 +107,4 @@ public class GraphQLExecutor {
         return this;
     }
 
-    public void setDatabaseId(String databaseId) {
-        this.databaseId = databaseId;
-    }
-}
+ }

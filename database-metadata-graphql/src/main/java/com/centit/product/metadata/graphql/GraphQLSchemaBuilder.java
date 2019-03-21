@@ -4,6 +4,7 @@ import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.FieldType;
 import graphql.Scalars;
 import graphql.schema.*;
@@ -31,7 +32,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     private static final Logger log = LoggerFactory.getLogger(GraphQLSchemaBuilder.class);
 
     private final MetaDataService metaDataService;
-    private final String databaseId;
+    private final DataSourceDescription dataSourceDesc;
 
     private final Map<String, GraphQLObjectType> entityCache = new HashMap<>();
 
@@ -40,9 +41,9 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
      * entities to include in the GraphQL schema.
      * @param metaDataService MetaDataService The manager containing the data models to include in the final GraphQL schema.
      */
-    public GraphQLSchemaBuilder(MetaDataService metaDataService, String databaseId) {
+    public GraphQLSchemaBuilder(MetaDataService metaDataService, DataSourceDescription databaseId) {
         this.metaDataService = metaDataService;
-        this.databaseId = databaseId;
+        this.dataSourceDesc = databaseId;
         super.query(getQueryType());
     }
 
@@ -56,7 +57,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     }
 
     GraphQLObjectType getQueryType() {
-        List<MetaTable> metaTables = metaDataService.listAllMetaTablesWithDetail(databaseId);
+        List<MetaTable> metaTables = metaDataService.listAllMetaTablesWithDetail(dataSourceDesc.getDatabaseCode());
         GraphQLObjectType.Builder queryType = GraphQLObjectType.newObject().name("QueryType_MD").description("All encompassing schema for this database metadata environment");
         queryType.fields(metaTables.stream().map(this::getQueryFieldDefinition).collect(Collectors.toList()));
         queryType.fields(metaTables.stream().map(this::getQueryFieldPageableDefinition).collect(Collectors.toList()));
@@ -68,12 +69,10 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
                 .name(FieldType.mapPropName(entityType.getTableName()))
                 .description(entityType.getTableLabelName())
                 .type(new GraphQLList(getObjectType(entityType)))
-                .dataFetcher(new MetadataDataFetcher(metaDataService, entityType))
+                .dataFetcher(new MetadataDataFetcher(metaDataService, dataSourceDesc, entityType))
                 .argument(entityType.getColumns().stream().flatMap(this::getArgument).collect(Collectors.toList()))
                 .build();
     }
-
-
 
     private GraphQLFieldDefinition getQueryFieldPageableDefinition(MetaTable entityType) {
         String entityName = FieldType.mapPropName(entityType.getTableName());
@@ -90,7 +89,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
                 .name(entityName + "Connection")
                 .description("'Connection' request wrapper object for " + entityName + ".  Use this object in a query to request things like pagination or aggregation in an argument.  Use the 'content' field to request actual fields ")
                 .type(pageType)
-                .dataFetcher(new MetadataDataFetcher(metaDataService, entityType))
+                .dataFetcher(new MetadataDataFetcher(metaDataService, dataSourceDesc, entityType))
                 .argument(paginationArgument)
                 .build();
     }

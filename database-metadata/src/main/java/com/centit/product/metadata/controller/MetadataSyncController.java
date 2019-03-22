@@ -2,6 +2,7 @@ package com.centit.product.metadata.controller;
 
 import com.centit.framework.common.ObjectException;
 import com.centit.framework.common.WebOptUtils;
+import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.security.model.CentitUserDetails;
 import com.centit.product.metadata.po.MetaColumn;
@@ -12,12 +13,15 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Api(value = "数据库元数据信息完善", tags = "元数据信息完善")
 @RestController
 @RequestMapping(value = "update")
-public class MetadataSyncController {
+public class MetadataSyncController extends BaseController {
 
     @Autowired
     private MetaDataService metaDataService;
@@ -27,8 +31,8 @@ public class MetadataSyncController {
     @ApiImplicitParam(name = "databaseCode", value = "数据库ID")
     @GetMapping(value = "/sync/{databaseCode}")
     @WrapUpResponseBody
-    public void syncDb(@PathVariable String databaseCode){
-        CentitUserDetails userDetails = WebOptUtils.getLoginUser();
+    public void syncDb(@PathVariable String databaseCode, HttpServletRequest request){
+        CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
         if(userDetails == null){
             throw new ObjectException("未登录");
         }
@@ -44,8 +48,8 @@ public class MetadataSyncController {
     })
     @PutMapping(value = "/table/{tableId}")
     @WrapUpResponseBody
-    public void updateMetaTable(@PathVariable String tableId, String tableName, String tableComment, String tableState){
-        CentitUserDetails userDetails = WebOptUtils.getLoginUser();
+    public void updateMetaTable(@PathVariable String tableId, String tableName, String tableComment, String tableState,HttpServletRequest request){
+        CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
         if(userDetails == null){
             throw new ObjectException("未登录");
         }

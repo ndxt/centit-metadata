@@ -29,6 +29,7 @@ public class RmdbQuery implements Serializable {
     @Id
     @Column(name = "QUERY_ID")
     @NotBlank(message = "字段不能为空")
+    @ValueGenerator(strategy = GeneratorType.UUID)
     private String queryId;
 
     @ApiModelProperty(value = "数据包ID", hidden = true)

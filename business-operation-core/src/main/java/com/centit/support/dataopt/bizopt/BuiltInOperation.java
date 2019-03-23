@@ -41,7 +41,7 @@ public class BuiltInOperation implements BizOperation {
     protected BizModel runMap(BizModel bizModel, JSONObject bizOptJson) {
         String sourDSName = getJsonFieldString(bizOptJson,"source", bizModel.getModelName());
         String targetDSName = getJsonFieldString(bizOptJson, "target", sourDSName);
-        Object mapInfo = bizOptJson.get("map");
+        Object mapInfo = bizOptJson.get("fieldsMap");
         if(mapInfo instanceof Map){
             DataSet dataSet = bizModel.fetchDataSetByName(sourDSName);
             if(dataSet != null) {
@@ -56,15 +56,13 @@ public class BuiltInOperation implements BizOperation {
 
     protected BizModel runAppend(BizModel bizModel, JSONObject bizOptJson) {
         String sourDSName = getJsonFieldString(bizOptJson,"source", bizModel.getModelName());
-        String targetDSName = getJsonFieldString(bizOptJson, "target", sourDSName);
-        Object mapInfo = bizOptJson.get("map");
+        //String targetDSName = getJsonFieldString(bizOptJson, "target", sourDSName);
+        Object mapInfo = bizOptJson.get("fieldsMap");
         if(mapInfo instanceof Map){
             DataSet dataSet = bizModel.fetchDataSetByName(sourDSName);
             if(dataSet != null) {
-                DataSet destDS = DataSetOptUtil.appendDeriveField(dataSet, ((Map) mapInfo).entrySet());
-                //if(destDS != null){
-                bizModel.addDataSet(targetDSName, destDS);
-                //}
+                /*DataSet destDS = */DataSetOptUtil.appendDeriveField(dataSet, ((Map) mapInfo).entrySet());
+                //bizModel.addDataSet(targetDSName, destDS);
             }
         }
         return bizModel;
@@ -89,11 +87,11 @@ public class BuiltInOperation implements BizOperation {
         String targetDSName = getJsonFieldString(bizOptJson, "target", sourDSName);
         Object groupBy = bizOptJson.get("groupBy");
         List<String> groupFields = StringBaseOpt.objectToStringList(groupBy);
-        Object stat = bizOptJson.get("stat");
+        Object stat = bizOptJson.get("fieldsMap");
         if(stat instanceof Map){
             DataSet dataSet = bizModel.fetchDataSetByName(sourDSName);
             if(dataSet != null) {
-                DataSet destDS = DataSetOptUtil.statDataset2(dataSet, groupFields, ((Map) stat).entrySet());
+                DataSet destDS = DataSetOptUtil.statDataset2(dataSet, groupFields, (Map) stat);
                 bizModel.addDataSet(targetDSName, destDS);
             }
         }
@@ -109,7 +107,7 @@ public class BuiltInOperation implements BizOperation {
         Object groupBy = bizOptJson.get("groupBy");
         List<String> groupFields = StringBaseOpt.objectToStringList(groupBy);
 
-        Object analyse = bizOptJson.get("analyse");
+        Object analyse = bizOptJson.get("fieldsMap");
         if(analyse instanceof Map){
             DataSet dataSet = bizModel.fetchDataSetByName(sourDSName);
             if(dataSet != null) {

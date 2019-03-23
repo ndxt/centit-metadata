@@ -7,6 +7,7 @@ import com.centit.support.compiler.VariableFormula;
 import com.centit.support.dataopt.core.DataSet;
 import com.centit.support.dataopt.core.SimpleDataSet;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.MutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.commons.math3.stat.StatUtils;
@@ -161,10 +162,13 @@ public abstract class DataSetOptUtil {
 
     public static DataSet statDataset2(DataSet inData,
                                       List<String> groupbyFields,
-                                      Collection<Map.Entry<String, String>> statDesc) {
+                                      Map<String, String> statDesc) {
         List<Triple<String, String,String>> sd = new ArrayList<>(statDesc.size());
-        for (Map.Entry<String, String> s: statDesc){
-            sd.add(new MutableTriple<>(s.getKey()+':'+s.getValue(),s.getKey(),s.getValue()));
+        for (Map.Entry<String, String> s: statDesc.entrySet()){
+            String[] optDesc = StringUtils.split(s.getValue(),":");
+            if(optDesc != null && optDesc.length>1) {
+                sd.add(new MutableTriple<>(s.getKey(), optDesc[0], optDesc[1]));
+            }
         }
         return statDataset(inData,groupbyFields,sd);
     }

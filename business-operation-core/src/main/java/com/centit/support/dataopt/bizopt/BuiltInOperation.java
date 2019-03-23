@@ -168,6 +168,17 @@ public class BuiltInOperation implements BizOperation {
         return bizModel;
     }
 
+    protected BizModel runUnion(BizModel bizModel, JSONObject bizOptJson) {
+        String sour1DSName = getJsonFieldString(bizOptJson,"source", null);
+        String sour2DSName = getJsonFieldString(bizOptJson,"source2", null);
+        DataSet dataSet = bizModel.fetchDataSetByName(sour1DSName);
+        DataSet dataSet2 = bizModel.fetchDataSetByName(sour2DSName);
+        DataSet destDS = DataSetOptUtil.unionTwoDataSet(dataSet, dataSet2);
+        if(destDS!=null){
+            bizModel.addDataSet(getJsonFieldString(bizOptJson, "target", bizModel.getModelName()), destDS);
+        }
+        return bizModel;
+    }
 
     /*private BizModel runPersistence(BizModel bizModel, JSONObject bizOptJson) {
         String sourDSName = getJsonFieldString(bizOptJson,"source", bizModel.getModelName());
@@ -199,6 +210,8 @@ public class BuiltInOperation implements BizOperation {
                 return runCompare(bizModel, bizOptJson);
             case "join":
                 return runJoin(bizModel, bizOptJson);
+            case "union":
+                return runUnion(bizModel, bizOptJson);
             /*case "persistence":
                 return runPersistence(bizModel, bizOptJson);*/
             default:

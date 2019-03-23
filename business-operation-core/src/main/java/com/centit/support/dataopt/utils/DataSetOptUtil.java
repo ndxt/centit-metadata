@@ -379,14 +379,14 @@ public abstract class DataSetOptUtil {
             //匹配
             Map<String, Object> newRow = new LinkedHashMap<>();
             if(nc == 0){
-                appendData(newRow, currData.get(i), primaryFields,":current",true);
-                appendData(newRow, lastData.get(j), primaryFields,":last",false);
+                appendData(newRow, currData.get(i), primaryFields,":curr",true);
+                appendData(newRow, lastData.get(j), primaryFields,":next",false);
                 i++; j++;
             } else if(nc < 0){
-                appendData(newRow, currData.get(i), primaryFields,":current",true);
+                appendData(newRow, currData.get(i), primaryFields,":curr",true);
                 i++;
             } else {
-                appendData(newRow, lastData.get(j), primaryFields,":last",true);
+                appendData(newRow, lastData.get(j), primaryFields,":next",true);
                 j++;
             }
             newData.add(newRow);
@@ -394,14 +394,14 @@ public abstract class DataSetOptUtil {
 
         while(i < currData.size()){
             Map<String, Object> newRow = new LinkedHashMap<>();
-            appendData(newRow, currData.get(i), primaryFields,":current",true);
+            appendData(newRow, currData.get(i), primaryFields,":curr",true);
             newData.add(newRow);
             i++;
         }
 
         while(j< lastData.size()){
             Map<String, Object> newRow = new LinkedHashMap<>();
-            appendData(newRow, lastData.get(j), primaryFields,":last",true);
+            appendData(newRow, lastData.get(j), primaryFields,":next",true);
             newData.add(newRow);
             j++;
         }

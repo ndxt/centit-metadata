@@ -28,52 +28,53 @@ import java.util.Set;
 public class DataPacketController extends BaseController {
 
     @Autowired
-    private DataPacketService dataResourceService;
+    private DataPacketService dataPacketService;
 
     @ApiOperation(value = "新增数据包")
     @PostMapping
     @WrapUpResponseBody
-    public void createDataResource(DataPacket dataResource){
-        //dataResource.setQuerySql(HtmlUtils.htmlUnescape(dataResource.getQuerySql()));
-        dataResourceService.createDataResource(dataResource);
+    public void createDataPacket(DataPacket dataPacket){
+        //dataPacket.setQuerySql(HtmlUtils.htmlUnescape(dataPacket.getQuerySql()));
+        dataPacketService.createDataPacket(dataPacket);
     }
 
     @ApiOperation(value = "编辑数据包")
-    @PutMapping(value = "/{resourceId}")
+    @PutMapping(value = "/{packetId}")
     @WrapUpResponseBody
-    public void updateDataResource(@PathVariable String resourceId, DataPacket dataResource){
-        dataResource.setPacketId(resourceId);
-        //dataResource.setQuerySql(HtmlUtils.htmlUnescape(dataResource.getQuerySql()));
-        dataResourceService.updateDataResource(dataResource);
+    public void updateDataPacket(@PathVariable String packetId, DataPacket dataPacket){
+        dataPacket.setPacketId(packetId);
+        //dataPacket.setQuerySql(HtmlUtils.htmlUnescape(dataPacket.getQuerySql()));
+        dataPacketService.updateDataPacket(dataPacket);
     }
 
     @ApiOperation(value = "删除数据包")
-    @DeleteMapping(value = "/{resourceId}")
+    @DeleteMapping(value = "/{packetId}")
     @WrapUpResponseBody
-    public void deleteDataResource(@PathVariable String resourceId){
-        dataResourceService.deleteDataResource(resourceId);
+    public void deleteDataPacket(@PathVariable String packetId){
+        dataPacketService.deleteDataPacket(packetId);
     }
 
     @ApiOperation(value = "获取数据包模式")
     @DeleteMapping(value = "/schema/{packetId}")
     @WrapUpResponseBody
-    public DataPacketSchema getDataPacketSchema(@PathVariable String resourceId){
-        return DataPacketSchema.valueOf(dataResourceService.getDataResource(resourceId));
+    public DataPacketSchema getDataPacketSchema(@PathVariable String packetId){
+        DataPacketSchema dataPacketSchema = new DataPacketSchema();
+        return  dataPacketSchema.valueOf(dataPacketService.getDataPacket(packetId));
     }
 
     @ApiOperation(value = "查询数据包")
     @GetMapping
     @WrapUpResponseBody
-    public PageQueryResult<DataPacket> listDataResource(PageDesc pageDesc){
-        List<DataPacket> list = dataResourceService.listDataResource(new HashMap<>(), pageDesc);
+    public PageQueryResult<DataPacket> listDataPacket(PageDesc pageDesc){
+        List<DataPacket> list = dataPacketService.listDataPacket(new HashMap<>(), pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }
 
     @ApiOperation(value = "查询单个数据包")
-    @GetMapping(value = "/{resourceId}")
+    @GetMapping(value = "/{packetId}")
     @WrapUpResponseBody
-    public DataPacket getDataResource(@PathVariable String resourceId){
-        return dataResourceService.getDataResource(resourceId);
+    public DataPacket getDataPacket(@PathVariable String packetId){
+        return dataPacketService.getDataPacket(packetId);
     }
 
     @ApiOperation(value = "生成表格数据")
@@ -86,8 +87,8 @@ public class DataPacketController extends BaseController {
     public JSONObject generateTable(String databaseCode, String sql, HttpServletRequest request){
         Map<String, Object> params = collectRequestParameters(request);
         JSONObject table = new JSONObject();
-        //table.put("column", dataResourceService.generateColumn(databaseCode, HtmlUtils.htmlUnescape(sql)));
-        table.put("objList", dataResourceService.queryData(databaseCode, HtmlUtils.htmlUnescape(sql), params));
+        //table.put("column", dataPacketService.generateColumn(databaseCode, HtmlUtils.htmlUnescape(sql)));
+        table.put("objList", dataPacketService.queryData(databaseCode, HtmlUtils.htmlUnescape(sql), params));
         return table;
     }
 
@@ -96,7 +97,7 @@ public class DataPacketController extends BaseController {
     @GetMapping(value = "/param")
     @WrapUpResponseBody
     public Set<String> generateParam(String sql ){
-        return dataResourceService.generateParam(sql);
+        return dataPacketService.generateParam(sql);
     }
 
   }

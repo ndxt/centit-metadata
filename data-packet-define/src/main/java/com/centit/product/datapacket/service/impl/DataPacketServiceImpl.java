@@ -39,32 +39,32 @@ public class DataPacketServiceImpl implements DataPacketService {
     private IntegrationEnvironment integrationEnvironment;
 
     @Override
-    public void createDataResource(DataPacket dataResource) {
-        dataPacketDao.saveNewObject(dataResource);
-        dataPacketDao.saveObjectReferences(dataResource);
+    public void createDataPacket(DataPacket dataPacket) {
+        dataPacketDao.saveNewObject(dataPacket);
+        dataPacketDao.saveObjectReferences(dataPacket);
     }
 
     @Override
-    public void updateDataResource(DataPacket dataResource) {
-        dataPacketDao.updateObject(dataResource);
-        dataPacketDao.saveObjectReferences(dataResource);
+    public void updateDataPacket(DataPacket dataPacket) {
+        dataPacketDao.updateObject(dataPacket);
+        dataPacketDao.saveObjectReferences(dataPacket);
     }
 
     @Override
-    public void deleteDataResource(String resourceId) {
-        DataPacket dataResource = dataPacketDao.getObjectById(resourceId);
-        dataPacketDao.deleteObjectById(resourceId);
-        dataPacketDao.deleteObjectReferences(dataResource);
+    public void deleteDataPacket(String packetId) {
+        DataPacket dataPacket = dataPacketDao.getObjectById(packetId);
+        dataPacketDao.deleteObjectById(packetId);
+        dataPacketDao.deleteObjectReferences(dataPacket);
     }
 
     @Override
-    public List<DataPacket> listDataResource(Map<String, Object> params, PageDesc pageDesc) {
+    public List<DataPacket> listDataPacket(Map<String, Object> params, PageDesc pageDesc) {
         return dataPacketDao.listObjectsByProperties(params, pageDesc);
     }
 
     @Override
-    public DataPacket getDataResource(String resourceId) {
-        return dataPacketDao.getObjectWithReferences(resourceId);
+    public DataPacket getDataPacket(String packetId) {
+        return dataPacketDao.getObjectWithReferences(packetId);
     }
 
     @Override

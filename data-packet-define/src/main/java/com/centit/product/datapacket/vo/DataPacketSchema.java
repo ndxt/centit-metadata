@@ -2,10 +2,13 @@ package com.centit.product.datapacket.vo;
 
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.DataPacketParam;
+import com.centit.product.datapacket.po.RmdbQuery;
+import com.centit.product.datapacket.po.RmdbQueryColumn;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -32,12 +35,14 @@ public class DataPacketSchema implements Serializable {
 
     private List<DataPacketParam> packetParams;
 
+    private List<RmdbQuery> rmdbQueries;
+
     @Data
     class ColumnSchema{
         String columnCode;
         String columnName;
         String dataType;
-        boolean isStatData;
+        String isStatData;
     }
 
     @Data
@@ -50,7 +55,31 @@ public class DataPacketSchema implements Serializable {
 
     private List<DataSetSchema> dataSets;
 
-    public static DataPacketSchema valueOf(DataPacket dataPacket){
-        return null;
+    public DataPacketSchema valueOf(DataPacket dataPacket) {
+        DataPacketSchema dataPacketSchema = new DataPacketSchema();
+        dataPacketSchema.packetId = dataPacket.getPacketId();
+        dataPacketSchema.packetName = dataPacket.getPacketName();
+        dataPacketSchema.packetType = dataPacket.getPacketType();
+        dataPacketSchema.packetDesc = dataPacket.getPacketDesc();
+        dataPacketSchema.packetParams = dataPacket.getPacketParams();
+        dataPacketSchema.rmdbQueries  = dataPacket.getRmdbQueries();
+        List<ColumnSchema> columnSchemas =  new ArrayList<ColumnSchema>();
+        for(RmdbQuery rdb : dataPacket.getRmdbQueries()) {
+            DataSetSchema  dataSetSchema = new DataSetSchema();
+            dataSetSchema.dataSetId = rdb.getPacketId();
+            dataSetSchema.dataSetName = rdb.getQueryName();
+            dataSetSchema.dataSetTitle = rdb.getQueryDesc();
+            for (RmdbQueryColumn queryColumn : rdb.getColumns()) {
+                ColumnSchema schema = new ColumnSchema();
+                schema.setColumnCode(queryColumn.getColumnCode());
+                schema.setColumnName(queryColumn.getColumnName());
+                schema.setDataType(queryColumn.getDataType());
+                schema.setIsStatData(queryColumn.getIsStatData());
+                columnSchemas.add(schema);
+            }
+            dataSetSchema.setColumns(columnSchemas);
+            this.dataSets.add(dataSetSchema);
+        }
+        return dataPacketSchema;
     }
 }

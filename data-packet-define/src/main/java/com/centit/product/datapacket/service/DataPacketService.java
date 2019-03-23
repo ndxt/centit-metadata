@@ -14,15 +14,15 @@ public interface DataPacketService {
     /**
      * 新增数据包
      */
-    void createDataResource(DataPacket dataResource);
+    void createDataPacket(DataPacket dataPacket);
 
-    void updateDataResource(DataPacket dataResource);
+    void updateDataPacket(DataPacket dataPacket);
 
-    void deleteDataResource(String resourceId);
+    void deleteDataPacket(String packetId);
 
-    List<DataPacket> listDataResource(Map<String, Object> params, PageDesc pageDesc);
+    List<DataPacket> listDataPacket(Map<String, Object> params, PageDesc pageDesc);
 
-    DataPacket getDataResource(String resourceId);
+    DataPacket getDataPacket(String packetId);
 
     List<RmdbQuery> generateRmdbQuery(String databaseCode, String sql);
 

@@ -19,7 +19,7 @@ public class MetaTableCascade {
     private String table;
     private String tableAlias;
     private String title;
-    private List<Column> tableFields;
+    private List<SqlColumn> tableFields;
     // 关联的表
     private List<Table> relationTable;
 
@@ -29,17 +29,17 @@ public class MetaTableCascade {
         String table;
         String title;
         String tableAlias;
-        List<JoinColumn> joinColumns;
+        List<RefJoinColumn> joinColumns;
     }
 
     @Data
-    class JoinColumn{
+    class RefJoinColumn{
         String leftColumn;
         String rightColumn;
     }
 
     @Data
-    class Column {
+    class SqlColumn {
         String title;
         String tableAlias;
         String column;
@@ -67,7 +67,7 @@ public class MetaTableCascade {
             table.setJoinColumns(new ArrayList<>());
         }
         for(MetaRelDetail relDetail : relDetails) {
-            JoinColumn joinColumn = new JoinColumn();
+            RefJoinColumn joinColumn = new RefJoinColumn();
             joinColumn.setLeftColumn(relDetail.getParentColumnName());
             joinColumn.setRightColumn(relDetail.getChildColumnName());
             table.getJoinColumns().add(joinColumn);
@@ -80,7 +80,7 @@ public class MetaTableCascade {
             this.tableFields = new ArrayList<>();
         }
         for (MetaColumn metaColumn : columns) {
-            Column column = new Column();
+            SqlColumn column = new SqlColumn();
             column.setColumn(metaColumn.getColumnName());
             column.setTitle(metaColumn.getFieldLabelName());
             column.setColumnType(metaColumn.getColumnType());

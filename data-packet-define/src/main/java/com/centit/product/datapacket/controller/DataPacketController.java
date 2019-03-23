@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
+import com.centit.product.datapacket.vo.DataPacketSchema;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.service.DataPacketService;
@@ -51,6 +52,13 @@ public class DataPacketController extends BaseController {
     @WrapUpResponseBody
     public void deleteDataResource(@PathVariable String resourceId){
         dataResourceService.deleteDataResource(resourceId);
+    }
+
+    @ApiOperation(value = "获取数据包模式")
+    @DeleteMapping(value = "/schema/{packetId}")
+    @WrapUpResponseBody
+    public DataPacketSchema getDataPacketSchema(@PathVariable String resourceId){
+        return DataPacketSchema.valueOf(dataResourceService.getDataResource(resourceId));
     }
 
     @ApiOperation(value = "查询数据包")

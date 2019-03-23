@@ -2,6 +2,7 @@ package com.centit.product.metadata.po;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
+import com.centit.framework.core.dao.DictionaryMapColumn;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.metadata.TableReference;
@@ -302,5 +303,22 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @JSONField(serialize = false)
     public String getTableLabelName() {
         return this.tableLabelName;
+    }
+
+    public List<DictionaryMapColumn> fetchDictionaryMapColumns(){
+        if(mdColumns == null || mdColumns.size()==0){
+            return null;
+        }
+        List<DictionaryMapColumn> dictionaryMapColumns = new ArrayList<>(4);
+        for(MetaColumn mc : mdColumns){
+            if("1".equals(mc.getReferenceType())){
+                dictionaryMapColumns.add(new DictionaryMapColumn(
+                    mc.getPropertyName(),
+                    mc.getPropertyName()+"Desc",
+                    mc.getReferenceData()
+                ));
+            }
+        }
+        return dictionaryMapColumns;
     }
 }

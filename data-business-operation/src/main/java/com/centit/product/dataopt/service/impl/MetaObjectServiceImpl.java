@@ -2,6 +2,8 @@ package com.centit.product.dataopt.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.ObjectException;
+import com.centit.framework.core.dao.DictionaryMap;
+import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.dataopt.service.MetaObjectService;
@@ -37,9 +39,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Autowired
     private MetaTableDao metaTableDao;
-
-    @Autowired
-    private MetaColumnDao metaColumnDao;
 
     @Autowired
     private MetaRelationDao metaRelationDao;
@@ -245,8 +244,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
+            JSONArray ja = TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
                 (conn) -> GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).listObjectsByProperties(filter));
+            return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns());
         } catch (SQLException | IOException e) {
             throw new ObjectException(filter, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }

@@ -467,6 +467,21 @@ public abstract class DataSetOptUtil {
         return new SimpleDataSet(newData);
     }
 
+    public static DataSet unionTwoDataSet(DataSet mainDataSet, DataSet slaveDataSet) {
+
+        List<Map<String, Object>> mainData = mainDataSet.getData();
+        List<Map<String, Object>> slaveData = slaveDataSet.getData();
+        if(mainData==null){
+            return new SimpleDataSet(slaveData);
+        }
+        if(slaveData==null){
+            return new SimpleDataSet(mainData);
+        }
+        List<Map<String, Object>> resultData = new ArrayList<>(mainData.size()+slaveData.size());
+        resultData.addAll(mainData);
+        resultData.addAll(slaveData);
+        return new SimpleDataSet(resultData);
+    }
     private static int compareTwoRow(Map<String, Object> data1, Map<String, Object> data2, List<String> fields) {
         if(data1 == null && data2 == null){
             return 0;

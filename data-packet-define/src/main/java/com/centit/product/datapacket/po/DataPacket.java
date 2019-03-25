@@ -89,7 +89,7 @@ public class DataPacket implements Serializable {
         packetType = "D";
     }
 
-    public List<RmdbQuery> getDBQueries(){
+    public List<RmdbQuery> getRmdbQueries() {
         if("D".equals(packetType)){
             return rmdbQueries;
         }

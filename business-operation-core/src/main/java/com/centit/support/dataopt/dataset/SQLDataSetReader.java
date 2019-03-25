@@ -37,7 +37,7 @@ public class SQLDataSetReader implements DataSetReader {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public DataSet load(Map<String, Object> params) {
+    public SimpleDataSet load(Map<String, Object> params) {
         Connection conn = connection;
         boolean createConnect = false;
         try {

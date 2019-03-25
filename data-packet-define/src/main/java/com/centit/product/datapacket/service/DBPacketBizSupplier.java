@@ -42,14 +42,20 @@ public class DBPacketBizSupplier implements BizSupplier {
     public BizModel get() {
         SimpleBizModel bizModel = new SimpleBizModel(this.dbPacket.getPacketName());
         Map<String, DataSet> dataSets = new HashMap<>(this.dbPacket.getDBQueries().size()+1);
+        Map<String, Object> modelTag = this.dbPacket.getPacketParamsValue();
+        if(queryParams!=null && queryParams.size()>0) {
+            modelTag.putAll(queryParams);
+        }
+
         for(RmdbQuery rdd : this.dbPacket.getDBQueries()) {
             SQLDataSetReader sqlDSR = new SQLDataSetReader();
-            sqlDSR.setDataSource( mapDataSource(
+            sqlDSR.setDataSource(mapDataSource(
                 integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));
             sqlDSR.setSqlSen(rdd.getQuerySQL());
-            dataSets.put(rdd.getQueryName(), sqlDSR.load(this.queryParams));
+            dataSets.put(rdd.getQueryName(), sqlDSR.load(modelTag));
         }
-        bizModel.setModeTag(queryParams);
+
+        bizModel.setModelTag(modelTag);
         bizModel.setBizData(dataSets);
         return bizModel;
     }

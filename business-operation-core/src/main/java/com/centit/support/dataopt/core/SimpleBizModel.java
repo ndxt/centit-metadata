@@ -65,7 +65,7 @@ public class SimpleBizModel implements BizModel{
         return modelTag;
     }
 
-    public void setModeTag(Map<String, Object> modelTag) {
+    public void setModelTag(Map<String, Object> modelTag) {
         this.modelTag = modelTag;
     }
 

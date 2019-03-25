@@ -14,7 +14,9 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @ApiModel
 @Data
@@ -83,29 +85,27 @@ public class DataPacket implements Serializable {
     @JoinColumn(name = "packetId", referencedColumnName = "packetId")
     private List<RmdbQuery> rmdbQueries;
 
-/*    @Transient
-    private Map<String, Object> packetParams;*/
-
     public DataPacket(){
         packetType = "D";
     }
 
     public List<RmdbQuery> getDBQueries(){
         if("D".equals(packetType)){
-
+            return rmdbQueries;
         }
         return null;
     }
 
-    /*public Map<String, Object> getPacketParams(){
-        if(packetParams == null && StringUtils.isNotBlank(packetParamsJSON)){
-            packetParams = JSONObject.parseObject(packetParamsJSON);
+    @JSONField(serialize = false)
+    public Map<String, Object> getPacketParamsValue(){
+        Map<String, Object> params = new HashMap<>();
+        if(packetParams == null){
+            return params;
         }
-        return packetParams;
+        for(DataPacketParam packetParam : packetParams){
+            params.put(packetParam.getParamName(), packetParam.getParamDefaultValue());
+        }
+        return params;
     }
 
-    public void setPacketParamsJSON(String packetParamsJSON) {
-        this.packetParamsJSON = packetParamsJSON;
-        this.packetParams = null;
-    }*/
 }

@@ -25,7 +25,7 @@ import java.util.List;
 public class RmdbQuery implements Serializable {
     private static final long serialVersionUID = 1;
 
-    @ApiModelProperty(value = "数据包ID", hidden = true)
+    @ApiModelProperty(value = "查询ID", hidden = true)
     @Id
     @Column(name = "QUERY_ID")
     @NotBlank(message = "字段不能为空")

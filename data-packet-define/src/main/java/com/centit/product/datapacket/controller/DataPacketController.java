@@ -55,7 +55,7 @@ public class DataPacketController extends BaseController {
     }
 
     @ApiOperation(value = "获取数据包模式")
-    @DeleteMapping(value = "/schema/{packetId}")
+    @GetMapping(value = "/schema/{packetId}")
     @WrapUpResponseBody
     public DataPacketSchema getDataPacketSchema(@PathVariable String packetId){
         DataPacketSchema dataPacketSchema = new DataPacketSchema();

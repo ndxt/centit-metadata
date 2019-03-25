@@ -64,22 +64,26 @@ public class DataPacketSchema implements Serializable {
         dataPacketSchema.packetParams = dataPacket.getPacketParams();
         dataPacketSchema.rmdbQueries  = dataPacket.getRmdbQueries();
         List<ColumnSchema> columnSchemas =  new ArrayList<ColumnSchema>();
+        List<DataSetSchema> dataSetSchemaList = new ArrayList<DataSetSchema>();
         for(RmdbQuery rdb : dataPacket.getRmdbQueries()) {
             DataSetSchema  dataSetSchema = new DataSetSchema();
             dataSetSchema.dataSetId = rdb.getPacketId();
             dataSetSchema.dataSetName = rdb.getQueryName();
             dataSetSchema.dataSetTitle = rdb.getQueryDesc();
-            for (RmdbQueryColumn queryColumn : rdb.getColumns()) {
-                ColumnSchema schema = new ColumnSchema();
-                schema.setColumnCode(queryColumn.getColumnCode());
-                schema.setColumnName(queryColumn.getColumnName());
-                schema.setDataType(queryColumn.getDataType());
-                schema.setIsStatData(queryColumn.getIsStatData());
-                columnSchemas.add(schema);
+            if (rdb.getColumns() !=null && rdb.getColumns().size() >0) {
+                for (RmdbQueryColumn queryColumn : rdb.getColumns()) {
+                    ColumnSchema schema = new ColumnSchema();
+                    schema.setColumnCode(queryColumn.getColumnCode());
+                    schema.setColumnName(queryColumn.getColumnName());
+                    schema.setDataType(queryColumn.getDataType());
+                    schema.setIsStatData(queryColumn.getIsStatData());
+                    columnSchemas.add(schema);
+                }
             }
             dataSetSchema.setColumns(columnSchemas);
-            this.dataSets.add(dataSetSchema);
+            dataSetSchemaList.add(dataSetSchema);
         }
+        dataPacketSchema.setDataSets(dataSetSchemaList);
         return dataPacketSchema;
     }
 }

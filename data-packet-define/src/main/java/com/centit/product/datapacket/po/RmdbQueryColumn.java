@@ -21,7 +21,7 @@ public class RmdbQueryColumn implements Serializable {
     private static final long serialVersionUID = -4897866009902238572L;
 
     @Id
-    @ApiModelProperty(value = "数据包ID", hidden = true)
+    @ApiModelProperty(value = "查询ID", hidden = true)
     @Column(name = "QUERY_ID")
     @NotBlank(message = "字段不能为空")
     private String queryId;
@@ -30,6 +30,11 @@ public class RmdbQueryColumn implements Serializable {
     @Column(name = "COLUMN_CODE")
     @ApiModelProperty(value = "字段代码")
     private String columnCode;
+
+    @ApiModelProperty(value = "数据包ID", hidden = true)
+    @Column(name = "PACKET_ID")
+    @NotBlank(message = "字段不能为空")
+    private String packetId;
 
     @Column(name = "COLUMN_NAME")
     @ApiModelProperty(value = "字段名称")

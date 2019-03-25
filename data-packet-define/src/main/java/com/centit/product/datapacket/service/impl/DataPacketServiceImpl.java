@@ -33,7 +33,7 @@ public class DataPacketServiceImpl implements DataPacketService {
     private DataPacketDao dataPacketDao;
 
     @Autowired
-    private RmdbQueryDao resourceColumnDao;
+    private RmdbQueryDao rmdbQueryDao;
 
     @Autowired
     private IntegrationEnvironment integrationEnvironment;
@@ -64,7 +64,16 @@ public class DataPacketServiceImpl implements DataPacketService {
 
     @Override
     public DataPacket getDataPacket(String packetId) {
-        return dataPacketDao.getObjectWithReferences(packetId);
+        DataPacket dataPacket = new DataPacket();
+        dataPacket = dataPacketDao.getObjectWithReferences(packetId);
+        if (dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() >0 ) {
+            for (RmdbQuery db : dataPacket.getRmdbQueries()) {
+                RmdbQuery rmdbQuery = new RmdbQuery();
+                rmdbQuery = rmdbQueryDao.getObjectWithReferences(db);
+                db.setColumns(rmdbQuery.getColumns());
+            }
+        }
+        return dataPacket;
     }
 
     @Override

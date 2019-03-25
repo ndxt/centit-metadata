@@ -83,11 +83,11 @@ public class TestDataSetOptUtils {
         groupByFields.add("season");
         SimpleDataSet dataSet1 = new SimpleDataSet();
         dataSet1.setData(list1);
-        List<Pair<String, String>> statDesc = new ArrayList<>();
+        Map<String, String> statDesc = new HashMap<>();
         System.out.println("===================group by========================");
         System.out.println(JSON.toJSONString(dataSet1.getData()));
-        statDesc.add( new MutablePair<>("income","sum"));
-        DataSet result1 = DataSetOptUtil.statDataset2(dataSet1, groupByFields, (Collection) statDesc);
+        statDesc.put("income","sum");
+        DataSet result1 = DataSetOptUtil.statDataset2(dataSet1, groupByFields,statDesc);
         System.out.println(JSON.toJSONString(result1.getData()));
     }
 }

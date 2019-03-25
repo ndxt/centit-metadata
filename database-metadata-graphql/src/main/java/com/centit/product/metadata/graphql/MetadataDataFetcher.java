@@ -2,7 +2,6 @@ package com.centit.product.metadata.graphql;
 
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
-import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.utils.DataSourceDescription;
@@ -72,7 +71,8 @@ public class MetadataDataFetcher implements DataFetcher {
             return TransactionHandler.executeQueryInTransaction(dataSourceDesc,
                 (conn) ->
                     NumberBaseOpt.castObjectToLong(
-                        DatabaseAccess.getScalarObjectQuery(conn, "select count(1) as c from " + entityType.getTableName()))
+                        DatabaseAccess.getScalarObjectQuery(conn,
+                            "select count(1) as c from " + entityType.getTableName()))
             );
         } catch (SQLException | IOException e) {
             logger.error(e.getLocalizedMessage(),e);
@@ -81,7 +81,11 @@ public class MetadataDataFetcher implements DataFetcher {
     }
 
     private Optional<Field> getSelectionField(Field field, String fieldName) {
-        return field.getSelectionSet().getSelections().stream().filter(it -> it instanceof Field).map(it -> (Field) it).filter(it -> fieldName.equals(it.getName())).findFirst();
+        return field.getSelectionSet().getSelections().stream()
+            .filter(it -> it instanceof Field)
+            .map(it -> (Field) it)
+            .filter(it -> fieldName.equals(it.getName()))
+            .findFirst();
     }
 
     private PageDesc extractPageInformation(DataFetchingEnvironment environment, Field field) {
@@ -90,8 +94,12 @@ public class MetadataDataFetcher implements DataFetcher {
             field.getArguments().remove(paginationRequest.get());
 
             ObjectValue paginationValues = (ObjectValue) paginationRequest.get().getValue();
-            IntValue page = (IntValue) paginationValues.getObjectFields().stream().filter(it -> "pageNo".equals(it.getName())).findFirst().get().getValue();
-            IntValue size = (IntValue) paginationValues.getObjectFields().stream().filter(it -> "pageSize".equals(it.getName())).findFirst().get().getValue();
+            IntValue page = (IntValue) paginationValues.getObjectFields()
+                .stream().filter(it -> "pageNo".equals(it.getName()))
+                .findFirst().get().getValue();
+            IntValue size = (IntValue) paginationValues.getObjectFields()
+                .stream().filter(it -> "pageSize".equals(it.getName()))
+                .findFirst().get().getValue();
 
             return new PageDesc(page.getValue().intValue(), size.getValue().intValue());
         }

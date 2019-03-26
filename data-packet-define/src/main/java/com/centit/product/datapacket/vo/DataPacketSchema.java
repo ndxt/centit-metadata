@@ -75,6 +75,7 @@ public class DataPacketSchema implements Serializable {
                     for (RmdbQueryColumn queryColumn : rdb.getColumns()) {
                         ColumnSchema schema = new ColumnSchema();
                         schema.setColumnCode(queryColumn.getColumnCode());
+                        schema.setPropertyName(queryColumn.getPropertyName());
                         schema.setColumnName(queryColumn.getColumnName());
                         schema.setDataType(queryColumn.getDataType());
                         schema.setStatData(BooleanBaseOpt.castObjectToBoolean(queryColumn.getIsStatData(),false));

@@ -105,10 +105,11 @@ public class RmdbQueryServiceImpl implements RmdbQueryService {
             try(ResultSet rs = stmt.executeQuery()) {
                 ResultSetMetaData rsd = rs.getMetaData();
                 int nc =rsd.getColumnCount();
-                for(int i=0; i<nc; i++){
+                for(int i=1; i<=nc; i++){
                     ColumnSchema col = new ColumnSchema();
                     col.setColumnCode(rsd.getColumnName(i));
-                    col.setColumnName(rsd.getColumnLabel(i));
+                    col.setPropertyName(FieldType.mapPropName(rsd.getColumnName(i)));
+                    col.setColumnName(col.getPropertyName());
                     col.setDataType(FieldType.mapToJavaType(rsd.getColumnType(i)));
                     col.setStatData(false);
                     columnSchemas.add(col);
@@ -117,6 +118,11 @@ public class RmdbQueryServiceImpl implements RmdbQueryService {
         }catch (SQLException e){
             logger.error("执行查询出错，SQL：{},Param:{}", sSql, qap.getParams());
             //throw new ObjectException("执行查询出错!");
+            List<String> fields = QueryUtils.getSqlFiledNames(sql);
+            if(fields==null){
+                throw new ObjectException(sSql, ObjectException.DATABASE_OPERATE_EXCEPTION,
+                    "执行查询出错，SQL：{},Param:{}"+ sSql);
+            }
             for(String s : QueryUtils.getSqlFiledNames(sql)){
                 ColumnSchema col = new ColumnSchema();
                 col.setColumnCode(s);

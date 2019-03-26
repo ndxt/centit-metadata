@@ -76,7 +76,7 @@ public class RmdbQueryController extends BaseController {
     })
     @GetMapping(value = "/reviewdata")
     @WrapUpResponseBody
-    public JSONArray generateTable(String databaseCode, String sql, HttpServletRequest request){
+    public JSONArray queryViewSqlData(String databaseCode, String sql, HttpServletRequest request){
         Map<String, Object> params = collectRequestParameters(request);
         //table.put("column", rmdbQueryService.generateColumn(databaseCode, HtmlUtils.htmlUnescape(sql)));
         return rmdbQueryService.queryViewSqlData(databaseCode, HtmlUtils.htmlUnescape(sql), params);

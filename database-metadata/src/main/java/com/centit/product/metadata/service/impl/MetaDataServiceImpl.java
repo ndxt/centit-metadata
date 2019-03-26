@@ -214,13 +214,14 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public void updateMetaTable(String tableId, String tableName, String tableComment, String tableState, String recorder) {
+    public void updateMetaTable(String tableId, String tableLabelName, String tableComment, String tableState, String recorder) {
         MetaTable metaTable = metaTableDao.getObjectById(tableId);
         metaTable.setTableComment(tableComment);
-        metaTable.setTableLabelName(tableName);
+        metaTable.setTableLabelName(tableLabelName);
         metaTable.setTableState(tableState);
         metaTable.setRecorder(recorder);
         metaTableDao.updateObject(metaTable);
+        metaTableDao.saveObjectReferences(metaTable);
     }
 
     @Override
@@ -330,6 +331,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     public void updateMetaColumn(MetaColumn metaColumn) {
         metaColumnDao.updateObject(metaColumn);
+
     }
 
     @Override

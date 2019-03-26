@@ -202,7 +202,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
             this.tableComment = tableInfo.getTableComment();
         }
         this.tableType = tableInfo.getTableType();
-        this.tableState = "C";
+        this.tableState = "N";
         this.workFlowOptType = "0";
         return this;
     }
@@ -300,7 +300,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     @Override
     @ApiModelProperty(hidden = true)
-    @JSONField(serialize = false)
+    //@JSONField(serialize = false)
     public String getTableLabelName() {
         return this.tableLabelName;
     }

@@ -47,12 +47,12 @@ public class MetadataSyncController extends BaseController {
     })
     @PutMapping(value = "/table/{tableId}")
     @WrapUpResponseBody
-    public void updateMetaTable(@PathVariable String tableId, String tableName, String tableComment, String tableState,HttpServletRequest request){
+    public void updateMetaTable(@PathVariable String tableId, String tableLabelName, String tableComment, String tableState,HttpServletRequest request){
         CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
         if(userDetails == null){
             throw new ObjectException("未登录");
         }
-        metaDataService.updateMetaTable(tableId, tableName, tableComment, tableState, userDetails.getUserCode());
+        metaDataService.updateMetaTable(tableId, tableLabelName, tableComment, tableState, userDetails.getUserCode());
     }
 
     @ApiOperation(value = "修改列元数据")

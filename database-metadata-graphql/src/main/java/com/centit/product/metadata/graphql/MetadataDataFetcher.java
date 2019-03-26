@@ -114,7 +114,7 @@ public class MetadataDataFetcher implements DataFetcher {
             return TransactionHandler.executeQueryInTransaction(dataSourceDesc,
                 (conn) ->
                     GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
-                        new HashMap<>(1),pageInformation.getRowStart(), pageInformation.getPageSize())
+                        environment.getArguments(),pageInformation.getRowStart(), pageInformation.getPageSize())
                     );
          } catch (SQLException | IOException e) {
             logger.error(e.getLocalizedMessage(),e);

@@ -52,8 +52,7 @@ public class MetadataDataFetcher implements DataFetcher {
             result.put("objList",
                 getQuery(environment, contentSelection.get(), pageInformation));
         } else {
-            result.put(field.getName(),
-                getQuery(environment, field, new PageDesc()).get(0));
+            return getQuery(environment, field, new PageDesc());
         }
         if (totalElementsSelection.isPresent() || pageSizeSelection.isPresent()) {
             final Long totalElements = contentSelection

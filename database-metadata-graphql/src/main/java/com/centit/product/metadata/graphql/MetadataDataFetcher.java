@@ -48,10 +48,13 @@ public class MetadataDataFetcher implements DataFetcher {
         Optional<Field> totalElementsSelection = getSelectionField(field, "totalRows");
         Optional<Field> contentSelection = getSelectionField(field, "objList");
 
-        if (contentSelection.isPresent())
+        if (contentSelection.isPresent()) {
             result.put("objList",
                 getQuery(environment, contentSelection.get(), pageInformation));
-
+        } else {
+            result.put(field.getName(),
+                getQuery(environment, field, new PageDesc()).get(0));
+        }
         if (totalElementsSelection.isPresent() || pageSizeSelection.isPresent()) {
             final Long totalElements = contentSelection
                 .map(contentField -> getCountQuery(environment, contentField))

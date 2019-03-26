@@ -68,7 +68,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
         return GraphQLFieldDefinition.newFieldDefinition()
                 .name(FieldType.mapPropName(entityType.getTableName()))
                 .description(entityType.getTableLabelName())
-                .type(new GraphQLList(getObjectType(entityType)))
+                .type(getObjectType(entityType))
                 .dataFetcher(new MetadataDataFetcher(metaDataService, dataSourceDesc, entityType))
                 .argument(entityType.getColumns().stream().flatMap(this::getArgument).collect(Collectors.toList()))
                 .build();

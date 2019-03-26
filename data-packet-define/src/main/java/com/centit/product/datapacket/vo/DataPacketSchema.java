@@ -56,6 +56,9 @@ public class DataPacketSchema implements Serializable {
     private List<DataSetSchema> dataSets;
 
     public DataPacketSchema valueOf(DataPacket dataPacket) {
+        if(dataPacket == null){
+            return null;
+        }
         DataPacketSchema dataPacketSchema = new DataPacketSchema();
         dataPacketSchema.packetId = dataPacket.getPacketId();
         dataPacketSchema.packetName = dataPacket.getPacketName();
@@ -65,23 +68,25 @@ public class DataPacketSchema implements Serializable {
         dataPacketSchema.rmdbQueries  = dataPacket.getRmdbQueries();
         List<ColumnSchema> columnSchemas =  new ArrayList<ColumnSchema>();
         List<DataSetSchema> dataSetSchemaList = new ArrayList<DataSetSchema>();
-        for(RmdbQuery rdb : dataPacket.getRmdbQueries()) {
-            DataSetSchema  dataSetSchema = new DataSetSchema();
-            dataSetSchema.dataSetId = rdb.getPacketId();
-            dataSetSchema.dataSetName = rdb.getQueryName();
-            dataSetSchema.dataSetTitle = rdb.getQueryDesc();
-            if (rdb.getColumns() !=null && rdb.getColumns().size() >0) {
-                for (RmdbQueryColumn queryColumn : rdb.getColumns()) {
-                    ColumnSchema schema = new ColumnSchema();
-                    schema.setColumnCode(queryColumn.getColumnCode());
-                    schema.setColumnName(queryColumn.getColumnName());
-                    schema.setDataType(queryColumn.getDataType());
-                    schema.setIsStatData(queryColumn.getIsStatData());
-                    columnSchemas.add(schema);
+        if(dataPacket.getRmdbQueries()!=null) {
+            for (RmdbQuery rdb : dataPacket.getRmdbQueries()) {
+                DataSetSchema dataSetSchema = new DataSetSchema();
+                dataSetSchema.dataSetId = rdb.getPacketId();
+                dataSetSchema.dataSetName = rdb.getQueryName();
+                dataSetSchema.dataSetTitle = rdb.getQueryDesc();
+                if (rdb.getColumns() != null && rdb.getColumns().size() > 0) {
+                    for (RmdbQueryColumn queryColumn : rdb.getColumns()) {
+                        ColumnSchema schema = new ColumnSchema();
+                        schema.setColumnCode(queryColumn.getColumnCode());
+                        schema.setColumnName(queryColumn.getColumnName());
+                        schema.setDataType(queryColumn.getDataType());
+                        schema.setIsStatData(queryColumn.getIsStatData());
+                        columnSchemas.add(schema);
+                    }
                 }
+                dataSetSchema.setColumns(columnSchemas);
+                dataSetSchemaList.add(dataSetSchema);
             }
-            dataSetSchema.setColumns(columnSchemas);
-            dataSetSchemaList.add(dataSetSchema);
         }
         dataPacketSchema.setDataSets(dataSetSchemaList);
         return dataPacketSchema;

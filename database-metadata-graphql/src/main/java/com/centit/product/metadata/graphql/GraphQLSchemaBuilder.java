@@ -108,19 +108,20 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
                 });
     }
 
-    GraphQLObjectType getObjectType(MetaTable entityType) {
+    private GraphQLObjectType getObjectType(MetaTable entityType) {
 
         String entityName = FieldType.mapPropName(entityType.getTableName());
         if (entityCache.containsKey(entityName))
             return entityCache.get(entityName);
 
-        GraphQLObjectType answer = GraphQLObjectType.newObject()
+         GraphQLObjectType.Builder builder= GraphQLObjectType.newObject()
                 .name(entityName)
                 .description(entityType.getTableLabelName() +":"+ entityType.getTableComment())
-                .fields(entityType.getColumns().stream().flatMap(this::getObjectField).collect(Collectors.toList()))
-                .fields(entityType.getMdRelations().stream().flatMap(this::getObjectRefenceField).collect(Collectors.toList()))
-                .build();
-
+                .fields(entityType.getColumns().stream().flatMap(this::getObjectField).collect(Collectors.toList()));
+         if(entityType.getMdRelations()!=null) {
+             builder.fields(entityType.getMdRelations().stream().flatMap(this::getObjectRefenceField).collect(Collectors.toList()));
+         }
+        GraphQLObjectType answer = builder.build();
         entityCache.put(entityName, answer);
 
         return answer;

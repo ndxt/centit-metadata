@@ -3,19 +3,19 @@ package com.centit.product.metadata.service.impl;
 import com.centit.framework.common.ObjectException;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
-import com.centit.product.metadata.service.MetaDataService;
-import com.centit.support.algorithm.CollectionsOpt;
-import com.centit.support.database.metadata.*;
-import com.centit.support.database.utils.DBType;
-import com.centit.support.database.utils.JdbcConnect;
-import com.centit.support.database.utils.PageDesc;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.vo.MetaTableCascade;
+import com.centit.support.algorithm.CollectionsOpt;
+import com.centit.support.database.metadata.*;
+import com.centit.support.database.utils.DBType;
+import com.centit.support.database.utils.JdbcConnect;
+import com.centit.support.database.utils.PageDesc;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -104,6 +104,9 @@ public class MetaDataServiceImpl implements MetaDataService {
                 //表
                 MetaTable metaTable = new MetaTable().convertFromDbTable(table);
                 metaTable.setDatabaseCode(databaseCode);
+                if (metaTable.getTableLabelName() ==null || "".equals(metaTable.getTableLabelName())) {
+                    metaTable.setTableLabelName(table.getTableName());
+                }
                 metaTable.setRecorder(recorder);
                 metaTableDao.saveNewObject(metaTable);
                 //列

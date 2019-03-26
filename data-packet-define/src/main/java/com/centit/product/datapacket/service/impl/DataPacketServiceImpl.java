@@ -4,6 +4,7 @@ import com.centit.product.datapacket.dao.DataPacketDao;
 import com.centit.product.datapacket.dao.RmdbQueryDao;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.RmdbQuery;
+import com.centit.product.datapacket.po.RmdbQueryColumn;
 import com.centit.product.datapacket.service.DataPacketService;
 import com.centit.support.database.utils.PageDesc;
 import org.slf4j.Logger;
@@ -31,12 +32,28 @@ public class DataPacketServiceImpl implements DataPacketService {
     public void createDataPacket(DataPacket dataPacket) {
         dataPacketDao.saveNewObject(dataPacket);
         dataPacketDao.saveObjectReferences(dataPacket);
+        if (dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() > 0) {
+            for (RmdbQuery db : dataPacket.getRmdbQueries()) {
+                for (RmdbQueryColumn column : db.getColumns()) {
+                    column.setPacketId(db.getPacketId());
+                }
+                rmdbQueryDao.saveObjectReferences(db);
+            }
+        }
     }
 
     @Override
     public void updateDataPacket(DataPacket dataPacket) {
         dataPacketDao.updateObject(dataPacket);
         dataPacketDao.saveObjectReferences(dataPacket);
+        if (dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() > 0) {
+            for (RmdbQuery db : dataPacket.getRmdbQueries()) {
+                for (RmdbQueryColumn column : db.getColumns()) {
+                    column.setPacketId(db.getPacketId());
+                }
+                rmdbQueryDao.saveObjectReferences(db);
+            }
+        }
     }
 
     @Override

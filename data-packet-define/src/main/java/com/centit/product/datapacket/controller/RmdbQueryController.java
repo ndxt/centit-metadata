@@ -1,11 +1,13 @@
 package com.centit.product.datapacket.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.product.datapacket.po.RmdbQuery;
 import com.centit.product.datapacket.service.RmdbQueryService;
+import com.centit.product.datapacket.vo.ColumnSchema;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -67,27 +69,35 @@ public class RmdbQueryController extends BaseController {
         return rmdbQueryService.getDbQuery(queryId);
     }
 
-    @ApiOperation(value = "生成表格数据")
+    @ApiOperation(value = "预览数据值返回前20行")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "databaseCode", value = "数据库代码", required = true),
         @ApiImplicitParam(name = "sql", value = "查询SQL", required = true)
     })
-    @GetMapping(value = "/table")
+    @GetMapping(value = "/reviewdata")
     @WrapUpResponseBody
-    public JSONObject generateTable(String databaseCode, String sql, HttpServletRequest request){
+    public JSONArray generateTable(String databaseCode, String sql, HttpServletRequest request){
         Map<String, Object> params = collectRequestParameters(request);
-        JSONObject table = new JSONObject();
         //table.put("column", rmdbQueryService.generateColumn(databaseCode, HtmlUtils.htmlUnescape(sql)));
-        table.put("objList", rmdbQueryService.queryData(databaseCode, HtmlUtils.htmlUnescape(sql), params));
-        return table;
+        return rmdbQueryService.queryViewSqlData(databaseCode, HtmlUtils.htmlUnescape(sql), params);
     }
+
+    @ApiOperation(value = "生成查询字段列表")
+    @ApiImplicitParam(name = "sql", value = "查询SQL", required = true)
+    @GetMapping(value = "/sqlcolumn")
+    @WrapUpResponseBody
+    public List<ColumnSchema> generateSqlcolumn(String databaseCode, String sql, HttpServletRequest request){
+        Map<String, Object> params = collectRequestParameters(request);
+        return rmdbQueryService.generateSqlFields(databaseCode, HtmlUtils.htmlUnescape(sql), params);
+    }
+
 
     @ApiOperation(value = "生成参数名称列表")
     @ApiImplicitParam(name = "sql", value = "查询SQL", required = true)
     @GetMapping(value = "/param")
     @WrapUpResponseBody
     public Set<String> generateParam(String sql ){
-        return rmdbQueryService.generateParam(sql);
+        return rmdbQueryService.generateSqlParams(sql);
     }
 
 }

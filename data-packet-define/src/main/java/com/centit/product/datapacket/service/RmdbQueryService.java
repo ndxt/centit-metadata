@@ -1,6 +1,7 @@
 package com.centit.product.datapacket.service;
 
 import com.alibaba.fastjson.JSONArray;
+import com.centit.product.datapacket.vo.ColumnSchema;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.RmdbQuery;
@@ -24,10 +25,10 @@ public interface RmdbQueryService {
 
     RmdbQuery getDbQuery(String queryId);
 
-    List<RmdbQuery> generateRmdbQuery(String databaseCode, String sql);
+    List<ColumnSchema> generateSqlFields(String databaseCode, String sql, Map<String, Object> params);
 
-    JSONArray queryData(String databaseCode, String sql, Map<String, Object> params);
+    JSONArray queryViewSqlData(String databaseCode, String sql, Map<String, Object> params);
 
-    Set<String> generateParam(String sql);
+    Set<String> generateSqlParams(String sql);
 
 }

@@ -1,15 +1,14 @@
 package com.centit.product.datapacket.service;
 
-import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
-import com.centit.support.database.utils.DataSourceDescription;
+import com.centit.product.datapacket.po.DataPacket;
+import com.centit.product.datapacket.po.RmdbQuery;
+import com.centit.support.database.utils.JdbcConnect;
 import com.centit.support.dataopt.core.BizModel;
 import com.centit.support.dataopt.core.BizSupplier;
 import com.centit.support.dataopt.core.DataSet;
 import com.centit.support.dataopt.core.SimpleBizModel;
 import com.centit.support.dataopt.dataset.SQLDataSetReader;
-import com.centit.product.datapacket.po.DataPacket;
-import com.centit.product.datapacket.po.RmdbQuery;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,14 +22,6 @@ public class DBPacketBizSupplier implements BizSupplier {
 
     public DBPacketBizSupplier(DataPacket dbPacket){
         this.dbPacket = dbPacket;
-    }
-
-    public static DataSourceDescription mapDataSource(DatabaseInfo dbinfo) {
-        DataSourceDescription desc=new DataSourceDescription();
-        desc.setConnUrl(dbinfo.getDatabaseUrl());
-        desc.setUsername(dbinfo.getUsername());
-        desc.setPassword(dbinfo.getClearPassword());
-        return desc;
     }
 
     /**
@@ -49,7 +40,7 @@ public class DBPacketBizSupplier implements BizSupplier {
 
         for(RmdbQuery rdd : this.dbPacket.getRmdbQueries()) {
             SQLDataSetReader sqlDSR = new SQLDataSetReader();
-            sqlDSR.setDataSource(mapDataSource(
+            sqlDSR.setDataSource(JdbcConnect.mapDataSource(
                 integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));
             sqlDSR.setSqlSen(rdd.getQuerySQL());
             dataSets.put(rdd.getQueryName(), sqlDSR.load(modelTag));

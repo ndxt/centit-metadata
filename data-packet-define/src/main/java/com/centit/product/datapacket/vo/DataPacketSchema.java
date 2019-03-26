@@ -4,6 +4,7 @@ import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.DataPacketParam;
 import com.centit.product.datapacket.po.RmdbQuery;
 import com.centit.product.datapacket.po.RmdbQueryColumn;
+import com.centit.support.algorithm.BooleanBaseOpt;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -32,24 +33,20 @@ public class DataPacketSchema implements Serializable {
     @ApiModelProperty(value = "详细描述")
     private String packetDesc;
 
-
+    @ApiModelProperty(value = "数据包参数列表")
     private List<DataPacketParam> packetParams;
 
+    @ApiModelProperty(value = "数据查询描述")
     private List<RmdbQuery> rmdbQueries;
-
-    @Data
-    class ColumnSchema{
-        String columnCode;
-        String columnName;
-        String dataType;
-        String isStatData;
-    }
 
     @Data
     class DataSetSchema{
         String dataSetId;
+        @ApiModelProperty(value = "数据集名")
         String dataSetName;
+        @ApiModelProperty(value = "数据集标题")
         String dataSetTitle;
+        @ApiModelProperty(value = "数据集字段列表")
         List<ColumnSchema> columns;
     }
 
@@ -80,7 +77,7 @@ public class DataPacketSchema implements Serializable {
                         schema.setColumnCode(queryColumn.getColumnCode());
                         schema.setColumnName(queryColumn.getColumnName());
                         schema.setDataType(queryColumn.getDataType());
-                        schema.setIsStatData(queryColumn.getIsStatData());
+                        schema.setStatData(BooleanBaseOpt.castObjectToBoolean(queryColumn.getIsStatData(),false));
                         columnSchemas.add(schema);
                     }
                 }

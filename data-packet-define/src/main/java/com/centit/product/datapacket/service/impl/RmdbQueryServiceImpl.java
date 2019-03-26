@@ -4,12 +4,15 @@ import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.ObjectException;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
+import com.centit.product.datapacket.vo.ColumnSchema;
+import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.utils.*;
 import com.centit.product.datapacket.dao.DataPacketDao;
 import com.centit.product.datapacket.dao.RmdbQueryDao;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.RmdbQuery;
 import com.centit.product.datapacket.service.RmdbQueryService;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,21 +71,15 @@ public class RmdbQueryServiceImpl implements RmdbQueryService {
     }
 
     @Override
-    public List<RmdbQuery> generateRmdbQuery(String databaseCode, String sql) {
-        return null;
-    }
-
-
-    @Override
-    public JSONArray queryData(String databaseCode, String sql, Map<String, Object> params) {
+    public JSONArray queryViewSqlData(String databaseCode, String sql, Map<String, Object> params) {
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(new QueryAndNamedParams(sql, params));
-
-        try (Connection connection = DbcpConnectPools.getDbcpConnect(
-            new DataSourceDescription(databaseInfo.getDatabaseUrl(), databaseInfo.getUsername(), databaseInfo.getClearPassword()))){
-
-            return DatabaseAccess.findObjectsAsJSON(connection, qap.getQuery(), qap.getParams());
-
+        try{
+            return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
+                (conn) -> DatabaseAccess.findObjectsAsJSON(conn,
+                QueryUtils.buildLimitQuerySQL(qap.getQuery(),0,20,false,
+                    DBType.mapDBType(databaseInfo.getDatabaseUrl())),
+                qap.getParams()));
         }catch (SQLException | IOException e){
             logger.error("执行查询出错，SQL：{},Param:{}", qap.getQuery(), qap.getParams());
             throw new ObjectException("执行查询出错!");
@@ -90,9 +87,45 @@ public class RmdbQueryServiceImpl implements RmdbQueryService {
     }
 
     @Override
-    public Set<String> generateParam(String sql) {
+    public Set<String> generateSqlParams(String sql) {
         return QueryUtils.getSqlTemplateParameters(sql);
     }
 
+    @Override
+    public List<ColumnSchema> generateSqlFields(String databaseCode, String sql, Map<String, Object> params){
+        DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
+        QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(new QueryAndNamedParams(sql, params));
+        String sSql = QueryUtils.buildLimitQuerySQL(qap.getQuery(),0,2,false,
+            DBType.mapDBType(databaseInfo.getDatabaseUrl()));
+        List<ColumnSchema> columnSchemas = new ArrayList<>(50);
+        try(Connection conn = JdbcConnect.getConn(databaseInfo);
+            PreparedStatement stmt = conn.prepareStatement(sSql)){
 
+            DatabaseAccess.setQueryStmtParameters(stmt,qap.getParams());
+            try(ResultSet rs = stmt.executeQuery()) {
+                ResultSetMetaData rsd = rs.getMetaData();
+                int nc =rsd.getColumnCount();
+                for(int i=0; i<nc; i++){
+                    ColumnSchema col = new ColumnSchema();
+                    col.setColumnCode(rsd.getColumnName(i));
+                    col.setColumnName(rsd.getColumnLabel(i));
+                    col.setDataType(FieldType.mapToJavaType(rsd.getColumnType(i)));
+                    col.setStatData(false);
+                    columnSchemas.add(col);
+                }
+            }
+        }catch (SQLException e){
+            logger.error("执行查询出错，SQL：{},Param:{}", sSql, qap.getParams());
+            //throw new ObjectException("执行查询出错!");
+            for(String s : QueryUtils.getSqlFiledNames(sql)){
+                ColumnSchema col = new ColumnSchema();
+                col.setColumnCode(s);
+                col.setColumnName(s);
+                col.setDataType(FieldType.STRING);
+                col.setStatData(false);
+                columnSchemas.add(col);
+            }
+        }
+        return columnSchemas;
+    }
 }

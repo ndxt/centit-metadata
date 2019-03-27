@@ -62,7 +62,7 @@ public class MetadataSyncController extends BaseController {
     })
     @PutMapping(value = "/column/{tableId}/{columnCode}")
     @WrapUpResponseBody
-    public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode,@RequestBody MetaColumn metaColumn){
+    public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode,MetaColumn metaColumn){
         metaColumn.setTableId(tableId);
         metaColumn.setColumnName(columnCode);
         metaDataService.updateMetaColumn(metaColumn);
@@ -71,7 +71,7 @@ public class MetadataSyncController extends BaseController {
     @ApiOperation(value = "新建关联关系元数据")
     @PostMapping(value = "/{tableId}/relation")
     @WrapUpResponseBody
-    public void createRelations(@PathVariable String tableId, @RequestBody MetaTable metaTable){
+    public void createRelations(@PathVariable String tableId, MetaTable metaTable){
         metaDataService.saveRelations(tableId, metaTable.getMdRelations());
     }
 

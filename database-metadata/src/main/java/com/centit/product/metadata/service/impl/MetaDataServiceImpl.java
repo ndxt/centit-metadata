@@ -221,7 +221,6 @@ public class MetaDataServiceImpl implements MetaDataService {
         metaTable.setTableState(tableState);
         metaTable.setRecorder(recorder);
         metaTableDao.updateObject(metaTable);
-        metaTableDao.saveObjectReferences(metaTable);
     }
 
     @Override
@@ -265,6 +264,10 @@ public class MetaDataServiceImpl implements MetaDataService {
         List<MetaRelation> list = metaRelationDao.listObjectsByProperty("parentTableId", tableId);
         for(MetaRelation relation : list){
             metaRelationDao.fetchObjectReferences(relation);
+            MetaTable table = metaTableDao.getObjectById(relation.getChildTableId());
+            if (table!=null) {
+                relation.setChildTable(table);
+            }
         }
         return list;
     }

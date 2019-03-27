@@ -300,7 +300,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     @Override
     @ApiModelProperty(hidden = true)
-    //@JSONField(serialize = false)
+    @JSONField()
     public String getTableLabelName() {
         return this.tableLabelName;
     }

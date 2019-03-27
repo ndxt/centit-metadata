@@ -34,7 +34,7 @@ public class DataPacketController extends BaseController {
     @ApiOperation(value = "编辑数据包")
     @PutMapping(value = "/{packetId}")
     @WrapUpResponseBody
-    public void updateDataPacket(@PathVariable String packetId, DataPacket dataPacket){
+    public void updateDataPacket(@PathVariable String packetId, @RequestBody DataPacket dataPacket){
         dataPacket.setPacketId(packetId);
         //dataPacket.setQuerySql(HtmlUtils.htmlUnescape(dataPacket.getQuerySql()));
         dataPacketService.updateDataPacket(dataPacket);

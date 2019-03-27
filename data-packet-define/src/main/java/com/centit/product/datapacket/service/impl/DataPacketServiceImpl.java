@@ -58,7 +58,12 @@ public class DataPacketServiceImpl implements DataPacketService {
 
     @Override
     public void deleteDataPacket(String packetId) {
-        DataPacket dataPacket = dataPacketDao.getObjectById(packetId);
+        DataPacket dataPacket = dataPacketDao.getObjectWithReferences(packetId);
+        if (dataPacket!=null && dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() > 0) {
+            for (RmdbQuery db : dataPacket.getRmdbQueries()) {
+                rmdbQueryDao.deleteObjectReferences(db);
+            }
+        }
         dataPacketDao.deleteObjectById(packetId);
         dataPacketDao.deleteObjectReferences(dataPacket);
     }
@@ -71,7 +76,7 @@ public class DataPacketServiceImpl implements DataPacketService {
     @Override
     public DataPacket getDataPacket(String packetId) {
         DataPacket dataPacket = dataPacketDao.getObjectWithReferences(packetId);
-        if (dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() >0 ) {
+        if (dataPacket!=null && dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() >0 ) {
             for (RmdbQuery db : dataPacket.getRmdbQueries()) {
                 rmdbQueryDao.fetchObjectReferences(db);
             }

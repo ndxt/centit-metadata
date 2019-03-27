@@ -14,5 +14,5 @@ public class ColumnSchema{
     @ApiModelProperty(value = "字段类型")
     String dataType;
     @ApiModelProperty(value = "是否为统计字段")
-    boolean isStatData;
+    String isStatData;
 }

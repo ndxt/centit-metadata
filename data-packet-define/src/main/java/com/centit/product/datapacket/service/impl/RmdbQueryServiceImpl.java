@@ -111,7 +111,7 @@ public class RmdbQueryServiceImpl implements RmdbQueryService {
                     col.setPropertyName(FieldType.mapPropName(rsd.getColumnName(i)));
                     col.setColumnName(col.getPropertyName());
                     col.setDataType(FieldType.mapToJavaType(rsd.getColumnType(i)));
-                    col.setStatData(false);
+                    col.setIsStatData("F");
                     columnSchemas.add(col);
                 }
             }
@@ -128,7 +128,7 @@ public class RmdbQueryServiceImpl implements RmdbQueryService {
                 col.setColumnCode(s);
                 col.setColumnName(s);
                 col.setDataType(FieldType.STRING);
-                col.setStatData(false);
+                col.setIsStatData("F");
                 columnSchemas.add(col);
             }
         }

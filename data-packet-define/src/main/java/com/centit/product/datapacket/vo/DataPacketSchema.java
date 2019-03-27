@@ -78,7 +78,7 @@ public class DataPacketSchema implements Serializable {
                         schema.setPropertyName(queryColumn.getPropertyName());
                         schema.setColumnName(queryColumn.getColumnName());
                         schema.setDataType(queryColumn.getDataType());
-                        schema.setStatData(BooleanBaseOpt.castObjectToBoolean(queryColumn.getIsStatData(),false));
+                        schema.setIsStatData(queryColumn.getIsStatData());
                         columnSchemas.add(schema);
                     }
                 }

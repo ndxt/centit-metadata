@@ -4,11 +4,11 @@ import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.RmdbQuery;
 import com.centit.support.database.utils.JdbcConnect;
-import com.centit.support.dataopt.core.BizModel;
-import com.centit.support.dataopt.core.BizSupplier;
-import com.centit.support.dataopt.core.DataSet;
-import com.centit.support.dataopt.core.SimpleBizModel;
-import com.centit.support.dataopt.dataset.SQLDataSetReader;
+import com.centit.product.dataopt.core.BizModel;
+import com.centit.product.dataopt.core.BizSupplier;
+import com.centit.product.dataopt.core.DataSet;
+import com.centit.product.dataopt.core.SimpleBizModel;
+import com.centit.product.dataopt.dataset.SQLDataSetReader;
 
 import java.util.HashMap;
 import java.util.Map;

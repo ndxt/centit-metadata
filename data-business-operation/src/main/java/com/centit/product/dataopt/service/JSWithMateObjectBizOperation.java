@@ -1,9 +1,9 @@
 package com.centit.product.dataopt.service;
 
-import com.centit.support.dataopt.bizopt.JSBizOperation;
-import com.centit.support.dataopt.core.BizModel;
-import com.centit.support.dataopt.utils.BizOptUtils;
-import com.centit.support.dataopt.utils.JSRuntimeContext;
+import com.centit.product.dataopt.bizopt.JSBizOperation;
+import com.centit.product.dataopt.core.BizModel;
+import com.centit.product.dataopt.utils.BizOptUtils;
+import com.centit.product.dataopt.utils.JSRuntimeContext;
 import org.apache.commons.lang3.StringUtils;
 
 public class JSWithMateObjectBizOperation extends JSBizOperation {

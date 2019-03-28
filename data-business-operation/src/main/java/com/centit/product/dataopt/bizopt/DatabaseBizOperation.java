@@ -7,12 +7,10 @@ import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.JdbcConnect;
-import com.centit.support.dataopt.bizopt.BuiltInOperation;
-import com.centit.support.dataopt.bizopt.PersistenceOperation;
-import com.centit.support.dataopt.core.BizModel;
-import com.centit.support.dataopt.core.DataSet;
-import com.centit.support.dataopt.core.DataSetWriter;
-import com.centit.support.dataopt.dataset.SQLDataSetWriter;
+import com.centit.product.dataopt.core.BizModel;
+import com.centit.product.dataopt.core.DataSet;
+import com.centit.product.dataopt.core.DataSetWriter;
+import com.centit.product.dataopt.dataset.SQLDataSetWriter;
 import org.apache.commons.lang3.StringUtils;
 
 public class DatabaseBizOperation extends BuiltInOperation {

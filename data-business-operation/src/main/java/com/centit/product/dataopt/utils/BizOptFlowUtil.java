@@ -1,12 +1,12 @@
 package com.centit.product.dataopt.utils;
 
 import com.alibaba.fastjson.JSONObject;
-import com.centit.support.dataopt.bizopt.BuiltInOperation;
-import com.centit.support.dataopt.bizopt.DataLoadSupplier;
-import com.centit.support.dataopt.bizopt.PersistenceOperation;
-import com.centit.support.dataopt.core.BizOperation;
-import com.centit.support.dataopt.core.BizOptFlow;
-import com.centit.support.dataopt.core.BizSupplier;
+import com.centit.product.dataopt.bizopt.BuiltInOperation;
+import com.centit.product.dataopt.bizopt.DataLoadSupplier;
+import com.centit.product.dataopt.bizopt.PersistenceOperation;
+import com.centit.product.dataopt.core.BizOperation;
+import com.centit.product.dataopt.core.BizOptFlow;
+import com.centit.product.dataopt.core.BizSupplier;
 import org.apache.commons.lang3.StringUtils;
 
 public abstract class BizOptFlowUtil {

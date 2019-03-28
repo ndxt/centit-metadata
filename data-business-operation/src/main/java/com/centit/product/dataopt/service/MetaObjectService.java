@@ -1,7 +1,7 @@
 package com.centit.product.dataopt.service;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.support.dataopt.core.BizModel;
+import com.centit.product.dataopt.core.BizModel;
 import java.util.Map;
 
 public interface MetaObjectService {

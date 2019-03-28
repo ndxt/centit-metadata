@@ -58,7 +58,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     private String databaseCode;
 
     /**
-     * 类别 表 T table /视图 V view
+     * 类别 表 T table /视图 V view / C-大字段 目前只支持json格式
      */
     @Column(name = "TABLE_TYPE")
     @NotBlank(message = "字段不能为空")

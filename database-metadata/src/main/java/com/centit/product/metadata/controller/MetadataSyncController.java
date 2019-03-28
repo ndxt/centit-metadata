@@ -45,14 +45,14 @@ public class MetadataSyncController extends BaseController {
         @ApiImplicitParam(name = "tableLabelName", value = "中文名"),
         @ApiImplicitParam(name = "tableComment", value = "描述")
     })
-    @PutMapping(value = "/table/{tableId}/{tableLabelName}/{tableComment}/{tableState}")
+    @PutMapping(value = "/table/{tableId}")
     @WrapUpResponseBody
-    public void updateMetaTable(@PathVariable String tableId, @PathVariable String tableLabelName, @PathVariable String tableComment, @PathVariable String tableState,HttpServletRequest request){
+    public void updateMetaTable(@PathVariable String tableId, @RequestBody MetaTable metaTable,HttpServletRequest request){
         CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
         if(userDetails == null){
             throw new ObjectException("未登录");
         }
-        metaDataService.updateMetaTable(tableId, tableLabelName, tableComment, tableState, userDetails.getUserCode());
+        metaDataService.updateMetaTable(tableId, metaTable.getTableLabelName(), metaTable.getTableComment(), metaTable.getTableState(), userDetails.getUserCode());
     }
 
     @ApiOperation(value = "修改列元数据")
@@ -62,7 +62,7 @@ public class MetadataSyncController extends BaseController {
     })
     @PutMapping(value = "/column/{tableId}/{columnCode}")
     @WrapUpResponseBody
-    public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode,@RequestBody MetaColumn metaColumn){
+    public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode, @RequestBody MetaColumn metaColumn){
         metaColumn.setTableId(tableId);
         metaColumn.setColumnName(columnCode);
         metaDataService.updateMetaColumn(metaColumn);
@@ -71,7 +71,7 @@ public class MetadataSyncController extends BaseController {
     @ApiOperation(value = "新建关联关系元数据")
     @PostMapping(value = "/{tableId}/relation")
     @WrapUpResponseBody
-    public void createRelations(@PathVariable String tableId, @RequestBody MetaTable metaTable){
+    public void createRelations(@PathVariable String tableId, MetaTable metaTable){
         metaDataService.saveRelations(tableId, metaTable.getMdRelations());
     }
 

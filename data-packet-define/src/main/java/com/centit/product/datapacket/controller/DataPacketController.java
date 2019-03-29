@@ -15,6 +15,7 @@ import com.centit.product.datapacket.po.RmdbQuery;
 import com.centit.product.datapacket.service.DBPacketBizSupplier;
 import com.centit.product.datapacket.service.DataPacketService;
 import com.centit.product.datapacket.service.RmdbQueryService;
+import com.centit.product.datapacket.utils.DataPacketUtil;
 import com.centit.product.datapacket.vo.DataPacketSchema;
 import com.centit.support.database.utils.JdbcConnect;
 import com.centit.support.database.utils.PageDesc;
@@ -68,12 +69,24 @@ public class DataPacketController extends BaseController {
         dataPacketService.deleteDataPacket(packetId);
     }
 
+    @ApiOperation(value = "获取数据包初始模式（不包括数据预处理）")
+    @GetMapping(value = "/originschema/{packetId}")
+    @WrapUpResponseBody
+    public DataPacketSchema getDataPacketOriginSchema(@PathVariable String packetId){
+        return DataPacketSchema.valueOf(dataPacketService.getDataPacket(packetId));
+    }
+
     @ApiOperation(value = "获取数据包模式")
     @GetMapping(value = "/schema/{packetId}")
     @WrapUpResponseBody
     public DataPacketSchema getDataPacketSchema(@PathVariable String packetId){
-        DataPacketSchema dataPacketSchema = new DataPacketSchema();
-        return  dataPacketSchema.valueOf(dataPacketService.getDataPacket(packetId));
+        DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
+        DataPacketSchema schema = DataPacketSchema.valueOf(dataPacket);
+        JSONObject obj = dataPacket.getDataOptDesc();
+        if(obj!=null){
+            return DataPacketUtil.calcDataPacketSchema(schema, obj);
+        }
+        return schema;
     }
 
     @ApiOperation(value = "查询数据包")
@@ -91,8 +104,7 @@ public class DataPacketController extends BaseController {
         return dataPacketService.getDataPacket(packetId);
     }
 
-    private BizModel innerFetchDataPacketData(String packetId, String params){
-        DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
+    private BizModel innerFetchDataPacketData(DataPacket dataPacket, String params){
         DBPacketBizSupplier bizSupplier = new DBPacketBizSupplier(dataPacket);
         bizSupplier.setIntegrationEnvironment(integrationEnvironment);
         if(StringUtils.isNotBlank(params)){
@@ -114,7 +126,14 @@ public class DataPacketController extends BaseController {
     @GetMapping(value = "/packet/{packetId}")
     @WrapUpResponseBody
     public BizModel fetchDataPacketData(@PathVariable String packetId, String params){
-        return innerFetchDataPacketData(packetId, params);
+        DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
+        BizModel bizModel = innerFetchDataPacketData(dataPacket, params);
+        JSONObject obj = dataPacket.getDataOptDesc();
+        if(obj!=null){
+            BuiltInOperation builtInOperation = new BuiltInOperation(obj);
+            return builtInOperation.apply(bizModel);
+        }
+        return bizModel;
     }
 
     @ApiOperation(value = "获取数据库查询数据")
@@ -142,7 +161,6 @@ public class DataPacketController extends BaseController {
                 modelTag.putAll(obj);
             }
         }
-
         return sqlDSR.load(modelTag);
     }
 
@@ -158,7 +176,8 @@ public class DataPacketController extends BaseController {
     @GetMapping(value = "/dataopts/{packetId}")
     @WrapUpResponseBody
     public BizModel fetchDataPacketDataWithOpt(@PathVariable String packetId, String optsteps, String params){
-        BizModel bizModel = innerFetchDataPacketData(packetId, params);
+        DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
+        BizModel bizModel = innerFetchDataPacketData(dataPacket, params);
         if(StringUtils.isNotBlank(optsteps)){
             JSONObject obj = JSON.parseObject(optsteps);
             if(obj!=null){
@@ -168,5 +187,4 @@ public class DataPacketController extends BaseController {
         }
         return bizModel;
     }
-
 }

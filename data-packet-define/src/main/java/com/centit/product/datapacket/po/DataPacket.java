@@ -1,5 +1,6 @@
 package com.centit.product.datapacket.po;
 
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.support.database.orm.GeneratorCondition;
@@ -9,6 +10,7 @@ import com.centit.support.database.orm.ValueGenerator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -65,6 +67,15 @@ public class DataPacket implements Serializable {
     @ApiModelProperty(value = "属主代码")
     private String ownerCode;
 
+    @Column(name = "HAS_DATA_OPT")
+    @ApiModelProperty(value = "是否有数据预处理", required = true)
+    private String hasDataOpt;
+
+    @JSONField(serialize=false)
+    @Column(name = "DATA_OPT_DESC_JSON")
+    @ApiModelProperty(value = "数据预处理描述 json格式的数据预处理说明", required = true)
+    private String dataOptDescJson;
+
     @Column(name = "RECORDER")
     @ApiModelProperty(value = "修改人", hidden = true)
     @DictionaryMap(fieldName = "recorderName", value = "userCode")
@@ -75,7 +86,6 @@ public class DataPacket implements Serializable {
     @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
     @JSONField(serialize = false)
     private Date recordDate;
-
 
     @OneToMany(targetEntity = DataPacketParam.class)
     @JoinColumn(name = "packetId", referencedColumnName = "packetId")
@@ -106,6 +116,13 @@ public class DataPacket implements Serializable {
             params.put(packetParam.getParamName(), packetParam.getParamDefaultValue());
         }
         return params;
+    }
+
+    public JSONObject getDataOptDesc() {
+        if(StringUtils.isBlank(dataOptDescJson)) {
+            return null;
+        }
+        return JSONObject.parseObject(dataOptDescJson);
     }
 
 }

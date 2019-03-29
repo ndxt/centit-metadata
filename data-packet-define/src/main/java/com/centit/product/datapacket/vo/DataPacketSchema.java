@@ -55,6 +55,18 @@ public class DataPacketSchema implements Serializable {
         dataSets.add(dss);
     }
 
+    public DataSetSchema fetchDataSetSchema(String dataSetName){
+        if(dataSets==null){
+            return null;
+        }
+        for(DataSetSchema dss : dataSets){
+            if(StringUtils.equals(dss.getDataSetName(), dataSetName)){
+                return dss;
+            }
+        }
+        return null;
+    }
+
     public static DataPacketSchema valueOf(DataPacket dataPacket) {
         if(dataPacket == null){
             return null;

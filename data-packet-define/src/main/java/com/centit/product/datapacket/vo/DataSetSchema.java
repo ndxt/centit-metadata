@@ -3,7 +3,9 @@ package com.centit.product.datapacket.vo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -22,4 +24,60 @@ public class DataSetSchema{
     String dataSetTitle;
     @ApiModelProperty(value = "数据集字段列表")
     List<ColumnSchema> columns;
+
+    public void addColumns(ColumnSchema column){
+        if(column==null){
+            return;
+        }
+        if(columns == null){
+            columns = new ArrayList<>();
+        }
+        columns.add(column);
+    }
+
+    public boolean existColumn(String propertyName){
+        if(columns == null) {
+            return false;
+        } else {
+            for(ColumnSchema column : columns){
+                if(StringUtils.equals(column.getPropertyName(),propertyName)){
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public ColumnSchema fetchColumn(String propertyName){
+        if(columns == null) {
+            return null;
+        } else {
+            for(ColumnSchema column : columns){
+                if(StringUtils.equals(column.getPropertyName(),propertyName)){
+                    return column;
+                }
+            }
+            return null;
+        }
+    }
+
+    public void addColumnIfNotExist(String propertyName){
+        if(! this.existColumn(propertyName)){
+            this.addColumns(new ColumnSchema(propertyName));
+        }
+    }
+
+    public void addColumnDup(String propertyName, String dupPropertyName){
+        this.addColumns(new ColumnSchema(this.existColumn(propertyName)?dupPropertyName:propertyName));
+    }
+
+    public DataSetSchema duplicate(){
+        DataSetSchema dup = new DataSetSchema(this.getDataSetName()+":dup");
+        if(this.columns!=null) {
+            List<ColumnSchema> dupcolumns = new ArrayList<>(this.columns.size());
+            dupcolumns.addAll(this.columns);
+            dup.setColumns(dupcolumns);
+        }
+        return dup;
+    }
 }

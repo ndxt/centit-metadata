@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.centit.product.dataopt.bizopt.BuiltInOperation;
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.utils.DataSetOptUtil;
+import com.centit.product.datapacket.vo.ColumnSchema;
 import com.centit.product.datapacket.vo.DataPacketSchema;
 import com.centit.product.datapacket.vo.DataSetSchema;
 import com.centit.support.algorithm.StringBaseOpt;
@@ -63,7 +64,10 @@ public abstract class DataPacketUtil {
         Object mapInfo = bizOptJson.get("fieldsMap");
         if(mapInfo instanceof Map){
             DataSetSchema dss = new DataSetSchema(targetDSName);
-
+            dss.setDataSetTitle(sourDSName+":map");
+            for(Object s : ((Map)mapInfo).keySet()){
+                dss.addColumnIfNotExist(StringBaseOpt.castObjectToString(s));
+            }
             sourceSchema.putDataSetSchema(dss);
         }
         return sourceSchema;
@@ -73,10 +77,11 @@ public abstract class DataPacketUtil {
         String sourDSName = BuiltInOperation.getJsonFieldString(bizOptJson,"source", sourceSchema.getPacketName());
         //String targetDSName = BuiltInOperation.getJsonFieldString(bizOptJson, "target", sourDSName);
         Object mapInfo = bizOptJson.get("fieldsMap");
-        if(mapInfo instanceof Map){
-            DataSetSchema dss = new DataSetSchema(sourDSName);
-
-            sourceSchema.putDataSetSchema(dss);
+        DataSetSchema dss = sourceSchema.fetchDataSetSchema(sourDSName);
+        if(dss != null && mapInfo instanceof Map){
+            for(Object s : ((Map)mapInfo).keySet()){
+                dss.addColumnIfNotExist(StringBaseOpt.castObjectToString(s));
+            }
         }
         return sourceSchema;
     }
@@ -84,12 +89,11 @@ public abstract class DataPacketUtil {
     public static DataPacketSchema calcSchemaFilter(DataPacketSchema sourceSchema, JSONObject bizOptJson) {
         String sourDSName = BuiltInOperation.getJsonFieldString(bizOptJson,"source", sourceSchema.getPacketName());
         String targetDSName = BuiltInOperation.getJsonFieldString(bizOptJson, "target", sourDSName);
-        String formula = bizOptJson.getString("filter");
-        if(StringUtils.isNotBlank(formula)){
-            DataSetSchema dss = new DataSetSchema(targetDSName);
-
-            sourceSchema.putDataSetSchema(dss);
-        }
+        DataSetSchema dss = sourceSchema.fetchDataSetSchema(sourDSName);
+        dss.setDataSetTitle(sourDSName+":filter");
+        dss.setDataSetId(targetDSName);
+        dss.setDataSetName(targetDSName);
+        sourceSchema.putDataSetSchema(dss);
         return sourceSchema;
     }
 
@@ -98,9 +102,16 @@ public abstract class DataPacketUtil {
         String targetDSName = BuiltInOperation.getJsonFieldString(bizOptJson, "target", sourDSName);
         Object groupBy = bizOptJson.get("groupBy");
         List<String> groupFields = StringBaseOpt.objectToStringList(groupBy);
+        DataSetSchema sdss = sourceSchema.fetchDataSetSchema(sourDSName);
+        DataSetSchema dss = new DataSetSchema(targetDSName);
+        if(groupFields!=null){
+            for(String f : groupFields){
+                dss.addColumns(sdss.fetchColumn(f));
+            }
+        }
         Object stat = bizOptJson.get("fieldsMap");
         if(stat instanceof Map){
-            DataSetSchema dss = new DataSetSchema(targetDSName);
+
 
             sourceSchema.putDataSetSchema(dss);
         }

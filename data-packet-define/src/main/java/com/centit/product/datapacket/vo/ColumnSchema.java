@@ -1,10 +1,22 @@
 package com.centit.product.datapacket.vo;
 
+import com.centit.support.algorithm.BooleanBaseOpt;
+import com.centit.support.database.utils.FieldType;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class ColumnSchema{
+
+    public ColumnSchema(String propertyName){
+        this.columnCode = propertyName;
+        this.propertyName = propertyName;
+        this.columnName = propertyName;
+        this.dataType = FieldType.STRING;
+        this.isStatData = BooleanBaseOpt.ONE_CHAR_FALSE;
+    }
 
     @ApiModelProperty(value = "字段代码")
     String columnCode;

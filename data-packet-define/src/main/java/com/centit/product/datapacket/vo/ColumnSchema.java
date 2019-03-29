@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class ColumnSchema{
+
     @ApiModelProperty(value = "字段代码")
     String columnCode;
     @ApiModelProperty(value = "字段属性名")

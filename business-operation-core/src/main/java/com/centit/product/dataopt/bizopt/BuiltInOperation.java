@@ -30,7 +30,7 @@ public class BuiltInOperation implements BizOperation {
     protected JSONObject bizOptJson;
 
 
-    protected String getJsonFieldString(JSONObject bizOptJson, String fieldName, String defalutValue ){
+    public static String getJsonFieldString(JSONObject bizOptJson, String fieldName, String defalutValue ){
         String targetDSName = bizOptJson.getString(fieldName);
         if(StringUtils.isBlank(targetDSName)){
             return defalutValue;

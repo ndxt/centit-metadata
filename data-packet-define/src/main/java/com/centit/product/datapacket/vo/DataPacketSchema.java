@@ -6,6 +6,7 @@ import com.centit.product.datapacket.po.RmdbQuery;
 import com.centit.product.datapacket.po.RmdbQueryColumn;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -37,6 +38,22 @@ public class DataPacketSchema implements Serializable {
 
     @ApiModelProperty(value = "数据集描述")
     private List<DataSetSchema> dataSets;
+
+    public void putDataSetSchema(DataSetSchema dss){
+        if(dataSets==null){
+            dataSets = new ArrayList<>();
+            dataSets.add(dss);
+            return;
+        }
+        int n=dataSets.size();
+        for(int i=0; i<n; i++){
+            if(StringUtils.equals(dataSets.get(i).getDataSetName(), dss.getDataSetName())){
+                dataSets.set(i,dss);
+                return;
+            }
+        }
+        dataSets.add(dss);
+    }
 
     public static DataPacketSchema valueOf(DataPacket dataPacket) {
         if(dataPacket == null){

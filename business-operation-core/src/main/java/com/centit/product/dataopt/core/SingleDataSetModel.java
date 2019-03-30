@@ -24,16 +24,17 @@ public class SingleDataSetModel extends SimpleBizModel {
     }
 
     public SingleDataSetModel(DataSet dataSet){
-        setMainDataSet(dataSet);
+        putMainDataSet(dataSet);
     }
 
     public SingleDataSetModel(String modelName, DataSet dataSet){
-        setMainDataSet(modelName, dataSet);
+        setModelName(modelName);
+        putMainDataSet(dataSet);
     }
 
     @JSONField(deserialize = false, serialize = false)
     public void setDataSet(DataSet dataSet){
-        setMainDataSet(dataSet);
+        putMainDataSet(dataSet);
     }
 
     @JSONField(deserialize = false, serialize = false)

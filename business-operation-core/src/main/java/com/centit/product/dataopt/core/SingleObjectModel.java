@@ -16,7 +16,7 @@ public class SingleObjectModel extends SimpleBizModel {
     public SingleObjectModel(Object obj){
         super();
         bizData = new HashMap<>(1);
-        setMainDataSet(BizModel.DEFAULT_MODEL_NAME, new SingleObjectDataSet(obj));
+        putMainDataSet(new SingleObjectDataSet(obj));
     }
 
     @Override
@@ -29,7 +29,7 @@ public class SingleObjectModel extends SimpleBizModel {
     @JSONField(deserialize = false, serialize = false)
     public void setObject(Object obj){
         checkBizDataSpace();
-        setMainDataSet(BizModel.DEFAULT_MODEL_NAME, new SingleObjectDataSet(obj));
+        putMainDataSet(new SingleObjectDataSet(obj));
     }
 
     @JSONField(deserialize = false, serialize = false)

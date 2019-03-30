@@ -1,7 +1,5 @@
 package com.centit.product.dataopt.core;
 
-import com.alibaba.fastjson.annotation.JSONField;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +19,7 @@ public class SimpleBizModel implements BizModel{
     protected Map<String, DataSet> bizData;
 
     public SimpleBizModel(){
-
+        modelName = BizModel.DEFAULT_MODEL_NAME;
     }
 
     public SimpleBizModel(String modelName){

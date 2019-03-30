@@ -97,6 +97,8 @@ public class DatabaseBizOperation extends BuiltInOperation {
                 return runJoin(bizModel, bizOptJson);
             case "union":
                 return runUnion(bizModel, bizOptJson);
+            case "static":
+                return runStaticData(bizModel, bizOptJson);
             case "persistence":
                 return runPersistence(bizModel, bizOptJson);
             default:

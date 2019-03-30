@@ -28,4 +28,14 @@ public class ColumnSchema{
     String dataType;
     @ApiModelProperty(value = "是否为统计字段")
     String isStatData;
+
+    public ColumnSchema duplicate(){
+        ColumnSchema dup = new ColumnSchema();
+        dup.columnCode = this.columnCode;
+        dup.propertyName = this.propertyName+":dup";
+        dup.columnName = this.columnName;
+        dup.dataType = this.dataType;
+        dup.isStatData = this.isStatData;
+        return dup;
+    }
 }

@@ -25,7 +25,7 @@ public class DataSetSchema{
     @ApiModelProperty(value = "数据集字段列表")
     List<ColumnSchema> columns;
 
-    public void addColumns(ColumnSchema column){
+    public void addColumn(ColumnSchema column){
         if(column==null){
             return;
         }
@@ -63,12 +63,12 @@ public class DataSetSchema{
 
     public void addColumnIfNotExist(String propertyName){
         if(! this.existColumn(propertyName)){
-            this.addColumns(new ColumnSchema(propertyName));
+            this.addColumn(new ColumnSchema(propertyName));
         }
     }
 
     public void addColumnDup(String propertyName, String dupPropertyName){
-        this.addColumns(new ColumnSchema(this.existColumn(propertyName)?dupPropertyName:propertyName));
+        this.addColumn(new ColumnSchema(this.existColumn(propertyName)?dupPropertyName:propertyName));
     }
 
     public DataSetSchema duplicate(){

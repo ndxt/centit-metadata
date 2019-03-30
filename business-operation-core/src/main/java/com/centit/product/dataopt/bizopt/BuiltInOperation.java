@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.dataopt.core.DataSet;
+import com.centit.product.dataopt.utils.BizOptUtils;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.product.dataopt.core.BizOperation;
 import com.centit.product.dataopt.utils.DataSetOptUtil;
@@ -47,7 +48,7 @@ public class BuiltInOperation implements BizOperation {
             if(dataSet != null) {
                 DataSet destDS = DataSetOptUtil.mapDateSetByFormula(dataSet, ((Map) mapInfo).entrySet());
                 //if(destDS != null){
-                bizModel.addDataSet(targetDSName, destDS);
+                bizModel.putDataSet(targetDSName, destDS);
                 //}
             }
         }
@@ -76,7 +77,7 @@ public class BuiltInOperation implements BizOperation {
             DataSet dataSet = bizModel.fetchDataSetByName(sourDSName);
             if(dataSet != null) {
                 DataSet destDS = DataSetOptUtil.filterDateSet(dataSet,formula);
-                bizModel.addDataSet(targetDSName, destDS);
+                bizModel.putDataSet(targetDSName, destDS);
             }
         }
         return bizModel;
@@ -92,7 +93,7 @@ public class BuiltInOperation implements BizOperation {
             DataSet dataSet = bizModel.fetchDataSetByName(sourDSName);
             if(dataSet != null) {
                 DataSet destDS = DataSetOptUtil.statDataset2(dataSet, groupFields, (Map) stat);
-                bizModel.addDataSet(targetDSName, destDS);
+                bizModel.putDataSet(targetDSName, destDS);
             }
         }
         return bizModel;
@@ -113,7 +114,7 @@ public class BuiltInOperation implements BizOperation {
             if(dataSet != null) {
                 DataSet destDS = DataSetOptUtil.analyseDataset(dataSet,
                     groupFields, orderFields, ((Map) analyse).entrySet());
-                bizModel.addDataSet(targetDSName, destDS);
+                bizModel.putDataSet(targetDSName, destDS);
             }
         }
         return bizModel;
@@ -130,7 +131,7 @@ public class BuiltInOperation implements BizOperation {
         DataSet dataSet = bizModel.fetchDataSetByName(sourDSName);
         if(dataSet != null) {
             DataSet destDS = DataSetOptUtil.crossTabulation(dataSet, rows, cols);
-            bizModel.addDataSet(targetDSName, destDS);
+            bizModel.putDataSet(targetDSName, destDS);
         }
         return bizModel;
     }
@@ -149,7 +150,7 @@ public class BuiltInOperation implements BizOperation {
         DataSet dataSet2 = bizModel.fetchDataSetByName(sour2DSName);
         if(dataSet != null && dataSet2 != null) {
             DataSet destDS = DataSetOptUtil.compareTabulation(dataSet, dataSet2, pks);
-            bizModel.addDataSet(targetDSName, destDS);
+            bizModel.putDataSet(targetDSName, destDS);
         }
         return bizModel;
     }
@@ -163,7 +164,7 @@ public class BuiltInOperation implements BizOperation {
         DataSet destDS = DataSetOptUtil.joinTwoDataSet(dataSet, dataSet2, pks);
 
         if(destDS!=null){
-            bizModel.addDataSet(getJsonFieldString(bizOptJson, "target", bizModel.getModelName()), destDS);
+            bizModel.putDataSet(getJsonFieldString(bizOptJson, "target", bizModel.getModelName()), destDS);
         }
         return bizModel;
     }
@@ -175,10 +176,18 @@ public class BuiltInOperation implements BizOperation {
         DataSet dataSet2 = bizModel.fetchDataSetByName(sour2DSName);
         DataSet destDS = DataSetOptUtil.unionTwoDataSet(dataSet, dataSet2);
         if(destDS!=null){
-            bizModel.addDataSet(getJsonFieldString(bizOptJson, "target", bizModel.getModelName()), destDS);
+            bizModel.putDataSet(getJsonFieldString(bizOptJson, "target", bizModel.getModelName()), destDS);
         }
         return bizModel;
     }
+
+    protected BizModel runStaticData(BizModel bizModel, JSONObject bizOptJson) {
+        JSONArray ja = bizOptJson.getJSONArray("data");
+        DataSet destDS = BizOptUtils.castObjectToDataSet(ja);
+        bizModel.putDataSet(getJsonFieldString(bizOptJson, "target", bizModel.getModelName()), destDS);
+        return bizModel;
+    }
+
 
     /*private BizModel runPersistence(BizModel bizModel, JSONObject bizOptJson) {
         String sourDSName = getJsonFieldString(bizOptJson,"source", bizModel.getModelName());
@@ -212,6 +221,8 @@ public class BuiltInOperation implements BizOperation {
                 return runJoin(bizModel, bizOptJson);
             case "union":
                 return runUnion(bizModel, bizOptJson);
+            case "static":
+                return runStaticData(bizModel, bizOptJson);
             /*case "persistence":
                 return runPersistence(bizModel, bizOptJson);*/
             default:

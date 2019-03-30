@@ -19,7 +19,7 @@ public interface BizModel {
      */
     Map<String, Object> getModelTag();
     /**
-     * @return  模型数据
+     * @return  模型数据 key为关联关系链， value为dataSet
      */
     Map<String, DataSet> getBizData();
 
@@ -39,16 +39,20 @@ public interface BizModel {
 
     void checkBizDataSpace();
 
-    default void addDataSet(String dataSetName, DataSet dataSet) {
+    default void putDataSet(String relationPath, DataSet dataSet) {
         checkBizDataSpace();
-        getBizData().put(dataSetName, dataSet);
+        getBizData().put(relationPath, dataSet);
     }
 
-    default DataSet fetchDataSetByName(String dataSetName){
+    default void putMainDataSet(DataSet dataSet) {
+        putDataSet(this.getModelName(), dataSet);
+    }
+
+    default DataSet fetchDataSetByName(String relationPath){
         Map<String, DataSet> dss = getBizData();
         if(dss == null) {
             return null;
         }
-        return dss.get(dataSetName);
+        return dss.get(relationPath);
     }
 }

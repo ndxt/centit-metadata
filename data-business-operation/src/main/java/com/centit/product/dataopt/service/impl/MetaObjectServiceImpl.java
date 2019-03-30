@@ -91,7 +91,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             }
                             JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
                                 .listObjectsByProperties(ref);
-                            mainObj.put(FieldType.mapPropName(relTableInfo.getTableName()), ja);
+                            mainObj.put(md.getRelationName(), ja);
                         }
                     }
                     return mainObj;
@@ -104,7 +104,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
      * @param tableId 表ID
      * @param pk 组件
      * @param withChildrenDeep 目前可以只考虑 一层 就是 只能为 1
-     * @return
+     *                         TODO 这个需要重构，根据层次一个 table join 链来解决
+     * @return BizModel
      */
     @Override
     public BizModel getObjectAsBizMode(String tableId, Map<String, Object> pk, int withChildrenDeep) {
@@ -113,12 +114,12 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
                 (conn) ->{
-                    SimpleBizModel bizModel = new SimpleBizModel(tableInfo.getTableName());
+                    SimpleBizModel bizModel = new SimpleBizModel(FieldType.mapClassName(tableInfo.getTableName()));
                     Map<String, Object> mainObj =
                         GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).getObjectById(pk);
                     SimpleDataSet dataSet = new SingleRowDataSet(mainObj);
                     dataSet.setDataSetName(tableInfo.getTableName());
-                    bizModel.setMainDataSet(dataSet);
+                    bizModel.putMainDataSet(dataSet);
                     List<MetaRelation> mds = tableInfo.getMdRelations();
                     if(mds!=null) {
                         for (MetaRelation md : mds) {
@@ -130,7 +131,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo).listObjectsByProperties(ref);
                             SimpleDataSet subDataSet = new SimpleDataSet((List)ja);
                             subDataSet.setDataSetName(relTableInfo.getTableName());
-                            bizModel.addDataSet(subDataSet);
+                            bizModel.putDataSet(md.getRelationName(), subDataSet);
                         }
                     }
                     return bizModel;

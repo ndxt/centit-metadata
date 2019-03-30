@@ -34,25 +34,6 @@ public class SimpleBizModel implements BizModel{
         }
     }
 
-    public void addDataSet(DataSet dataSet) {
-        checkBizDataSpace();
-        this.bizData.put(dataSet.getDataSetName(), dataSet);
-    }
-
-    @JSONField(deserialize = false, serialize = false)
-    public void setMainDataSet(DataSet dataSet) {
-        checkBizDataSpace();
-        this.modelName = dataSet.getDataSetName();
-        this.bizData.put(this.modelName , dataSet);
-    }
-
-    @JSONField(deserialize = false, serialize = false)
-    public void setMainDataSet(String modelName, DataSet dataSet) {
-        checkBizDataSpace();
-        this.modelName = modelName;
-        this.bizData.put(this.modelName , dataSet);
-    }
-
     public String getModelName() {
         return modelName;
     }

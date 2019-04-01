@@ -231,7 +231,18 @@ public abstract class DataSetOptUtil {
         return new SimpleDataSet(newData);
     }
 
-    public static void analyseDatasetGroup( List<Map<String, Object>> data,
+    /*public static DataSet sumRollupDataset(DataSet inData,
+                                       List<String> groupbyFields, List<String> orderbyFields) {
+        List<Map<String, Object>> data = inData.getData();
+        List<String> keyRows = ListUtils.union(groupbyFields, orderbyFields);
+        //根据维度进行排序 行头、列头
+        sortByFields(data, keyRows);
+        Map<String, Object> preRow = null;
+        int n = data.size();
+        return inData;
+    }*/
+
+    public static void analyseDatasetGroup(List<Map<String, Object>> data,
                                             int offset, int endPos,
                                             DatasetVariableTranslate dvt,
                                             Collection<Map.Entry<String, String>> refDesc) {
@@ -278,7 +289,7 @@ public abstract class DataSetOptUtil {
             preRow = row;
         }
         analyseDatasetGroup(data,prePos,n,dvt,refDesc);
-        return inData;
+        return new SimpleDataSet(data);
     }
     /***
      * 交叉制表 数据处理

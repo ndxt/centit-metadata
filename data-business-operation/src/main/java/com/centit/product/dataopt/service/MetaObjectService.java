@@ -8,7 +8,8 @@ public interface MetaObjectService {
 
     Map<String, Object> getObjectById(String tableId, Map<String, Object> pk);
 
-    BizModel getObjectAsBizMode(String tableId, Map<String, Object> pk, int withChildrenDeep);
+    @Deprecated
+    BizModel getObjectAsBizModel(String tableId, Map<String, Object> pk, int withChildrenDeep);
 
     Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep);
 

@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
@@ -72,6 +73,30 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
+    private void fetchObjectRefrences(Connection conn, Map<String, Object> mainObj,
+                                      MetaTable tableInfo, int withChildrenDeep) throws SQLException, IOException {
+        List<MetaRelation> mds = tableInfo.getMdRelations();
+        if(mds!=null) {
+            for (MetaRelation md : mds) {
+                MetaTable relTableInfo = fetchTableInfo(md.getChildTableId(),true);
+                Map<String, Object> ref = new HashMap<>();
+                for(Map.Entry<String, String> rc : md.getReferenceColumns().entrySet()){
+                    ref.put(rc.getValue(), mainObj.get(rc.getKey()));
+                }
+                JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
+                    .listObjectsByProperties(ref);
+                MetaTable subTableInfo = fetchTableInfo(md.getChildTableId(),true);
+                if(withChildrenDeep >1 && ja != null) {
+                    for (Object subObject : ja){
+                        fetchObjectRefrences(conn, (Map)subObject,
+                            subTableInfo, withChildrenDeep -1);
+                    }
+                }
+                mainObj.put(md.getRelationName(), ja);
+            }
+        }
+    }
+
     @Override
     public Map<String, Object>  getObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep) {
         MetaTable tableInfo = fetchTableInfo(tableId,true);
@@ -81,18 +106,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 (conn) ->{
                     Map<String, Object> mainObj =
                         GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).getObjectById(pk);
-                    List<MetaRelation> mds = tableInfo.getMdRelations();
-                    if(mds!=null) {
-                        for (MetaRelation md : mds) {
-                            MetaTable relTableInfo = fetchTableInfo(md.getChildTableId(),true);
-                            Map<String, Object> ref = new HashMap<>();
-                            for(Map.Entry<String, String> rc : md.getReferenceColumns().entrySet()){
-                                ref.put(rc.getValue(), mainObj.get(rc.getKey()));
-                            }
-                            JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
-                                .listObjectsByProperties(ref);
-                            mainObj.put(md.getRelationName(), ja);
-                        }
+                    if(withChildrenDeep>0) {
+                        fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
                     }
                     return mainObj;
                 });
@@ -100,6 +115,11 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
+
+    /*private void fetchBizModelRefrences(Connection conn, BizModel mainObj,
+                                      MetaTable tableInfo, String formTableSql, String whereSql ,int withChildrenDeep) throws SQLException, IOException {
+        // 重构bizModel获取方式
+    }*/
     /**
      * @param tableId 表ID
      * @param pk 组件
@@ -108,7 +128,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
      * @return BizModel
      */
     @Override
-    public BizModel getObjectAsBizMode(String tableId, Map<String, Object> pk, int withChildrenDeep) {
+    public BizModel getObjectAsBizModel(String tableId, Map<String, Object> pk, int withChildrenDeep) {
         MetaTable tableInfo = fetchTableInfo(tableId,true);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {

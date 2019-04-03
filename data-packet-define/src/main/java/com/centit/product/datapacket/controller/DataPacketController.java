@@ -23,6 +23,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -49,7 +50,7 @@ public class DataPacketController extends BaseController {
     @PostMapping
     @WrapUpResponseBody
     public void createDataPacket(DataPacket dataPacket){
-        //dataPacket.setQuerySql(HtmlUtils.htmlUnescape(dataPacket.getQuerySql()));
+        dataPacket.setDataOptDescJson(StringEscapeUtils.unescapeHtml4(dataPacket.getDataOptDescJson()));
         dataPacketService.createDataPacket(dataPacket);
     }
 
@@ -58,7 +59,7 @@ public class DataPacketController extends BaseController {
     @WrapUpResponseBody
     public void updateDataPacket(@PathVariable String packetId, @RequestBody DataPacket dataPacket){
         dataPacket.setPacketId(packetId);
-        //dataPacket.setQuerySql(HtmlUtils.htmlUnescape(dataPacket.getQuerySql()));
+        dataPacket.setDataOptDescJson(StringEscapeUtils.unescapeHtml4(dataPacket.getDataOptDescJson()));
         dataPacketService.updateDataPacket(dataPacket);
     }
 

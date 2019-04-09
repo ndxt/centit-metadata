@@ -1,5 +1,6 @@
 package com.centit.product.metadata.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.ObjectException;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
@@ -28,10 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional
@@ -56,8 +54,8 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public List<MetaTable> listMetaTables(String databaseCode, PageDesc pageDesc) {
-        return metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode), pageDesc);
+    public JSONArray listMetaTables(Map<String, Object> filterMap, PageDesc pageDesc) {
+        return metaTableDao.listObjectsAsJson(filterMap, pageDesc);
     }
 
     @Override
@@ -114,6 +112,9 @@ public class MetaDataServiceImpl implements MetaDataService {
                 for(SimpleTableField tableField : columns){
                     MetaColumn column = new MetaColumn().convertFromTableField(tableField);
                     column.setTableId(metaTable.getTableId());
+                    if (column.getFieldLabelName() ==null || "".equals(column.getFieldLabelName())) {
+                        column.setFieldLabelName(column.getColumnName());
+                    }
                     metaColumnDao.saveNewObject(column);
                 }
             }

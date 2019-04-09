@@ -91,6 +91,10 @@ public class DataPacket implements Serializable {
     @JSONField(serialize = false)
     private Date recordDate;
 
+    @Column(name = "BUFFER_FRESH_PERIOD ")
+    @ApiModelProperty(value = "缓存有效期", required = true)
+    private long bufferFreshPeriod;
+
     @OneToMany(targetEntity = DataPacketParam.class)
     @JoinColumn(name = "packetId", referencedColumnName = "packetId")
     private List<DataPacketParam> packetParams;

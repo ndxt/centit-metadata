@@ -1,5 +1,7 @@
 package com.centit.product.metadata.controller;
 
+import com.alibaba.fastjson.JSONArray;
+import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
@@ -21,8 +23,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 @Api(value = "数据库元数据查询", tags = "元数据查询")
 @RestController
@@ -43,9 +46,11 @@ public class MetadataQueryController {
     @ApiImplicitParam(name = "databaseCode", value = "数据库代码")
     @GetMapping(value = "/{databaseCode}/tables")
     @WrapUpResponseBody
-    public PageQueryResult<MetaTable> metaTables(@PathVariable String databaseCode, PageDesc pageDesc){
-        List<MetaTable> list = metaDataService.listMetaTables(databaseCode, pageDesc);
-        return PageQueryResult.createResultMapDict(list==null? Collections.emptyList():list,pageDesc);
+    public PageQueryResult metaTables(@PathVariable String databaseCode, PageDesc pageDesc, HttpServletRequest request){
+        Map<String, Object> searchColumn = BaseController.convertSearchColumn(request);
+        searchColumn.put("databaseCode",databaseCode);
+        JSONArray list = metaDataService.listMetaTables(searchColumn, pageDesc);
+        return PageQueryResult.createJSONArrayResult(list,pageDesc,MetaTable.class);
     }
 
     @ApiOperation(value = "数据库表")

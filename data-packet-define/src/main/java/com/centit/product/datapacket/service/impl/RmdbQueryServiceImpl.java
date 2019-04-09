@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +50,7 @@ public class RmdbQueryServiceImpl implements RmdbQueryService {
 
     @Override
     public void updateDbQuery(RmdbQuery rmdbQuery) {
+        rmdbQuery.setRecordDate(new Date());
         resourceColumnDao.updateObject(rmdbQuery);
         resourceColumnDao.saveObjectReferences(rmdbQuery);
     }

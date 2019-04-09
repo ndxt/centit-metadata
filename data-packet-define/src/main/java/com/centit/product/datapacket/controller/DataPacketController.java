@@ -22,7 +22,6 @@ import com.centit.product.datapacket.service.DBPacketBizSupplier;
 import com.centit.product.datapacket.service.DataPacketService;
 import com.centit.product.datapacket.service.RmdbQueryService;
 import com.centit.product.datapacket.utils.DataPacketUtil;
-import com.centit.product.datapacket.utils.RedisUtil;
 import com.centit.product.datapacket.vo.DataPacketSchema;
 import com.centit.support.database.utils.JdbcConnect;
 import com.centit.support.database.utils.PageDesc;
@@ -36,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
@@ -50,6 +50,9 @@ import java.util.Map;
 public class DataPacketController extends BaseController {
 
     @Autowired
+    private JedisPool jedisPool;
+
+    @Autowired
     private DataPacketService dataPacketService;
 
     @Autowired
@@ -57,8 +60,6 @@ public class DataPacketController extends BaseController {
 
     @Autowired
     private IntegrationEnvironment integrationEnvironment;
-
-    private Jedis jedis;
 
     @ApiOperation(value = "新增数据包")
     @PostMapping
@@ -159,7 +160,7 @@ public class DataPacketController extends BaseController {
         String key = AESSecurityUtils.encryptAndBase64(temp.toString(), DatabaseInfo.DESKEY) ;
         Object object = null;
         if (dataPacket.getBufferFreshPeriod() >=0 ) {
-            jedis = RedisUtil.getJedis();
+            Jedis jedis = jedisPool.getResource();
             //jedis.get(key);
             if (jedis.get(key.getBytes())!=null && !"".equals(jedis.get(key.getBytes()))) {
                 try {
@@ -174,7 +175,7 @@ public class DataPacketController extends BaseController {
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
-                RedisUtil.returnResource(jedis);
+                jedis.close();
                 if (object!=null) {
                     BizModel bizModel = (BizModel) object;
                     return bizModel;
@@ -183,6 +184,7 @@ public class DataPacketController extends BaseController {
         }
         BizModel bizModel = innerFetchDataPacketData(dataPacket, params);
         JSONObject obj = dataPacket.getDataOptDesc();
+        Jedis jedis = jedisPool.getResource();
         if (jedis.get(key.getBytes())==null || "".equals(jedis.get(key.getBytes()))) {
             //jedis.set(key,bizModel.toString());
             try {
@@ -203,8 +205,9 @@ public class DataPacketController extends BaseController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            RedisUtil.returnResource(jedis);
         }
+
+        jedis.close();
         if(obj!=null){
             BuiltInOperation builtInOperation = new BuiltInOperation(obj);
             bizModel = builtInOperation.apply(bizModel);

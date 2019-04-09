@@ -76,12 +76,16 @@ public class DataPacket implements Serializable {
     @ApiModelProperty(value = "数据预处理描述 json格式的数据预处理说明", required = true)
     private String dataOptDescJson;
 
+    @Column(name = "BUFFER_FRESH_PERIOD")
+    @ApiModelProperty(value = "数据缓存有效期，-1：不缓存（默认值） 0 永不失效 1 一日，2 按周（注意不是一周） 3 按月 4 按年， >=60 代表时间单位为秒", required = true)
+    private Integer bufferFreshPeriod;
+
     @Column(name = "RECORDER")
     @ApiModelProperty(value = "修改人", hidden = true)
     @DictionaryMap(fieldName = "recorderName", value = "userCode")
     private String recorder;
 
-    @Column(name = "RECORDDATE")
+    @Column(name = "RECORD_DATE")
     @ApiModelProperty(value = "修改时间", hidden = true)
     @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
     @JSONField(serialize = false)
@@ -97,6 +101,7 @@ public class DataPacket implements Serializable {
 
     public DataPacket(){
         packetType = "D";
+        bufferFreshPeriod = -1;
     }
 
     public List<RmdbQuery> getRmdbQueries() {

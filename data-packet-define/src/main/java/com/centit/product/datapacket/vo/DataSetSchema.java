@@ -1,5 +1,6 @@
 package com.centit.product.datapacket.vo;
 
+import com.centit.support.algorithm.BooleanBaseOpt;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ public class DataSetSchema{
         this.dataSetId = dataSetName;
         this.dataSetName = dataSetName;
         this.dataSetTitle = dataSetName;
+        //this.isOnlyInterVariable = BooleanBaseOpt.ONE_CHAR_FALSE;
     }
     @ApiModelProperty(value = "数据ID，一般和数据集名一样")
     String dataSetId;
@@ -24,6 +26,8 @@ public class DataSetSchema{
     String dataSetTitle;
     @ApiModelProperty(value = "数据集字段列表")
     List<ColumnSchema> columns;
+    //@ApiModelProperty(value = "是否仅作为中间数据")
+    //String isOnlyInterVariable;
 
     public void addColumn(ColumnSchema column){
         if(column==null){

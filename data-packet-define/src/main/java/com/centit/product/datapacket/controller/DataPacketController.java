@@ -8,6 +8,8 @@ import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.dataopt.bizopt.BuiltInOperation;
 import com.centit.product.dataopt.core.BizModel;
+import com.centit.product.dataopt.core.DataSet;
+import com.centit.product.dataopt.core.SimpleBizModel;
 import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
@@ -123,16 +125,33 @@ public class DataPacketController extends BaseController {
         required=true, paramType = "path", dataType ="String"
     ), @ApiImplicitParam(
         name = "params", value="查询参数，map的json格式字符串"
+    ), @ApiImplicitParam(
+        name = "datasets", value="需要返回的数据集名称，用逗号隔开，如果为空返回全部"
     )})
     @GetMapping(value = "/packet/{packetId}")
     @WrapUpResponseBody
-    public BizModel fetchDataPacketData(@PathVariable String packetId, String params){
+    public BizModel fetchDataPacketData(@PathVariable String packetId, String params, String datasets){
         DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
         BizModel bizModel = innerFetchDataPacketData(dataPacket, params);
         JSONObject obj = dataPacket.getDataOptDesc();
         if(obj!=null){
             BuiltInOperation builtInOperation = new BuiltInOperation(obj);
-            return builtInOperation.apply(bizModel);
+            bizModel = builtInOperation.apply(bizModel);
+        }
+
+        if(StringUtils.isNotBlank(datasets)){
+            String[] dss = datasets.split(",");
+            SimpleBizModel dup = new SimpleBizModel(bizModel.getModelName());
+            dup.setModelTag(bizModel.getModelTag());
+            Map<String, DataSet> dataMap = new HashMap<>(dss.length+1);
+            for(String dsn : dss) {
+                DataSet ds = bizModel.fetchDataSetByName(dsn);
+                if(ds!=null){
+                    dataMap.put(dsn, ds);
+                }
+            }
+            dup.setBizData(dataMap);
+            return dup;
         }
         return bizModel;
     }

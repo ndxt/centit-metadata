@@ -49,7 +49,6 @@ public class RmdbQuery implements Serializable {
     @ApiModelProperty(value = "数据库代码，引用集成平台中定义的数据库")
     private String databaseCode;
 
-
     @ApiModelProperty(value = "带命名参数的sql语句")
     @Column(name = "QUERY_SQL")
     private String querySQL;
@@ -59,7 +58,7 @@ public class RmdbQuery implements Serializable {
     @DictionaryMap(fieldName = "recorderName", value = "userCode")
     private String recorder;
 
-    @Column(name = "RECORDDATE")
+    @Column(name = "RECORD_DATE")
     @ApiModelProperty(value = "修改时间", hidden = true)
     @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
     @JSONField(serialize = false)

@@ -1,10 +1,12 @@
 package com.centit.product.datapacket.controller;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.centit.framework.common.ObjectException;
+import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
+import com.centit.framework.security.model.CentitUserDetails;
 import com.centit.product.datapacket.po.RmdbQuery;
 import com.centit.product.datapacket.service.RmdbQueryService;
 import com.centit.product.datapacket.vo.ColumnSchema;
@@ -34,7 +36,12 @@ public class RmdbQueryController extends BaseController {
     @ApiOperation(value = "新增数据库查询")
     @PostMapping
     @WrapUpResponseBody
-    public void createDbQuery(RmdbQuery rmdbQuery){
+    public void createDbQuery(RmdbQuery rmdbQuery, HttpServletRequest request){
+        CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
+        if(userDetails == null){
+            throw new ObjectException("未登录");
+        }
+        rmdbQuery.setRecorder(userDetails.getUserCode());
         rmdbQueryService.createDbQuery(rmdbQuery);
     }
 

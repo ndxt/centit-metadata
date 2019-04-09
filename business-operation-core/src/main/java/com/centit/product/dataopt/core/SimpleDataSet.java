@@ -2,13 +2,16 @@ package com.centit.product.dataopt.core;
 
 import com.alibaba.fastjson.JSONArray;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 /**
  * 数据集 虚拟类
  */
-public class SimpleDataSet implements DataSet, DataSetReader{
+public class SimpleDataSet implements DataSet, DataSetReader, Serializable {
+
+    private static final long serialVersionUID = 5864945592001190336L;
 
     public SimpleDataSet(){
         dataSetName = DataSet.SINGLE_DATA_SET_DEFALUT_NAME;

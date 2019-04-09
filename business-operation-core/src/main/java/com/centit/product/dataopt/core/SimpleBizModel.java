@@ -1,9 +1,11 @@
 package com.centit.product.dataopt.core;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SimpleBizModel implements BizModel{
+public class SimpleBizModel implements BizModel, Serializable {
+    private static final long serialVersionUID = -2048746719360025014L;
     /**
      * 模型名称
      */

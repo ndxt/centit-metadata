@@ -1,5 +1,6 @@
 package com.centit.product.metadata.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;
@@ -9,6 +10,7 @@ import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.vo.MetaTableCascade;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MetaDataService {
 
@@ -16,7 +18,7 @@ public interface MetaDataService {
 
     List<MetaTable> listAllMetaTablesWithDetail(String databaseCode);
 
-    List<MetaTable> listMetaTables(String databaseCode, PageDesc pageDes);
+    JSONArray listMetaTables(Map<String, Object> filterMap, PageDesc pageDes);
 
     List<DatabaseInfo> listDatabase();
 

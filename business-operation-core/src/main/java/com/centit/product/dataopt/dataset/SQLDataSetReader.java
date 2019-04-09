@@ -1,6 +1,7 @@
 package com.centit.product.dataopt.dataset;
 
 import com.alibaba.fastjson.JSONArray;
+import com.centit.framework.common.ObjectException;
 import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.product.dataopt.core.DataSetReader;
 import com.centit.support.database.utils.DataSourceDescription;
@@ -51,11 +52,12 @@ public class SQLDataSetReader implements DataSetReader {
             return dataSet;
         } catch (SQLException | IOException e) {
             logger.error(e.getLocalizedMessage());
+            throw new ObjectException(e.getLocalizedMessage());
+        } finally {
+            if(createConnect){
+                DbcpConnectPools.closeConnect(conn);
+            }
         }
-        if(createConnect){
-            DbcpConnectPools.closeConnect(conn);
-        }
-        return null;
     }
 
     public void setDataSource(DataSourceDescription dataSource) {

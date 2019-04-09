@@ -2,10 +2,14 @@ package com.centit.product.datapacket.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.centit.framework.common.ObjectException;
+import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
+import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
+import com.centit.framework.security.model.CentitUserDetails;
 import com.centit.product.dataopt.bizopt.BuiltInOperation;
 import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.dataopt.core.SimpleDataSet;
@@ -16,9 +20,11 @@ import com.centit.product.datapacket.service.DBPacketBizSupplier;
 import com.centit.product.datapacket.service.DataPacketService;
 import com.centit.product.datapacket.service.RmdbQueryService;
 import com.centit.product.datapacket.utils.DataPacketUtil;
+import com.centit.product.datapacket.utils.RedisUtil;
 import com.centit.product.datapacket.vo.DataPacketSchema;
 import com.centit.support.database.utils.JdbcConnect;
 import com.centit.support.database.utils.PageDesc;
+import com.centit.support.security.AESSecurityUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -27,7 +33,11 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import redis.clients.jedis.Jedis;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,10 +56,17 @@ public class DataPacketController extends BaseController {
     @Autowired
     private IntegrationEnvironment integrationEnvironment;
 
+    private Jedis jedis;
+
     @ApiOperation(value = "新增数据包")
     @PostMapping
     @WrapUpResponseBody
-    public void createDataPacket(DataPacket dataPacket){
+    public void createDataPacket(DataPacket dataPacket, HttpServletRequest request){
+        CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
+        if(userDetails == null){
+            throw new ObjectException("未登录");
+        }
+        dataPacket.setRecorder(userDetails.getUserCode());
         dataPacket.setDataOptDescJson(StringEscapeUtils.unescapeHtml4(dataPacket.getDataOptDescJson()));
         dataPacketService.createDataPacket(dataPacket);
     }
@@ -128,8 +145,62 @@ public class DataPacketController extends BaseController {
     @WrapUpResponseBody
     public BizModel fetchDataPacketData(@PathVariable String packetId, String params){
         DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        String dateString = formatter.format(dataPacket.getRecordDate());
+        StringBuffer temp = new StringBuffer("packet:");
+        temp.append(packetId)
+            .append(":")
+            .append(dataPacket.getBufferFreshPeriod())
+            .append(dateString);
+        String key = AESSecurityUtils.encryptAndBase64(temp.toString(), DatabaseInfo.DESKEY) ;
+        Object object = null;
+        if (dataPacket.getBufferFreshPeriod() >=0 ) {
+            jedis = RedisUtil.getJedis();
+            //jedis.get(key);
+            if (jedis.get(key.getBytes())!=null && !"".equals(jedis.get(key.getBytes()))) {
+                try {
+                    byte[] byt = jedis.get(key.getBytes());
+                    ObjectInputStream ois = null;
+                    ByteArrayInputStream bis = null;
+                    bis = new ByteArrayInputStream(byt);
+                    ois = new ObjectInputStream(bis);
+                    object = ois.readObject();
+                    bis.close();
+                    ois.close();
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                RedisUtil.returnResource(jedis);
+                if (object!=null) {
+                    BizModel bizModel = (BizModel) object;
+                    return bizModel;
+                }
+            }
+        }
         BizModel bizModel = innerFetchDataPacketData(dataPacket, params);
         JSONObject obj = dataPacket.getDataOptDesc();
+        if (jedis.get(key.getBytes())==null || "".equals(jedis.get(key.getBytes()))) {
+            //jedis.set(key,bizModel.toString());
+            try {
+                ObjectOutputStream oos = null;
+                ByteArrayOutputStream bos = null;
+                bos = new ByteArrayOutputStream();
+                oos = new ObjectOutputStream(bos);
+                if(obj!=null) {
+                    BuiltInOperation builtInOperation = new BuiltInOperation(obj);
+                    oos.writeObject(builtInOperation.apply(bizModel));
+                } else {
+                    oos.writeObject(bizModel);
+                }
+                byte[] byt=bos.toByteArray();
+                jedis.set(key.getBytes(),byt);
+                bos.close();
+                oos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            RedisUtil.returnResource(jedis);
+        }
         if(obj!=null){
             BuiltInOperation builtInOperation = new BuiltInOperation(obj);
             return builtInOperation.apply(bizModel);

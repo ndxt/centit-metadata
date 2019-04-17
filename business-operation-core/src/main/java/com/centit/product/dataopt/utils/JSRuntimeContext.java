@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileReader;
 
@@ -15,7 +16,7 @@ public class JSRuntimeContext {
 
     public JSRuntimeContext(){
         ScriptEngineManager sem = new ScriptEngineManager();
-        ScriptEngine scriptEngine = sem.getEngineByName("js"); // "nashorn" 等价与 “js”, "JavaScript"
+        scriptEngine = sem.getEngineByName("js"); // "nashorn" 等价与 “js”, "JavaScript"
     }
 
     public JSRuntimeContext compileScript(String js){
@@ -41,7 +42,7 @@ public class JSRuntimeContext {
         try {
             Invocable invocable = (Invocable) scriptEngine;
             return invocable.invokeFunction(funcName, args);
-        } catch (Exception e) {
+        } catch (ScriptException | NoSuchMethodException e) {
             logger.error(e.getLocalizedMessage(), e);
             return null;
         }

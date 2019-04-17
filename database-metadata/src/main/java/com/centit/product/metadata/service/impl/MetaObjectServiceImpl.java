@@ -1,16 +1,15 @@
-package com.centit.product.dataopt.service.impl;
+package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.ObjectException;
 import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
-import com.centit.product.dataopt.core.*;
-import com.centit.product.dataopt.service.MetaObjectService;
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.utils.*;
@@ -119,15 +118,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     /*private void fetchBizModelRefrences(Connection conn, BizModel mainObj,
                                       MetaTable tableInfo, String formTableSql, String whereSql ,int withChildrenDeep) throws SQLException, IOException {
         // 重构bizModel获取方式
-    }*/
-    /**
-     * @param tableId 表ID
-     * @param pk 组件
-     * @param withChildrenDeep 目前可以只考虑 一层 就是 只能为 1
-     *                         TODO 这个需要重构，根据层次一个 table join 链来解决
-     * @return BizModel
-     */
-    @Override
     public BizModel getObjectAsBizModel(String tableId, Map<String, Object> pk, int withChildrenDeep) {
         MetaTable tableInfo = fetchTableInfo(tableId,true);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
@@ -160,7 +150,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
-
+*/
     @Override
     public int saveObject(String tableId, Map<String, Object> object) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
@@ -197,14 +187,25 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    public int inndrsSaveObject(String tableId, BizModel bizModel, boolean isMerge) {
+    @Override
+    public void deleteObject(String tableId, Map<String, Object> pk) {
+        MetaTable tableInfo = fetchTableInfo(tableId, false);
+        DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        try {
+            TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
+                (conn) -> GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).deleteObjectById(pk));
+        } catch (SQLException | IOException e) {
+            throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
+
+    public int innersSaveObject(String tableId, Map<String, Object> bizModel, boolean isMerge) {
         MetaTable tableInfo = fetchTableInfo(tableId, true);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             return TransactionHandler.executeQueryInTransaction( JdbcConnect.mapDataSource(databaseInfo),
                 (conn) ->{
-                    DataSet ds = bizModel.getMainDataSet();
-                    Map<String, Object> mainObj = ds.getFirstRow();
+                    Map<String, Object> mainObj = bizModel;
                     if(isMerge) {
                         GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).mergeObject(mainObj);
                     }else {
@@ -213,19 +214,18 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     List<MetaRelation> mds = tableInfo.getMdRelations();
                     if(mds!=null) {
                         for (MetaRelation md : mds) {
-                            MetaTable relTableInfo = fetchTableInfo(md.getChildTableId(),true);
+                            MetaTable relTableInfo = fetchTableInfo(md.getChildTableId(), true);
 
-                            DataSet subTable = bizModel.fetchDataSetByName(FieldType.mapPropName(relTableInfo.getTableName()));
-                            if(subTable==null){
-                                subTable = bizModel.fetchDataSetByName(relTableInfo.getTableName());
-                            }
-                            if(subTable!=null) {
+                            Object subObjects = mainObj.get(md.getRelationName());
+                            if (subObjects instanceof List) {
+                                List<Map<String, Object>> subTable = (List<Map<String, Object>>)subObjects;
+
                                 Map<String, Object> ref = new HashMap<>();
                                 for (Map.Entry<String, String> rc : md.getReferenceColumns().entrySet()) {
                                     ref.put(rc.getValue(), mainObj.get(rc.getKey()));
                                 }
                                 GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
-                                    .replaceObjectsAsTabulation(subTable.getData(), ref);
+                                    .replaceObjectsAsTabulation(subTable, ref);
                             }
                         }
                     }
@@ -237,26 +237,44 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public int saveObject(String tableId, BizModel bizModel) {
-        return inndrsSaveObject(tableId, bizModel, false);
+    public int saveObjectWithChildren(String tableId,  Map<String, Object> bizModel) {
+        return innersSaveObject(tableId, bizModel, false);
     }
 
     @Override
-    public int mergeObject(String tableId, BizModel bizModel) {
-        return inndrsSaveObject(tableId, bizModel, true);
+    public int mergeObjectWithChildren(String tableId,  Map<String, Object> bizModel) {
+        return innersSaveObject(tableId, bizModel, true);
     }
 
     @Override
-    public void deleteObjectBy(String tableId, Map<String, Object> pk) {
-        MetaTable tableInfo = fetchTableInfo(tableId, false);
+    public void deleteObjectWithChildren(String tableId, Map<String, Object> pk) {
+        MetaTable tableInfo = fetchTableInfo(tableId, true);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
-                (conn) -> GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).deleteObjectById(pk));
+                (conn) ->{
+                    GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+                    Map<String, Object> mainObj = dao.getObjectById(pk);
+
+                    List<MetaRelation> mds = tableInfo.getMdRelations();
+                    if(mds!=null) {
+                        for (MetaRelation md : mds) {
+                            MetaTable relTableInfo = fetchTableInfo(md.getChildTableId(), true);
+                            Map<String, Object> ref = new HashMap<>();
+                            for (Map.Entry<String, String> rc : md.getReferenceColumns().entrySet()) {
+                                ref.put(rc.getValue(), mainObj.get(rc.getKey()));
+                            }
+                            GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo).deleteObjectsByProperties(ref);
+                        }
+                    }
+                    dao.deleteObjectById(pk);
+                    return 1;
+                });
         } catch (SQLException | IOException e) {
             throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
+
 
     @Override
     public JSONArray listObjectsByProperties(String tableId, Map<String, Object> filter) {

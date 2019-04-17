@@ -1,7 +1,6 @@
-package com.centit.product.dataopt.service;
+package com.centit.product.metadata.service;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.dataopt.core.BizModel;
 import com.centit.support.database.utils.PageDesc;
 
 import java.util.Map;
@@ -9,9 +8,6 @@ import java.util.Map;
 public interface MetaObjectService {
 
     Map<String, Object> getObjectById(String tableId, Map<String, Object> pk);
-
-    @Deprecated
-    BizModel getObjectAsBizModel(String tableId, Map<String, Object> pk, int withChildrenDeep);
 
     Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep);
 
@@ -21,14 +17,17 @@ public interface MetaObjectService {
 
     int mergeObject(String tableId, Map<String, Object> object);
 
-    int saveObject(String tableId, BizModel bizModel);
+    void deleteObject(String tableId, Map<String, Object> pk);
 
-    int mergeObject(String tableId, BizModel bizModel);
+    int saveObjectWithChildren(String tableId, Map<String, Object> object);
 
-    void deleteObjectBy(String tableId, Map<String, Object> pk);
+    int mergeObjectWithChildren(String tableId, Map<String, Object> object);
+
+    void deleteObjectWithChildren(String tableId, Map<String, Object> pk);
 
     JSONArray listObjectsByProperties(String tableId, Map<String, Object> filter);
 
     JSONArray pageQueryObjects(String tableId, Map<String, Object> params, PageDesc pageDesc);
+
     JSONArray pageQueryObjects(String tableId, String paramDriverSql, Map<String, Object> params, PageDesc pageDesc);
 }

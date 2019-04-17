@@ -4,6 +4,7 @@ import com.centit.product.dataopt.bizopt.JSBizOperation;
 import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.dataopt.utils.BizOptUtils;
 import com.centit.product.dataopt.utils.JSRuntimeContext;
+import com.centit.product.metadata.service.MetaObjectService;
 import org.apache.commons.lang3.StringUtils;
 
 public class JSWithMateObjectBizOperation extends JSBizOperation {

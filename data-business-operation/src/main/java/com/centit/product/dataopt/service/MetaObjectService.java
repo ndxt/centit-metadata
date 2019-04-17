@@ -2,6 +2,8 @@ package com.centit.product.dataopt.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.centit.product.dataopt.core.BizModel;
+import com.centit.support.database.utils.PageDesc;
+
 import java.util.Map;
 
 public interface MetaObjectService {
@@ -26,4 +28,7 @@ public interface MetaObjectService {
     void deleteObjectBy(String tableId, Map<String, Object> pk);
 
     JSONArray listObjectsByProperties(String tableId, Map<String, Object> filter);
+
+    JSONArray pageQueryObjects(String tableId, Map<String, Object> params, PageDesc pageDesc);
+    JSONArray pageQueryObjects(String tableId, String paramDriverSql, Map<String, Object> params, PageDesc pageDesc);
 }

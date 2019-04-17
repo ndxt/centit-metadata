@@ -11,10 +11,10 @@ import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
+import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
-import com.centit.support.database.utils.FieldType;
-import com.centit.support.database.utils.JdbcConnect;
-import com.centit.support.database.utils.TransactionHandler;
+import com.centit.support.database.utils.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -268,6 +268,52 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns());
         } catch (SQLException | IOException e) {
             throw new ObjectException(filter, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
+
+    @Override
+    public JSONArray pageQueryObjects(String tableId, Map<String, Object> params, PageDesc pageDesc) {
+        MetaTable tableInfo = fetchTableInfo(tableId, false);
+        DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        try {
+            JSONArray ja = TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
+                (conn) -> {
+                    GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+                    JSONArray objs = dao.listObjectsByProperties(params, pageDesc.getRowStart(), pageDesc.getPageSize());
+                    String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null, params.keySet());
+                    String sGetCountSql = "select count(1) as totalRows from " + tableInfo.getTableName();
+                    if(StringUtils.isNotBlank(filter))
+                        sGetCountSql = sGetCountSql + " where " + filter;
+
+                    Object obj = DatabaseAccess.getScalarObjectQuery(conn,
+                        QueryUtils.buildGetCountSQL(sGetCountSql), params);
+                    pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
+                    return objs;
+                });
+
+            return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns());
+        } catch (SQLException | IOException e) {
+            throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
+
+    @Override
+    public JSONArray pageQueryObjects(String tableId, String paramDriverSql, Map<String, Object> params, PageDesc pageDesc) {
+        MetaTable tableInfo = fetchTableInfo(tableId, false);
+        DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        try {
+            JSONArray ja = TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
+                (conn) -> {
+                    QueryAndNamedParams qap = QueryUtils.translateQuery( paramDriverSql, params);
+                    JSONArray objs = DatabaseAccess.findObjectsByNamedSqlAsJSON(
+                        conn, qap.getQuery(), qap.getParams(), null, pageDesc.getPageNo(), pageDesc.getPageSize());
+                    pageDesc.setTotalRows(
+                        NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, qap.getQuery(), qap.getParams())));
+                    return objs;
+                });
+            return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns());
+        } catch (SQLException | IOException e) {
+            throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 }

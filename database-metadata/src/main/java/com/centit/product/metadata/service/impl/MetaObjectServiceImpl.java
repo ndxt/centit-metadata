@@ -41,6 +41,15 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Autowired
     private MetaRelationDao metaRelationDao;
 
+    @Override
+    public String getTableId(String databaseCode, String tableName){
+        MetaTable metaTable = metaTableDao.getMetaTable(databaseCode, tableName);
+        if(metaTable==null){
+            return null;
+        }
+        return metaTable.getTableId();
+    }
+
     private MetaTable fetchTableInfo(String tableId, boolean fetchRelattions){
         MetaTable metaTable = metaTableDao.getObjectById(tableId);
         metaTableDao.fetchObjectReference(metaTable, "mdColumns");//mdRelations

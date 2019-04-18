@@ -7,6 +7,8 @@ import java.util.Map;
 
 public interface MetaObjectService {
 
+    String getTableId(String databaseCode, String tableName);
+
     Map<String, Object> getObjectById(String tableId, Map<String, Object> pk);
 
     Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep);

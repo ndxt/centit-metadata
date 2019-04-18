@@ -1,4 +1,4 @@
-package com.centit.product.dataopt.controller;
+package com.centit.product.metadata.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -34,11 +34,11 @@ public class MetaObjectController extends BaseController {
     @RequestMapping(value = "/{tableId}/list", method = RequestMethod.GET)
     @WrapUpResponseBody
     public PageQueryResult<Object> listObjects(@PathVariable String tableId, PageDesc pageDesc,
-                                               HttpServletRequest request) {
+                                               String [] fields,HttpServletRequest request) {
         Map<String, Object> params = collectRequestParameters(request);//convertSearchColumn(request);
         JSONArray ja = metaObjectService.pageQueryObjects(
             tableId, params, pageDesc);
-        return PageQueryResult.createJSONArrayResult(ja, pageDesc);
+        return PageQueryResult.createJSONArrayResult(ja, pageDesc, fields);
     }
 
     @ApiOperation(value = "获取一个数据，主键作为参数以key-value形式提交")

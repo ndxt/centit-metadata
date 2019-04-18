@@ -5,9 +5,13 @@ import com.centit.product.dataopt.core.BizOperation;
 import com.centit.product.dataopt.utils.BizOptUtils;
 import com.centit.product.dataopt.utils.JSRuntimeContext;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.script.ScriptException;
 
 public class JSBizOperation implements BizOperation {
-
+    private static final Logger logger = LoggerFactory.getLogger(JSBizOperation.class);
     protected String javaScript;
     protected String jsFuncName;
     protected JSRuntimeContext jsRuntimeContext;
@@ -20,9 +24,14 @@ public class JSBizOperation implements BizOperation {
         if(StringUtils.isNotBlank(javaScript)){
             jsRuntimeContext.compileScript(javaScript);
         }
-        Object object = jsRuntimeContext.callJsFunc(
-            StringUtils.isBlank(jsFuncName)? "runOpt" : jsFuncName, bizModel);
-        return BizOptUtils.castObjectToBizModel(object);
+        try {
+            Object object = jsRuntimeContext.callJsFunc(
+                StringUtils.isBlank(jsFuncName)? "runOpt" : jsFuncName, bizModel);
+            return BizOptUtils.castObjectToBizModel(object);
+        } catch (ScriptException | NoSuchMethodException e) {
+            logger.error(e.getLocalizedMessage());
+        }
+        return bizModel;
     }
 
     public void setJavaScript(String javaScript) {

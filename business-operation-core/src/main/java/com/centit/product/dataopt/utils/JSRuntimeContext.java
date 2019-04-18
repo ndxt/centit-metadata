@@ -38,41 +38,24 @@ public class JSRuntimeContext {
         return this;
     }
 
-    public Object callJsFunc(String funcName, Object... args){
-        try {
-            Invocable invocable = (Invocable) scriptEngine;
-            return invocable.invokeFunction(funcName, args);
-        } catch (ScriptException | NoSuchMethodException e) {
-            logger.error(e.getLocalizedMessage(), e);
-            return null;
-        }
+    public Object callJsFunc(String funcName, Object... args) throws
+        ScriptException, NoSuchMethodException {
+        Invocable invocable = (Invocable) scriptEngine;
+        return invocable.invokeFunction(funcName, args);
     }
 
     public Object getJsObject(String objName){
-        try {
-            return scriptEngine.get(objName);
-        } catch (Exception e) {
-            logger.error(e.getLocalizedMessage(), e);
-            return null;
-        }
+        return scriptEngine.get(objName);
     }
 
-    public Object getJsObjectProperty(String objName, String propertyName){
-        try {
-            return scriptEngine.eval(objName+"."+propertyName);
-        } catch (Exception e) {
-            logger.error(e.getLocalizedMessage(), e);
-            return null;
-        }
+    public Object getJsObjectProperty(String objName, String propertyName)
+        throws ScriptException {
+       return scriptEngine.eval(objName+"."+propertyName);
     }
 
-    public Object callJsObjectMethod(Object jsObject, String methodName, Object... args){
-        try {
-            Invocable invocable = (Invocable) scriptEngine;
-            return invocable.invokeMethod(jsObject, methodName, args);
-        } catch (Exception e) {
-            logger.error(e.getLocalizedMessage(), e);
-            return null;
-        }
+    public Object callJsObjectMethod(Object jsObject, String methodName, Object... args)
+        throws ScriptException, NoSuchMethodException {
+        Invocable invocable = (Invocable) scriptEngine;
+        return invocable.invokeMethod(jsObject, methodName, args);
     }
 }

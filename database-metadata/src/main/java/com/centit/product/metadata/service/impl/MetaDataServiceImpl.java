@@ -112,6 +112,9 @@ public class MetaDataServiceImpl implements MetaDataService {
                 for(SimpleTableField tableField : columns){
                     MetaColumn column = new MetaColumn().convertFromTableField(tableField);
                     column.setTableId(metaTable.getTableId());
+                    for (String pk :table.getPkColumns()) {
+                        column.setPrimaryKey(column.getColumnName().equals(pk) ? "T" : "F");
+                    }
                     if (column.getFieldLabelName() ==null || "".equals(column.getFieldLabelName())) {
                         column.setFieldLabelName(column.getColumnName());
                     }
@@ -132,6 +135,9 @@ public class MetaDataServiceImpl implements MetaDataService {
                 MetaTable oldTable = pair.getLeft();
                 oldTable.setRecorder(recorder);
                 SimpleTableInfo newTable = pair.getRight();
+                if (newTable.getTableLabelName() ==null || "".equals(newTable.getTableLabelName())) {
+                    newTable.setTableLabelName(newTable.getTableName());
+                }
                 //表
                 metaTableDao.updateObject(oldTable.convertFromDbTable(newTable));
                 //列
@@ -146,6 +152,12 @@ public class MetaDataServiceImpl implements MetaDataService {
                         MetaColumn metaColumn = new MetaColumn().convertFromTableField(tableField);
                         metaColumn.setTableId(oldTable.getTableId());
                         metaColumn.setRecorder(recorder);
+                        for (String pk :newTable.getPkColumns()) {
+                            metaColumn.setPrimaryKey(metaColumn.getColumnName().equals(pk) ? "T" : "F");
+                        }
+                        if (metaColumn.getFieldLabelName() ==null || "".equals(metaColumn.getFieldLabelName())) {
+                            metaColumn.setFieldLabelName(metaColumn.getColumnName());
+                        }
                         metaColumnDao.saveNewObject(metaColumn);
                     }
                 }

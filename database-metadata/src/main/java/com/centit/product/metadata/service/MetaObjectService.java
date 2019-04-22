@@ -17,19 +17,19 @@ public interface MetaObjectService {
 
     int updateObject(String tableId, Map<String, Object> object);
 
-    int mergeObject(String tableId, Map<String, Object> object);
-
     void deleteObject(String tableId, Map<String, Object> pk);
 
     int saveObjectWithChildren(String tableId, Map<String, Object> object);
 
-    int mergeObjectWithChildren(String tableId, Map<String, Object> object);
+    int updateObjectWithChildren(String tableId, Map<String, Object> object);
 
     void deleteObjectWithChildren(String tableId, Map<String, Object> pk);
 
     JSONArray listObjectsByProperties(String tableId, Map<String, Object> filter);
 
     JSONArray pageQueryObjects(String tableId, Map<String, Object> params, PageDesc pageDesc);
+
+    JSONArray pageQueryObjects(String tableId, Map<String, Object> params, String [] fields,PageDesc pageDesc);
 
     JSONArray pageQueryObjects(String tableId, String paramDriverSql, Map<String, Object> params, PageDesc pageDesc);
 }

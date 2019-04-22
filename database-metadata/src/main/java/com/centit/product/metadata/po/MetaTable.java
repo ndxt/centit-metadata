@@ -16,6 +16,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
@@ -323,18 +324,4 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         return dictionaryMapColumns;
     }
 
-    public List<LeftRightPair<String, ValueGenerator>>  fetchValueGenerators(){
-        if(mdColumns == null || mdColumns.size()==0){
-            return null;
-        }
-        List<LeftRightPair<String, ValueGenerator>>  valueGenerators = new ArrayList<>(6);
-
-        for(MetaColumn mc : mdColumns){
-            if("C".equals(mc.getAutoCreateRule())){
-
-
-            }
-        }
-        return valueGenerators;
-    }
 }

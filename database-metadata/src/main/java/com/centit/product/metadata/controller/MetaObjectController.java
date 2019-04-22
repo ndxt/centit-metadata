@@ -10,7 +10,6 @@ import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -92,7 +91,7 @@ public class MetaObjectController extends BaseController {
     @WrapUpResponseBody
     public ResponseData updateObjectWithChildren(@PathVariable String tableId,
                                                  @RequestBody String jsonString) {
-        metaObjectService.mergeObjectWithChildren(tableId, JSON.parseObject(jsonString));
+        metaObjectService.updateObjectWithChildren(tableId, JSON.parseObject(jsonString));
         return ResponseData.makeSuccessResponse();
     }
 

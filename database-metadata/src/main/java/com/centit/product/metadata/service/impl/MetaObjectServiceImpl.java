@@ -12,19 +12,13 @@ import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.support.algorithm.NumberBaseOpt;
-import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.algorithm.UuidOpt;
-import com.centit.support.common.LeftRightPair;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
-import com.centit.support.database.metadata.SimpleTableField;
-import com.centit.support.database.orm.GeneratorCondition;
-import com.centit.support.database.orm.GeneratorTime;
-import com.centit.support.database.orm.TableMapInfo;
-import com.centit.support.database.orm.ValueGenerator;
 import com.centit.support.database.utils.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +29,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -54,39 +49,36 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
 
     private static Map<String, Object> makeObjectValueByGenerator(Map<String, Object> object, MetaTable metaTable,
-                                                    JsonObjectDao sqlDialect, GeneratorTime generatorTime)
-        throws SQLException, NoSuchFieldException, IOException {
-        List<LeftRightPair<String, ValueGenerator>>  valueGenerators = metaTable.fetchValueGenerators();
-        if(valueGenerators == null || valueGenerators.size()<1 )
-            return object;
-        for(LeftRightPair<String, ValueGenerator> ent :  valueGenerators) {
-            ValueGenerator valueGenerator =  ent.getRight();
-            if ( valueGenerator.occasion().matchTime(generatorTime)){
-                MetaColumn filed = metaTable.findFieldByName(ent.getLeft());
-                Object fieldValue = object.get(filed.getPropertyName());
-                if( fieldValue == null || valueGenerator.condition() == GeneratorCondition.ALWAYS ){
-                    switch (valueGenerator.strategy()){
-                        case UUID:
-                            object.put(filed.getPropertyName(), UuidOpt.getUuidAsString32());
+                                                    JsonObjectDao sqlDialect)
+        throws SQLException, IOException {
+
+        for(MetaColumn col :  metaTable.getMdColumns()) {
+            if (StringUtils.equalsAny(col.getAutoCreateRule(), "C", "U", "S", "F")) {
+                //只有为空时才创建
+                if (object.get(col.getPropertyName()) == null) {
+                    switch (col.getAutoCreateRule()) {
+                        case "U":
+                            object.put(col.getPropertyName(), UuidOpt.getUuidAsString32());
                             break;
-                        case SEQUENCE:
+                        case "S":
                             //GeneratorTime.READ 读取数据时不能用 SEQUENCE 生成值
-                            if(sqlDialect!=null) {
-                                object.put(filed.getPropertyName(),
-                                    sqlDialect.getSequenceNextValue(valueGenerator.value()));
+                            if (sqlDialect != null) {
+                                object.put(col.getPropertyName(),
+                                    sqlDialect.getSequenceNextValue(col.getAutoCreateParam()));
                             }
                             break;
-                        case CONSTANT:
-                            object.put(filed.getPropertyName(), valueGenerator.value());
+                        case "C":
+                            object.put(col.getPropertyName(), col.getAutoCreateParam());
                             break;
-                        case FUNCTION:
-                            object.put(filed.getPropertyName(),
-                                VariableFormula.calculate(valueGenerator.value(),object));
+                        case "F":
+                            object.put(col.getPropertyName(),
+                                VariableFormula.calculate(col.getAutoCreateParam(), object));
                             break;
                     }
                 }
             }
         }
+
         return object;
     }
 
@@ -215,7 +207,11 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
-                (conn) -> GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).saveNewObject(object));
+                (conn) -> {
+                    GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+                    makeObjectValueByGenerator(object, tableInfo, dao);
+                    return dao.saveNewObject(object);
+                });
         } catch (SQLException | IOException e) {
             throw new ObjectException(object, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -234,18 +230,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public int mergeObject(String tableId, Map<String, Object> object) {
-        MetaTable tableInfo = fetchTableInfo(tableId, false);
-        DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
-        try {
-            return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
-                (conn) -> GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).mergeObject(object));
-        } catch (SQLException | IOException e) {
-            throw new ObjectException(object, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
-        }
-    }
-
-    @Override
     public void deleteObject(String tableId, Map<String, Object> pk) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
@@ -257,17 +241,19 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    public int innersSaveObject(String tableId, Map<String, Object> bizModel, boolean isMerge) {
+    public int innerSaveObject(String tableId, Map<String, Object> mainObj, boolean isMerge) {
         MetaTable tableInfo = fetchTableInfo(tableId, true);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             return TransactionHandler.executeQueryInTransaction( JdbcConnect.mapDataSource(databaseInfo),
                 (conn) ->{
-                    Map<String, Object> mainObj = bizModel;
                     if(isMerge) {
                         GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).mergeObject(mainObj);
                     }else {
-                        GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).saveNewObject(mainObj);
+                        GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+                        makeObjectValueByGenerator(mainObj, tableInfo, dao);
+                        dao.saveNewObject(mainObj);
+                        //GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).saveNewObject(mainObj);
                     }
                     List<MetaRelation> mds = tableInfo.getMdRelations();
                     if(mds!=null) {
@@ -277,31 +263,33 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             Object subObjects = mainObj.get(md.getRelationName());
                             if (subObjects instanceof List) {
                                 List<Map<String, Object>> subTable = (List<Map<String, Object>>)subObjects;
-
+                                GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
+                                for(Map<String, Object> subObj : subTable){
+                                    makeObjectValueByGenerator(subObj, relTableInfo, dao);
+                                }
                                 Map<String, Object> ref = new HashMap<>();
                                 for (Map.Entry<String, String> rc : md.getReferenceColumns().entrySet()) {
                                     ref.put(rc.getValue(), mainObj.get(rc.getKey()));
                                 }
-                                GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
-                                    .replaceObjectsAsTabulation(subTable, ref);
+                                dao.replaceObjectsAsTabulation(subTable, ref);
                             }
                         }
                     }
                     return 1;
                 });
         } catch (SQLException | IOException e) {
-            throw new ObjectException(bizModel, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(mainObj, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
     @Override
     public int saveObjectWithChildren(String tableId,  Map<String, Object> bizModel) {
-        return innersSaveObject(tableId, bizModel, false);
+        return innerSaveObject(tableId, bizModel, false);
     }
 
     @Override
-    public int mergeObjectWithChildren(String tableId,  Map<String, Object> bizModel) {
-        return innersSaveObject(tableId, bizModel, true);
+    public int updateObjectWithChildren(String tableId, Map<String, Object> bizModel) {
+        return innerSaveObject(tableId, bizModel, true);
     }
 
     @Override
@@ -374,6 +362,45 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
+    public JSONArray pageQueryObjects(String tableId, Map<String, Object> params, String [] fields,PageDesc pageDesc) {
+        MetaTable tableInfo = fetchTableInfo(tableId, false);
+        HashSet fieldSet = new HashSet((fields.length + 5)*3/2);
+        fieldSet.addAll(tableInfo.getPkColumns());
+        for(String f : fields){
+            fieldSet.add(f);
+        }
+        DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        try {
+            JSONArray ja = TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
+                (conn) -> {
+                    GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+                    Pair<String,String[]> q = dao.buildPartFieldSqlWithFieldName(tableInfo, fieldSet, null);
+
+                    String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null, params.keySet());
+                    String sql = "select " + q.getLeft() +" from " +tableInfo.getTableName();
+                    if(StringUtils.isNotBlank(filter))
+                        sql = sql + " where " + filter;
+
+                    JSONArray objs = dao.findObjectsByNamedSqlAsJSON(
+                        sql, params, q.getRight(), pageDesc.getPageNo(), pageDesc.getPageSize());
+
+                    String sGetCountSql = "select count(1) as totalRows from " + tableInfo.getTableName();
+                    if(StringUtils.isNotBlank(filter))
+                        sGetCountSql = sGetCountSql + " where " + filter;
+
+                    Object obj = DatabaseAccess.getScalarObjectQuery(conn,
+                        QueryUtils.buildGetCountSQL(sGetCountSql), params);
+                    pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
+                    return objs;
+                });
+
+            return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns());
+        } catch (SQLException | IOException e) {
+            throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
+
+    @Override
     public JSONArray pageQueryObjects(String tableId, String paramDriverSql, Map<String, Object> params, PageDesc pageDesc) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
@@ -381,8 +408,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             JSONArray ja = TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
                 (conn) -> {
                     QueryAndNamedParams qap = QueryUtils.translateQuery( paramDriverSql, params);
-                    JSONArray objs = DatabaseAccess.findObjectsByNamedSqlAsJSON(
-                        conn, qap.getQuery(), qap.getParams(), null, pageDesc.getPageNo(), pageDesc.getPageSize());
+                    GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+                    JSONArray objs = dao.findObjectsByNamedSqlAsJSON(
+                        qap.getQuery(), qap.getParams(), null, pageDesc.getPageNo(), pageDesc.getPageSize());
+
                     pageDesc.setTotalRows(
                         NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, qap.getQuery(), qap.getParams())));
                     return objs;

@@ -40,6 +40,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
      * Initialises the builder with the given {@link EntityManager} from which we immediately start to scan for
      * entities to include in the GraphQL schema.
      * @param metaDataService MetaDataService The manager containing the data models to include in the final GraphQL schema.
+     * @param databaseId 数据库id
      */
     public GraphQLSchemaBuilder(MetaDataService metaDataService, DataSourceDescription databaseId) {
         this.metaDataService = metaDataService;

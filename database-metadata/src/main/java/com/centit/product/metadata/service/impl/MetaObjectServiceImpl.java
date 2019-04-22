@@ -7,11 +7,22 @@ import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
+import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.algorithm.ReflectionOpt;
+import com.centit.support.algorithm.UuidOpt;
+import com.centit.support.common.LeftRightPair;
+import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
+import com.centit.support.database.jsonmaptable.JsonObjectDao;
+import com.centit.support.database.metadata.SimpleTableField;
+import com.centit.support.database.orm.GeneratorCondition;
+import com.centit.support.database.orm.GeneratorTime;
+import com.centit.support.database.orm.TableMapInfo;
+import com.centit.support.database.orm.ValueGenerator;
 import com.centit.support.database.utils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -40,6 +51,44 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Autowired
     private MetaRelationDao metaRelationDao;
+
+
+    private static Map<String, Object> makeObjectValueByGenerator(Map<String, Object> object, MetaTable metaTable,
+                                                    JsonObjectDao sqlDialect, GeneratorTime generatorTime)
+        throws SQLException, NoSuchFieldException, IOException {
+        List<LeftRightPair<String, ValueGenerator>>  valueGenerators = metaTable.fetchValueGenerators();
+        if(valueGenerators == null || valueGenerators.size()<1 )
+            return object;
+        for(LeftRightPair<String, ValueGenerator> ent :  valueGenerators) {
+            ValueGenerator valueGenerator =  ent.getRight();
+            if ( valueGenerator.occasion().matchTime(generatorTime)){
+                MetaColumn filed = metaTable.findFieldByName(ent.getLeft());
+                Object fieldValue = object.get(filed.getPropertyName());
+                if( fieldValue == null || valueGenerator.condition() == GeneratorCondition.ALWAYS ){
+                    switch (valueGenerator.strategy()){
+                        case UUID:
+                            object.put(filed.getPropertyName(), UuidOpt.getUuidAsString32());
+                            break;
+                        case SEQUENCE:
+                            //GeneratorTime.READ 读取数据时不能用 SEQUENCE 生成值
+                            if(sqlDialect!=null) {
+                                object.put(filed.getPropertyName(),
+                                    sqlDialect.getSequenceNextValue(valueGenerator.value()));
+                            }
+                            break;
+                        case CONSTANT:
+                            object.put(filed.getPropertyName(), valueGenerator.value());
+                            break;
+                        case FUNCTION:
+                            object.put(filed.getPropertyName(),
+                                VariableFormula.calculate(valueGenerator.value(),object));
+                            break;
+                    }
+                }
+            }
+        }
+        return object;
+    }
 
     @Override
     public String getTableId(String databaseCode, String tableName){

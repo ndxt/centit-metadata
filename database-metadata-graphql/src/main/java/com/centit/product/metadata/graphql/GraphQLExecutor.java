@@ -37,8 +37,9 @@ public class GraphQLExecutor {
     /**
      * Creates a read-only GraphQLExecutor using the entities discovered from the given {@link EntityManager}.
      *
-     * @param metaDataService The entity manager from which the JPA classes annotated with
-     *                      {@link javax.persistence.Entity} is extracted as {@link GraphQLSchema} objects.
+     * @param metaDataService 元数据服务.
+     * @param databaseId 数据库id
+     *
      */
     public GraphQLExecutor(MetaDataService metaDataService,DataSourceDescription databaseId) {
         this.metaDataService = metaDataService;

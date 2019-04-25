@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public abstract class CheckRuleUtils {
-    public static String CHECK_RULE_RESULT_TAG = "check_rule_result";
+    public static String CHECK_RULE_RESULT_TAG = "__check_rule_result";
 
     private static boolean checkRuleParams(CheckRule rule, int params){
         return rule.getCheckParams() != null && rule.getCheckParams().length >= params;

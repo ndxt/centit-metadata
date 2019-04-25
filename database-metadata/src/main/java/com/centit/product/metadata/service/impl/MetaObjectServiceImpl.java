@@ -2,6 +2,7 @@ package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.ObjectException;
+import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
@@ -12,6 +13,7 @@ import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.algorithm.UuidOpt;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
@@ -337,49 +339,39 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public JSONArray pageQueryObjects(String tableId, Map<String, Object> params, PageDesc pageDesc) {
-        MetaTable tableInfo = fetchTableInfo(tableId, false);
-        DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
-        try {
-            JSONArray ja = TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
-                (conn) -> {
-                    GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                    JSONArray objs = dao.listObjectsByProperties(params, pageDesc.getRowStart(), pageDesc.getPageSize());
-                    String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null, params.keySet());
-                    String sGetCountSql = "select count(1) as totalRows from " + tableInfo.getTableName();
-                    if(StringUtils.isNotBlank(filter))
-                        sGetCountSql = sGetCountSql + " where " + filter;
-
-                    Object obj = DatabaseAccess.getScalarObjectQuery(conn,
-                        QueryUtils.buildGetCountSQL(sGetCountSql), params);
-                    pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
-                    return objs;
-                });
-
-            return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns());
-        } catch (SQLException | IOException e) {
-            throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
-        }
+        return pageQueryObjects(tableId, params, null, pageDesc);
     }
 
     @Override
     public JSONArray pageQueryObjects(String tableId, Map<String, Object> params, String [] fields,PageDesc pageDesc) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
-        HashSet fieldSet = new HashSet((fields.length + 5)*3/2);
-        fieldSet.addAll(tableInfo.getPkColumns());
-        for(String f : fields){
-            fieldSet.add(f);
-        }
+
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             JSONArray ja = TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
                 (conn) -> {
                     GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                    Pair<String,String[]> q = dao.buildPartFieldSqlWithFieldName(tableInfo, fieldSet, null);
+
+                    HashSet fieldSet = null ;
+                    if(fields !=null && fields.length>0) {
+                        fieldSet = new HashSet((fields.length + 5) * 3 / 2);
+                        fieldSet.addAll(tableInfo.getPkColumns());
+                        for (String f : fields) {
+                            fieldSet.add(f);
+                        }
+                    }
+                    Pair<String,String[]> q = (fieldSet == null) ? dao.buildFieldSqlWithFieldName(tableInfo,null)
+                        : dao.buildPartFieldSqlWithFieldName(tableInfo, fieldSet, null);
 
                     String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null, params.keySet());
                     String sql = "select " + q.getLeft() +" from " +tableInfo.getTableName();
                     if(StringUtils.isNotBlank(filter))
                         sql = sql + " where " + filter;
+                    Object orderBy = params.get(CodeBook.SELF_ORDER_BY);
+                    if(orderBy != null){
+                        sql = sql + " order by "
+                            + QueryUtils.cleanSqlStatement(StringBaseOpt.castObjectToString(orderBy));
+                    }
 
                     JSONArray objs = dao.findObjectsByNamedSqlAsJSON(
                         sql, params, q.getRight(), pageDesc.getPageNo(), pageDesc.getPageSize());
@@ -404,10 +396,16 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     public JSONArray pageQueryObjects(String tableId, String paramDriverSql, Map<String, Object> params, PageDesc pageDesc) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        Object orderBy = params.get(CodeBook.SELF_ORDER_BY);
+        final String querySql = (orderBy == null)? paramDriverSql
+            : QueryUtils.removeOrderBy(paramDriverSql) + " order by "
+                + QueryUtils.cleanSqlStatement(StringBaseOpt.castObjectToString(orderBy));
+
         try {
             JSONArray ja = TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
                 (conn) -> {
-                    QueryAndNamedParams qap = QueryUtils.translateQuery( paramDriverSql, params);
+
+                    QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, params);
                     GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
                     JSONArray objs = dao.findObjectsByNamedSqlAsJSON(
                         qap.getQuery(), qap.getParams(), null, pageDesc.getPageNo(), pageDesc.getPageSize());

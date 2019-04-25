@@ -2,9 +2,10 @@ package com.centit.product.dataopt.utils;
 
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.core.SimpleDataSet;
-import com.centit.support.algorithm.BooleanBaseOpt;
-import com.centit.support.algorithm.GeneralAlgorithm;
-import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.product.dataopt.datarule.CheckRule;
+import com.centit.product.dataopt.datarule.CheckRuleUtils;
+import com.centit.support.algorithm.*;
+import com.centit.support.compiler.Pretreatment;
 import com.centit.support.compiler.VariableFormula;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -427,7 +428,7 @@ public abstract class DataSetOptUtil {
      * @return DataSet
      */
     public static DataSet joinTwoDataSet(DataSet mainDataSet, DataSet slaveDataSet, List<String> primaryFields) {
-        if (mainDataSet == null) {
+        if(mainDataSet == null) {
             return slaveDataSet;
         }
         if(slaveDataSet == null){
@@ -436,8 +437,6 @@ public abstract class DataSetOptUtil {
 
         List<Map<String, Object>> mainData = mainDataSet.getData();
         List<Map<String, Object>> slaveData = slaveDataSet.getData();
-
-
         sortByFields(mainData, primaryFields);
         sortByFields(slaveData, primaryFields);
         int i=0;
@@ -478,6 +477,40 @@ public abstract class DataSetOptUtil {
         return new SimpleDataSet(newData);
     }
 
+    public static DataSet filterByOtherDataSet(DataSet mainDataSet, DataSet slaveDataSet,
+                                               List<String> primaryFields, String formula) {
+        if(mainDataSet == null || slaveDataSet == null){
+            return null;
+        }
+
+        List<Map<String, Object>> mainData = mainDataSet.getData();
+        List<Map<String, Object>> slaveData = slaveDataSet.getData();
+        sortByFields(mainData, primaryFields);
+        sortByFields(slaveData, primaryFields);
+        boolean notField = StringUtils.isBlank(formula) || StringRegularOpt.isTrue(formula);
+        int i=0;
+        int j=0;
+        List<Map<String, Object>> newData = new ArrayList<>();
+        // 根据主键排序
+        while(i < mainData.size() && j< slaveData.size()){
+            int nc = compareTwoRow(mainData.get(i), slaveData.get(j), primaryFields);
+            //匹配
+            Map<String, Object> newRow = new LinkedHashMap<>();
+            if(nc == 0){
+                if(notField || BooleanBaseOpt.castObjectToBoolean(
+                    VariableFormula.calculate(formula, slaveData.get(j)),false) )
+                newRow.putAll(mainData.get(i));
+                i++; j++;
+            } else if(nc < 0){
+                i++;
+            } else {
+                j++;
+            }
+            newData.add(newRow);
+        }
+        return new SimpleDataSet(newData);
+    }
+
     public static DataSet unionTwoDataSet(DataSet mainDataSet, DataSet slaveDataSet) {
 
         List<Map<String, Object>> mainData = mainDataSet.getData();
@@ -493,6 +526,26 @@ public abstract class DataSetOptUtil {
         resultData.addAll(slaveData);
         return new SimpleDataSet(resultData);
     }
+
+    public static DataSet checkDateSet(DataSet inData,Collection<CheckRule> rules) {
+        List<Map<String, Object>> data = inData.getData();
+
+        for(Map<String, Object> obj : data ){
+            String checkResult = "";
+            for(CheckRule rule:rules){
+                if(! CheckRuleUtils.checkData(obj, rule)){
+                    checkResult = checkResult + Pretreatment.mapTemplateString(rule.getErrorMsg(), obj) +";";
+                }
+            }
+            if(StringUtils.isBlank(checkResult)){
+                checkResult = "ok";
+            }
+            obj.put(CheckRuleUtils.CHECK_RULE_RESULT_TAG, checkResult);
+        }
+
+        return inData;
+    }
+
     private static int compareTwoRow(Map<String, Object> data1, Map<String, Object> data2, List<String> fields) {
         if(data1 == null && data2 == null){
             return 0;

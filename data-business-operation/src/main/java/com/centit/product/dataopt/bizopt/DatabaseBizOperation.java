@@ -73,6 +73,16 @@ public class DatabaseBizOperation extends BuiltInOperation {
         return bizModel;
     }
 
+    protected BizModel runSaveFile(BizModel bizModel, JSONObject bizOptJson) {
+
+        return bizModel;
+    }
+
+    protected BizModel runHttpPost(BizModel bizModel, JSONObject bizOptJson) {
+
+        return bizModel;
+    }
+
     protected BizModel runOneStep(BizModel bizModel, JSONObject bizOptJson) {
         String sOptType = bizOptJson.getString("operation");
         if(StringUtils.isBlank(sOptType)) {
@@ -97,10 +107,18 @@ public class DatabaseBizOperation extends BuiltInOperation {
                 return runJoin(bizModel, bizOptJson);
             case "union":
                 return runUnion(bizModel, bizOptJson);
+            case "filterExt":
+                return runFilterExt(bizModel, bizOptJson);
+            case "check":
+                return runCheckData(bizModel, bizOptJson);
             case "static":
                 return runStaticData(bizModel, bizOptJson);
             case "persistence":
                 return runPersistence(bizModel, bizOptJson);
+            case "save":
+                return runSaveFile(bizModel, bizOptJson);
+            case "interface":
+                return runHttpPost(bizModel, bizOptJson);
             default:
                 return bizModel;
         }

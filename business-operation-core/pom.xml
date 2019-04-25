@@ -11,7 +11,6 @@
     <artifactId>business-operation-core</artifactId>
     <packaging>jar</packaging>
 
-
     <dependencies>
         <dependency>
             <groupId>com.centit.framework</groupId>
@@ -49,6 +48,12 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>compile</scope>
         </dependency>
         <!--<dependency>
             <groupId>net.sourceforge.jexcelapi</groupId>

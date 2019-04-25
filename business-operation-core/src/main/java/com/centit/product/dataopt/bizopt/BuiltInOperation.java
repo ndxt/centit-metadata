@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.dataopt.core.DataSet;
+import com.centit.product.dataopt.datarule.CheckRule;
 import com.centit.product.dataopt.utils.BizOptUtils;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.product.dataopt.core.BizOperation;
@@ -189,13 +190,38 @@ public class BuiltInOperation implements BizOperation {
     }
 
 
-    /*private BizModel runPersistence(BizModel bizModel, JSONObject bizOptJson) {
-        String sourDSName = getJsonFieldString(bizOptJson,"source", bizModel.getModelName());
-        String databaseCode = getJsonFieldString(bizOptJson,"databaseCode", null);
-        String tableName = getJsonFieldString(bizOptJson,"tableName", null);
-        String writerType = getJsonFieldString(bizOptJson,"writerType", "merge");
+    protected BizModel runFilterExt(BizModel bizModel, JSONObject bizOptJson) {
+        String sour1DSName = getJsonFieldString(bizOptJson,"source", null);
+        String sour2DSName = getJsonFieldString(bizOptJson,"source2", null);
+        if(sour1DSName == null || sour2DSName ==null ){
+            return bizModel;
+        }
+        String targetDSName = getJsonFieldString(bizOptJson, "target", bizModel.getModelName());
+        Object primaryKey = bizOptJson.get("primaryKey");
+        List<String> pks = StringBaseOpt.objectToStringList(primaryKey);
+        String formula = bizOptJson.getString("filter");
+        DataSet dataSet = bizModel.fetchDataSetByName(sour1DSName);
+        DataSet dataSet2 = bizModel.fetchDataSetByName(sour2DSName);
+        if(dataSet != null && dataSet2 != null) {
+            DataSet destDS = DataSetOptUtil.filterByOtherDataSet(dataSet, dataSet2, pks, formula);
+            bizModel.putDataSet(targetDSName, destDS);
+        }
         return bizModel;
-    }*/
+    }
+
+    protected BizModel runCheckData(BizModel bizModel, JSONObject bizOptJson) {
+        String sourDSName = getJsonFieldString(bizOptJson,"source", bizModel.getModelName());
+        //String targetDSName = getJsonFieldString(bizOptJson, "target", sourDSName);
+        Object rulesJson = bizOptJson.get("rules");
+        if(rulesJson instanceof JSONArray){
+            List<CheckRule> rules = ((JSONArray)rulesJson).toJavaList(CheckRule.class);
+            DataSet dataSet = bizModel.fetchDataSetByName(sourDSName);
+            if(dataSet != null) {
+                DataSetOptUtil.checkDateSet(dataSet, rules);
+            }
+        }
+        return bizModel;
+    }
 
     protected BizModel runOneStep(BizModel bizModel, JSONObject bizOptJson) {
         String sOptType = bizOptJson.getString("operation");
@@ -221,6 +247,10 @@ public class BuiltInOperation implements BizOperation {
                 return runJoin(bizModel, bizOptJson);
             case "union":
                 return runUnion(bizModel, bizOptJson);
+            case "filterExt":
+                return runFilterExt(bizModel, bizOptJson);
+            case "check":
+                return runCheckData(bizModel, bizOptJson);
             case "static":
                 return runStaticData(bizModel, bizOptJson);
             /*case "persistence":

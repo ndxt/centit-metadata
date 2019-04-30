@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.centit.framework</groupId>
-        <artifactId>framework-snapshot-dependencies</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <groupId>com.centit.product</groupId>
+        <artifactId>centit-metadata-commons</artifactId>
+        <version>1.0-SNAPSHOT</version>
     </parent>
+
     <groupId>com.centit.support</groupId>
-    <artifactId>web-test</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>database-webapp</artifactId>
     <packaging>war</packaging>
 
     <dependencies>
@@ -23,7 +23,6 @@
         <dependency>
             <groupId>com.centit.framework</groupId>
             <artifactId>framework-session</artifactId>
-            <version>4.4-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -44,7 +43,6 @@
         <dependency>
             <groupId>com.centit.product</groupId>
             <artifactId>database-metadata-graphql</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -65,13 +63,11 @@
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-models</artifactId>
-            <version>1.5.21</version>
         </dependency>
 
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>swagger-bootstrap-ui</artifactId>
-            <version>1.8.2</version>
         </dependency>
         <!--<dependency>
             <groupId>io.springfox</groupId>

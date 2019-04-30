@@ -352,7 +352,7 @@ public class MetaTableManagerImpl
                 chgLog.setChangeScript(JSON.toJSONString(sqls));
                 chgLog.setChangeComment(JSON.toJSONString(errors));
             }
-            chgLog.setChangeId(metaChangLogDao.getNextKey());
+            chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
             chgLog.setTableID(ptable.getTableId());
             chgLog.setChanger(currentUser);
             metaChangLogDao.saveNewObject(chgLog);

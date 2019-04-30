@@ -1,5 +1,6 @@
 package com.centit.product.dbdesign.po;
 
+import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
@@ -8,6 +9,7 @@ import com.centit.support.database.metadata.TableReference;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
 import com.centit.support.database.utils.DBType;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
@@ -25,6 +27,7 @@ import java.util.List;
  * <p>
  * 未落实表元数据表null
  */
+@ApiModel
 @Data
 @Entity
 @Table(name = "F_PENDING_META_TABLE")
@@ -34,6 +37,7 @@ public class PendingMetaTable implements
     /**
      * 表ID 表单主键
      */
+    @ApiModelProperty(value = "表ID", hidden = true)
     @Id
     @Column(name = "TABLE_ID")
     //1.用一张hibernate_sequences表管理主键,需要建hibernate_sequences表
@@ -46,11 +50,13 @@ public class PendingMetaTable implements
     /**
      * 所属数据库ID null
      */
+    @ApiModelProperty(value = "数据库ID")
     @Column(name = "DATABASE_CODE")
     private String databaseCode;
     /**
      * 表代码 null
      */
+    @ApiModelProperty(value = "表名")
     @Column(name = "TABLE_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 64, message = "字段长度不能大于{max}")
@@ -58,6 +64,7 @@ public class PendingMetaTable implements
     /**
      * 表名称 null
      */
+    @ApiModelProperty(value = "表中文名")
     @Column(name = "TABLE_LABEL_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 100, message = "字段长度不能大于{max}")
@@ -65,6 +72,7 @@ public class PendingMetaTable implements
     /**
      * 类别 表 T table /视图 V view /大字段 C LOB/CLOB  目前只能是表
      */
+    @ApiModelProperty(value = "表类别（T-表；V-视图；C-大字段）")
     @Column(name = "TABLE_TYPE")
     @NotBlank(message = "字段不能为空")
     @Length(message = "字段长度不能大于{max}")
@@ -83,6 +91,7 @@ public class PendingMetaTable implements
     /**
      * 状态 系统 S / R 查询(只读)/ N 新建(读写)
      */
+    @ApiModelProperty(value = "表状态（系统 S / R 查询(只读)/ N 新建(读写)）")
     @Column(name = "TABLE_STATE")
     @NotBlank(message = "字段不能为空")
     @Length(message = "字段长度不能大于{max}")
@@ -90,6 +99,7 @@ public class PendingMetaTable implements
     /**
      * 描述 null
      */
+    @ApiModelProperty(value = "表描述")
     @Column(name = "TABLE_COMMENT")
     @Length(max = 256, message = "字段长度不能大于{max}")
     private String tableComment;
@@ -98,12 +108,14 @@ public class PendingMetaTable implements
      * 0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联
      * 如果关联会添加外键与工作流表关联
      */
+    @ApiModelProperty(value = "与流程中业务关联关系(0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联)")
     @Column(name = "WORKFLOW_OPT_TYPE")
     @NotBlank(message = "字段不能为空")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String workFlowOptType;
 
     //Y/N 更新时是否校验时间戳 添加 Last_modify_time datetime
+    @ApiModelProperty(value = "更新时是否校验时间戳")
     @Column(name = "UPDATE_CHECK_TIMESTAMP")
     @NotBlank(message = "字段不能为空")
     @Length(max = 1, message = "字段长度不能大于{max}")
@@ -118,6 +130,7 @@ public class PendingMetaTable implements
      */
     @Column(name = "RECORDER")
     @Length(max = 64, message = "字段长度不能大于{max}")
+    @DictionaryMap(fieldName = "recorderName", value = "userCode")
     private String recorder;
 
     @OneToMany(mappedBy="mdTable",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)

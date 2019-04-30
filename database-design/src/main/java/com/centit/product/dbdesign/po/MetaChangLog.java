@@ -1,7 +1,12 @@
 package com.centit.product.dbdesign.po;
 
 import com.centit.support.algorithm.DatetimeOpt;
+import com.centit.support.database.orm.GeneratorCondition;
+import com.centit.support.database.orm.GeneratorTime;
+import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
@@ -16,45 +21,41 @@ import java.util.Date;
 
   元数据更改记录null
 */
+@ApiModel
 @Data
 @Entity
 @Table(name = "F_META_CHANG_LOG")
 public class MetaChangLog implements java.io.Serializable {
     private static final long serialVersionUID =  1L;
 
-    /**
-     * 编号 null
-     */
+    @ApiModelProperty(value = "编号", hidden = true)
     @Id
     @Column(name = "CHANGE_ID")
-    private Long  changeId;
-    /**
-     * 版本号 null
-     */
+    @ValueGenerator(strategy = GeneratorType.UUID)
+    private String  changeId;
+
+
+    @ApiModelProperty(value = "表ID", hidden = true)
     @Column(name = "TABLE_ID")
     private String tableID;
-    /**
-     * 提交日期 null
-     */
+
+    @ApiModelProperty(value = "提交日期")
     @Column(name = "CHANGE_DATE")
+    @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
     @OrderBy(value = "DESC")
     private Date  changeDate;
-    /**
-     * 提交人 null
-     */
+
+    @ApiModelProperty(value = "提交人")
     @Column(name = "CHANGER")
     @NotBlank(message = "字段不能为空")
     //@Length(max = 6, message = "字段长度不能大于{max}")
     private String  changer;
 
-    /**
-     * 更改脚本 null
-     */
+    @ApiModelProperty(value = "更改脚本")
     @Column(name = "CHANGE_SCRIPT")
     private String  changeScript;
-    /**
-     * 更改说明 null
-     */
+
+    @ApiModelProperty(value = "更改说明")
     @Column(name = "CHANGE_COMMENT")
     @Length(max = 2048, message = "字段长度不能大于{max}")
     private String  changeComment;
@@ -79,7 +80,7 @@ public class MetaChangLog implements java.io.Serializable {
 /** full constructor */
     public MetaChangLog(
      String tableID
-    ,Long  changeId,Date  changeDate,String  changer,String  changeScript,String  changeComment) {
+    ,String  changeId,Date  changeDate,String  changer,String  changeScript,String  changeComment) {
 
 
         this.tableID = tableID;

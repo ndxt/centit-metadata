@@ -161,7 +161,6 @@ public class MetaColumn implements TableField,java.io.Serializable {
      * 0: 不是工作流变量 1：流程业务变量 2： 流程过程变量
      */
     @Column(name = "WORKFLOW_VARIABLE_TYPE")
-    @NotBlank(message = "字段不能为空")
     @Pattern(regexp = "[0-2]")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String workFlowVariableType;

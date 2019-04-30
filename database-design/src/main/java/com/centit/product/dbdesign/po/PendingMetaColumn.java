@@ -10,6 +10,7 @@ import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
+import javax.validation.constraints.Pattern;
 import java.util.Date;
 
 
@@ -145,6 +146,14 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     private String  autoCreateParam;
 
     /**
+     * 与流程中业务关联关系
+     * 0: 不是工作流变量 1：流程业务变量 2： 流程过程变量
+     */
+    @Column(name = "WORKFLOW_VARIABLE_TYPE")
+    @Pattern(regexp = "[0-2]")
+    @Length(max = 1, message = "字段长度不能大于{max}")
+    private String workFlowVariableType;
+    /**
      * 更改时间 null
      */
     @Column(name = "LAST_MODIFY_DATE")
@@ -229,8 +238,6 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     }
 
     public PendingMetaColumn copyNotNullProperty(PendingMetaColumn other){
-
-
 //        if( other.getCid() != null)
 //            this.setCid(other.getCid());
         if( other.getFieldLabelName() != null)
@@ -360,6 +367,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         mc.setAutoCreateParam(this.getAutoCreateParam());
         mc.setLastModifyDate(this.getLastModifyDate());
         mc.setRecorder(this.getRecorder());
+        mc.setWorkFlowVariableType(this.getWorkFlowVariableType());
         return mc;
     }
 }

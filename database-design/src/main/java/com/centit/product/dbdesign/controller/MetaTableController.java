@@ -55,14 +55,7 @@ public class MetaTableController extends BaseController {
     @Resource
     private PendingMetaTableDao pendingMetaTableDao;
 
-    /**
-     * 查询所有   元数据更改记录  列表
-     *
-     * @param field    json中只保存需要的属性名
-     * @param request  {@link HttpServletRequest}
-     * @param response {@link HttpServletResponse}
-     * @return {data:[]}
-     */
+
     @ApiOperation(value = "查询所有元数据")
     @RequestMapping(value = "/log", method = RequestMethod.GET)
     public void loglist(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
@@ -83,13 +76,6 @@ public class MetaTableController extends BaseController {
     }
 
 
-    /**
-     * 查询表元数据（不带数据库名）
-     * @param field    json中只保存需要的属性名
-     * @param request  {@link HttpServletRequest}
-     * @param response {@link HttpServletResponse}
-     * @return {data:[]}
-     */
     @ApiOperation(value = "查询表元数据")
     @RequestMapping(method = RequestMethod.GET)
     public void list(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
@@ -109,13 +95,6 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeResponseDataAsJson(resData, response);
     }
 
-    /**
-     * 获取表元数据（带数据库名）
-     * @param field
-     * @param pageDesc
-     * @param request
-     * @param response
-     */
     @ApiOperation(value = "获取表元数据")
     @RequestMapping(value="/listdraft",method = RequestMethod.GET)
     public void listdraft(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
@@ -135,13 +114,6 @@ public class MetaTableController extends BaseController {
         }
     }
 
-    /**
-     * 查询单个  表元数据表
-     *
-     * @param tableId  Table_ID
-     * @param response {@link HttpServletResponse}
-     * @return {data:{}}
-     */
     @ApiOperation(value = "查询单个表元数据表")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.GET})
     public void getMdTable(@PathVariable Long tableId, HttpServletResponse response) {
@@ -152,13 +124,6 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeSingleDataJson(mdTable, response);
     }
 
-    /**
-     * 查询单个  表元数据表  草稿
-     *
-     * @param tableId  Table_ID
-     * @param response {@link HttpServletResponse}
-     * @return {data:{}}
-     */
     @ApiOperation(value = "查询单个表元数据表")
     @RequestMapping(value = "/draft/{tableId}", method = {RequestMethod.GET})
     public void getMdTableDraft(@PathVariable Long tableId, HttpServletResponse response) {
@@ -167,9 +132,6 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeSingleDataJson(mdTable, response);
     }
 
-    /*
-     * 新增 表元数据表 草稿
-     */
     @ApiOperation(value = "新增表元数据表")
     @RequestMapping(method = {RequestMethod.POST})
     public void createMdTable(@RequestBody @Valid PendingMetaTable mdTable, HttpServletResponse response) {
@@ -185,10 +147,6 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
     }
 
-
-    /*
-     * 发布 表元数据表
-     */
     @ApiOperation(value = "发布表元数据表")
     @RequestMapping(value = "/beforePublish/{ptableId}", method = {RequestMethod.POST})
     public void alertSqlBeforePublish(@PathVariable Long ptableId,
@@ -199,9 +157,6 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeResponseDataAsJson(resData, response);
     }
 
-    /*
-     * 发布 表元数据表
-     */
     @ApiOperation(value = "发布表元数据表")
     @RequestMapping(value = "/publish/{ptableId}", method = {RequestMethod.POST})
     public void publishMdTable(@PathVariable Long ptableId,
@@ -216,11 +171,6 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }
 
-    /**
-     * 删除单个  表元数据表
-     *
-     * @param tableId Table_ID
-     */
     @ApiOperation(value = "删除单个表元数据表")
     @RequestMapping(value = "/draft/{tableId}", method = {RequestMethod.DELETE})
     public void deleteMdTable(@PathVariable Long tableId, HttpServletResponse response) {
@@ -230,13 +180,6 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeBlankJson(response);
     }
 
-    /**
-     * 新增或保存 表元数据表
-     *
-     * @param tableId  Table_ID
-     * @param mdTable  {@link MetaTable}
-     * @param response {@link HttpServletResponse}
-     */
     @ApiOperation(value = "新增或保存表元数据表")
     @RequestMapping(value = "/draft/{tableId}", method = {RequestMethod.PUT})
     public void updateMdTable(@PathVariable Long tableId,
@@ -258,13 +201,6 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeBlankJson(response);
     }
 
-    /**
-     * 列出未加入表单的field
-     *
-     * @param tableId
-     * @param response
-     * @param pageDesc
-     */
     @ApiOperation(value = "列出未加入表单的field")
     @RequestMapping(value = "/{tableId}/getField", method = RequestMethod.GET)
     public void listfield(@PathVariable Long tableId, HttpServletResponse response, PageDesc pageDesc) {
@@ -281,8 +217,6 @@ public class MetaTableController extends BaseController {
     /**
      * 获取草稿序列中的tableId
      *
-     * @param response
-     * @param pageDesc
      */
     @ApiOperation(value = "获取草稿序列中的tableId")
     @RequestMapping(value = "/draft/getNextKey", method = RequestMethod.GET)

@@ -1,5 +1,7 @@
 package com.centit.product.dbdesign.po;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
@@ -16,24 +18,25 @@ import javax.persistence.Table;
  * <p>
  * 未落实表关联细节表null
  */
+@ApiModel
 @Data
 @Entity
 @Table(name = "F_PENDING_META_REL_DETIAL")
 public class PendingMetaRelDetail implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
 
+    @ApiModelProperty(value = "关联代码", hidden = true)
     @Id
     @Column(name = "RELATION_ID")
     private String relationId;
 
+    @ApiModelProperty(value = "p字段代码")
     @Id
     @Column(name = "PARENT_COLUMN_NAME")
     @NotBlank(message = "字段不能为空")
     private String parentColumnName;
 
-    /**
-     * C字段代码 null
-     */
+    @ApiModelProperty(value = "C字段代码")
     @Column(name = "CHILD_COLUMN_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 32, message = "字段长度不能大于{max}")

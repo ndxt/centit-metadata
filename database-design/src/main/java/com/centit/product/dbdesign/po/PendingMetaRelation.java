@@ -4,8 +4,11 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.product.metadata.po.MetaRelDetail;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.support.database.metadata.TableReference;
+import com.centit.support.database.orm.GeneratorCondition;
+import com.centit.support.database.orm.GeneratorTime;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +24,7 @@ import java.util.*;
  * <p>
  * 未落实表关联关系表null
  */
+@ApiModel
 @Data
 @Entity
 @Table(name = "F_PENDING_META_RELATION")
@@ -30,6 +34,7 @@ public class PendingMetaRelation implements TableReference, java.io.Serializable
     /**
      * 关联代码 关联关系，类似与外键，但不创建外键
      */
+    @ApiModelProperty(value = "关联代码", hidden = true)
     @Id
     @Column(name = "RELATION_ID")
     @ValueGenerator(strategy = GeneratorType.SEQUENCE, value = "SEQ_PENDINGRELATIONID")
@@ -52,39 +57,36 @@ public class PendingMetaRelation implements TableReference, java.io.Serializable
 //    //@NotFound(action=NotFoundAction.IGNORE)
 //    private PendingMetaTable  childTable;
 
+    @ApiModelProperty(value = "主表表ID")
     @Column(name = "PARENT_TABLE_ID")
     private String parentTableId;
 
+    @ApiModelProperty(value = "从表表ID")
     @Column(name = "CHILD_TABLE_ID")
     private String childTableId;
 
-    /**
-     * 关联名称 null
-     */
+    @ApiModelProperty(value = "关联名称")
     @Column(name = "RELATION_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 64, message = "字段长度不能大于{max}")
     private String relationName;
-    /**
-     * 状态 null
-     */
+
+    @ApiModelProperty(value = "状态")
     @Column(name = "RELATION_STATE")
     @Length(message = "字段长度不能大于{max}")
     private String relationState;
-    /**
-     * 关联说明 null
-     */
+
+    @ApiModelProperty(value = "关联说明")
     @Column(name = "RELATION_COMMENT")
     @Length(max = 256, message = "字段长度不能大于{max}")
     private String relationComment;
-    /**
-     * 更改时间 null
-     */
+
+    @ApiModelProperty(value = "更改时间")
+    @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
     @Column(name = "LAST_MODIFY_DATE")
     private Date lastModifyDate;
-    /**
-     * 更改人员 null
-     */
+
+    @ApiModelProperty(value = "更改人员")
     @Column(name = "RECORDER")
     @Length(max = 8, message = "字段长度不能大于{max}")
     private String recorder;

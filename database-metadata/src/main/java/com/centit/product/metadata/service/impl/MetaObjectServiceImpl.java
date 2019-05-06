@@ -396,7 +396,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         sGetCountSql = sGetCountSql + " where " + filter;
 
                     Object obj = DatabaseAccess.getScalarObjectQuery(conn,
-                        QueryUtils.buildGetCountSQL(sGetCountSql), params);
+                        sGetCountSql, params);
                     pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
                     return objs;
                 });

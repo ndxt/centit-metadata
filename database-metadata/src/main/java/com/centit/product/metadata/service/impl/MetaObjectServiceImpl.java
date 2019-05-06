@@ -32,10 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional
@@ -245,6 +242,36 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             throw new ObjectException(object, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
+
+    @Override
+    public int updateObjectByProperties(String tableId, final Collection<String> fields, final Map<String, Object> object){
+        MetaTable tableInfo = fetchTableInfo(tableId, false);
+        DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        try {
+            return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
+                (conn) ->{
+                    GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+                    return dao.updateObjectsByProperties(fields, object, dao.makePkFieldMap(object));
+                });
+        } catch (SQLException | IOException e) {
+            throw new ObjectException(object, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
+
+    @Override
+    public int updateObjectsByProperties(String tableId, final Collection<String> fields,
+                                  final Map<String, Object> fieldValues,final Map<String, Object> properties){
+        MetaTable tableInfo = fetchTableInfo(tableId, false);
+        DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        try {
+            return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
+                (conn) ->GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
+                    .updateObjectsByProperties(fields, fieldValues, properties));
+        } catch (SQLException | IOException e) {
+            throw new ObjectException(fieldValues, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
+
 
     @Override
     public void deleteObject(String tableId, Map<String, Object> pk) {

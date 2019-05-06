@@ -1,5 +1,6 @@
 package com.centit.product.metadata.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.ObjectException;
 import com.centit.framework.core.dao.CodeBook;
@@ -18,6 +19,7 @@ import com.centit.support.algorithm.UuidOpt;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
+import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -112,13 +114,27 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return integrationEnvironment.getDatabaseInfo(databaseCode);
     }
 
+    private Map<String, Object> innerGetObjectById(final Connection conn, final TableInfo tableInfo,final Map<String, Object> pk)
+        throws IOException, SQLException {
+        GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+        if(dao.checkHasAllPkColumns(pk)){
+            return dao.getObjectById(pk);
+        } else if( pk.containsKey("flowInstId")) {
+            return dao.getObjectByProperties(pk);
+        } else {
+            throw new ObjectException("表或者视图 " + tableInfo.getTableName()
+                +" 缺少对应主键:"+ JSON.toJSONString(pk) );
+        }
+
+    }
+
     @Override
     public Map<String, Object> getObjectById(String tableId, Map<String, Object> pk) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
-                (conn) -> GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).getObjectById(pk));
+                (conn) -> innerGetObjectById(conn, tableInfo, pk));
         } catch (SQLException | IOException e) {
             throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -155,8 +171,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
                 (conn) ->{
-                    Map<String, Object> mainObj =
-                        GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).getObjectById(pk);
+                    Map<String, Object> mainObj = innerGetObjectById(conn, tableInfo , pk);
                     if(withChildrenDeep>0) {
                         fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
                     }

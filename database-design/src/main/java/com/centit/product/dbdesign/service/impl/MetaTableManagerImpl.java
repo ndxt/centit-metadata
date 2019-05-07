@@ -112,7 +112,7 @@ public class MetaTableManagerImpl
 
     @Override
     @Transactional
-    public void deletePendingMetaTable(long tableId) {
+    public void deletePendingMetaTable(String tableId) {
         pendingMdTableDao.deleteObjectById(tableId);
 
         Map<String, Object> tempFilter = new HashMap<>();
@@ -130,7 +130,7 @@ public class MetaTableManagerImpl
 
     @Override
     @Transactional
-    public PendingMetaTable getPendingMetaTable(long tableId) {
+    public PendingMetaTable getPendingMetaTable(String tableId) {
 
         PendingMetaTable resultPdMetaTable = pendingMdTableDao.getObjectById(tableId);
         return pendingMdTableDao.fetchObjectReferences(resultPdMetaTable);
@@ -150,7 +150,7 @@ public class MetaTableManagerImpl
      */
     @Override
     @Transactional
-    public List<String> makeAlterTableSqls(Long tableId) {
+    public List<String> makeAlterTableSqls(String tableId) {
         PendingMetaTable ptable = getPendingMetaTable(tableId);
 
         /*PendingMetaTable ptable = pendingMdTableDao.getObjectById(tableId);
@@ -293,7 +293,7 @@ public class MetaTableManagerImpl
      */
     @Override
     @Transactional
-    public Pair<Integer, String> publishMetaTable(Long tableId, String currentUser) {
+    public Pair<Integer, String> publishMetaTable(String tableId, String currentUser) {
         //TODO 根据不同的表类别 做不同的重构
         try {
             PendingMetaTable ptable = pendingMdTableDao.getObjectById(tableId);
@@ -451,7 +451,7 @@ public class MetaTableManagerImpl
     @SuppressWarnings("unchecked")
     @Override
     @Transactional
-    public List<MetaColumn> getNotInFormFields(Long tableId) {
+    public List<MetaColumn> getNotInFormFields(String tableId) {
         String sql = "select * from F_META_COLUMN  t where t.table_id= :tableId " +
             "and t.column_name not in " +
             "(select f.column_name from m_model_data_field f join m_meta_form_model m" +
@@ -461,7 +461,7 @@ public class MetaTableManagerImpl
     }
 
     @Override
-    public List<MetaColumn> listFields(Long tableId) {
+    public List<MetaColumn> listFields(String tableId) {
         Map<String, Object> filterMap = new HashMap<String, Object>();
         filterMap.put("tableId", tableId);
 

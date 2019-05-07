@@ -28,15 +28,15 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
 
     void saveNewPendingMetaTable(PendingMetaTable pmt);
 
-    void deletePendingMetaTable(long tableId);
+    void deletePendingMetaTable(String tableId);
 
-    PendingMetaTable getPendingMetaTable(long tableId);
+    PendingMetaTable getPendingMetaTable(String tableId);
 
     void savePendingMetaTable(PendingMetaTable pmt);
 
-    List<String> makeAlterTableSqls(Long tableId);
+    List<String> makeAlterTableSqls(String tableId);
 
-    Pair<Integer, String> publishMetaTable(Long tableId, String currentUser);
+    Pair<Integer, String> publishMetaTable(String tableId, String currentUser);
 
     JSONArray listDrafts(String[] fields, Map<String, Object> searchColumn, PageDesc pageDesc);
 
@@ -44,7 +44,7 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
 
     boolean importTableFromPdm(String pdmFilePath, String tableCode, String databaseCode);
 
-    List<MetaColumn> getNotInFormFields(Long tableId);
+    List<MetaColumn> getNotInFormFields(String tableId);
 
-    List<MetaColumn> listFields(Long tableId);
+    List<MetaColumn> listFields(String tableId);
 }

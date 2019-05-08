@@ -42,13 +42,13 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @NotBlank(message = "字段不能为空")
     private String  tableId;
 
-    @ApiModelProperty(value = "字段代码")
+    @ApiModelProperty(value = "字段代码", required = true)
     @Id
     @Column(name = "COLUMN_NAME")
     @NotBlank(message = "字段不能为空")
     private String  columnName;
 
-    @ApiModelProperty(value = "字段名称")
+    @ApiModelProperty(value = "字段名称", required = true)
     @Column(name = "FIELD_LABEL_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 64, message = "字段长度不能大于{max}")
@@ -63,7 +63,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @Column(name = "COLUMN_ORDER")
     private Long  columnOrder;
 
-    @ApiModelProperty(value = "字段类型")
+    @ApiModelProperty(value = "字段类型", required = true)
     @Column(name = "COLUMN_TYPE")
     @NotBlank(message = "字段不能为空")
     @Length(max = 32, message = "字段长度不能大于{max}")
@@ -77,7 +77,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @Column(name = "SCALE")
     private Integer  scaleM;
 
-    @ApiModelProperty(value = "字段类别")
+    @ApiModelProperty(value = "字段类别", required = true)
     @Column(name = "ACCESS_TYPE")
     @NotBlank(message = "字段不能为空")
     @Length(message = "字段长度不能大于{max}")
@@ -93,7 +93,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @Length( message = "字段长度不能大于{max}")
     private String  primarykey;
 
-    @ApiModelProperty(value = "状态")
+    @ApiModelProperty(value = "状态", required = true)
     @Column(name = "COLUMN_STATE")
     //@NotBlank(message = "字段不能为空")
     @Length( message = "字段长度不能大于{max}")

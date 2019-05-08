@@ -31,7 +31,7 @@ public class MetaChangLog implements java.io.Serializable {
     @ApiModelProperty(value = "编号", hidden = true)
     @Id
     @Column(name = "CHANGE_ID")
-    @ValueGenerator(strategy = GeneratorType.UUID)
+    @ValueGenerator(strategy = GeneratorType.SEQUENCE, value = "S_META_CHANGLOG_ID")
     private String  changeId;
 
 
@@ -39,13 +39,13 @@ public class MetaChangLog implements java.io.Serializable {
     @Column(name = "TABLE_ID")
     private String tableID;
 
-    @ApiModelProperty(value = "提交日期")
+    @ApiModelProperty(value = "提交日期", required = true)
     @Column(name = "CHANGE_DATE")
     @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
     @OrderBy(value = "DESC")
     private Date  changeDate;
 
-    @ApiModelProperty(value = "提交人")
+    @ApiModelProperty(value = "提交人", required = true)
     @Column(name = "CHANGER")
     @NotBlank(message = "字段不能为空")
     //@Length(max = 6, message = "字段长度不能大于{max}")

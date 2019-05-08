@@ -65,13 +65,13 @@ public class PendingMetaRelation implements TableReference, java.io.Serializable
     @Column(name = "CHILD_TABLE_ID")
     private String childTableId;
 
-    @ApiModelProperty(value = "关联名称")
+    @ApiModelProperty(value = "关联名称", required = true)
     @Column(name = "RELATION_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 64, message = "字段长度不能大于{max}")
     private String relationName;
 
-    @ApiModelProperty(value = "状态")
+    @ApiModelProperty(value = "状态", required = true)
     @Column(name = "RELATION_STATE")
     @Length(message = "字段长度不能大于{max}")
     private String relationState;

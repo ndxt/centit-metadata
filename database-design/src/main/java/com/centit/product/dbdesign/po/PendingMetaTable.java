@@ -58,7 +58,7 @@ public class PendingMetaTable implements
     /**
      * 表代码 null
      */
-    @ApiModelProperty(value = "表名")
+    @ApiModelProperty(value = "表名", required = true)
     @Column(name = "TABLE_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 64, message = "字段长度不能大于{max}")
@@ -66,7 +66,7 @@ public class PendingMetaTable implements
     /**
      * 表名称 null
      */
-    @ApiModelProperty(value = "表中文名")
+    @ApiModelProperty(value = "表中文名", required = true)
     @Column(name = "TABLE_LABEL_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 100, message = "字段长度不能大于{max}")
@@ -93,7 +93,7 @@ public class PendingMetaTable implements
     /**
      * 状态 系统 S / R 查询(只读)/ N 新建(读写)
      */
-    @ApiModelProperty(value = "表状态（系统 S / R 查询(只读)/ N 新建(读写)）")
+    @ApiModelProperty(value = "表状态（系统 S / R 查询(只读)/ N 新建(读写)）", required = true)
     @Column(name = "TABLE_STATE")
     @NotBlank(message = "字段不能为空")
     @Length(message = "字段长度不能大于{max}")
@@ -110,7 +110,7 @@ public class PendingMetaTable implements
      * 0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联
      * 如果关联会添加外键与工作流表关联
      */
-    @ApiModelProperty(value = "与流程中业务关联关系(0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联)")
+    @ApiModelProperty(value = "与流程中业务关联关系(0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联)", required = true)
     @Column(name = "WORKFLOW_OPT_TYPE")
     @NotBlank(message = "字段不能为空")
     @Length(max = 1, message = "字段长度不能大于{max}")

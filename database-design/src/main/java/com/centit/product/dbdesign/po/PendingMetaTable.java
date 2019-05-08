@@ -6,6 +6,8 @@ import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.metadata.TableReference;
+import com.centit.support.database.orm.GeneratorCondition;
+import com.centit.support.database.orm.GeneratorTime;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
 import com.centit.support.database.utils.DBType;
@@ -124,6 +126,8 @@ public class PendingMetaTable implements
      * 更改时间 null
      */
     @Column(name = "LAST_MODIFY_DATE")
+    @ApiModelProperty(value = "更改时间", hidden = true)
+    @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
     private Date lastModifyDate;
     /**
      * 更改人员 null

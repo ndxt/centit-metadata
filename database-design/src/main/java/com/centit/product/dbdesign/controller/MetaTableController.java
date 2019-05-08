@@ -5,7 +5,10 @@ import com.centit.framework.common.JsonResultUtils;
 import com.centit.framework.common.ResponseData;
 import com.centit.framework.common.ResponseMapData;
 import com.centit.framework.core.controller.BaseController;
+import com.centit.framework.core.controller.WrapUpResponseBody;
+import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
+import com.centit.product.dbdesign.po.MetaChangLog;
 import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
 import com.centit.product.dbdesign.service.MetaTableManager;
@@ -26,8 +29,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -55,101 +56,93 @@ public class MetaTableController extends BaseController {
     @Resource
     private PendingMetaTableDao pendingMetaTableDao;
 
-
-    @ApiOperation(value = "查询所有元数据")
+    @ApiOperation(value = "查询表元数据更改(发布)记录")
     @RequestMapping(value = "/log", method = RequestMethod.GET)
-    public void loglist(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
+    public PageQueryResult loglist(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = convertSearchColumn(request);
-
         JSONArray listObjects = mdChangLogMag.listMdChangLogsAsJson(field, searchColumn, pageDesc);
-
-        if (null == pageDesc) {
-            JsonResultUtils.writeSingleDataJson(listObjects, response);
-            return;
+        if (ArrayUtils.isNotEmpty(field)) {
+            return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, field, MetaChangLog.class);
         }
-
-        ResponseMapData resData = new ResponseMapData();
-        resData.addResponseData(OBJLIST, listObjects);
-        resData.addResponseData(PAGE_DESC, pageDesc);
-
-        JsonResultUtils.writeResponseDataAsJson(resData, response);
+        else{
+            return PageQueryResult.createJSONArrayResult(listObjects,pageDesc,MetaChangLog.class);
+        }
     }
 
-
-    @ApiOperation(value = "查询表元数据")
+    @ApiOperation(value = "查询所有表元数据")
     @RequestMapping(method = RequestMethod.GET)
-    public void list(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
+    @WrapUpResponseBody
+    public PageQueryResult list(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = convertSearchColumn(request);
-
         JSONArray listObjects = mdTableMag.listObjectsAsJson(searchColumn, pageDesc);
-
-        if (null == pageDesc) {
-            JsonResultUtils.writeSingleDataJson(listObjects, response);
-            return;
+        if (ArrayUtils.isNotEmpty(field)) {
+            return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, field, MetaTable.class);
         }
-
-        ResponseMapData resData = new ResponseMapData();
-        resData.addResponseData(OBJLIST, listObjects);
-        resData.addResponseData(PAGE_DESC, pageDesc);
-
-        JsonResultUtils.writeResponseDataAsJson(resData, response);
+        else{
+            return PageQueryResult.createJSONArrayResult(listObjects,pageDesc,MetaTable.class);
+        }
     }
 
-    @ApiOperation(value = "获取表元数据")
+    @ApiOperation(value = "获取未落实表元数据表")
     @RequestMapping(value="/listdraft",method = RequestMethod.GET)
-    public void listdraft(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
+    @WrapUpResponseBody
+    public PageQueryResult listdraft(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = convertSearchColumn(request);
         JSONArray listObjects = mdTableMag.listDrafts(field, searchColumn, pageDesc);
-        if (null == pageDesc) {
-            JsonResultUtils.writeSingleDataJson(listObjects, response);
-            return;
-        }
-        ResponseMapData resData = new ResponseMapData();
-        resData.addResponseData(OBJLIST, listObjects);
-        resData.addResponseData(PAGE_DESC, pageDesc);
         if (ArrayUtils.isNotEmpty(field)) {
-            JsonResultUtils.writeResponseDataAsJson(resData, response);
-        } else {
-            JsonResultUtils.writeResponseDataAsJson(resData, response);
+            return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, field, PendingMetaTable.class);
+        }
+        else{
+            return PageQueryResult.createJSONArrayResult(listObjects,pageDesc,PendingMetaTable.class);
         }
     }
 
-    @ApiOperation(value = "查询单个表元数据表")
+    @ApiOperation(value = "查询单个表元数据")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.GET})
-    public void getMdTable(@PathVariable Long tableId, HttpServletResponse response) {
-
-        MetaTable mdTable = mdTableMag.getObjectByProperty("tableId", tableId);
-//        MetaTable mdTable =
-//                mdTableMag.getObjectById( tableId);
-        JsonResultUtils.writeSingleDataJson(mdTable, response);
+    @WrapUpResponseBody
+    public MetaTable getMdTable(@PathVariable String tableId) {
+        MetaTable mdTable = mdTableMag.getObjectById(tableId);
+        return mdTable;
     }
 
-    @ApiOperation(value = "查询单个表元数据表")
+    @ApiOperation(value = "查询单个表元数据表(未落实)")
     @RequestMapping(value = "/draft/{tableId}", method = {RequestMethod.GET})
-    public void getMdTableDraft(@PathVariable Long tableId, HttpServletResponse response) {
-
+    @WrapUpResponseBody
+    public PendingMetaTable getMdTableDraft(@PathVariable String tableId) {
         PendingMetaTable mdTable = mdTableMag.getPendingMetaTable(tableId);
-        JsonResultUtils.writeSingleDataJson(mdTable, response);
+        return mdTable;
     }
 
     @ApiOperation(value = "新增表元数据表")
     @RequestMapping(method = {RequestMethod.POST})
-    public void createMdTable(@RequestBody @Valid PendingMetaTable mdTable, HttpServletResponse response) {
+    public void createMdTable(PendingMetaTable mdTable, HttpServletResponse response) {
         PendingMetaTable table = new PendingMetaTable();
         table.copyNotNullProperty(mdTable);
         if (null == table.getTableId()) {
             table.setTableId(String.valueOf(pendingMetaTableDao.getNextKey()));
         }
-        table.setLastModifyDate(new Date());
-//      mdTable.setTableType("T");// T 是数据表，后期会添加 V（视图）的选择
-//      mdTable.setTableState("N");
         mdTableMag.saveNewPendingMetaTable(table);
         JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
     }
 
-    @ApiOperation(value = "发布表元数据表")
+    @ApiOperation(value = "编辑表元数据表")
+    @RequestMapping(value = "/draft/{tableId}", method = {RequestMethod.PUT})
+    @WrapUpResponseBody
+    public void updateMdTable(@PathVariable String tableId, @RequestBody PendingMetaTable mdTable) {
+        mdTable.setTableId(tableId);
+        mdTableMag.savePendingMetaTable(mdTable);
+    }
+
+    @ApiOperation(value = "删除单个表元数据表")
+    @RequestMapping(value = "/draft/{tableId}", method = {RequestMethod.DELETE})
+    @WrapUpResponseBody
+    public void deleteMdTable(@PathVariable String tableId) {
+        mdTableMag.deletePendingMetaTable(tableId);
+    }
+
+    @ApiOperation(value = "发布表元数据表,查看创建表的sql")
     @RequestMapping(value = "/beforePublish/{ptableId}", method = {RequestMethod.POST})
-    public void alertSqlBeforePublish(@PathVariable Long ptableId,
+    public void alertSqlBeforePublish(@PathVariable String ptableId,
                                       HttpServletRequest request, HttpServletResponse response) {
         List<String> sqls = mdTableMag.makeAlterTableSqls(ptableId);
         ResponseMapData resData = new ResponseMapData();
@@ -159,7 +152,7 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "发布表元数据表")
     @RequestMapping(value = "/publish/{ptableId}", method = {RequestMethod.POST})
-    public void publishMdTable(@PathVariable Long ptableId,
+    public void publishMdTable(@PathVariable String ptableId,
                                HttpServletRequest request, HttpServletResponse response) {
         String userCode = super.getLoginUserCode(request);
         if (StringUtils.isBlank(userCode)) {
@@ -171,39 +164,9 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }
 
-    @ApiOperation(value = "删除单个表元数据表")
-    @RequestMapping(value = "/draft/{tableId}", method = {RequestMethod.DELETE})
-    public void deleteMdTable(@PathVariable Long tableId, HttpServletResponse response) {
-
-        mdTableMag.deletePendingMetaTable(tableId);
-
-        JsonResultUtils.writeBlankJson(response);
-    }
-
-    @ApiOperation(value = "新增或保存表元数据表")
-    @RequestMapping(value = "/draft/{tableId}", method = {RequestMethod.PUT})
-    public void updateMdTable(@PathVariable Long tableId,
-                              @RequestBody @Valid PendingMetaTable mdTable, HttpServletResponse response) {
-
-
-        PendingMetaTable dbMdTable =
-            mdTableMag.getPendingMetaTable(tableId);
-
-        if (null != mdTable) {
-            dbMdTable.copyNotNullProperty(mdTable);
-            dbMdTable.setLastModifyDate(new Date());
-            mdTableMag.savePendingMetaTable(dbMdTable);
-        } else {
-            JsonResultUtils.writeErrorMessageJson("当前对象不存在", response);
-            return;
-        }
-
-        JsonResultUtils.writeBlankJson(response);
-    }
-
     @ApiOperation(value = "列出未加入表单的field")
     @RequestMapping(value = "/{tableId}/getField", method = RequestMethod.GET)
-    public void listfield(@PathVariable Long tableId, HttpServletResponse response, PageDesc pageDesc) {
+    public void listfield(@PathVariable String tableId, HttpServletResponse response, PageDesc pageDesc) {
 
         List<MetaColumn> meTadColumns =
             mdTableMag.listFields(tableId);

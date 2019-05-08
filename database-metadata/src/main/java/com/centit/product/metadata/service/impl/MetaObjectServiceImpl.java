@@ -7,6 +7,7 @@ import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
+import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.po.MetaColumn;
@@ -409,10 +410,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     String sql = "select " + q.getLeft() +" from " +tableInfo.getTableName();
                     if(StringUtils.isNotBlank(filter))
                         sql = sql + " where " + filter;
-                    Object orderBy = params.get(CodeBook.SELF_ORDER_BY);
-                    if(orderBy != null){
+                    String orderBy = BaseDaoImpl.fetchSelfOrderSql(sql, params);
+                    if(StringUtils.isNotBlank(orderBy)){
                         sql = sql + " order by "
-                            + QueryUtils.cleanSqlStatement(StringBaseOpt.castObjectToString(orderBy));
+                            + QueryUtils.cleanSqlStatement(orderBy);
                     }
 
                     JSONArray objs = dao.findObjectsByNamedSqlAsJSON(
@@ -438,10 +439,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     public JSONArray pageQueryObjects(String tableId, String paramDriverSql, Map<String, Object> params, PageDesc pageDesc) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
-        Object orderBy = params.get(CodeBook.SELF_ORDER_BY);
-        final String querySql = (orderBy == null)? paramDriverSql
+        String orderBy = BaseDaoImpl.fetchSelfOrderSql(paramDriverSql, params);
+        final String querySql = StringUtils.isBlank(orderBy) ? paramDriverSql
             : QueryUtils.removeOrderBy(paramDriverSql) + " order by "
-                + QueryUtils.cleanSqlStatement(StringBaseOpt.castObjectToString(orderBy));
+                + QueryUtils.cleanSqlStatement(orderBy);
 
         try {
             JSONArray ja = TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),

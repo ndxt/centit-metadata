@@ -58,7 +58,7 @@ public class PendingMetaTable implements
     /**
      * 表代码 null
      */
-    @ApiModelProperty(value = "表名", required = true)
+    @ApiModelProperty(value = "表代码", required = true)
     @Column(name = "TABLE_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 64, message = "字段长度不能大于{max}")
@@ -383,7 +383,7 @@ public class PendingMetaTable implements
         mt.setTableId(this.getTableId());
         mt.setDatabaseCode(this.getDatabaseCode());
         mt.setTableName(this.getTableName());
-        mt.setTableName(this.getTableLabelName());
+        mt.setTableLabelName(this.getTableLabelName());
         mt.setTableType(this.getTableType());
         mt.setTableState(this.getTableState());
         mt.setTableComment(this.getTableComment());
@@ -391,13 +391,17 @@ public class PendingMetaTable implements
         mt.setWorkFlowOptType(this.getWorkFlowOptType());
         mt.setRecorder(this.getRecorder());
         List<MetaColumn> columns = new ArrayList<>();
-        for(PendingMetaColumn pc : this.getColumns()){
-            columns.add(pc.mapToMetaColumn());
+        if (this.getColumns() != null && this.getColumns().size() > 0) {
+            for (PendingMetaColumn pc : this.getColumns()) {
+                columns.add(pc.mapToMetaColumn());
+            }
         }
         mt.setMdColumns(columns);
         List<MetaRelation> relations = new ArrayList<>();
-        for(PendingMetaRelation pr : this.getMdRelations()) {
-            relations.add(pr.mapToMetaRelation());
+        if (this.getMdRelations() != null && this.getMdRelations().size() > 0) {
+            for (PendingMetaRelation pr : this.getMdRelations()) {
+                relations.add(pr.mapToMetaRelation());
+            }
         }
         mt.setMdRelations(relations);
         return mt;

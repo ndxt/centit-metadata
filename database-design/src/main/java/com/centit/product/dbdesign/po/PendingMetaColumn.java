@@ -329,7 +329,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         MetaColumn mc = new MetaColumn();
         mc.setTableId(this.getTableId());
         mc.setColumnName(this.getColumnName());
-        mc.setColumnName(this.getFieldLabelName());
+        mc.setFieldLabelName(this.getFieldLabelName());
         mc.setColumnComment(this.getColumnComment());
         mc.setColumnOrder(this.getColumnOrder());
         mc.setColumnType(getColumnFieldType());

@@ -8,9 +8,7 @@ import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.dbdesign.dao.*;
 import com.centit.product.dbdesign.pdmutils.PdmTableInfo;
-import com.centit.product.dbdesign.po.MetaChangLog;
-import com.centit.product.dbdesign.po.PendingMetaColumn;
-import com.centit.product.dbdesign.po.PendingMetaTable;
+import com.centit.product.dbdesign.po.*;
 import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaRelationDao;
@@ -108,6 +106,16 @@ public class MetaTableManagerImpl
     public void saveNewPendingMetaTable(PendingMetaTable pmt) {
         pendingMdTableDao.saveNewObject(pmt);
         pendingMdTableDao.saveObjectReferences(pmt);
+        if (pmt.getMdRelations() != null && pmt.getMdRelations().size() >0) {
+            for (PendingMetaRelation relation : pmt.getMdRelations()) {
+                if (relation.getRelationDetails() != null && relation.getRelationDetails().size() >0) {
+                    for (PendingMetaRelDetail detail : relation.getRelationDetails()) {
+                        detail.setRelationId(relation.getRelationId());
+                    }
+                    pendingRelationDao.saveObjectReferences(relation);
+                }
+            }
+        }
     }
 
     @Override
@@ -141,6 +149,16 @@ public class MetaTableManagerImpl
     public void savePendingMetaTable(PendingMetaTable pmt) {
         pendingMdTableDao.updateObject(pmt);
         pendingMdTableDao.saveObjectReferences(pmt);
+        if (pmt.getMdRelations() != null && pmt.getMdRelations().size() >0) {
+            for (PendingMetaRelation relation : pmt.getMdRelations()) {
+                if (relation.getRelationDetails() != null && relation.getRelationDetails().size() >0) {
+                    for (PendingMetaRelDetail detail : relation.getRelationDetails()) {
+                        detail.setRelationId(relation.getRelationId());
+                    }
+                    pendingRelationDao.saveObjectReferences(relation);
+                }
+            }
+        }
     }
 
 

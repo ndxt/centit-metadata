@@ -93,16 +93,16 @@ public class PendingMetaRelation implements TableReference, java.io.Serializable
 
     @OneToMany(mappedBy="relationId",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "RELATION_ID", referencedColumnName = "RELATION_ID")
-    private Set<PendingMetaRelDetail> relationDetails;
+    private List<PendingMetaRelDetail> relationDetails;
 
     @ApiModelProperty(value = "主表信息")
-    @OneToMany(targetEntity = PendingMetaTable.class)
-    @JoinColumn(name = "parentTableId", referencedColumnName = "tableId")
+    //@OneToMany(targetEntity = PendingMetaTable.class)
+    //@JoinColumn(name = "parentTableId", referencedColumnName = "tableId")
     private PendingMetaTable parentTable;
 
     @ApiModelProperty(value = "从表信息")
-    @OneToMany(targetEntity = PendingMetaTable.class)
-    @JoinColumn(name = "childTableId", referencedColumnName = "tableId")
+    //@OneToMany(targetEntity = PendingMetaTable.class)
+    //@JoinColumn(name = "childTableId", referencedColumnName = "tableId")
     private PendingMetaTable childTable;
 
     // Constructors
@@ -195,7 +195,7 @@ public class PendingMetaRelation implements TableReference, java.io.Serializable
         mr.setParentTableId(this.getParentTableId());
         mr.setChildTableId(this.getChildTableId());
 
-        Set<PendingMetaRelDetail> pRelationDetails=this.getRelationDetails();
+        List<PendingMetaRelDetail> pRelationDetails=this.getRelationDetails();
         mr.setRelationDetails(new ArrayList<>());
         Iterator<PendingMetaRelDetail> itr=pRelationDetails.iterator();
         while(itr.hasNext()){

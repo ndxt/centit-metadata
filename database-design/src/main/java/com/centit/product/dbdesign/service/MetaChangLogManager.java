@@ -14,7 +14,7 @@ import java.util.Map;
  * 元数据更改记录null
 */
 
-public interface MetaChangLogManager extends BaseEntityManager<MetaChangLog, Long>
+public interface MetaChangLogManager extends BaseEntityManager<MetaChangLog, String>
 {
 
     JSONArray listMdChangLogsAsJson(

@@ -58,6 +58,7 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "查询表元数据更改(发布)记录")
     @RequestMapping(value = "/log", method = RequestMethod.GET)
+    @WrapUpResponseBody
     public PageQueryResult loglist(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = convertSearchColumn(request);
         JSONArray listObjects = mdChangLogMag.listMdChangLogsAsJson(field, searchColumn, pageDesc);

@@ -142,7 +142,7 @@ public class PendingMetaTable implements
     private List<PendingMetaColumn> mdColumns;
 
     @OneToMany(mappedBy="parentTable",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "TABLE_ID", referencedColumnName = "TABLE_ID")
+    @JoinColumn(name = "TABLE_ID", referencedColumnName = "parentTableId")
     private List<PendingMetaRelation> mdRelations;
 
 

@@ -20,7 +20,7 @@ import java.util.Map;
 */
 
 @Repository
-public class PendingMetaRelationDao extends BaseDaoImpl<PendingMetaRelation, Long>
+public class PendingMetaRelationDao extends BaseDaoImpl<PendingMetaRelation, String>
     {
 
     public static final Log log = LogFactory.getLog(PendingMetaRelationDao.class);

@@ -20,6 +20,7 @@ import com.centit.support.algorithm.UuidOpt;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
+import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.*;
 import org.apache.commons.lang3.StringUtils;
@@ -235,6 +236,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public int updateObject(String tableId, Map<String, Object> object) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
+        MapPropName(tableInfo,object);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
@@ -460,6 +462,23 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns());
         } catch (SQLException | IOException e) {
             throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
+
+    public void MapPropName(MetaTable tableInfo,Map<String, Object> object) {
+        if (tableInfo != null && tableInfo.getColumns().size() >0) {
+            Map<String, Object> temp = new HashMap<>();
+            for (String name : object.keySet()) {
+                TableField col = tableInfo.findFieldByName(name);
+                if (col == null) {
+                    temp.put(name, object.get(name));
+                }
+            }
+            if (temp != null && temp.keySet().size() > 0) {
+                for (String name : temp.keySet()) {
+                    object.remove(name);
+                }
+            }
         }
     }
 }

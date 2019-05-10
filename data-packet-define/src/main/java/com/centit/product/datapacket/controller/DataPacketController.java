@@ -167,7 +167,7 @@ public class DataPacketController extends BaseController {
             .append(dateString);
         String key = Md5Encoder.encode(temp.toString());
         Object object = null;
-        if (dataPacket.getBufferFreshPeriod() >=0 ) {
+        if (dataPacket.getBufferFreshPeriod() >= 0) {
             Jedis jedis = jedisPool.getResource();
             if (jedis.get(key.getBytes())!=null && !"".equals(jedis.get(key.getBytes()))) {
                 try {

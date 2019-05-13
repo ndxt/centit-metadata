@@ -173,6 +173,9 @@ public class MetaDataServiceImpl implements MetaDataService {
                         MetaColumn oldColumn = columnPair.getLeft();
                         oldColumn.setRecorder(recorder);
                         SimpleTableField newColumn = columnPair.getRight();
+                        for (String pk :newTable.getPkColumns()) {
+                            oldColumn.setPrimaryKey(newColumn.getColumnName().equals(pk) ? "T" : "F");
+                        }
                         metaColumnDao.updateObject(oldColumn.convertFromTableField(newColumn));
                     }
                 }

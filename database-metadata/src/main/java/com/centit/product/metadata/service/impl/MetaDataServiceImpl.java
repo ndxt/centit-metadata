@@ -135,9 +135,6 @@ public class MetaDataServiceImpl implements MetaDataService {
                 MetaTable oldTable = pair.getLeft();
                 oldTable.setRecorder(recorder);
                 SimpleTableInfo newTable = pair.getRight();
-                if (newTable.getTableLabelName() ==null || "".equals(newTable.getTableLabelName())) {
-                    newTable.setTableLabelName(newTable.getTableName());
-                }
                 //表
                 metaTableDao.updateObject(oldTable.convertFromDbTable(newTable));
                 //列

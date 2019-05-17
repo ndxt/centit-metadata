@@ -47,7 +47,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @Id
     @Column(name = "TABLE_ID")
     @ApiModelProperty(value = "表ID")
-    @ValueGenerator(strategy = GeneratorType.UUID)
+    @ValueGenerator(strategy = GeneratorType.UUID22)
     private String tableId;
 
     /**

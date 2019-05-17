@@ -22,9 +22,7 @@ import org.hibernate.validator.constraints.Length;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author zouwy
@@ -330,4 +328,13 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         return dictionaryMapColumns;
     }
 
+    public Map<String, Object> fetchObjectPk(Map<String, Object> object){
+        Map<String, Object> pk = new HashMap<>(8);
+        for (MetaColumn c : mdColumns) {
+            if (c.isPrimaryKey()) {
+                pk.put(c.getPropertyName(), object.get(c.getPropertyName()));
+            }
+        }
+        return pk;
+    }
 }

@@ -208,8 +208,9 @@ public class MetaTable implements TableInfo, java.io.Serializable {
             this.tableComment = tableInfo.getTableComment();
         }
         this.tableType = tableInfo.getTableType();
-        this.tableState = "N";
-        this.workFlowOptType = "0";
+        this.tableState = StringUtils.isNotBlank(this.tableState) ? this.tableState : "N";
+        this.workFlowOptType = StringUtils.isNotBlank(this.workFlowOptType) ? this.workFlowOptType : "0";
+        this.fulltextSearch = StringUtils.isNoneBlank(this.fulltextSearch) ? this.fulltextSearch : "F";
         return this;
     }
 

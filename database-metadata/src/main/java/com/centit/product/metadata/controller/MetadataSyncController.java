@@ -52,7 +52,9 @@ public class MetadataSyncController extends BaseController {
         if(userDetails == null){
             throw new ObjectException("未登录");
         }
-        metaDataService.updateMetaTable(tableId, metaTable.getTableLabelName(), metaTable.getTableComment(), metaTable.getTableState(), userDetails.getUserCode());
+        metaTable.setTableId(tableId);
+        metaTable.setRecorder(userDetails.getUserCode());
+        metaDataService.updateMetaTable(metaTable);
     }
 
     @ApiOperation(value = "修改列元数据")

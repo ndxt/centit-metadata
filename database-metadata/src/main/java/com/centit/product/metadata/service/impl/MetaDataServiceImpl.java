@@ -227,12 +227,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public void updateMetaTable(String tableId, String tableLabelName, String tableComment, String tableState, String recorder) {
-        MetaTable metaTable = metaTableDao.getObjectById(tableId);
-        metaTable.setTableComment(tableComment);
-        metaTable.setTableLabelName(tableLabelName);
-        metaTable.setTableState(tableState);
-        metaTable.setRecorder(recorder);
+    public void updateMetaTable(MetaTable metaTable) {
         metaTableDao.updateObject(metaTable);
     }
 

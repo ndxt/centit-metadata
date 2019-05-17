@@ -135,9 +135,6 @@ public class MetaDataServiceImpl implements MetaDataService {
                 MetaTable oldTable = pair.getLeft();
                 oldTable.setRecorder(recorder);
                 SimpleTableInfo newTable = pair.getRight();
-                if (newTable.getTableLabelName() ==null || "".equals(newTable.getTableLabelName())) {
-                    newTable.setTableLabelName(newTable.getTableName());
-                }
                 //表
                 metaTableDao.updateObject(oldTable.convertFromDbTable(newTable));
                 //列
@@ -173,6 +170,9 @@ public class MetaDataServiceImpl implements MetaDataService {
                         MetaColumn oldColumn = columnPair.getLeft();
                         oldColumn.setRecorder(recorder);
                         SimpleTableField newColumn = columnPair.getRight();
+                        for (String pk :newTable.getPkColumns()) {
+                            oldColumn.setPrimaryKey(newColumn.getColumnName().equals(pk) ? "T" : "F");
+                        }
                         metaColumnDao.updateObject(oldColumn.convertFromTableField(newColumn));
                     }
                 }

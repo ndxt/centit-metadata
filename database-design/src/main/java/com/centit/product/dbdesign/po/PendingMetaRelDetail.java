@@ -30,13 +30,13 @@ public class PendingMetaRelDetail implements java.io.Serializable {
     @Column(name = "RELATION_ID")
     private String relationId;
 
-    @ApiModelProperty(value = "p字段代码")
+    @ApiModelProperty(value = "p字段代码", required = true)
     @Id
     @Column(name = "PARENT_COLUMN_NAME")
     @NotBlank(message = "字段不能为空")
     private String parentColumnName;
 
-    @ApiModelProperty(value = "C字段代码")
+    @ApiModelProperty(value = "C字段代码", required = true)
     @Column(name = "CHILD_COLUMN_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 32, message = "字段长度不能大于{max}")

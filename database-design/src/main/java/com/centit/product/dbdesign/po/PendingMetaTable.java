@@ -58,7 +58,7 @@ public class PendingMetaTable implements
     /**
      * 表代码 null
      */
-    @ApiModelProperty(value = "表名")
+    @ApiModelProperty(value = "表代码", required = true)
     @Column(name = "TABLE_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 64, message = "字段长度不能大于{max}")
@@ -66,7 +66,7 @@ public class PendingMetaTable implements
     /**
      * 表名称 null
      */
-    @ApiModelProperty(value = "表中文名")
+    @ApiModelProperty(value = "表中文名", required = true)
     @Column(name = "TABLE_LABEL_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 100, message = "字段长度不能大于{max}")
@@ -93,7 +93,7 @@ public class PendingMetaTable implements
     /**
      * 状态 系统 S / R 查询(只读)/ N 新建(读写)
      */
-    @ApiModelProperty(value = "表状态（系统 S / R 查询(只读)/ N 新建(读写)）")
+    @ApiModelProperty(value = "表状态（系统 S / R 查询(只读)/ N 新建(读写)）", required = true)
     @Column(name = "TABLE_STATE")
     @NotBlank(message = "字段不能为空")
     @Length(message = "字段长度不能大于{max}")
@@ -110,11 +110,16 @@ public class PendingMetaTable implements
      * 0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联
      * 如果关联会添加外键与工作流表关联
      */
-    @ApiModelProperty(value = "与流程中业务关联关系(0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联)")
+    @ApiModelProperty(value = "与流程中业务关联关系(0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联)", required = true)
     @Column(name = "WORKFLOW_OPT_TYPE")
     @NotBlank(message = "字段不能为空")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String workFlowOptType;
+
+    @Column(name = "FULLTEXT_SEARCH")
+    @javax.validation.constraints.NotBlank(message = "字段不能为空[T/F]")
+    @Length(max = 1, message = "字段长度不能大于{max}")
+    private String fulltextSearch;
 
     //Y/N 更新时是否校验时间戳 添加 Last_modify_time datetime
     @ApiModelProperty(value = "更新时是否校验时间戳")
@@ -142,7 +147,7 @@ public class PendingMetaTable implements
     private List<PendingMetaColumn> mdColumns;
 
     @OneToMany(mappedBy="parentTable",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "TABLE_ID", referencedColumnName = "TABLE_ID")
+    @JoinColumn(name = "TABLE_ID", referencedColumnName = "parentTableId")
     private List<PendingMetaRelation> mdRelations;
 
 
@@ -383,21 +388,26 @@ public class PendingMetaTable implements
         mt.setTableId(this.getTableId());
         mt.setDatabaseCode(this.getDatabaseCode());
         mt.setTableName(this.getTableName());
-        mt.setTableName(this.getTableLabelName());
+        mt.setTableLabelName(this.getTableLabelName());
         mt.setTableType(this.getTableType());
         mt.setTableState(this.getTableState());
         mt.setTableComment(this.getTableComment());
         mt.setRecordDate(this.getLastModifyDate());
         mt.setWorkFlowOptType(this.getWorkFlowOptType());
+        mt.setFulltextSearch(this.fulltextSearch);
         mt.setRecorder(this.getRecorder());
         List<MetaColumn> columns = new ArrayList<>();
-        for(PendingMetaColumn pc : this.getColumns()){
-            columns.add(pc.mapToMetaColumn());
+        if (this.getColumns() != null && this.getColumns().size() > 0) {
+            for (PendingMetaColumn pc : this.getColumns()) {
+                columns.add(pc.mapToMetaColumn());
+            }
         }
         mt.setMdColumns(columns);
         List<MetaRelation> relations = new ArrayList<>();
-        for(PendingMetaRelation pr : this.getMdRelations()) {
-            relations.add(pr.mapToMetaRelation());
+        if (this.getMdRelations() != null && this.getMdRelations().size() > 0) {
+            for (PendingMetaRelation pr : this.getMdRelations()) {
+                relations.add(pr.mapToMetaRelation());
+            }
         }
         mt.setMdRelations(relations);
         return mt;

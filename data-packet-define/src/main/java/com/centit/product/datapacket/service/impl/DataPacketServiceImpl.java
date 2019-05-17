@@ -35,10 +35,12 @@ public class DataPacketServiceImpl implements DataPacketService {
         dataPacketDao.saveObjectReferences(dataPacket);
         if (dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() > 0) {
             for (RmdbQuery db : dataPacket.getRmdbQueries()) {
-                for (RmdbQueryColumn column : db.getColumns()) {
-                    column.setPacketId(db.getPacketId());
+                if (db.getColumns() != null && db.getColumns().size() >0) {
+                    for (RmdbQueryColumn column : db.getColumns()) {
+                        column.setPacketId(db.getPacketId());
+                    }
+                    rmdbQueryDao.saveObjectReferences(db);
                 }
-                rmdbQueryDao.saveObjectReferences(db);
             }
         }
     }
@@ -49,10 +51,12 @@ public class DataPacketServiceImpl implements DataPacketService {
         dataPacketDao.saveObjectReferences(dataPacket);
         if (dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() > 0) {
             for (RmdbQuery db : dataPacket.getRmdbQueries()) {
-                for (RmdbQueryColumn column : db.getColumns()) {
-                    column.setPacketId(db.getPacketId());
+                if (db.getColumns() != null && db.getColumns().size() >0) {
+                    for (RmdbQueryColumn column : db.getColumns()) {
+                        column.setPacketId(db.getPacketId());
+                    }
+                    rmdbQueryDao.saveObjectReferences(db);
                 }
-                rmdbQueryDao.saveObjectReferences(db);
             }
         }
     }

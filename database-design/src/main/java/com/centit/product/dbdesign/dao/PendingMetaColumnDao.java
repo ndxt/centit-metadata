@@ -19,7 +19,7 @@ import java.util.Map;
 */
 
 @Repository
-public class PendingMetaColumnDao extends BaseDaoImpl<PendingMetaColumn, Long>
+public class PendingMetaColumnDao extends BaseDaoImpl<PendingMetaColumn, String>
     {
 
     public static final Log log = LogFactory.getLog(PendingMetaColumnDao.class);

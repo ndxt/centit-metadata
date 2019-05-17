@@ -24,7 +24,7 @@ import java.util.Map;
 */
 @Service
 public class MetaChangLogManagerImpl
-        extends BaseEntityManagerImpl<MetaChangLog, Long, MetaChangLogDao>
+        extends BaseEntityManagerImpl<MetaChangLog, String, MetaChangLogDao>
     implements MetaChangLogManager {
 
     public static final Log log = LogFactory.getLog(MetaChangLogManager.class);

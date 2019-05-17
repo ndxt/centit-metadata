@@ -20,7 +20,7 @@ import java.util.Map;
 */
 
 @Repository
-public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, Long>
+public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String>
     {
 
     public static final Log log = LogFactory.getLog(PendingMetaTableDao.class);

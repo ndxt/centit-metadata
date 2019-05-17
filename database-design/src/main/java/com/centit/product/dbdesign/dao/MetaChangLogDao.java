@@ -20,7 +20,7 @@ import java.util.Map;
 */
 
 @Repository
-public class MetaChangLogDao extends BaseDaoImpl<MetaChangLog, Long>
+public class MetaChangLogDao extends BaseDaoImpl<MetaChangLog, String>
     {
 
     public static final Log log = LogFactory.getLog(MetaChangLogDao.class);

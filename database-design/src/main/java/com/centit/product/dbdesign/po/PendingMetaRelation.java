@@ -65,13 +65,13 @@ public class PendingMetaRelation implements TableReference, java.io.Serializable
     @Column(name = "CHILD_TABLE_ID")
     private String childTableId;
 
-    @ApiModelProperty(value = "关联名称")
+    @ApiModelProperty(value = "关联名称", required = true)
     @Column(name = "RELATION_NAME")
     @NotBlank(message = "字段不能为空")
     @Length(max = 64, message = "字段长度不能大于{max}")
     private String relationName;
 
-    @ApiModelProperty(value = "状态")
+    @ApiModelProperty(value = "状态", required = true)
     @Column(name = "RELATION_STATE")
     @Length(message = "字段长度不能大于{max}")
     private String relationState;
@@ -93,16 +93,16 @@ public class PendingMetaRelation implements TableReference, java.io.Serializable
 
     @OneToMany(mappedBy="relationId",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "RELATION_ID", referencedColumnName = "RELATION_ID")
-    private Set<PendingMetaRelDetail> relationDetails;
+    private List<PendingMetaRelDetail> relationDetails;
 
     @ApiModelProperty(value = "主表信息")
-    @OneToMany(targetEntity = PendingMetaTable.class)
-    @JoinColumn(name = "parentTableId", referencedColumnName = "tableId")
+    //@OneToMany(targetEntity = PendingMetaTable.class)
+    //@JoinColumn(name = "parentTableId", referencedColumnName = "tableId")
     private PendingMetaTable parentTable;
 
     @ApiModelProperty(value = "从表信息")
-    @OneToMany(targetEntity = PendingMetaTable.class)
-    @JoinColumn(name = "childTableId", referencedColumnName = "tableId")
+    //@OneToMany(targetEntity = PendingMetaTable.class)
+    //@JoinColumn(name = "childTableId", referencedColumnName = "tableId")
     private PendingMetaTable childTable;
 
     // Constructors
@@ -195,7 +195,7 @@ public class PendingMetaRelation implements TableReference, java.io.Serializable
         mr.setParentTableId(this.getParentTableId());
         mr.setChildTableId(this.getChildTableId());
 
-        Set<PendingMetaRelDetail> pRelationDetails=this.getRelationDetails();
+        List<PendingMetaRelDetail> pRelationDetails=this.getRelationDetails();
         mr.setRelationDetails(new ArrayList<>());
         Iterator<PendingMetaRelDetail> itr=pRelationDetails.iterator();
         while(itr.hasNext()){

@@ -132,6 +132,11 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return metaTable.getTableId();
     }
 
+    @Override
+    public MetaTable getTableInfo(String tableId){
+        return metaTableDao.getObjectById(tableId);
+    }
+
     private MetaTable fetchTableInfo(String tableId, boolean fetchRelattions){
         MetaTable metaTable = metaTableDao.getObjectById(tableId);
         metaTableDao.fetchObjectReference(metaTable, "mdColumns");//mdRelations

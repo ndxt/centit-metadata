@@ -3,7 +3,6 @@ package com.centit.product.metadata.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.ObjectException;
-import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
@@ -14,9 +13,7 @@ import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaObjectService;
-import com.centit.support.algorithm.NumberBaseOpt;
-import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.algorithm.UuidOpt;
+import com.centit.support.algorithm.*;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
@@ -48,6 +45,47 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Autowired
     private MetaRelationDao metaRelationDao;
+
+    private static Map<String, Object> prepareObjectForSave(Map<String, Object> object, MetaTable metaTable){
+        for(MetaColumn col :  metaTable.getMdColumns()) {
+            Object fieldValue = object.get(col.getPropertyName());
+            if(fieldValue != null) {
+                switch (col.getJavaType()){
+                    case FieldType.DATE:
+                    case FieldType.DATETIME:
+                        object.put(col.getPropertyName(), DatetimeOpt.castObjectToSqlDate(fieldValue));
+                        break;
+                    case FieldType.TIMESTAMP:
+                        object.put(col.getPropertyName(), DatetimeOpt.castObjectToSqlTimestamp(fieldValue));
+                        break;
+                    case FieldType.INTEGER:
+                    case FieldType.LONG:
+                        object.put(col.getPropertyName(), NumberBaseOpt.castObjectToLong(fieldValue));
+                        break;
+                    case "BigDecimal":
+                        object.put(col.getPropertyName(), NumberBaseOpt.castObjectToBigDecimal(fieldValue));
+                        break;
+                    case FieldType.FLOAT:
+                    case FieldType.DOUBLE:
+                        object.put(col.getPropertyName(), NumberBaseOpt.castObjectToDouble(fieldValue));
+                        break;
+                    case FieldType.STRING:
+                    case FieldType.TEXT:
+                        object.put(col.getPropertyName(), StringBaseOpt.castObjectToString(fieldValue));
+                        break;
+                    case FieldType.BOOLEAN:
+                        object.put(col.getPropertyName(),
+                            BooleanBaseOpt.castObjectToBoolean(fieldValue,false)?
+                                BooleanBaseOpt.ONE_CHAR_TRUE: BooleanBaseOpt.ONE_CHAR_FALSE);
+                        break;
+                    default:
+                        break;
+
+                }
+            }
+        }
+        return object;
+    }
 
 
     private static Map<String, Object> makeObjectValueByGenerator(Map<String, Object> object, MetaTable metaTable,
@@ -225,6 +263,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 (conn) -> {
                     GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
                     makeObjectValueByGenerator(object, tableInfo, dao);
+                    prepareObjectForSave(object, tableInfo);
                     return dao.saveNewObject(object);
                 });
         } catch (SQLException | IOException e) {
@@ -235,6 +274,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public int updateObject(String tableId, Map<String, Object> object) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
+        prepareObjectForSave(object, tableInfo);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
@@ -247,6 +287,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public int updateObjectByProperties(String tableId, final Collection<String> fields, final Map<String, Object> object){
         MetaTable tableInfo = fetchTableInfo(tableId, false);
+        prepareObjectForSave(object, tableInfo);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
@@ -263,6 +304,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     public int updateObjectsByProperties(String tableId, final Collection<String> fields,
                                   final Map<String, Object> fieldValues,final Map<String, Object> properties){
         MetaTable tableInfo = fetchTableInfo(tableId, false);
+        prepareObjectForSave(fieldValues, tableInfo);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
@@ -277,6 +319,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public void deleteObject(String tableId, Map<String, Object> pk) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
+        //prepareObjectForSave(pk, tableInfo);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
@@ -297,6 +340,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     }else {
                         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
                         makeObjectValueByGenerator(mainObj, tableInfo, dao);
+                        prepareObjectForSave(mainObj, tableInfo);
                         dao.saveNewObject(mainObj);
                         //GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).saveNewObject(mainObj);
                     }
@@ -311,6 +355,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                 GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
                                 for(Map<String, Object> subObj : subTable){
                                     makeObjectValueByGenerator(subObj, relTableInfo, dao);
+                                    prepareObjectForSave(subObj, relTableInfo);
                                 }
                                 Map<String, Object> ref = new HashMap<>();
                                 for (Map.Entry<String, String> rc : md.getReferenceColumns().entrySet()) {

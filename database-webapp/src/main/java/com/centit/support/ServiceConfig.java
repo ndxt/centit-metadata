@@ -10,9 +10,12 @@ import com.centit.framework.security.model.CentitUserDetailsService;
 import com.centit.framework.security.model.StandardPasswordEncoderImpl;
 import com.centit.framework.staticsystem.service.impl.JsonPlatformEnvironment;
 import com.centit.framework.staticsystem.service.impl.UserDetailsServiceImpl;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.zip.GZIPOutputStream;
 
@@ -25,7 +28,21 @@ import java.util.zip.GZIPOutputStream;
 @PropertySource(value = "classpath:system.properties")
 @Import(value = {JdbcConfig.class, SpringSecurityDaoConfig.class, IPOrStaticAppSystemBeanConfig.class})
 public class ServiceConfig {
+    @Value("${redis.home:127.0.0.1}")
+    private String redisHost;
 
+    @Value("${redis.port:6379}")
+    private int redisPort;
+
+    @Bean
+    public JedisPool jedisPool(){
+        JedisPoolConfig config = new JedisPoolConfig();
+        config.setMaxTotal(1024);
+        config.setMaxIdle(200);
+        config.setMaxWaitMillis(10000);
+        config.setTestOnBorrow(true);
+        return new JedisPool(config, redisHost, redisPort, 10000);
+    }
 /*    @Bean
     public IntegrationEnvironment integrationEnvironment(){
         return new JsonIntegrationEnvironment();

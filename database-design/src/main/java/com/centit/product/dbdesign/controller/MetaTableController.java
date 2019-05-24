@@ -198,17 +198,17 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/pdm/{databaseCode}", method = RequestMethod.GET)
     @WrapUpResponseBody
     public void syncPdm(@PathVariable String databaseCode, String pdmFilePath,
-                                    HttpServletRequest request) {
+                                    HttpServletRequest request, HttpServletResponse response) {
         CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
         String userCode = userDetails != null ? userDetails.getUserCode() : "";
         if(userDetails == null){
-            //throw new ObjectException("未登录");
+            throw new ObjectException("未登录");
         }
         if ("".equals(pdmFilePath)) {
             throw new ObjectException("pdm文件不能为空");
         }
         pdmFilePath = StringEscapeUtils.unescapeHtml4(pdmFilePath);
-        mdTableMag.syncPdm(databaseCode,pdmFilePath,userCode);
-
+        Pair<Integer, String> ret = mdTableMag.syncPdm(databaseCode,pdmFilePath,userCode);
+        JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }
 }

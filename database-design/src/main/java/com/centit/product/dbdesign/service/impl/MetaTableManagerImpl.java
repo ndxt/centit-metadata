@@ -25,6 +25,7 @@ import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.*;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -399,7 +400,7 @@ public class MetaTableManagerImpl
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
-            return new ImmutablePair<>(0, "发布失败!" + e.getMessage());
+            return new ImmutablePair<>(-1, "发布失败!" + e.getMessage());
         }
     }
 
@@ -464,7 +465,7 @@ public class MetaTableManagerImpl
 
     @Override
     @Transactional
-    public void syncPdm(String databaseCode, String pdmFilePath, String recorder){
+    public Pair<Integer, String> syncPdm(String databaseCode, String pdmFilePath, String recorder){
         List<SimpleTableInfo> pdmTables = PdmTableInfo.importTableFromPdm(pdmFilePath);
         List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName(), o2.getTableName());
@@ -544,10 +545,21 @@ public class MetaTableManagerImpl
             }
         }
         List<PendingMetaTable> metaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
+        List<Pair<Integer, String>> pairs = new ArrayList<>();
         for (PendingMetaTable pendingMetaTable : metaTables) {
-            publishMetaTable(pendingMetaTable.getTableId(), recorder);
+            Pair<Integer, String> pair = publishMetaTable(pendingMetaTable.getTableId(), recorder);
+            if (pair.getLeft() != 0) {
+                pairs.add(new ImmutablePair<>(0, pair.getRight()));
+            }
         }
-
+        if (pairs.size() == 0)
+            pairs.add(new ImmutablePair<>(0, "pdm导入发布成功"));
+        StringBuffer sPair = new StringBuffer("");
+        for (Pair<Integer, String> pair : pairs) {
+            sPair.append(pair.getRight())
+                .append(";");
+        }
+        return  new ImmutablePair<>(0, sPair.toString());
     }
 
     private <K,V> Triple<List<K>, List<Pair<V, K>>, List<V>>

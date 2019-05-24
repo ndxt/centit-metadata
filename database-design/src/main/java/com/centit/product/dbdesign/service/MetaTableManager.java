@@ -48,5 +48,5 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
 
     List<MetaColumn> listFields(String tableId);
 
-    void syncPdm(String databaseCode, String pdmFilePath, String recorder);
+    Pair<Integer, String>  syncPdm(String databaseCode, String pdmFilePath, String recorder);
 }

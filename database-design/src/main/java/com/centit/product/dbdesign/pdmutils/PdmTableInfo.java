@@ -8,6 +8,7 @@ import com.centit.support.database.metadata.SimpleTableInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PdmTableInfo{
@@ -60,6 +61,19 @@ public class PdmTableInfo{
         }
 
         return metaTable;
+    }
+
+    public static List<SimpleTableInfo> importTableFromPdm(String pdmFilePath) {
+        PdmReader pdmReader = new PdmReader();
+        if(!pdmReader.loadPdmFile(pdmFilePath))
+            return null;
+        List<SimpleTableInfo> pdmTables = new ArrayList<>();
+        List<Pair<String,String>> tabNames = pdmReader.getAllTableCode();
+        for (Pair<String, String> tabName : tabNames) {
+            SimpleTableInfo pdmTable = pdmReader.getTableMetadata(tabName.getKey());
+            pdmTables.add(pdmTable);
+        }
+        return pdmTables;
     }
 
 }

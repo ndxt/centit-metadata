@@ -47,4 +47,6 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
     List<MetaColumn> getNotInFormFields(String tableId);
 
     List<MetaColumn> listFields(String tableId);
+
+    void syncPdm(String databaseCode, String pdmFilePath, String recorder);
 }

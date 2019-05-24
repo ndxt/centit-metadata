@@ -68,6 +68,13 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @DictionaryMap(fieldName = "tableTypeText", value = "TableType")
     private String tableType;
 
+    @ApiModelProperty(value = "表的存储类别  H：隐藏；R：只读；N：可读写)")
+    @Column(name = "ACCESS_TYPE")
+    @NotBlank(message = "字段不能为空")
+    @Pattern(regexp = "[HRCN]")
+    @Length(  message = "字段长度不能大于{max}")
+    private String  accessType;
+
     /**
      * 表代码/表名
      */
@@ -85,17 +92,6 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @Length(max = 100, message = "字段长度不能大于{max}")
     @ApiModelProperty(value = "表中文名")
     private String tableLabelName;
-
-    /**
-     * 控制表是否可以被修改，不是控制数据
-     * 状态 系统 S / R 查询(只读)/ N 新建(读写)；H-隐藏
-     */
-    @Column(name = "TABLE_STATE")
-    @NotBlank(message = "字段不能为空")
-    @Pattern(regexp = "[SRNH]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
-    @ApiModelProperty(value = "表状态（C-新建；R-只读；N-可读写；H-隐藏）")
-    private String tableState;
 
     /**
      * 描述
@@ -254,6 +250,10 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     public MetaColumn findFieldByColumn(String name) {
         if (mdColumns == null)
             return null;
+        for (MetaColumn c : mdColumns) {
+            if (c.getColumnName().equals(name))
+                return c;
+        }
         for (MetaColumn c : mdColumns) {
             if (c.getFieldLabelName().equals(name))
                 return c;

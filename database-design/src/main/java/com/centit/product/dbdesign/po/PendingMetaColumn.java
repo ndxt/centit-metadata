@@ -2,6 +2,7 @@ package com.centit.product.dbdesign.po;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.product.metadata.po.MetaColumn;
+import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.orm.GeneratorCondition;
 import com.centit.support.database.orm.GeneratorTime;
@@ -12,6 +13,7 @@ import com.centit.support.database.utils.FieldType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -353,5 +355,26 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         mc.setRecorder(this.getRecorder());
         mc.setWorkFlowVariableType(this.getWorkFlowVariableType());
         return mc;
+    }
+
+    public PendingMetaColumn convertFromTableField(SimpleTableField tableField){
+        this.columnName = tableField.getColumnName();
+        this.columnFieldType = tableField.getColumnType();
+        if(StringUtils.isNotBlank(tableField.getFieldLabelName())){
+            this.fieldLabelName = tableField.getFieldLabelName();
+        }
+        if(StringUtils.isNotBlank(tableField.getColumnComment()) && StringUtils.isBlank(this.columnComment)){
+            this.columnComment = tableField.getColumnComment();
+        }
+        if(StringUtils.isNotBlank(tableField.getDefaultValue())){
+            this.autoCreateRule = "C";
+            this.autoCreateParam = tableField.getDefaultValue();
+        }
+        this.maxLengthM = tableField.getMaxLength();
+        this.scaleM = tableField.getScale();
+        this.mandatory = tableField.isMandatory() ? "T" : "F";
+        this.accessType = StringUtils.isNotBlank(this.accessType) ? this.accessType : "N";
+        this.columnState = StringUtils.isNotBlank(this.columnState) ? this.columnState : "S";
+        return this;
     }
 }

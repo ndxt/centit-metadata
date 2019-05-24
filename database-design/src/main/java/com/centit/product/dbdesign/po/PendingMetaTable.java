@@ -4,6 +4,7 @@ import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
+import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.metadata.TableReference;
 import com.centit.support.database.orm.GeneratorCondition;
@@ -14,6 +15,7 @@ import com.centit.support.database.utils.DBType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -79,6 +81,12 @@ public class PendingMetaTable implements
     @Column(name = "TABLE_COMMENT")
     @Length(max = 256, message = "字段长度不能大于{max}")
     private String tableComment;
+
+    @ApiModelProperty(value = "表状态（待发布、已发布）", required = true)
+    @Column(name = "TABLE_STATE")
+    @Length(message = "字段长度不能大于{max}")
+    private String tableState;
+
     /**
      * 与流程中业务关联关系
      * 0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联
@@ -87,9 +95,14 @@ public class PendingMetaTable implements
      */
     @ApiModelProperty(value = "与流程中业务关联关系(0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联)", required = true)
     @Column(name = "WORKFLOW_OPT_TYPE")
-    @NotBlank(message = "字段不能为空")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String workFlowOptType;
+
+    //Y/N 更新时是否校验时间戳 添加 Last_modify_time datetime
+    @ApiModelProperty(value = "更新时是否校验时间戳")
+    @Column(name = "UPDATE_CHECK_TIMESTAMP")
+    @Length(max = 1, message = "字段长度不能大于{max}")
+    private String updateCheckTimeStamp;
 
     /**
      * 更改时间 null
@@ -134,26 +147,15 @@ public class PendingMetaTable implements
     @Column(name = "OWNER_CODE")
     @ApiModelProperty(value = "属主代码")
     private String ownerCode;
-    /**
-     * 状态 系统 S / R 查询(只读)/ N 新建(读写)
-     */
-    @ApiModelProperty(value = "表状态（系统 S / R 查询(只读)/ N 新建(读写)）", required = true)
-    @Column(name = "TABLE_STATE")
-    @NotBlank(message = "字段不能为空")
-    @Length(message = "字段长度不能大于{max}")
-    private String tableState;
+
+
 
     @Column(name = "FULLTEXT_SEARCH")
     @javax.validation.constraints.NotBlank(message = "字段不能为空[T/F]")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String fulltextSearch;
 
-    //Y/N 更新时是否校验时间戳 添加 Last_modify_time datetime
-    @ApiModelProperty(value = "更新时是否校验时间戳")
-    @Column(name = "UPDATE_CHECK_TIMESTAMP")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 1, message = "字段长度不能大于{max}")
-    private String updateCheckTimeStamp;
+
 
     @OneToMany(mappedBy="parentTable",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "TABLE_ID", referencedColumnName = "parentTableId")
@@ -418,5 +420,22 @@ public class PendingMetaTable implements
         }
         mt.setMdRelations(relations);
         return mt;
+    }
+
+    //将数据库表同步到元数据表
+    public PendingMetaTable convertFromPdmTable(SimpleTableInfo tableInfo){
+
+        this.tableName = tableInfo.getTableName();
+        if(StringUtils.isNotBlank(tableInfo.getTableLabelName())) {
+            this.tableLabelName = tableInfo.getTableLabelName();
+        }
+        if(StringUtils.isNotBlank(tableInfo.getTableComment())){
+            this.tableComment = tableInfo.getTableComment();
+        }
+        this.tableType = tableInfo.getTableType();
+        this.tableState = StringUtils.isNotBlank(this.tableState) ? this.tableState : "N";
+        this.workFlowOptType = StringUtils.isNotBlank(this.workFlowOptType) ? this.workFlowOptType : "0";
+        this.fulltextSearch = StringUtils.isNoneBlank(this.fulltextSearch) ? this.fulltextSearch : "F";
+        return this;
     }
 }

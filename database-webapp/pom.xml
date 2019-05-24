@@ -54,6 +54,12 @@
 
         <dependency>
             <groupId>com.centit.product</groupId>
+            <artifactId>data-packet-define</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.centit.product</groupId>
             <artifactId>database-metadata-graphql</artifactId>
             <version>${project.version}</version>
         </dependency>

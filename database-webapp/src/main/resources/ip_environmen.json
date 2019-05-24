@@ -13,20 +13,22 @@
     {
       "databaseCode": "framework",
       "osId": "CONTRACT",
-      "databaseName": "组织机构数据库",
+      "databaseName": "组织机构数据库2",
       "databaseUrl": "jdbc:mysql://192.168.128.32/frameworkdb?useUnicode=true&characterEncoding=utf-8",
       "username": "framework",
-      "password": "FxV/BjjWFkrKFar10wIU6Q==",
+      "password": "cipher:FxV/BjjWFkrKFar10wIU6Q==",
+      //"password": "FxV/BjjWFkrKFar10wIU6Q==",
       "databaseDesc": "组织机构数据库-MYSQL",
       "created": "u0000000"
     },
     {
-      "databaseCode": "test",
+      "databaseCode": "test2",
       "osId": "CONTRACT",
       "databaseName": "test",
       "databaseUrl": "jdbc:mysql://192.168.128.32/framework_session?useUnicode=true&characterEncoding=utf-8",
       "username": "framework",
-      "password": "FxV/BjjWFkrKFar10wIU6Q==",
+      "password": "cipher:FxV/BjjWFkrKFar10wIU6Q==",
+      //"password": "FxV/BjjWFkrKFar10wIU6Q==",
       "databaseDesc": "test",
       "created": "u0000000"
     }

@@ -1,13 +1,13 @@
 package com.centit.product.dbdesign.controller;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.framework.common.JsonResultUtils;
-import com.centit.framework.common.ResponseData;
-import com.centit.framework.common.ResponseMapData;
+import com.centit.framework.common.*;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
+import com.centit.framework.security.model.CentitUserDetails;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
+import com.centit.product.dbdesign.pdmutils.PdmTableInfo;
 import com.centit.product.dbdesign.po.MetaChangLog;
 import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
@@ -18,6 +18,7 @@ import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Controller;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.HandlerMapping;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -189,6 +191,24 @@ public class MetaTableController extends BaseController {
         ResponseMapData resData = new ResponseMapData();
         resData.addResponseData("tableId", pendingMetaTableDao.getNextKey());
         JsonResultUtils.writeSingleDataJson(resData, response);
+
+    }
+
+    @ApiOperation(value = "导入pdm修改表结构")
+    @RequestMapping(value = "/pdm/{databaseCode}", method = RequestMethod.GET)
+    @WrapUpResponseBody
+    public void syncPdm(@PathVariable String databaseCode, String pdmFilePath,
+                                    HttpServletRequest request) {
+        CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
+        String userCode = userDetails != null ? userDetails.getUserCode() : "";
+        if(userDetails == null){
+            //throw new ObjectException("未登录");
+        }
+        if ("".equals(pdmFilePath)) {
+            throw new ObjectException("pdm文件不能为空");
+        }
+        pdmFilePath = StringEscapeUtils.unescapeHtml4(pdmFilePath);
+        mdTableMag.syncPdm(databaseCode,pdmFilePath,userCode);
 
     }
 }

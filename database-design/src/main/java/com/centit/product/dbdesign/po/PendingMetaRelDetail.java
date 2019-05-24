@@ -22,6 +22,7 @@ import javax.persistence.Table;
 @Data
 @Entity
 @Table(name = "F_PENDING_META_REL_DETIAL")
+// 这个表直接删除
 public class PendingMetaRelDetail implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
 

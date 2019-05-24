@@ -114,7 +114,6 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String workFlowOptType;
 
-
     @Column(name = "FULLTEXT_SEARCH")
     @NotBlank(message = "字段不能为空[T/F]")
     @Length(max = 1, message = "字段长度不能大于{max}")

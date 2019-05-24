@@ -80,24 +80,7 @@ public class PendingMetaTable implements
     @Length(message = "字段长度不能大于{max}")
     private String tableType;
 
-    /**
-     * D:部门；U:用户; S 系統；M 模型
-     */
-    @Column(name = "OWNER_TYPE")
-    @ApiModelProperty(value = "属主类别（D:部门；U:用户; S 系統；M 模型）")
-    private String ownerType;
 
-    @Column(name = "OWNER_CODE")
-    @ApiModelProperty(value = "属主代码")
-    private String ownerCode;
-    /**
-     * 状态 系统 S / R 查询(只读)/ N 新建(读写)
-     */
-    @ApiModelProperty(value = "表状态（系统 S / R 查询(只读)/ N 新建(读写)）", required = true)
-    @Column(name = "TABLE_STATE")
-    @NotBlank(message = "字段不能为空")
-    @Length(message = "字段长度不能大于{max}")
-    private String tableState;
     /**
      * 描述 null
      */
@@ -109,6 +92,7 @@ public class PendingMetaTable implements
      * 与流程中业务关联关系
      * 0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联
      * 如果关联会添加外键与工作流表关联
+     * 这个字段要有，同时检查 字段中是否有  (1,2)FLOW_INST_ID 和 (2)NODE_INST_ID
      */
     @ApiModelProperty(value = "与流程中业务关联关系(0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联)", required = true)
     @Column(name = "WORKFLOW_OPT_TYPE")
@@ -116,17 +100,6 @@ public class PendingMetaTable implements
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String workFlowOptType;
 
-    @Column(name = "FULLTEXT_SEARCH")
-    @javax.validation.constraints.NotBlank(message = "字段不能为空[T/F]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
-    private String fulltextSearch;
-
-    //Y/N 更新时是否校验时间戳 添加 Last_modify_time datetime
-    @ApiModelProperty(value = "更新时是否校验时间戳")
-    @Column(name = "UPDATE_CHECK_TIMESTAMP")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 1, message = "字段长度不能大于{max}")
-    private String updateCheckTimeStamp;
     /**
      * 更改时间 null
      */
@@ -153,6 +126,39 @@ public class PendingMetaTable implements
 
     @Transient
     private DBType databaseType;
+
+    //___________这些字段建议都删除，元数据中对应的字段保留，就哪一个地方有就可以了___________________________________
+
+    /**
+     * D:部门；U:用户; S 系統；M 模型
+     */
+    @Column(name = "OWNER_TYPE")
+    @ApiModelProperty(value = "属主类别（D:部门；U:用户; S 系統；M 模型）")
+    private String ownerType;
+
+    @Column(name = "OWNER_CODE")
+    @ApiModelProperty(value = "属主代码")
+    private String ownerCode;
+    /**
+     * 状态 系统 S / R 查询(只读)/ N 新建(读写)
+     */
+    @ApiModelProperty(value = "表状态（系统 S / R 查询(只读)/ N 新建(读写)）", required = true)
+    @Column(name = "TABLE_STATE")
+    @NotBlank(message = "字段不能为空")
+    @Length(message = "字段长度不能大于{max}")
+    private String tableState;
+    @Column(name = "FULLTEXT_SEARCH")
+    @javax.validation.constraints.NotBlank(message = "字段不能为空[T/F]")
+    @Length(max = 1, message = "字段长度不能大于{max}")
+    private String fulltextSearch;
+
+    //Y/N 更新时是否校验时间戳 添加 Last_modify_time datetime
+    @ApiModelProperty(value = "更新时是否校验时间戳")
+    @Column(name = "UPDATE_CHECK_TIMESTAMP")
+    @NotBlank(message = "字段不能为空")
+    @Length(max = 1, message = "字段长度不能大于{max}")
+    private String updateCheckTimeStamp;
+    //_______________________________________________
 
     public void setDatabaseType(DBType databaseType) {
         this.databaseType = databaseType;

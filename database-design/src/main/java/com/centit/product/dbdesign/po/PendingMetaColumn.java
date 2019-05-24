@@ -59,10 +59,6 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @Length(max = 256, message = "字段长度不能大于{max}")
     private String  columnComment;
 
-    @ApiModelProperty(value = "显示次序")
-    @Column(name = "COLUMN_ORDER")
-    private Long  columnOrder;
-
     @ApiModelProperty(value = "字段类型", required = true)
     @Column(name = "COLUMN_TYPE")
     @NotBlank(message = "字段不能为空")
@@ -77,11 +73,9 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @Column(name = "SCALE")
     private Integer  scaleM;
 
-    @ApiModelProperty(value = "字段类别", required = true)
-    @Column(name = "ACCESS_TYPE")
-    @NotBlank(message = "字段不能为空")
-    @Length(message = "字段长度不能大于{max}")
-    private String  accessType;
+    @ApiModelProperty(value = "显示次序")
+    @Column(name = "COLUMN_ORDER")
+    private Long  columnOrder;
 
     @ApiModelProperty(value = "是否必填")
     @Column(name = "MANDATORY")
@@ -92,6 +86,24 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @Column(name = "PRIMARYKEY")
     @Length( message = "字段长度不能大于{max}")
     private String  primarykey;
+
+    @ApiModelProperty(value = "更改时间", hidden = true)
+    @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
+    @Column(name = "LAST_MODIFY_DATE")
+    private Date  lastModifyDate;
+
+    @ApiModelProperty(value = "更改人员")
+    @Column(name = "RECORDER")
+    @Length(max = 8, message = "字段长度不能大于{max}")
+    private String  recorder;
+
+    //----------------------------------------------
+    @ApiModelProperty(value = "字段类别", required = true)
+    @Column(name = "ACCESS_TYPE")
+    @NotBlank(message = "字段不能为空")
+    @Length(message = "字段长度不能大于{max}")
+    private String  accessType;
+
 
     @ApiModelProperty(value = "状态", required = true)
     @Column(name = "COLUMN_STATE")
@@ -134,16 +146,8 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @Pattern(regexp = "[0-2]")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String workFlowVariableType;
+    //--------------------------------------------------------------
 
-    @ApiModelProperty(value = "更改时间", hidden = true)
-    @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
-    @Column(name = "LAST_MODIFY_DATE")
-    private Date  lastModifyDate;
-
-    @ApiModelProperty(value = "更改人员")
-    @Column(name = "RECORDER")
-    @Length(max = 8, message = "字段长度不能大于{max}")
-    private String  recorder;
 
     @Transient
     private DBType databaseType;

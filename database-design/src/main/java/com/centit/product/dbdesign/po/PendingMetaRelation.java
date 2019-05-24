@@ -28,6 +28,7 @@ import java.util.*;
 @Data
 @Entity
 @Table(name = "F_PENDING_META_RELATION")
+// 这个表直接删除
 public class PendingMetaRelation implements TableReference, java.io.Serializable {
     private static final long serialVersionUID = 1L;
 

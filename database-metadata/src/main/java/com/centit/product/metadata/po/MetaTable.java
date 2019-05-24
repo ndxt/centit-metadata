@@ -88,11 +88,11 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     /**
      * 控制表是否可以被修改，不是控制数据
-     * 状态 系统 S / R 查询(只读)/ N 新建(读写)
+     * 状态 系统 S / R 查询(只读)/ N 新建(读写)；H-隐藏
      */
     @Column(name = "TABLE_STATE")
     @NotBlank(message = "字段不能为空")
-    @Pattern(regexp = "[SRN]")
+    @Pattern(regexp = "[SRNH]")
     @Length(max = 1, message = "字段长度不能大于{max}")
     @ApiModelProperty(value = "表状态（C-新建；R-只读；N-可读写；H-隐藏）")
     private String tableState;

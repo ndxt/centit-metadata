@@ -71,15 +71,6 @@ public class PendingMetaTable implements
     @NotBlank(message = "字段不能为空")
     @Length(max = 100, message = "字段长度不能大于{max}")
     private String tableLabelName;
-    /**
-     * 类别 表 T table /视图 V view /大字段 C LOB/CLOB  目前只能是表
-     */
-    @ApiModelProperty(value = "表类别（T-表；V-视图；C-大字段）")
-    @Column(name = "TABLE_TYPE")
-    @NotBlank(message = "字段不能为空")
-    @Length(message = "字段长度不能大于{max}")
-    private String tableType;
-
 
     /**
      * 描述 null
@@ -119,16 +110,20 @@ public class PendingMetaTable implements
     @JoinColumn(name = "TABLE_ID", referencedColumnName = "TABLE_ID")
     private List<PendingMetaColumn> mdColumns;
 
-    @OneToMany(mappedBy="parentTable",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "TABLE_ID", referencedColumnName = "parentTableId")
-    private List<PendingMetaRelation> mdRelations;
-
 
     @Transient
     private DBType databaseType;
 
     //___________这些字段建议都删除，元数据中对应的字段保留，就哪一个地方有就可以了___________________________________
 
+    /**
+     * 类别 表 T table /视图 V view /大字段 C LOB/CLOB  目前只能是表
+     */
+    @ApiModelProperty(value = "表类别（T-表；V-视图；C-大字段）")
+    @Column(name = "TABLE_TYPE")
+    @NotBlank(message = "字段不能为空")
+    @Length(message = "字段长度不能大于{max}")
+    private String tableType;
     /**
      * D:部门；U:用户; S 系統；M 模型
      */
@@ -147,6 +142,7 @@ public class PendingMetaTable implements
     @NotBlank(message = "字段不能为空")
     @Length(message = "字段长度不能大于{max}")
     private String tableState;
+
     @Column(name = "FULLTEXT_SEARCH")
     @javax.validation.constraints.NotBlank(message = "字段不能为空[T/F]")
     @Length(max = 1, message = "字段长度不能大于{max}")
@@ -158,6 +154,11 @@ public class PendingMetaTable implements
     @NotBlank(message = "字段不能为空")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String updateCheckTimeStamp;
+
+    @OneToMany(mappedBy="parentTable",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "TABLE_ID", referencedColumnName = "parentTableId")
+    private List<PendingMetaRelation> mdRelations;
+
     //_______________________________________________
 
     public void setDatabaseType(DBType databaseType) {

@@ -3,7 +3,6 @@ package com.centit.product.metadata.po;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.framework.core.dao.DictionaryMapColumn;
-import com.centit.support.common.LeftRightPair;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.metadata.TableReference;
@@ -16,7 +15,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Triple;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
@@ -175,8 +173,8 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     }
 
     public List<MetaRelation> getMdRelations() {
-        /*if (this.mdRelations == null)
-            this.mdRelations = new ArrayList<>();*/
+        if (this.mdRelations == null)
+            this.mdRelations = new ArrayList<>();
         return this.mdRelations;
     }
 
@@ -203,7 +201,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
             this.tableComment = tableInfo.getTableComment();
         }
         this.tableType = tableInfo.getTableType();
-        this.tableState = StringUtils.isNotBlank(this.tableState) ? this.tableState : "N";
+        this.accessType = StringUtils.isNotBlank(this.accessType) ? this.accessType : "N";
         this.workFlowOptType = StringUtils.isNotBlank(this.workFlowOptType) ? this.workFlowOptType : "0";
         this.fulltextSearch = StringUtils.isNoneBlank(this.fulltextSearch) ? this.fulltextSearch : "F";
         return this;
@@ -252,10 +250,6 @@ public class MetaTable implements TableInfo, java.io.Serializable {
             return null;
         for (MetaColumn c : mdColumns) {
             if (c.getColumnName().equals(name))
-                return c;
-        }
-        for (MetaColumn c : mdColumns) {
-            if (c.getFieldLabelName().equals(name))
                 return c;
         }
         for (MetaColumn c : mdColumns) {

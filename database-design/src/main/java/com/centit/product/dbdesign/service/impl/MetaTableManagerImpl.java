@@ -85,12 +85,6 @@ public class MetaTableManagerImpl
     private PendingMetaColumnDao pendingMetaColumnDao;
 
     @Resource
-    private PendingMetaRelationDao pendingRelationDao;
-
-    @Resource
-    private PendingMetaRelDetialDao pendingMetaRelDetialDao;
-
-    @Resource
     protected IntegrationEnvironment integrationEnvironment;
 
     /*
@@ -114,16 +108,6 @@ public class MetaTableManagerImpl
     public void saveNewPendingMetaTable(PendingMetaTable pmt) {
         pendingMdTableDao.saveNewObject(pmt);
         pendingMdTableDao.saveObjectReferences(pmt);
-        if (pmt.getMdRelations() != null && pmt.getMdRelations().size() >0) {
-            for (PendingMetaRelation relation : pmt.getMdRelations()) {
-                if (relation.getRelationDetails() != null && relation.getRelationDetails().size() >0) {
-                    for (PendingMetaRelDetail detail : relation.getRelationDetails()) {
-                        detail.setRelationId(relation.getRelationId());
-                    }
-                    pendingRelationDao.saveObjectReferences(relation);
-                }
-            }
-        }
     }
 
     @Override
@@ -134,14 +118,6 @@ public class MetaTableManagerImpl
         Map<String, Object> tempFilter = new HashMap<>();
         tempFilter.put("tableId", tableId);
         pendingMetaColumnDao.deleteObjectsForceByProperties(tempFilter);
-
-        Map<String, Object> tempFilter2 = new HashMap<>();
-        tempFilter2.put("parentTableId", tableId);
-        pendingRelationDao.deleteObjectsForceByProperties(tempFilter2);
-
-        Map<String, Object> tempFilter3 = new HashMap<>();
-        tempFilter3.put("childTableId", tableId);
-        pendingRelationDao.deleteObjectsForceByProperties(tempFilter3);
     }
 
     @Override
@@ -157,16 +133,6 @@ public class MetaTableManagerImpl
     public void savePendingMetaTable(PendingMetaTable pmt) {
         pendingMdTableDao.updateObject(pmt);
         pendingMdTableDao.saveObjectReferences(pmt);
-        if (pmt.getMdRelations() != null && pmt.getMdRelations().size() >0) {
-            for (PendingMetaRelation relation : pmt.getMdRelations()) {
-                if (relation.getRelationDetails() != null && relation.getRelationDetails().size() >0) {
-                    for (PendingMetaRelDetail detail : relation.getRelationDetails()) {
-                        detail.setRelationId(relation.getRelationId());
-                    }
-                    pendingRelationDao.saveObjectReferences(relation);
-                }
-            }
-        }
     }
 
 
@@ -277,7 +243,6 @@ public class MetaTableManagerImpl
                 col.setColumnFieldType(FieldType.DATETIME);
                 col.setLastModifyDate(DatetimeOpt.currentUtilDate());
                 col.setRecorder(currentUser);
-                col.setAccessType("N");//可读写
                 ptable.addMdColumn(col);
             }
         }
@@ -292,7 +257,6 @@ public class MetaTableManagerImpl
                 col.setMaxLengthM(12);
                 col.setLastModifyDate(DatetimeOpt.currentUtilDate());
                 col.setRecorder(currentUser);
-                col.setAccessType("N");//可读写
                 ptable.addMdColumn(col);
             }
         } else if ("2".equals(ptable.getWorkFlowOptType())) {
@@ -305,7 +269,6 @@ public class MetaTableManagerImpl
                 col.setMaxLengthM(12);
                 col.setLastModifyDate(DatetimeOpt.currentUtilDate());
                 col.setRecorder(currentUser);
-                col.setAccessType("N");//可读写
                 ptable.addMdColumn(col);
             }
         }
@@ -330,63 +293,63 @@ public class MetaTableManagerImpl
                 return ret;
             MetaChangLog chgLog = new MetaChangLog();
             List<String> errors = new ArrayList<>();
-            if ("T".equals(ptable.getTableType())) {
-                DatabaseInfo mdb = integrationEnvironment.getDatabaseInfo(ptable.getDatabaseCode());
-                //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
 
-                DataSourceDescription dbc = new DataSourceDescription();
-                dbc.setDatabaseCode(mdb.getDatabaseCode());
-                dbc.setConnUrl(mdb.getDatabaseUrl());
-                dbc.setUsername(mdb.getUsername());
-                dbc.setPassword(mdb.getClearPassword());
-                Connection conn = DbcpConnectPools.getDbcpConnect(dbc);
-                JsonObjectDao jsonDao = null;
-                DBType databaseType = DBType.mapDBType(conn);
-                ptable.setDatabaseType(databaseType);
-                switch (databaseType) {
-                    case Oracle:
-                        jsonDao = new OracleJsonObjectDao(conn);
-                        break;
-                    case DB2:
-                        jsonDao = new DB2JsonObjectDao(conn);
-                        break;
-                    case SqlServer:
-                        jsonDao = new SqlSvrJsonObjectDao(conn);
-                        break;
-                    case MySql:
-                        jsonDao = new MySqlJsonObjectDao(conn);
-                        break;
-                    case PostgreSql:
-                        jsonDao = new PostgreSqlJsonObjectDao();
-                        break;
-                    default:
-                        jsonDao = new OracleJsonObjectDao(conn);
-                        break;
-                }
-                //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
-                checkPendingMetaTable(ptable, currentUser);
-                List<String> sqls = makeAlterTableSqls(ptable);
-                try {
-                    for (String sql : sqls) {
-                        try {
-                            jsonDao.doExecuteSql(sql);
-                        } catch (SQLException se) {
-                            errors.add(se.getMessage());
-                            throw new RuntimeException("执行sql失败:" + sql, se);
-                        }
-                    }
-                } finally {
-                    conn.close();
-                }
-                chgLog.setChangeScript(JSON.toJSONString(sqls));
-                chgLog.setChangeComment(JSON.toJSONString(errors));
+            DatabaseInfo mdb = integrationEnvironment.getDatabaseInfo(ptable.getDatabaseCode());
+            //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
+
+            DataSourceDescription dbc = new DataSourceDescription();
+            dbc.setDatabaseCode(mdb.getDatabaseCode());
+            dbc.setConnUrl(mdb.getDatabaseUrl());
+            dbc.setUsername(mdb.getUsername());
+            dbc.setPassword(mdb.getClearPassword());
+            Connection conn = DbcpConnectPools.getDbcpConnect(dbc);
+            JsonObjectDao jsonDao = null;
+            DBType databaseType = DBType.mapDBType(conn);
+            ptable.setDatabaseType(databaseType);
+            switch (databaseType) {
+                case Oracle:
+                    jsonDao = new OracleJsonObjectDao(conn);
+                    break;
+                case DB2:
+                    jsonDao = new DB2JsonObjectDao(conn);
+                    break;
+                case SqlServer:
+                    jsonDao = new SqlSvrJsonObjectDao(conn);
+                    break;
+                case MySql:
+                    jsonDao = new MySqlJsonObjectDao(conn);
+                    break;
+                case PostgreSql:
+                    jsonDao = new PostgreSqlJsonObjectDao();
+                    break;
+                default:
+                    jsonDao = new OracleJsonObjectDao(conn);
+                    break;
             }
+            //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
+            checkPendingMetaTable(ptable, currentUser);
+            List<String> sqls = makeAlterTableSqls(ptable);
+            try {
+                for (String sql : sqls) {
+                    try {
+                        jsonDao.doExecuteSql(sql);
+                    } catch (SQLException se) {
+                        errors.add(se.getMessage());
+                        throw new RuntimeException("执行sql失败:" + sql, se);
+                    }
+                }
+            } finally {
+                conn.close();
+            }
+            chgLog.setChangeScript(JSON.toJSONString(sqls));
+            chgLog.setChangeComment(JSON.toJSONString(errors));
             chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
             chgLog.setTableID(ptable.getTableId());
             chgLog.setChanger(currentUser);
             metaChangLogDao.saveNewObject(chgLog);
-            if (errors.size() == 0) {
+            if (errors.size() == 0 && sqls.size() > 0) {
                 ptable.setRecorder(currentUser);
+                ptable.setTableState("S");
                 ptable.setLastModifyDate(new Date());
                 pendingMdTableDao.mergeObject(ptable);
 
@@ -428,8 +391,9 @@ public class MetaTableManagerImpl
                         }*/
                     }
                 }
-
                 return new ImmutablePair<>(0, "发布成功！");
+            } else if (errors.size() == 0 && sqls.size() == 0) {
+                return new ImmutablePair<>(0, "信息未变更，无需发布！");
             } else
                 return new ImmutablePair<>(-10, JSON.toJSONString(errors));
         } catch (Exception e) {

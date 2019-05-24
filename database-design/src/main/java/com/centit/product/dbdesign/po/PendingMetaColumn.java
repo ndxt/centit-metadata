@@ -15,10 +15,9 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 
@@ -99,57 +98,6 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @Length(max = 8, message = "字段长度不能大于{max}")
     private String  recorder;
 
-    //----------------------------------------------
-    @ApiModelProperty(value = "字段类别", required = true)
-    @Column(name = "ACCESS_TYPE")
-    @NotBlank(message = "字段不能为空")
-    @Length(message = "字段长度不能大于{max}")
-    private String  accessType;
-
-
-    @ApiModelProperty(value = "状态", required = true)
-    @Column(name = "COLUMN_STATE")
-    //@NotBlank(message = "字段不能为空")
-    @Length( message = "字段长度不能大于{max}")
-    private String  columnState;
-
-    @ApiModelProperty(value = "引用类型(0：没有：1： 数据字典 2：JSON表达式 3：sql语句  Y：年份 M：月份)")
-    @Column(name = "REFERENCE_TYPE")
-    @Length(message = "字段长度不能大于{max}")
-    private String  referenceType;
-
-    @ApiModelProperty(value = "引用数据(根据paramReferenceType类型（1,2,3）填写对应值)")
-    @Column(name = "REFERENCE_DATA")
-    @Length(max = 1000, message = "字段长度不能大于{max}")
-    private String  referenceData;
-
-    @ApiModelProperty(value = "约束表达式(regex表达式)")
-    @Column(name = "VALIDATE_REGEX")
-    @Length(max = 200, message = "字段长度不能大于{max}")
-    private String  validateRegex;
-
-    @ApiModelProperty(value = "约束提示(约束不通过提示信息)")
-    @Column(name = "VALIDATE_INFO")
-    @Length(max = 200, message = "字段长度不能大于{max}")
-    private String  validateInfo;
-
-    @ApiModelProperty(value = "自动生成规则(C 常量  U uuid S sequence)")
-    @Column(name = "AUTO_CREATE_RULE")
-    @Length(max = 200, message = "字段长度不能大于{max}")
-    private String  autoCreateRule;
-
-    @ApiModelProperty(value = "自动生成参数")
-    @Column(name = "AUTO_CREATE_PARAM")
-    @Length(max = 200, message = "字段长度不能大于{max}")
-    private String  autoCreateParam;
-
-    @ApiModelProperty(value = "与流程中业务关联关系(0: 不是工作流变量 1：流程业务变量 2： 流程过程变量)")
-    @Column(name = "WORKFLOW_VARIABLE_TYPE")
-    @Pattern(regexp = "[0-2]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
-    private String workFlowVariableType;
-    //--------------------------------------------------------------
-
 
     @Transient
     private DBType databaseType;
@@ -157,14 +105,13 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     // Constructors
     /** default constructor */
     public PendingMetaColumn() {
-        this.columnState="0";
+
     }
 
     public PendingMetaColumn(PendingMetaTable mdTable, String columnName) {
 //        this.cid= new PendingMetaColumnId(mdTable,columnName);
         this.tableId = mdTable.getTableId();
         this.columnName = columnName;
-        this.columnState="0";
     }
 
     /** minimal constructor */
@@ -188,14 +135,8 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.columnFieldType= columnType;
         this.maxLengthM= maxLength;
         this.scaleM= scale;
-        this.accessType= accessType;
         this.mandatory= mandatory;
         this.primarykey= primarykey;
-        this.columnState= columnState;
-        this.referenceType= referenceType;
-        this.referenceData= referenceData;
-        this.validateRegex= validateRegex;
-        this.validateInfo= validateInfo;
         this.lastModifyDate= lastModifyDate;
         this.recorder= recorder;
     }
@@ -209,14 +150,8 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.columnFieldType= other.getColumnFieldType();
         this.maxLengthM= other.getMaxLengthM();
         this.scaleM= other.getScaleM();
-        this.accessType= other.getAccessType();
         this.mandatory= other.isMandatory()?"T":"F";
         this.primarykey= other.getPrimarykey();
-        this.columnState= other.getColumnState();
-        this.referenceType= other.getReferenceType();
-        this.referenceData= other.getReferenceData();
-        this.validateRegex= other.getValidateRegex();
-        this.validateInfo= other.getValidateInfo();
         this.lastModifyDate= other.getLastModifyDate();
         this.recorder= other.getRecorder();
 
@@ -238,22 +173,10 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
             this.maxLengthM= other.getMaxLengthM();
         if( other.getScaleM() != null)
             this.scaleM= other.getScaleM();
-        if( other.getAccessType() != null)
-            this.accessType= other.getAccessType();
         if( other.getMandatory() != null)
             this.mandatory= other.isMandatory()?"T":"F";
         if( other.getPrimarykey() != null)
             this.primarykey= other.getPrimarykey();
-        if( other.getColumnState() != null)
-            this.columnState= other.getColumnState();
-        if( other.getReferenceType() != null)
-            this.referenceType= other.getReferenceType();
-        if( other.getReferenceData() != null)
-            this.referenceData= other.getReferenceData();
-        if( other.getValidateRegex() != null)
-            this.validateRegex= other.getValidateRegex();
-        if( other.getValidateInfo() != null)
-            this.validateInfo= other.getValidateInfo();
         if( other.getLastModifyDate() != null)
             this.lastModifyDate= other.getLastModifyDate();
         if( other.getRecorder() != null)
@@ -268,14 +191,8 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.columnComment= null;
         this.columnOrder= null;
         this.columnFieldType= null;
-        this.accessType= null;
         this.mandatory= null;
         this.primarykey= null;
-        this.columnState= null;
-        this.referenceType= null;
-        this.referenceData= null;
-        this.validateRegex= null;
-        this.validateInfo= null;
         this.lastModifyDate= null;
         this.recorder= null;
 
@@ -323,7 +240,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     @Override
     public String getDefaultValue() {
-        return "C".equals(autoCreateRule)?autoCreateParam:null;
+        return null;
     }
     @Override
     @JSONField(serialize=false)
@@ -341,19 +258,11 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         mc.setColumnType(getColumnFieldType());
         mc.setColumnLength(this.getMaxLength());
         mc.setColumnPrecision(this.getScale());
-        mc.setAccessType(this.getAccessType());
+        mc.setAccessType("N");
         mc.setMandatory(this.isMandatory()?"T":"F");
         mc.setPrimaryKey(this.getPrimarykey());
-        mc.setColumnState(this.getColumnState());
-        mc.setReferenceType(this.getReferenceType());
-        mc.setReferenceData(this.getReferenceData());
-        mc.setValidateRegex(this.getValidateRegex());
-        mc.setValidateInfo(this.getValidateInfo());
-        mc.setAutoCreateRule(this.getAutoCreateRule());
-        mc.setAutoCreateParam(this.getAutoCreateParam());
         mc.setLastModifyDate(this.getLastModifyDate());
         mc.setRecorder(this.getRecorder());
-        mc.setWorkFlowVariableType(this.getWorkFlowVariableType());
         return mc;
     }
 
@@ -366,15 +275,9 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         if(StringUtils.isNotBlank(tableField.getColumnComment()) && StringUtils.isBlank(this.columnComment)){
             this.columnComment = tableField.getColumnComment();
         }
-        if(StringUtils.isNotBlank(tableField.getDefaultValue())){
-            this.autoCreateRule = "C";
-            this.autoCreateParam = tableField.getDefaultValue();
-        }
         this.maxLengthM = tableField.getMaxLength();
         this.scaleM = tableField.getScale();
         this.mandatory = tableField.isMandatory() ? "T" : "F";
-        this.accessType = StringUtils.isNotBlank(this.accessType) ? this.accessType : "N";
-        this.columnState = StringUtils.isNotBlank(this.columnState) ? this.columnState : "S";
         return this;
     }
 }

@@ -32,7 +32,6 @@ public class PdmTableInfo{
         metaTable.setTableName(pdmTable.getTableName());
         metaTable.setTableLabelName(pdmTable.getTableLabelName());
         metaTable.setTableState("N");
-        metaTable.setTableType("T");
         metaTable.setTableComment(pdmTable.getTableComment());
 
         for(SimpleTableField field : pdmTable.getColumns()){
@@ -42,14 +41,8 @@ public class PdmTableInfo{
             mdColumn.setColumnComment(field.getColumnComment());
             mdColumn.setMaxLengthM(field.getMaxLength());
             mdColumn.setScaleM(field.getScale());
-            if(StringUtils.isNotBlank(field.getDefaultValue())){
-                mdColumn.setAutoCreateRule("C");
-                mdColumn.setAutoCreateParam(field.getDefaultValue());
-            }
-            mdColumn.setAccessType("N");
             mdColumn.setMandatory(field.isMandatory()?"T":"F");
             mdColumn.setPrimarykey("F");
-            mdColumn.setColumnState("N");
 
             metaTable.addMdColumn(mdColumn);
         }

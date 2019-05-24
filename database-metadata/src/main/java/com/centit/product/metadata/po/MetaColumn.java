@@ -102,14 +102,6 @@ public class MetaColumn implements TableField,java.io.Serializable {
     @Pattern(regexp = "[TF]")
     @Length(  message = "字段长度不能大于{max}")
     private String primaryKey;
-    /**
-     * 状态 控制列是否可以被修改 系统 S / R 查询(只读)/ N 新建(读写)
-     */
-    @ApiModelProperty(value = "状态 系统 S / R 查询(只读)/ N 新建(读写)")
-    @Column(name = "COLUMN_STATE")
-    @NotBlank(message = "字段不能为空")
-    @Length(  message = "字段长度不能大于{max}")
-    private String  columnState;
 
     /**
      * 引用类型 0：没有：1： 数据字典 2：JSON表达式 3：sql语句  Y：年份 M：月份
@@ -207,7 +199,6 @@ public class MetaColumn implements TableField,java.io.Serializable {
         this.columnPrecision = tableField.getScale();
         this.mandatory = tableField.isMandatory() ? "T" : "F";
         this.accessType = StringUtils.isNotBlank(this.accessType) ? this.accessType : "N";
-        this.columnState = StringUtils.isNotBlank(this.columnState) ? this.columnState : "S";
         return this;
     }
 

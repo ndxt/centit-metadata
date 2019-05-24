@@ -2,7 +2,6 @@ package com.centit.product.dbdesign.po;
 
 import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.product.metadata.po.MetaColumn;
-import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableInfo;
@@ -17,9 +16,9 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -82,7 +81,7 @@ public class PendingMetaTable implements
     @Length(max = 256, message = "字段长度不能大于{max}")
     private String tableComment;
 
-    @ApiModelProperty(value = "表状态（待发布、已发布）", required = true)
+    @ApiModelProperty(value = "表状态（待发布W、已发布S）", required = true)
     @Column(name = "TABLE_STATE")
     @Length(message = "字段长度不能大于{max}")
     private String tableState;
@@ -123,45 +122,8 @@ public class PendingMetaTable implements
     @JoinColumn(name = "TABLE_ID", referencedColumnName = "TABLE_ID")
     private List<PendingMetaColumn> mdColumns;
 
-
     @Transient
     private DBType databaseType;
-
-    //___________这些字段建议都删除，元数据中对应的字段保留，就哪一个地方有就可以了___________________________________
-
-    /**
-     * 类别 表 T table /视图 V view /大字段 C LOB/CLOB  目前只能是表
-     */
-    @ApiModelProperty(value = "表类别（T-表；V-视图；C-大字段）")
-    @Column(name = "TABLE_TYPE")
-    @NotBlank(message = "字段不能为空")
-    @Length(message = "字段长度不能大于{max}")
-    private String tableType;
-    /**
-     * D:部门；U:用户; S 系統；M 模型
-     */
-    @Column(name = "OWNER_TYPE")
-    @ApiModelProperty(value = "属主类别（D:部门；U:用户; S 系統；M 模型）")
-    private String ownerType;
-
-    @Column(name = "OWNER_CODE")
-    @ApiModelProperty(value = "属主代码")
-    private String ownerCode;
-
-
-
-    @Column(name = "FULLTEXT_SEARCH")
-    @javax.validation.constraints.NotBlank(message = "字段不能为空[T/F]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
-    private String fulltextSearch;
-
-
-
-    @OneToMany(mappedBy="parentTable",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "TABLE_ID", referencedColumnName = "parentTableId")
-    private List<PendingMetaRelation> mdRelations;
-
-    //_______________________________________________
 
     public void setDatabaseType(DBType databaseType) {
         this.databaseType = databaseType;
@@ -187,11 +149,10 @@ public class PendingMetaTable implements
      */
     public PendingMetaTable(
         String tableId
-        , String tableName, String tableLabelName, String tableType, String tableState, String isInWorkflow, String workFlowOptType, String updateCheckTimeStamp) {
+        , String tableName, String tableLabelName, String tableState, String isInWorkflow, String workFlowOptType, String updateCheckTimeStamp) {
         this.tableId = tableId;
         this.tableName = tableName;
         this.tableLabelName = tableLabelName;
-        this.tableType = tableType;
         this.tableState = tableState;
         this.workFlowOptType = workFlowOptType;
         this.updateCheckTimeStamp = updateCheckTimeStamp;
@@ -214,7 +175,6 @@ public class PendingMetaTable implements
         this.setDatabaseCode(databaseCode);
         this.tableName = tableName;
         this.tableLabelName = tableLabelName;
-        this.tableType = tableType;
         this.tableState = tableState;
         this.tableComment = tableComment;
         this.workFlowOptType = workFlowOptType;
@@ -235,30 +195,18 @@ public class PendingMetaTable implements
     }
 
 
-    public void setMdRelations(List<PendingMetaRelation> mdRelations) {
-        if (null != mdRelations) {
-            mdRelations.stream().forEach(md -> md.setParentTableId(this.tableId));
-        }
-        this.mdRelations = mdRelations;
-    }
-
-
     public PendingMetaTable copy(PendingMetaTable other) {
         this.setMdColumns(other.getMdColumns());
-        this.setMdRelations(other.getMdRelations());
         this.setTableId(other.getTableId());
         this.setDatabaseCode(other.getDatabaseCode());
         this.tableName = other.getTableName();
         this.tableLabelName = other.getTableLabelName();
-        this.tableType = other.getTableType();
         this.tableState = other.getTableState();
         this.tableComment = other.getTableComment();
         this.workFlowOptType = other.getWorkFlowOptType();
         this.updateCheckTimeStamp = other.getUpdateCheckTimeStamp();
         this.lastModifyDate = other.getLastModifyDate();
         this.recorder = other.getRecorder();
-        this.ownerType = other.getOwnerType();
-        this.ownerCode = other.getOwnerCode();
         return this;
     }
 
@@ -266,8 +214,6 @@ public class PendingMetaTable implements
 
         if (other.getTableId() != null)
             this.setTableId(other.getTableId());
-        if (other.getMdRelations() != null)
-            this.setMdRelations(other.getMdRelations());
         if (other.getMdColumns() != null)
             this.setMdColumns(other.getMdColumns());
         if (other.getDatabaseCode() != null)
@@ -276,8 +222,6 @@ public class PendingMetaTable implements
             this.tableName = other.getTableName();
         if (other.getTableLabelName() != null)
             this.tableLabelName = other.getTableLabelName();
-        if (other.getTableType() != null)
-            this.tableType = other.getTableType();
         if (other.getTableState() != null)
             this.tableState = other.getTableState();
         if (other.getTableComment() != null)
@@ -291,28 +235,20 @@ public class PendingMetaTable implements
         if (other.getRecorder() != null)
             this.recorder = other.getRecorder();
 
-        if (other.getOwnerType() != null)
-            this.ownerType = other.getOwnerType();
-        if (other.getOwnerCode() != null)
-            this.ownerCode = other.getOwnerCode();
         return this;
     }
 
     public PendingMetaTable clearProperties() {
         this.mdColumns = null;
-        this.mdRelations = null;
         this.databaseCode = null;
         this.tableName = null;
         this.tableLabelName = null;
-        this.tableType = null;
         this.tableState = null;
         this.tableComment = null;
         this.workFlowOptType = null;
         this.updateCheckTimeStamp = null;
         this.lastModifyDate = null;
         this.recorder = null;
-        this.ownerType = null;
-        this.ownerCode = null;
         return this;
     }
 
@@ -389,7 +325,7 @@ public class PendingMetaTable implements
 
     @Override
     public List<? extends TableReference> getReferences() {
-        return mdRelations;
+        return null;
     }
 
     public MetaTable mapToMetaTable(){
@@ -398,12 +334,9 @@ public class PendingMetaTable implements
         mt.setDatabaseCode(this.getDatabaseCode());
         mt.setTableName(this.getTableName());
         mt.setTableLabelName(this.getTableLabelName());
-        mt.setTableType(this.getTableType());
-        mt.setTableState(this.getTableState());
         mt.setTableComment(this.getTableComment());
         mt.setRecordDate(this.getLastModifyDate());
         mt.setWorkFlowOptType(this.getWorkFlowOptType());
-        mt.setFulltextSearch(this.fulltextSearch);
         mt.setRecorder(this.getRecorder());
         List<MetaColumn> columns = new ArrayList<>();
         if (this.getColumns() != null && this.getColumns().size() > 0) {
@@ -412,13 +345,6 @@ public class PendingMetaTable implements
             }
         }
         mt.setMdColumns(columns);
-        List<MetaRelation> relations = new ArrayList<>();
-        if (this.getMdRelations() != null && this.getMdRelations().size() > 0) {
-            for (PendingMetaRelation pr : this.getMdRelations()) {
-                relations.add(pr.mapToMetaRelation());
-            }
-        }
-        mt.setMdRelations(relations);
         return mt;
     }
 
@@ -432,10 +358,8 @@ public class PendingMetaTable implements
         if(StringUtils.isNotBlank(tableInfo.getTableComment())){
             this.tableComment = tableInfo.getTableComment();
         }
-        this.tableType = tableInfo.getTableType();
-        this.tableState = StringUtils.isNotBlank(this.tableState) ? this.tableState : "N";
+        this.tableState = StringUtils.isNotBlank(this.tableState) ? this.tableState : "W";
         this.workFlowOptType = StringUtils.isNotBlank(this.workFlowOptType) ? this.workFlowOptType : "0";
-        this.fulltextSearch = StringUtils.isNoneBlank(this.fulltextSearch) ? this.fulltextSearch : "F";
         return this;
     }
 }

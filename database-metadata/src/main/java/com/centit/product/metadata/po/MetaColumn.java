@@ -206,8 +206,8 @@ public class MetaColumn implements TableField,java.io.Serializable {
         this.columnLength = tableField.getMaxLength();
         this.columnPrecision = tableField.getScale();
         this.mandatory = tableField.isMandatory() ? "T" : "F";
-        this.accessType =  "N";
-        this.columnState = "S";
+        this.accessType = StringUtils.isNotBlank(this.accessType) ? this.accessType : "N";
+        this.columnState = StringUtils.isNotBlank(this.columnState) ? this.columnState : "S";
         return this;
     }
 

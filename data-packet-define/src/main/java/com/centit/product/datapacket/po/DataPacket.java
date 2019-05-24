@@ -15,10 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @ApiModel
 @Data
@@ -109,6 +106,13 @@ public class DataPacket implements Serializable {
             return rmdbQueries;
         }
         return null;
+    }
+
+    public List<DataPacketParam> getPacketParams() {
+        if(packetParams==null){
+            packetParams = new ArrayList<>(2);
+        }
+        return packetParams;
     }
 
     @JSONField(serialize = false)

@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -78,5 +79,12 @@ public class RmdbQuery implements Serializable {
     @JoinColumn(name = "queryId", referencedColumnName = "queryId")
     private List<RmdbQueryColumn> columns;
 
+
+    public List<RmdbQueryColumn> getColumns() {
+        if(columns==null){
+            columns = new ArrayList<>(4);
+        }
+        return columns;
+    }
 
 }

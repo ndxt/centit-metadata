@@ -8,7 +8,6 @@ import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.ip.service.IntegrationEnvironment;
-import com.centit.framework.security.model.CentitUserDetails;
 import com.centit.product.dataopt.bizopt.BuiltInOperation;
 import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.dataopt.core.DataSet;

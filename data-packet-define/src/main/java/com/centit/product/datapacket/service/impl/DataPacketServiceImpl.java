@@ -41,7 +41,7 @@ public class DataPacketServiceImpl implements DataPacketService {
 
     private final Logger logger = LoggerFactory.getLogger(DataPacketServiceImpl.class);
 
-    @Autowired
+    @Autowired(required = false)
     private JedisPool jedisPool;
 
     @Autowired
@@ -113,34 +113,29 @@ public class DataPacketServiceImpl implements DataPacketService {
         return dataPacket;
     }
 
-    private BizModel innerFetchDataPacketData(DataPacket dataPacket, String params){
+    private BizModel innerFetchDataPacketData(DataPacket dataPacket, Map<String, Object>  params){
         DBPacketBizSupplier bizSupplier = new DBPacketBizSupplier(dataPacket);
         bizSupplier.setIntegrationEnvironment(integrationEnvironment);
-        if(StringUtils.isNotBlank(params)){
-            JSONObject obj = JSON.parseObject(params);
-            if(obj!=null){
-                bizSupplier.setQueryParams(obj);
-            }
-        }
+        bizSupplier.setQueryParams(params);
         return bizSupplier.get();
     }
 
-    public BizModel fetchDataPacketData(@PathVariable String packetId, String params){
-        DataPacket dataPacket = this.getDataPacket(packetId);
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String dateString = formatter.format(dataPacket.getRecordDate());
-        if (!"".equals(params)) {
-            Map<String,Object> map = JSON.parseObject(params,Map.class);
-            if (map != null && !map.isEmpty()) {
-                params = JSON.toJSONString(map, SerializerFeature.MapSortField);
-            }
-        }
+    private String makeDataPacketBufId(DataPacket dataPacket, Map<String, Object>  paramsMap){
+        String dateString = DatetimeOpt.convertTimestampToString(dataPacket.getRecordDate());
+        String params = JSON.toJSONString(paramsMap, SerializerFeature.MapSortField);
         StringBuffer temp = new StringBuffer("packet:");
-        temp.append(packetId)
+        temp.append(dataPacket.getPacketId())
             .append(":")
             .append(params)
             .append(dateString);
-        String key = Md5Encoder.encode(temp.toString());
+        return Md5Encoder.encode(temp.toString());
+    }
+
+    private BizModel fetchDataPacketDataFromBuf(DataPacket dataPacket, Map<String, Object>  paramsMap){
+        if(jedisPool==null){
+            return null;
+        }
+        String key =makeDataPacketBufId(dataPacket, paramsMap);
         Object object = null;
         if (dataPacket.getBufferFreshPeriod() >= 0) {
             Jedis jedis = jedisPool.getResource();
@@ -158,27 +153,27 @@ public class DataPacketServiceImpl implements DataPacketService {
                     e.printStackTrace();
                 }
                 jedis.close();
-                if (object!=null) {
+                if (object instanceof BizModel) {
                     BizModel bizModel = (BizModel) object;
                     return bizModel;
                 }
             }
         }
-        BizModel bizModel = innerFetchDataPacketData(dataPacket, params);
-        JSONObject obj = dataPacket.getDataOptDesc();
+        return null;
+    }
+
+    private void setDataPacketBuf(BizModel bizModel, DataPacket dataPacket, Map<String, Object>  paramsMap){
+        if(jedisPool==null){
+            return;
+        }
+        String key =makeDataPacketBufId(dataPacket, paramsMap);
         Jedis jedis = jedisPool.getResource();
         if (jedis.get(key.getBytes())==null || "".equals(jedis.get(key.getBytes()))) {
             try {
-                ObjectOutputStream oos = null;
-                ByteArrayOutputStream bos = null;
-                bos = new ByteArrayOutputStream();
-                oos = new ObjectOutputStream(bos);
-                if(obj!=null) {
-                    BuiltInOperation builtInOperation = new BuiltInOperation(obj);
-                    oos.writeObject(builtInOperation.apply(bizModel));
-                } else {
-                    oos.writeObject(bizModel);
-                }
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                ObjectOutputStream oos = new ObjectOutputStream(bos);
+                oos.writeObject(bizModel);
+
                 byte[] byt=bos.toByteArray();
                 jedis.set(key.getBytes(),byt);
                 int seconds = 0;
@@ -210,11 +205,20 @@ public class DataPacketServiceImpl implements DataPacketService {
         }
 
         jedis.close();
-        if(obj!=null){
+    }
+
+    public BizModel fetchDataPacketData(String packetId, Map<String, Object> paramsMap){
+        DataPacket dataPacket = this.getDataPacket(packetId);
+        BizModel bizModel = fetchDataPacketDataFromBuf(dataPacket, paramsMap);
+        if(bizModel==null) {
+            bizModel = innerFetchDataPacketData(dataPacket, paramsMap);
+        }
+        JSONObject obj = dataPacket.getDataOptDesc();
+        if(obj!=null) {
             BuiltInOperation builtInOperation = new BuiltInOperation(obj);
             bizModel = builtInOperation.apply(bizModel);
         }
-
+        setDataPacketBuf(bizModel, dataPacket, paramsMap);
         return bizModel;
     }
 }

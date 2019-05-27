@@ -26,8 +26,10 @@ import java.util.zip.GZIPOutputStream;
 @ComponentScan(basePackages = {"com.centit"},
         excludeFilters = @ComponentScan.Filter(value = org.springframework.stereotype.Controller.class))
 @PropertySource(value = "classpath:system.properties")
-@Import(value = {JdbcConfig.class, SpringSecurityDaoConfig.class, IPOrStaticAppSystemBeanConfig.class})
+@Import(value = {JdbcConfig.class, SpringSecurityDaoConfig.class,
+    IPOrStaticAppSystemBeanConfig.class})
 public class ServiceConfig {
+
     @Value("${redis.home:127.0.0.1}")
     private String redisHost;
 
@@ -43,28 +45,7 @@ public class ServiceConfig {
         config.setTestOnBorrow(true);
         return new JedisPool(config, redisHost, redisPort, 10000);
     }
-/*    @Bean
-    public IntegrationEnvironment integrationEnvironment(){
-        return new JsonIntegrationEnvironment();
-    }
 
-    @Bean
-    public CsrfTokenRepository csrfTokenRepository() {
-        return new HttpSessionCsrfTokenRepository();
-    }
-
-    @Bean
-    public PlatformEnvironment platformEnvironment(){
-         platformEnvironment = new JsonPlatformEnvironment();
-        return platformEnvironment;
-    }
-
-    @Bean
-    public CentitUserDetailsService centitUserDetailsService(PlatformEnvironment platformEnvironment) {
-        UserDetailsServiceImpl userDetailsService = new UserDetailsServiceImpl();
-        userDetailsService.setPlatformEnvironment(platformEnvironment);
-        return userDetailsService;
-    }*/
 
     @Bean("passwordEncoder")
     public StandardPasswordEncoderImpl passwordEncoder() {

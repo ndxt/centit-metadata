@@ -59,11 +59,11 @@ public class DataPacketController extends BaseController {
     @PostMapping
     @WrapUpResponseBody
     public void createDataPacket(DataPacket dataPacket, HttpServletRequest request){
-        CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
-        if(userDetails == null){
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if(StringUtils.isBlank(userCode)){
             throw new ObjectException("未登录");
         }
-        dataPacket.setRecorder(userDetails.getUserCode());
+        dataPacket.setRecorder(userCode);
         dataPacket.setDataOptDescJson(StringEscapeUtils.unescapeHtml4(dataPacket.getDataOptDescJson()));
         dataPacketService.createDataPacket(dataPacket);
     }
@@ -126,14 +126,12 @@ public class DataPacketController extends BaseController {
         name = "packetId", value="数据包ID",
         required=true, paramType = "path", dataType ="String"
     ), @ApiImplicitParam(
-        name = "params", value="查询参数，map的json格式字符串"
-    ), @ApiImplicitParam(
         name = "datasets", value="需要返回的数据集名称，用逗号隔开，如果为空返回全部"
     )})
     @GetMapping(value = "/packet/{packetId}")
     @WrapUpResponseBody
-    public BizModel fetchDataPacketData(@PathVariable String packetId, String params, String datasets){
-
+    public BizModel fetchDataPacketData(@PathVariable String packetId, String datasets, HttpServletRequest request){
+        Map<String, Object> params = BaseController.collectRequestParameters(request);
         BizModel  bizModel = dataPacketService.fetchDataPacketData(packetId, params);
         if(StringUtils.isNotBlank(datasets)){
             String[] dss = datasets.split(",");
@@ -186,12 +184,11 @@ public class DataPacketController extends BaseController {
         required=true, paramType = "path", dataType ="String"
     ), @ApiImplicitParam(
         name = "optsteps", value="数据操作，steps的json格式字符串，参见js代码中的说明"
-    ), @ApiImplicitParam(
-        name = "params", value="查询参数，map的json格式字符串"
     )})
     @GetMapping(value = "/dataopts/{packetId}")
     @WrapUpResponseBody
-    public BizModel fetchDataPacketDataWithOpt(@PathVariable String packetId, String optsteps, String params){
+    public BizModel fetchDataPacketDataWithOpt(@PathVariable String packetId, String optsteps, HttpServletRequest request){
+        Map<String, Object> params = BaseController.collectRequestParameters(request);
         BizModel bizModel = dataPacketService.fetchDataPacketData(packetId, params);
         if(StringUtils.isNotBlank(optsteps)){
             JSONObject obj = JSON.parseObject(optsteps);

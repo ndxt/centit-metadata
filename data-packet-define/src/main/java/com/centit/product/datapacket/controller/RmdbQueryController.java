@@ -15,6 +15,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.HtmlUtils;
@@ -37,11 +38,11 @@ public class RmdbQueryController extends BaseController {
     @PostMapping
     @WrapUpResponseBody
     public void createDbQuery(RmdbQuery rmdbQuery, HttpServletRequest request){
-        CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
-        if(userDetails == null){
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if(StringUtils.isBlank(userCode)){
             throw new ObjectException("未登录");
         }
-        rmdbQuery.setRecorder(userDetails.getUserCode());
+        rmdbQuery.setRecorder(userCode);
         rmdbQueryService.createDbQuery(rmdbQuery);
     }
 

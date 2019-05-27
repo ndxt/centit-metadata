@@ -3,7 +3,6 @@ package com.centit.product.datapacket.service;
 import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.support.database.utils.PageDesc;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Map;
@@ -23,5 +22,5 @@ public interface DataPacketService {
 
     DataPacket getDataPacket(String packetId);
 
-    BizModel fetchDataPacketData(@PathVariable String packetId, String params);
+    BizModel fetchDataPacketData(String packetId, Map<String, Object> params);
 }

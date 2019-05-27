@@ -2,7 +2,6 @@ package com.centit.product.datapacket.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.centit.framework.common.ObjectException;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
@@ -18,15 +17,12 @@ import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.RmdbQuery;
-import com.centit.product.datapacket.service.DBPacketBizSupplier;
 import com.centit.product.datapacket.service.DataPacketService;
 import com.centit.product.datapacket.service.RmdbQueryService;
 import com.centit.product.datapacket.utils.DataPacketUtil;
 import com.centit.product.datapacket.vo.DataPacketSchema;
-import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.database.utils.JdbcConnect;
 import com.centit.support.database.utils.PageDesc;
-import com.centit.support.security.Md5Encoder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -35,13 +31,9 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,17 +119,7 @@ public class DataPacketController extends BaseController {
         return dataPacketService.getDataPacket(packetId);
     }
 
-    private BizModel innerFetchDataPacketData(DataPacket dataPacket, String params){
-        DBPacketBizSupplier bizSupplier = new DBPacketBizSupplier(dataPacket);
-        bizSupplier.setIntegrationEnvironment(integrationEnvironment);
-        if(StringUtils.isNotBlank(params)){
-            JSONObject obj = JSON.parseObject(params);
-            if(obj!=null){
-                bizSupplier.setQueryParams(obj);
-            }
-        }
-        return bizSupplier.get();
-    }
+
 
     @ApiOperation(value = "获取数据包数据")
     @ApiImplicitParams({@ApiImplicitParam(
@@ -151,95 +133,8 @@ public class DataPacketController extends BaseController {
     @GetMapping(value = "/packet/{packetId}")
     @WrapUpResponseBody
     public BizModel fetchDataPacketData(@PathVariable String packetId, String params, String datasets){
-        DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String dateString = formatter.format(dataPacket.getRecordDate());
-        if (!"".equals(params)) {
-            Map<String,Object> map = JSON.parseObject(params,Map.class);
-            if (map != null && !map.isEmpty()) {
-                params = JSON.toJSONString(map, SerializerFeature.MapSortField);
-            }
-        }
-        StringBuffer temp = new StringBuffer("packet:");
-        temp.append(packetId)
-            .append(":")
-            .append(params)
-            .append(dateString);
-        String key = Md5Encoder.encode(temp.toString());
-        Object object = null;
-        if (dataPacket.getBufferFreshPeriod() >= 0) {
-            Jedis jedis = jedisPool.getResource();
-            if (jedis.get(key.getBytes())!=null && !"".equals(jedis.get(key.getBytes()))) {
-                try {
-                    byte[] byt = jedis.get(key.getBytes());
-                    ObjectInputStream ois = null;
-                    ByteArrayInputStream bis = null;
-                    bis = new ByteArrayInputStream(byt);
-                    ois = new ObjectInputStream(bis);
-                    object = ois.readObject();
-                    bis.close();
-                    ois.close();
-                } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-                jedis.close();
-                if (object!=null) {
-                    BizModel bizModel = (BizModel) object;
-                    return bizModel;
-                }
-            }
-        }
-        BizModel bizModel = innerFetchDataPacketData(dataPacket, params);
-        JSONObject obj = dataPacket.getDataOptDesc();
-        Jedis jedis = jedisPool.getResource();
-        if (jedis.get(key.getBytes())==null || "".equals(jedis.get(key.getBytes()))) {
-            try {
-                ObjectOutputStream oos = null;
-                ByteArrayOutputStream bos = null;
-                bos = new ByteArrayOutputStream();
-                oos = new ObjectOutputStream(bos);
-                if(obj!=null) {
-                    BuiltInOperation builtInOperation = new BuiltInOperation(obj);
-                    oos.writeObject(builtInOperation.apply(bizModel));
-                } else {
-                    oos.writeObject(bizModel);
-                }
-                byte[] byt=bos.toByteArray();
-                jedis.set(key.getBytes(),byt);
-                int seconds = 0;
-                if (dataPacket.getBufferFreshPeriod() == 1) {
-                    //一日
-                    seconds = 24*3600;
-                    jedis.expire(key.getBytes(),seconds);
-                } else if (dataPacket.getBufferFreshPeriod() == 2) {
-                    //按周
-                    seconds = DatetimeOpt.calcSpanDays(new Date(),DatetimeOpt.seekEndOfWeek(new Date()))*24*3600;
-                    jedis.expire(key.getBytes(),seconds);
-                } else if (dataPacket.getBufferFreshPeriod() == 3) {
-                    //按月
-                    seconds = DatetimeOpt.calcSpanDays(new Date(),DatetimeOpt.seekEndOfMonth(new Date()))*24*3600;
-                    jedis.expire(key.getBytes(),seconds);
-                } else if (dataPacket.getBufferFreshPeriod() == 4) {
-                    //按年
-                    seconds = DatetimeOpt.calcSpanDays(new Date(),DatetimeOpt.seekEndOfYear(new Date()))*24*3600;
-                    jedis.expire(key.getBytes(),seconds);
-                } else if (dataPacket.getBufferFreshPeriod() >= 60) {
-                    //按秒
-                    jedis.expire(key.getBytes(),dataPacket.getBufferFreshPeriod());
-                }
-                bos.close();
-                oos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
 
-        jedis.close();
-        if(obj!=null){
-            BuiltInOperation builtInOperation = new BuiltInOperation(obj);
-            bizModel = builtInOperation.apply(bizModel);
-        }
-
+        BizModel  bizModel = dataPacketService.fetchDataPacketData(packetId, params);
         if(StringUtils.isNotBlank(datasets)){
             String[] dss = datasets.split(",");
             SimpleBizModel dup = new SimpleBizModel(bizModel.getModelName());
@@ -297,8 +192,7 @@ public class DataPacketController extends BaseController {
     @GetMapping(value = "/dataopts/{packetId}")
     @WrapUpResponseBody
     public BizModel fetchDataPacketDataWithOpt(@PathVariable String packetId, String optsteps, String params){
-        DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
-        BizModel bizModel = innerFetchDataPacketData(dataPacket, params);
+        BizModel bizModel = dataPacketService.fetchDataPacketData(packetId, params);
         if(StringUtils.isNotBlank(optsteps)){
             JSONObject obj = JSON.parseObject(optsteps);
             if(obj!=null){

@@ -30,6 +30,9 @@ import java.util.zip.GZIPOutputStream;
     IPOrStaticAppSystemBeanConfig.class})
 public class ServiceConfig {
 
+    @Value("${datapacket.buff.enabled:false}")
+    private boolean dataBuffEnable;
+
     @Value("${redis.home:127.0.0.1}")
     private String redisHost;
 
@@ -38,6 +41,9 @@ public class ServiceConfig {
 
     @Bean
     public JedisPool jedisPool(){
+        if(!dataBuffEnable){
+            return null;
+        }
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(1024);
         config.setMaxIdle(200);

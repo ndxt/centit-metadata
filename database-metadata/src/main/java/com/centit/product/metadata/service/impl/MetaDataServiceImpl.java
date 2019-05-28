@@ -83,6 +83,8 @@ public class MetaDataServiceImpl implements MetaDataService {
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
         try {
             jdbcMetadata.setDBConfig(JdbcConnect.getConn(databaseInfo));
+            if (databaseInfo.getDatabaseUrl().indexOf("oracle") > -1)
+                jdbcMetadata.setDBSchema(databaseInfo.getUsername().toUpperCase());
         }catch (SQLException e){
             logger.error("连接数据库【{}】出错",databaseInfo.getDatabaseName());
             throw new ObjectException("连接数据库出错");

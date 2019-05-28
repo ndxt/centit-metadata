@@ -30,7 +30,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import redis.clients.jedis.JedisPool;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -41,9 +40,6 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "packet")
 public class DataPacketController extends BaseController {
-
-    @Autowired
-    private JedisPool jedisPool;
 
     @Autowired
     private DataPacketService dataPacketService;

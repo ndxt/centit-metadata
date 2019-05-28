@@ -12,6 +12,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,11 +32,11 @@ public class MetadataSyncController extends BaseController {
     @GetMapping(value = "/sync/{databaseCode}")
     @WrapUpResponseBody
     public void syncDb(@PathVariable String databaseCode, HttpServletRequest request){
-        CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
-        if(userDetails == null){
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if(StringUtils.isBlank(userCode)){
             throw new ObjectException("未登录");
         }
-        metaDataService.syncDb(databaseCode, userDetails.getUserCode());
+        metaDataService.syncDb(databaseCode, userCode);
     }
 
 
@@ -48,12 +49,12 @@ public class MetadataSyncController extends BaseController {
     @PutMapping(value = "/table/{tableId}")
     @WrapUpResponseBody
     public void updateMetaTable(@PathVariable String tableId, @RequestBody MetaTable metaTable,HttpServletRequest request){
-        CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
-        if(userDetails == null){
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if(StringUtils.isBlank(userCode)){
             throw new ObjectException("未登录");
         }
         metaTable.setTableId(tableId);
-        metaTable.setRecorder(userDetails.getUserCode());
+        metaTable.setRecorder(userCode);
         metaDataService.updateMetaTable(metaTable);
     }
 

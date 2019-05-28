@@ -157,7 +157,7 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/publish/{ptableId}", method = {RequestMethod.POST})
     public void publishMdTable(@PathVariable String ptableId,
                                HttpServletRequest request, HttpServletResponse response) {
-        String userCode = super.getLoginUserCode(request);
+        String userCode = WebOptUtils.getCurrentUserCode(request);
         if (StringUtils.isBlank(userCode)) {
             JsonResultUtils.writeErrorMessageJson(ResponseData.ERROR_UNAUTHORIZED,
                 "当前用户没有登录，请先登录。", response);
@@ -199,9 +199,8 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public void syncPdm(@PathVariable String databaseCode, String pdmFilePath,
                                     HttpServletRequest request, HttpServletResponse response) {
-        CentitUserDetails userDetails = WebOptUtils.getLoginUser(request);
-        String userCode = userDetails != null ? userDetails.getUserCode() : "";
-        if(userDetails == null){
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if(StringUtils.isBlank(userCode)){
             throw new ObjectException("未登录");
         }
         if ("".equals(pdmFilePath)) {

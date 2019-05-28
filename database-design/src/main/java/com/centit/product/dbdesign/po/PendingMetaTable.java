@@ -44,7 +44,8 @@ public class PendingMetaTable implements
     @Id
     @Column(name = "TABLE_ID")
     //1.用一张hibernate_sequences表管理主键,需要建hibernate_sequences表
-    @ValueGenerator(strategy = GeneratorType.SEQUENCE, value = "seq_pendingtableid")
+    //@ValueGenerator(strategy = GeneratorType.SEQUENCE, value = "seq_pendingtableid")
+    @ValueGenerator(strategy = GeneratorType.UUID22)
      //2.用序列
 //    @GeneratedValue(strategy=GenerationType.SEQUENCE,generator="seqgen")
 //    @SequenceGenerator(sequenceName="SEQ_PENDINGTABLEID",name="seqgen",allocationSize=1,initialValue=1)

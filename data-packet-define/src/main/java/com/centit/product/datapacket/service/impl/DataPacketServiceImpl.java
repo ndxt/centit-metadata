@@ -51,22 +51,17 @@ public class DataPacketServiceImpl implements DataPacketService {
     public void createDataPacket(DataPacket dataPacket) {
         dataPacketDao.saveNewObject(dataPacket);
         dataPacketDao.saveObjectReferences(dataPacket);
-        if (dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() > 0) {
-            for (RmdbQuery db : dataPacket.getRmdbQueries()) {
-                if (db.getColumns() != null && db.getColumns().size() >0) {
-                    for (RmdbQueryColumn column : db.getColumns()) {
-                        column.setPacketId(db.getPacketId());
-                    }
-                    rmdbQueryDao.saveObjectReferences(db);
-                }
-            }
-        }
+        mergeDataPacket(dataPacket);
     }
 
     @Override
     public void updateDataPacket(DataPacket dataPacket) {
         dataPacketDao.updateObject(dataPacket);
         dataPacketDao.saveObjectReferences(dataPacket);
+        mergeDataPacket(dataPacket);
+    }
+
+    private void mergeDataPacket(DataPacket dataPacket) {
         if (dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() > 0) {
             for (RmdbQuery db : dataPacket.getRmdbQueries()) {
                 if (db.getColumns() != null && db.getColumns().size() >0) {
@@ -136,10 +131,8 @@ public class DataPacketServiceImpl implements DataPacketService {
             if (jedis.get(key.getBytes())!=null && !"".equals(jedis.get(key.getBytes()))) {
                 try {
                     byte[] byt = jedis.get(key.getBytes());
-                    ObjectInputStream ois = null;
-                    ByteArrayInputStream bis = null;
-                    bis = new ByteArrayInputStream(byt);
-                    ois = new ObjectInputStream(bis);
+                    ByteArrayInputStream bis = new ByteArrayInputStream(byt);
+                    ObjectInputStream ois = new ObjectInputStream(bis);
                     object = ois.readObject();
                     bis.close();
                     ois.close();
@@ -197,7 +190,6 @@ public class DataPacketServiceImpl implements DataPacketService {
                 e.printStackTrace();
             }
         }
-
         jedis.close();
     }
 

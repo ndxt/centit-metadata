@@ -17,7 +17,6 @@ import com.centit.support.algorithm.*;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
-import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.*;
 import org.apache.commons.lang3.StringUtils;

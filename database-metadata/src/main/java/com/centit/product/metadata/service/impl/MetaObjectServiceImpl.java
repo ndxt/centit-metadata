@@ -432,12 +432,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public JSONArray pageQueryObjects(String tableId, Map<String, Object> params, PageDesc pageDesc) {
-        return pageQueryObjects(tableId, params, null, pageDesc);
-    }
-
-    @Override
-    public JSONArray pageQueryObjects(String tableId, Map<String, Object> params, String [] fields,PageDesc pageDesc) {
+    public JSONArray pageQueryObjects(String tableId, String extFilter, Map<String, Object> params, String [] fields,PageDesc pageDesc) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
 
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
@@ -458,9 +453,18 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         : dao.buildPartFieldSqlWithFieldName(tableInfo, fieldSet, null);
 
                     String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null, params.keySet());
+                    if(StringUtils.isNotBlank(extFilter)){
+                        if(StringUtils.isNotBlank(filter)) {
+                            filter = extFilter + " and " + filter;
+                        } else {
+                            filter = extFilter;
+                        }
+                    }
+
                     String sql = "select " + q.getLeft() +" from " +tableInfo.getTableName();
-                    if(StringUtils.isNotBlank(filter))
+                    if(StringUtils.isNotBlank(filter)) {
                         sql = sql + " where " + filter;
+                    }
                     String orderBy = BaseDaoImpl.fetchSelfOrderSql(sql, params);
                     if(StringUtils.isNotBlank(orderBy)){
                         sql = sql + " order by "
@@ -487,31 +491,46 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public JSONArray pageQueryObjects(String tableId, String paramDriverSql, Map<String, Object> params, PageDesc pageDesc) {
+    public JSONArray pageQueryObjects(String tableId, Map<String, Object> params, String [] fields,PageDesc pageDesc) {
+        return pageQueryObjects(tableId, null,  params, fields, pageDesc);
+    }
+
+    @Override
+    public JSONArray pageQueryObjects(String tableId, Map<String, Object> params, PageDesc pageDesc) {
+        return pageQueryObjects(tableId,null,  params, null, pageDesc);
+    }
+
+    @Override
+    public JSONArray pageQueryObjects(String tableId, String namedSql, Map<String, Object> params, PageDesc pageDesc) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
-        String orderBy = BaseDaoImpl.fetchSelfOrderSql(paramDriverSql, params);
-        final String querySql = StringUtils.isBlank(orderBy) ? paramDriverSql
-            : QueryUtils.removeOrderBy(paramDriverSql) + " order by "
+        String orderBy = BaseDaoImpl.fetchSelfOrderSql(namedSql, params);
+        final String querySql = StringUtils.isBlank(orderBy) ? namedSql
+            : QueryUtils.removeOrderBy(namedSql) + " order by "
                 + QueryUtils.cleanSqlStatement(orderBy);
 
         try {
             JSONArray ja = TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
                 (conn) -> {
 
-                    QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, params);
                     GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
                     JSONArray objs = dao.findObjectsByNamedSqlAsJSON(
-                        qap.getQuery(), qap.getParams(), null, pageDesc.getPageNo(), pageDesc.getPageSize());
+                        querySql, params, null, pageDesc.getPageNo(), pageDesc.getPageSize());
 
                     pageDesc.setTotalRows(
-                        NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, qap.getQuery(), qap.getParams())));
+                        NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, querySql, params)));
                     return objs;
                 });
             return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns());
         } catch (SQLException | IOException e) {
             throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
+    }
+
+    @Override
+    public JSONArray paramDriverPageQueryObjects(String tableId, String paramDriverSql, Map<String, Object> params, PageDesc pageDesc) {
+        QueryAndNamedParams qap = QueryUtils.translateQuery(paramDriverSql, params);
+        return pageQueryObjects(tableId, qap.getQuery(), qap.getParams(), pageDesc);
     }
 
 }

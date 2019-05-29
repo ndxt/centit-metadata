@@ -2,17 +2,16 @@ package com.centit.product.dataopt.dataset;
 
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.ObjectException;
-import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.product.dataopt.core.DataSetReader;
-import com.centit.support.database.utils.DataSourceDescription;
-import com.centit.support.database.utils.DatabaseAccess;
-import com.centit.support.database.utils.DbcpConnectPools;
+import com.centit.product.dataopt.core.SimpleDataSet;
+import com.centit.support.database.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +25,9 @@ public class SQLDataSetReader implements DataSetReader {
 
     private static final Logger logger = LoggerFactory.getLogger(SQLDataSetReader.class);
     private DataSourceDescription dataSource;
-
+    /**
+     * 参数驱动sql
+     */
     private String sqlSen;
 
     private Connection connection;
@@ -37,7 +38,7 @@ public class SQLDataSetReader implements DataSetReader {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public SimpleDataSet load(Map<String, Object> params) {
+    public SimpleDataSet load(final Map<String, Object> params) {
         Connection conn = connection;
         boolean createConnect = false;
         try {
@@ -45,8 +46,14 @@ public class SQLDataSetReader implements DataSetReader {
                 conn = DbcpConnectPools.getDbcpConnect(dataSource);
                 createConnect = true;
             }
+            QueryAndNamedParams qap = QueryUtils.translateQuery( sqlSen, params);
+            Map<String, Object> paramsMap = new HashMap<>(params.size() + 6);
+            paramsMap.putAll(params);
+            paramsMap.putAll(qap.getParams());
+
             JSONArray jsonArray = DatabaseAccess.findObjectsByNamedSqlAsJSON(
-                conn, sqlSen, params);
+                conn, qap.getQuery(), paramsMap);
+
             SimpleDataSet dataSet = new SimpleDataSet();
             dataSet.setData((List)jsonArray);
             return dataSet;

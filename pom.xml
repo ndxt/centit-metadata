@@ -25,7 +25,7 @@
     <modules>
         <module>business-operation-core</module>
         <module>database-metadata</module>
-        <module>database-webapp</module>
+        <!--<module>database-webapp</module>-->
         <module>data-packet-define</module>
         <module>database-metadata-graphql</module>
         <module>database-design</module>

@@ -32,20 +32,21 @@ public class DBPacketBizSupplier implements BizSupplier {
     @Override
     public BizModel get() {
         SimpleBizModel bizModel = new SimpleBizModel(this.dbPacket.getPacketName());
-        Map<String, DataSet> dataSets = new HashMap<>(this.dbPacket.getRmdbQueries().size()+1);
+        Map<String, DataSet> dataSets = new HashMap<>(this.dbPacket.getRmdbQueries()!=null ?
+            this.dbPacket.getRmdbQueries().size()+1 : 1);
         Map<String, Object> modelTag = this.dbPacket.getPacketParamsValue();
         if(queryParams!=null && queryParams.size()>0) {
             modelTag.putAll(queryParams);
         }
-
-        for(RmdbQuery rdd : this.dbPacket.getRmdbQueries()) {
-            SQLDataSetReader sqlDSR = new SQLDataSetReader();
-            sqlDSR.setDataSource(JdbcConnect.mapDataSource(
-                integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));
-            sqlDSR.setSqlSen(rdd.getQuerySQL());
-            dataSets.put(rdd.getQueryName(), sqlDSR.load(modelTag));
+        if (this.dbPacket.getRmdbQueries() !=null && this.dbPacket.getRmdbQueries().size() >0) {
+            for (RmdbQuery rdd : this.dbPacket.getRmdbQueries()) {
+                SQLDataSetReader sqlDSR = new SQLDataSetReader();
+                sqlDSR.setDataSource(JdbcConnect.mapDataSource(
+                    integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));
+                sqlDSR.setSqlSen(rdd.getQuerySQL());
+                dataSets.put(rdd.getQueryName(), sqlDSR.load(modelTag));
+            }
         }
-
         bizModel.setModelTag(modelTag);
         bizModel.setBizData(dataSets);
         return bizModel;

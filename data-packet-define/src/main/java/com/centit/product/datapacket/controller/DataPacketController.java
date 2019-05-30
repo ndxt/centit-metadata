@@ -146,15 +146,12 @@ public class DataPacketController extends BaseController {
     }
 
     @ApiOperation(value = "获取数据库查询数据")
-    @ApiImplicitParams({@ApiImplicitParam(
-        name = "queryId", value="数据查询ID",
-        required=true, paramType = "path", dataType ="String"
-    ), @ApiImplicitParam(
-        name = "params", value="查询参数，map的json格式字符串"
-    )})
+    @ApiImplicitParam(name = "queryId", value = "数据查询ID", required = true,
+        paramType = "path", dataType ="String")
     @GetMapping(value = "/dbquery/{queryId}")
     @WrapUpResponseBody
-    public SimpleDataSet fetchDBQueryData(@PathVariable String queryId, String params){
+    public SimpleDataSet fetchDBQueryData(@PathVariable String queryId, HttpServletRequest request){
+        Map<String, Object> params = collectRequestParameters(request);
         RmdbQuery query = rmdbQueryService.getDbQuery(queryId);
         DataPacket dataPacket = dataPacketService.getDataPacket(query.getPacketId());
         Map<String, Object> modelTag = dataPacket.getPacketParamsValue();
@@ -163,12 +160,8 @@ public class DataPacketController extends BaseController {
         sqlDSR.setDataSource(JdbcConnect.mapDataSource(
             integrationEnvironment.getDatabaseInfo(query.getDatabaseCode())));
         sqlDSR.setSqlSen(query.getQuerySQL());
-
-        if(StringUtils.isNotBlank(params)){
-            JSONObject obj = JSON.parseObject(params);
-            if(obj!=null){
-                modelTag.putAll(obj);
-            }
+        if(params!=null){
+            modelTag.putAll(params);
         }
         return sqlDSR.load(modelTag);
     }

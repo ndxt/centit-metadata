@@ -33,6 +33,7 @@
 
     <properties>
         <common.module.version>1.0-SNAPSHOT</common.module.version>
+        <fileserver.version>2.3-SNAPSHOT</fileserver.version>
     </properties>
 
     <build>

@@ -1,6 +1,11 @@
 package com.centit.product.dbdesign.controller;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.centit.fileserver.utils.FileServerConstant;
+import com.centit.fileserver.utils.FileStore;
+import com.centit.fileserver.utils.SystemTempFileUtils;
+import com.centit.fileserver.utils.UploadDownloadUtils;
 import com.centit.framework.common.*;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
@@ -12,22 +17,33 @@ import com.centit.product.dbdesign.service.MetaChangLogManager;
 import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.support.database.utils.PageDesc;
+import com.centit.support.file.FileSystemOpt;
+import com.centit.support.file.FileType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -180,21 +196,77 @@ public class MetaTableController extends BaseController {
 
     }
 
+
+   private void completedStoreFile(String databaseCode, String tempFilePath, HttpServletRequest request,
+                                    HttpServletResponse response) {
+       String userCode = WebOptUtils.getCurrentUserCode(request);
+       if(StringUtils.isBlank(userCode)){
+           throw new ObjectException("未登录");
+       }
+       if ("".equals(tempFilePath)) {
+           throw new ObjectException("pdm文件不能为空");
+       }
+
+       Pair<Integer, String> ret = mdTableMag.syncPdm(databaseCode,tempFilePath,userCode);
+       JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
+
+   }
+
+    private Pair<String, InputStream> fetchInputStreamFromRequest(HttpServletRequest request) throws IOException {
+        String fileName = request.getParameter("name");
+        if(StringUtils.isBlank(fileName))
+            fileName = request.getParameter("fileName");
+        boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+        if (!isMultipart)
+            return new ImmutablePair<>(fileName, request.getInputStream());
+
+        MultipartResolver resolver = new CommonsMultipartResolver(request.getSession().getServletContext());
+        MultipartHttpServletRequest multiRequest = resolver.resolveMultipart(request);
+//        MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+        Map<String, MultipartFile> map = multiRequest.getFileMap();
+        InputStream fis = null;
+
+        for (Map.Entry<String, MultipartFile> entry : map.entrySet()) {
+            CommonsMultipartFile cMultipartFile = (CommonsMultipartFile) entry.getValue();
+            FileItem fi = cMultipartFile.getFileItem();
+            if (! fi.isFormField())  {
+                fileName = fi.getName();
+                fis = fi.getInputStream();
+                if(fis!=null)
+                    break;
+            }
+        }
+        return  new ImmutablePair<>(fileName, fis);
+    }
+    
     @ApiOperation(value = "导入pdm修改表元数据表")
-    @RequestMapping(value = "/pdm/{databaseCode}", method = RequestMethod.GET)
-    @WrapUpResponseBody
-    public void syncPdm(@PathVariable String databaseCode, String pdmFilePath,
-                                    HttpServletRequest request, HttpServletResponse response) {
-        String userCode = WebOptUtils.getCurrentUserCode(request);
-        if(StringUtils.isBlank(userCode)){
-            throw new ObjectException("未登录");
+    @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.POST)
+    @RequestMapping(value = "/pdm/{databaseCode}", method = {RequestMethod.POST})
+    public void syncPdm(@PathVariable String databaseCode,
+        String token, long size,
+        HttpServletRequest request, HttpServletResponse response)
+        throws IOException {
+
+        Pair<String, InputStream> fileInfo = fetchInputStreamFromRequest(request);
+        String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
+        try {
+            long uploadSize = UploadDownloadUtils.uploadRange(tempFilePath, fileInfo.getRight(), token, size, request);
+            if(uploadSize==0){
+                //上传到临时区成功
+                //fileStore.saveFile(tempFilePath, token, size);
+                completedStoreFile(databaseCode,tempFilePath,request,response);
+                FileSystemOpt.deleteFile(tempFilePath);
+                return;
+            }else if( uploadSize>0){
+                JsonResultUtils.writeOriginalJson(UploadDownloadUtils.
+                    makeRangeUploadJson(uploadSize).toJSONString(), response);
+            }
+
+        }catch (ObjectException e){
+            logger.error(e.getMessage(), e);
+            JsonResultUtils.writeHttpErrorMessage(e.getExceptionCode(),
+                e.getMessage(), response);
         }
-        if ("".equals(pdmFilePath)) {
-            throw new ObjectException("pdm文件不能为空");
-        }
-        pdmFilePath = StringEscapeUtils.unescapeHtml4(pdmFilePath);
-        Pair<Integer, String> ret = mdTableMag.syncPdm(databaseCode,pdmFilePath,userCode);
-        JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }
 
     @ApiOperation(value = "批量发布表元数据表")

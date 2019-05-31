@@ -440,10 +440,18 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 (conn) -> {
                     GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
 
-                    HashSet fieldSet = null ;
+                    HashSet<String> fieldSet = null ;
                     if(fields !=null && fields.length>0) {
-                        fieldSet = new HashSet((fields.length + 5) * 3 / 2);
+                        fieldSet = new HashSet<>((fields.length + 5) * 3 / 2);
                         fieldSet.addAll(tableInfo.getPkColumns());
+                        if(!"0".equals(tableInfo.getWorkFlowOptType())){
+                            fieldSet.add("flowInstId");
+                            fieldSet.add("nodeInstId");
+                        }
+                        if(BooleanBaseOpt.castObjectToBoolean(tableInfo.getUpdateCheckTimeStamp(),false)){
+                            fieldSet.add("lastModifyTime");
+                        }
+
                         for (String f : fields) {
                             fieldSet.add(f);
                         }

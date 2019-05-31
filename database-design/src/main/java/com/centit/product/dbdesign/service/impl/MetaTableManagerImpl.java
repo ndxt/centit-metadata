@@ -236,9 +236,9 @@ public class MetaTableManagerImpl
 
     public void checkPendingMetaTable(PendingMetaTable ptable, String currentUser) {
         if ("Y".equals(ptable.getUpdateCheckTimeStamp())) {
-            PendingMetaColumn col = ptable.findFieldByName("lastModifyDate");
+            PendingMetaColumn col = ptable.findFieldByName("lastModifyTime");
             if (col == null) {
-                col = new PendingMetaColumn(ptable, "LAST_MODIFY_DATE");
+                col = new PendingMetaColumn(ptable, "LAST_MODIFY_TIME");
                 col.setFieldLabelName("最新更新时间");
                 col.setColumnComment("最新更新时间");
                 col.setColumnFieldType(FieldType.DATETIME);
@@ -264,8 +264,8 @@ public class MetaTableManagerImpl
             PendingMetaColumn col = ptable.findFieldByName("nodeInstId");
             if (col == null) {
                 col = new PendingMetaColumn(ptable, "NODE_INST_ID");
-                col.setFieldLabelName("流程实例ID");
-                col.setColumnComment("业务对应的工作流程实例ID");
+                col.setFieldLabelName("节点实例ID");
+                col.setColumnComment("业务对应的工作流节点ID");
                 col.setColumnFieldType(FieldType.INTEGER);
                 col.setMaxLengthM(12);
                 col.setLastModifyDate(DatetimeOpt.currentUtilDate());

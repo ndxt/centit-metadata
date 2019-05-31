@@ -33,6 +33,13 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     private static final long serialVersionUID = -6882747282877249264L;
     public static final String OBJECT_AS_CLOB_FIELD = "JSON_OBJECT_FIELD";
+    public static final String UPDATE_CHECK_TIMESTAMP_FIELD = "LAST_MODIFY_TIME";
+    public static final String UPDATE_CHECK_TIMESTAMP_PROP = "lastModifyTime";
+    public static final String WORKFLOW_INST_ID_FIELD = "FLOW_INST_ID";
+    public static final String WORKFLOW_INST_ID_PROP = "flowInstId";
+    public static final String WORKFLOW_NODE_INST_ID_FIELD = "NODE_INST_ID";
+    public static final String WORKFLOW_NODE_INST_ID_PROP = "nodeInstId";
+
 
     /**
      * 主键前缀

@@ -236,9 +236,9 @@ public class MetaTableManagerImpl
 
     public void checkPendingMetaTable(PendingMetaTable ptable, String currentUser) {
         if ("Y".equals(ptable.getUpdateCheckTimeStamp())) {
-            PendingMetaColumn col = ptable.findFieldByName("lastModifyTime");
+            PendingMetaColumn col = ptable.findFieldByName(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
             if (col == null) {
-                col = new PendingMetaColumn(ptable, "LAST_MODIFY_TIME");
+                col = new PendingMetaColumn(ptable, MetaTable.UPDATE_CHECK_TIMESTAMP_FIELD);
                 col.setFieldLabelName("最新更新时间");
                 col.setColumnComment("最新更新时间");
                 col.setColumnFieldType(FieldType.DATETIME);
@@ -249,9 +249,9 @@ public class MetaTableManagerImpl
         }
 
         if ("1".equals(ptable.getWorkFlowOptType())) {
-            PendingMetaColumn col = ptable.findFieldByName("flowInstId");
+            PendingMetaColumn col = ptable.findFieldByName(MetaTable.WORKFLOW_INST_ID_PROP);
             if (col == null) {
-                col = new PendingMetaColumn(ptable, "FLOW_INST_ID");
+                col = new PendingMetaColumn(ptable, MetaTable.WORKFLOW_INST_ID_FIELD);
                 col.setFieldLabelName("流程实例ID");
                 col.setColumnComment("业务对应的工作流程实例ID");
                 col.setColumnFieldType(FieldType.INTEGER);
@@ -261,9 +261,9 @@ public class MetaTableManagerImpl
                 ptable.addMdColumn(col);
             }
         } else if ("2".equals(ptable.getWorkFlowOptType())) {
-            PendingMetaColumn col = ptable.findFieldByName("nodeInstId");
+            PendingMetaColumn col = ptable.findFieldByName(MetaTable.WORKFLOW_NODE_INST_ID_PROP);
             if (col == null) {
-                col = new PendingMetaColumn(ptable, "NODE_INST_ID");
+                col = new PendingMetaColumn(ptable, MetaTable.WORKFLOW_NODE_INST_ID_FIELD);
                 col.setFieldLabelName("节点实例ID");
                 col.setColumnComment("业务对应的工作流节点ID");
                 col.setColumnFieldType(FieldType.INTEGER);

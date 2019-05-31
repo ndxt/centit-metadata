@@ -445,11 +445,11 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         fieldSet = new HashSet<>((fields.length + 5) * 3 / 2);
                         fieldSet.addAll(tableInfo.getPkColumns());
                         if(!"0".equals(tableInfo.getWorkFlowOptType())){
-                            fieldSet.add("flowInstId");
-                            fieldSet.add("nodeInstId");
+                            fieldSet.add(MetaTable.WORKFLOW_INST_ID_PROP);
+                            fieldSet.add(MetaTable.WORKFLOW_NODE_INST_ID_PROP);
                         }
                         if(BooleanBaseOpt.castObjectToBoolean(tableInfo.getUpdateCheckTimeStamp(),false)){
-                            fieldSet.add("lastModifyTime");
+                            fieldSet.add(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
                         }
 
                         for (String f : fields) {

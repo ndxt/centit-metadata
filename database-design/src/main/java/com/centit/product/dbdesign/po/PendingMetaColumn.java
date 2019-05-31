@@ -126,7 +126,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
 /** full constructor */
     public PendingMetaColumn(String  fieldLabelName,String  columnComment,Long  columnOrder,String  columnType,
-            Integer  maxLength,Integer  scale,String  accessType,String  mandatory,String  primarykey,String  columnState,String  referenceType,String  referenceData,String  validateRegex,String  validateInfo,String  defaultValue,Date  lastModifyDate,String  recorder) {
+            Integer  maxLength,Integer  scale,String  mandatory,String  primarykey,String  defaultValue,Date  lastModifyDate,String  recorder) {
 
 //        this.cid=cid;
         this.fieldLabelName= fieldLabelName;

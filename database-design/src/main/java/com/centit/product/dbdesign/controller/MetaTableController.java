@@ -5,17 +5,15 @@ import com.centit.framework.common.*;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
-import com.centit.framework.security.model.CentitUserDetails;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
-import com.centit.product.dbdesign.pdmutils.PdmTableInfo;
 import com.centit.product.dbdesign.po.MetaChangLog;
 import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
 import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.po.MetaColumn;
-import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -26,7 +24,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.HandlerMapping;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -58,7 +55,7 @@ public class MetaTableController extends BaseController {
     @Resource
     private PendingMetaTableDao pendingMetaTableDao;
 
-    @ApiOperation(value = "查询表元数据更改(发布)记录")
+    @ApiOperation(value = "查询表元数据更改发布记录")
     @RequestMapping(value = "/log", method = RequestMethod.GET)
     @WrapUpResponseBody
     public PageQueryResult loglist(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
@@ -72,25 +69,22 @@ public class MetaTableController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "查询所有表元数据")
-    @RequestMapping(method = RequestMethod.GET)
+    @ApiOperation(value = "查看单个表元数据发布记录")
+    @RequestMapping(value = "/log/{changeId}", method = {RequestMethod.GET})
     @WrapUpResponseBody
-    public PageQueryResult list(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
-        Map<String, Object> searchColumn = convertSearchColumn(request);
-        JSONArray listObjects = mdTableMag.listObjectsAsJson(searchColumn, pageDesc);
-        if (ArrayUtils.isNotEmpty(field)) {
-            return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, field, MetaTable.class);
-        }
-        else{
-            return PageQueryResult.createJSONArrayResult(listObjects,pageDesc,MetaTable.class);
-        }
+    public MetaChangLog getMdTableLog(@PathVariable String changeId) {
+        MetaChangLog changLog = mdTableMag.getMetaChangLog(changeId);
+        return changLog;
     }
 
-    @ApiOperation(value = "获取未落实表元数据表")
-    @RequestMapping(value="/listdraft",method = RequestMethod.GET)
+    @ApiOperation(value = "查询表元数据表")
+    @ApiImplicitParam(name = "databaseCode", value = "数据库代码")
+    @RequestMapping(value="/{databaseCode}/list",method = RequestMethod.GET)
     @WrapUpResponseBody
-    public PageQueryResult listdraft(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
+    public PageQueryResult listdraft(@PathVariable String databaseCode, String[] field, PageDesc pageDesc,
+                                     HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = convertSearchColumn(request);
+        searchColumn.put("databaseCode",databaseCode);
         JSONArray listObjects = mdTableMag.listDrafts(field, searchColumn, pageDesc);
         if (ArrayUtils.isNotEmpty(field)) {
             return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, field, PendingMetaTable.class);
@@ -100,16 +94,8 @@ public class MetaTableController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "查询单个表元数据")
+    @ApiOperation(value = "查询单个表元数据表")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.GET})
-    @WrapUpResponseBody
-    public MetaTable getMdTable(@PathVariable String tableId) {
-        MetaTable mdTable = mdTableMag.getObjectById(tableId);
-        return mdTable;
-    }
-
-    @ApiOperation(value = "查询单个表元数据表(未落实)")
-    @RequestMapping(value = "/draft/{tableId}", method = {RequestMethod.GET})
     @WrapUpResponseBody
     public PendingMetaTable getMdTableDraft(@PathVariable String tableId) {
         PendingMetaTable mdTable = mdTableMag.getPendingMetaTable(tableId);
@@ -129,7 +115,7 @@ public class MetaTableController extends BaseController {
     }
 
     @ApiOperation(value = "编辑表元数据表")
-    @RequestMapping(value = "/draft/{tableId}", method = {RequestMethod.PUT})
+    @RequestMapping(value = "/{tableId}", method = {RequestMethod.PUT})
     @WrapUpResponseBody
     public void updateMdTable(@PathVariable String tableId, @RequestBody PendingMetaTable mdTable) {
         mdTable.setTableId(tableId);
@@ -137,13 +123,13 @@ public class MetaTableController extends BaseController {
     }
 
     @ApiOperation(value = "删除单个表元数据表")
-    @RequestMapping(value = "/draft/{tableId}", method = {RequestMethod.DELETE})
+    @RequestMapping(value = "/{tableId}", method = {RequestMethod.DELETE})
     @WrapUpResponseBody
     public void deleteMdTable(@PathVariable String tableId) {
         mdTableMag.deletePendingMetaTable(tableId);
     }
 
-    @ApiOperation(value = "发布表元数据表,查看创建表的sql")
+    @ApiOperation(value = "查看发布表元数据表的sql")
     @RequestMapping(value = "/beforePublish/{ptableId}", method = {RequestMethod.POST})
     public void alertSqlBeforePublish(@PathVariable String ptableId,
                                       HttpServletRequest request, HttpServletResponse response) {
@@ -194,7 +180,7 @@ public class MetaTableController extends BaseController {
 
     }
 
-    @ApiOperation(value = "导入pdm修改表结构")
+    @ApiOperation(value = "导入pdm修改表元数据表")
     @RequestMapping(value = "/pdm/{databaseCode}", method = RequestMethod.GET)
     @WrapUpResponseBody
     public void syncPdm(@PathVariable String databaseCode, String pdmFilePath,
@@ -208,6 +194,20 @@ public class MetaTableController extends BaseController {
         }
         pdmFilePath = StringEscapeUtils.unescapeHtml4(pdmFilePath);
         Pair<Integer, String> ret = mdTableMag.syncPdm(databaseCode,pdmFilePath,userCode);
+        JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
+    }
+
+    @ApiOperation(value = "批量发布表元数据表")
+    @RequestMapping(value = "/{databaseCode}/publish", method = {RequestMethod.POST})
+    public void publishDatabase(@PathVariable String databaseCode,
+                               HttpServletRequest request, HttpServletResponse response) {
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if (StringUtils.isBlank(userCode)) {
+            JsonResultUtils.writeErrorMessageJson(ResponseData.ERROR_UNAUTHORIZED,
+                "当前用户没有登录，请先登录。", response);
+            return;
+        }
+        Pair<Integer, String> ret = mdTableMag.publishDatabase(databaseCode, userCode);
         JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }
 }

@@ -131,7 +131,13 @@ public class DataPacket implements Serializable {
         if(StringUtils.isBlank(dataOptDescJson)) {
             return null;
         }
-        return JSONObject.parseObject(dataOptDescJson);
+        try {
+            return JSONObject.parseObject(dataOptDescJson);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return  null;
+        }
+
     }
 
 }

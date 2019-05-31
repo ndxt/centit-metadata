@@ -74,9 +74,6 @@ public class MetaTableManagerImpl
     private MetaColumnDao metaColumnDao;
 
     @Resource
-    private MetaRelationDao metaRelationDao;
-
-    @Resource
     private MetaChangLogDao metaChangLogDao;
 
     @Resource
@@ -127,6 +124,13 @@ public class MetaTableManagerImpl
 
         PendingMetaTable resultPdMetaTable = pendingMdTableDao.getObjectById(tableId);
         return pendingMdTableDao.fetchObjectReferences(resultPdMetaTable);
+    }
+
+    @Override
+    @Transactional
+    public MetaChangLog getMetaChangLog(String changeId) {
+        MetaChangLog metaChangLog = metaChangLogDao.getObjectById(changeId);
+        return metaChangLog;
     }
 
     @Override
@@ -348,53 +352,26 @@ public class MetaTableManagerImpl
             chgLog.setTableID(ptable.getTableId());
             chgLog.setChanger(currentUser);
             metaChangLogDao.saveNewObject(chgLog);
-            if (errors.size() == 0 && sqls.size() > 0) {
+            if (errors.size() == 0) {
                 ptable.setRecorder(currentUser);
                 ptable.setTableState("S");
                 ptable.setLastModifyDate(new Date());
                 pendingMdTableDao.mergeObject(ptable);
+                if (sqls.size() > 0) {
+                    MetaTable table = ptable.mapToMetaTable(); //new MetaTable(ptable)
+                    metaTableDao.mergeObject(table);
 
-                MetaTable table = ptable.mapToMetaTable(); //new MetaTable(ptable)
-                metaTableDao.mergeObject(table);
-
-                List<MetaColumn> metaColumns = table.getColumns();
-                Map<String, Object> cFilter = new HashMap<>();
-                cFilter.put("tableId", table.getTableId());
-                metaColumnDao.deleteObjectsByProperties(cFilter);
-                if (metaColumns != null && metaColumns.size() > 0) {
-                    for (MetaColumn metaColumn : metaColumns) {
-                        metaColumnDao.saveNewObject(metaColumn);
-                    }
-                }
-
-                List<MetaRelation> metaRelations = new ArrayList<>(table.getMdRelations());
-                Map<String, Object> rFilter = new HashMap<>();
-                rFilter.put("parentTableId", table.getTableId());
-                metaRelationDao.deleteObjectsByProperties(rFilter);
-                if (metaRelations != null && metaRelations.size() > 0) {
-                    for (int j = 0; j < metaRelations.size(); j++) {
-                        MetaRelation tempRelation = metaRelations.get(j);
-                        if (tempRelation.getRelationState() == null) {
-                            tempRelation.setRelationState("N");
+                    List<MetaColumn> metaColumns = table.getColumns();
+                    Map<String, Object> cFilter = new HashMap<>();
+                    cFilter.put("tableId", table.getTableId());
+                    metaColumnDao.deleteObjectsByProperties(cFilter);
+                    if (metaColumns != null && metaColumns.size() > 0) {
+                        for (MetaColumn metaColumn : metaColumns) {
+                            metaColumnDao.saveNewObject(metaColumn);
                         }
-                        metaRelationDao.saveNewObject(metaRelations.get(j));
-                        //List<MetaRelDetail> relDetails = new ArrayList(metaRelations.get(j).getRelationDetails());
-                        metaRelationDao.saveObjectReferences(metaRelations.get(j));
-                        /*if (relDetails != null && relDetails.size() > 0) {
-                            for (MetaRelDetail relDetail : relDetails) {
-                                Map<String, Object> relFilter = new HashMap<>();
-                                relFilter.put("relationId", relDetail.getRelationId());
-                                metaRelDetialDao.deleteObjectsByProperties(relFilter);
-
-                                relDetail.setRelationId(metaRelations.get(j).getRelationId());
-                                metaRelDetialDao.saveNewObject(relDetail);
-                            }
-                        }*/
                     }
                 }
                 return new ImmutablePair<>(0, "发布成功！");
-            } else if (errors.size() == 0 && sqls.size() == 0) {
-                return new ImmutablePair<>(0, "信息未变更，无需发布！");
             } else
                 return new ImmutablePair<>(-10, JSON.toJSONString(errors));
         } catch (Exception e) {
@@ -465,85 +442,99 @@ public class MetaTableManagerImpl
 
     @Override
     @Transactional
-    public Pair<Integer, String> syncPdm(String databaseCode, String pdmFilePath, String recorder){
-        List<SimpleTableInfo> pdmTables = PdmTableInfo.importTableFromPdm(pdmFilePath);
-        List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
-        Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName(), o2.getTableName());
-        Triple<List<SimpleTableInfo>, List<Pair<PendingMetaTable, SimpleTableInfo>>, List<PendingMetaTable>> triple = compareMetaBetweenPdmTables(pendingMetaTables, pdmTables, comparator);
-        if(triple.getLeft() != null && triple.getLeft().size() > 0) {
-            //新增
-            for(SimpleTableInfo pdmtable : triple.getLeft()){
-                //表
-                PendingMetaTable metaTable = new PendingMetaTable().convertFromPdmTable(pdmtable);
-                metaTable.setDatabaseCode(databaseCode);
-                metaTable.setRecorder(recorder);
-                pendingMdTableDao.saveNewObject(metaTable);
-                //列
-                List<SimpleTableField> columns = pdmtable.getColumns();
-                for(SimpleTableField field : columns) {
-                    PendingMetaColumn mdColumn = new PendingMetaColumn().convertFromTableField(field);
-                    mdColumn.setTableId(metaTable.getTableId());
-                    for(String pkcode : pdmtable.getPkColumns()) {
-                        mdColumn.setPrimarykey(mdColumn.getColumnName().equals(pkcode) ? "T" : "F");
-                    }
-                    mdColumn.setRecorder(recorder);
-                    pendingMetaColumnDao.saveNewObject(mdColumn);
-                }
-            }
-        }
-        if(triple.getRight() != null && triple.getRight().size() > 0) {
-            //删除
-            for (PendingMetaTable table : triple.getRight()) {
-                pendingMdTableDao.deleteObjectReferences(table);
-                pendingMdTableDao.deleteObject(table);
-            }
-        }
-        if(triple.getMiddle() != null && triple.getMiddle().size() > 0) {
-            //更新
-            for(Pair<PendingMetaTable, SimpleTableInfo> pair : triple.getMiddle()){
-                PendingMetaTable oldTable = pair.getLeft();
-                oldTable.setRecorder(recorder);
-                SimpleTableInfo newTable = pair.getRight();
-                //表
-                pendingMdTableDao.updateObject(oldTable.convertFromPdmTable(newTable));
-                //列
-                oldTable = pendingMdTableDao.fetchObjectReferences(oldTable);
-                List<PendingMetaColumn> oldColumns = oldTable.getColumns();
-                List<SimpleTableField> newColumns = newTable.getColumns();
-                Comparator<TableField> columnComparator = (o1, o2) -> StringUtils.compare(o1.getColumnName(), o2.getColumnName());
-                Triple<List<SimpleTableField>, List<Pair<PendingMetaColumn, SimpleTableField>>, List<PendingMetaColumn>> columnCompared = compareMetaBetweenPdmTables(oldColumns, newColumns, columnComparator);
-                if(columnCompared.getLeft() != null && columnCompared.getLeft().size() > 0){
-                    //新增
-                    for(SimpleTableField tableField : columnCompared.getLeft()){
-                        PendingMetaColumn metaColumn = new PendingMetaColumn().convertFromTableField(tableField);
-                        metaColumn.setTableId(oldTable.getTableId());
-                        metaColumn.setRecorder(recorder);
-                        for (String pk :newTable.getPkColumns()) {
-                            metaColumn.setPrimarykey(metaColumn.getColumnName().equals(pk) ? "T" : "F");
+    public Pair<Integer, String> syncPdm(String databaseCode, String pdmFilePath, String recorder) {
+        try {
+            List<SimpleTableInfo> pdmTables = PdmTableInfo.importTableFromPdm(pdmFilePath);
+            if (pdmTables == null)
+                return new ImmutablePair<>(-1, "读取文件失败,导入失败！");
+            List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
+            Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName(), o2.getTableName());
+            Triple<List<SimpleTableInfo>, List<Pair<PendingMetaTable, SimpleTableInfo>>, List<PendingMetaTable>> triple = compareMetaBetweenPdmTables(pendingMetaTables, pdmTables, comparator);
+            if (triple.getLeft() != null && triple.getLeft().size() > 0) {
+                //新增
+                for (SimpleTableInfo pdmtable : triple.getLeft()) {
+                    //表
+                    PendingMetaTable metaTable = new PendingMetaTable().convertFromPdmTable(pdmtable);
+                    metaTable.setDatabaseCode(databaseCode);
+                    metaTable.setRecorder(recorder);
+                    pendingMdTableDao.saveNewObject(metaTable);
+                    //列
+                    List<SimpleTableField> columns = pdmtable.getColumns();
+                    for (SimpleTableField field : columns) {
+                        PendingMetaColumn mdColumn = new PendingMetaColumn().convertFromTableField(field);
+                        mdColumn.setTableId(metaTable.getTableId());
+                        for (String pkcode : pdmtable.getPkColumns()) {
+                            mdColumn.setPrimarykey(mdColumn.getColumnName().equals(pkcode) ? "T" : "F");
                         }
-                        pendingMetaColumnDao.saveNewObject(metaColumn);
-                    }
-                }
-                if(columnCompared.getRight() != null && columnCompared.getRight().size() > 0){
-                    //删除
-                    for(PendingMetaColumn metaColumn : columnCompared.getRight()){
-                        pendingMetaColumnDao.deleteObject(metaColumn);
-                    }
-                }
-                if(columnCompared.getMiddle() != null && columnCompared.getMiddle().size() > 0){
-                    //更新
-                    for(Pair<PendingMetaColumn, SimpleTableField> columnPair : columnCompared.getMiddle()){
-                        PendingMetaColumn oldColumn = columnPair.getLeft();
-                        oldColumn.setRecorder(recorder);
-                        SimpleTableField newColumn = columnPair.getRight();
-                        for (String pk :newTable.getPkColumns()) {
-                            oldColumn.setPrimarykey(newColumn.getColumnName().equals(pk) ? "T" : "F");
-                        }
-                        pendingMetaColumnDao.updateObject(oldColumn.convertFromTableField(newColumn));
+                        mdColumn.setRecorder(recorder);
+                        pendingMetaColumnDao.saveNewObject(mdColumn);
                     }
                 }
             }
+            if (triple.getRight() != null && triple.getRight().size() > 0) {
+                //删除
+                for (PendingMetaTable table : triple.getRight()) {
+                    pendingMdTableDao.deleteObjectReferences(table);
+                    pendingMdTableDao.deleteObject(table);
+                }
+            }
+            if (triple.getMiddle() != null && triple.getMiddle().size() > 0) {
+                //更新
+                for (Pair<PendingMetaTable, SimpleTableInfo> pair : triple.getMiddle()) {
+                    PendingMetaTable oldTable = pair.getLeft();
+                    oldTable.setRecorder(recorder);
+                    SimpleTableInfo newTable = pair.getRight();
+                    //表
+                    pendingMdTableDao.updateObject(oldTable.convertFromPdmTable(newTable));
+                    //列
+                    oldTable = pendingMdTableDao.fetchObjectReferences(oldTable);
+                    List<PendingMetaColumn> oldColumns = oldTable.getColumns();
+                    List<SimpleTableField> newColumns = newTable.getColumns();
+                    Comparator<TableField> columnComparator = (o1, o2) -> StringUtils.compare(o1.getColumnName(), o2.getColumnName());
+                    Triple<List<SimpleTableField>, List<Pair<PendingMetaColumn, SimpleTableField>>, List<PendingMetaColumn>> columnCompared = compareMetaBetweenPdmTables(oldColumns, newColumns, columnComparator);
+                    if (columnCompared.getLeft() != null && columnCompared.getLeft().size() > 0) {
+                        //新增
+                        for (SimpleTableField tableField : columnCompared.getLeft()) {
+                            PendingMetaColumn metaColumn = new PendingMetaColumn().convertFromTableField(tableField);
+                            metaColumn.setTableId(oldTable.getTableId());
+                            metaColumn.setRecorder(recorder);
+                            for (String pk : newTable.getPkColumns()) {
+                                metaColumn.setPrimarykey(metaColumn.getColumnName().equals(pk) ? "T" : "F");
+                            }
+                            pendingMetaColumnDao.saveNewObject(metaColumn);
+                        }
+                    }
+                    if (columnCompared.getRight() != null && columnCompared.getRight().size() > 0) {
+                        //删除
+                        for (PendingMetaColumn metaColumn : columnCompared.getRight()) {
+                            pendingMetaColumnDao.deleteObject(metaColumn);
+                        }
+                    }
+                    if (columnCompared.getMiddle() != null && columnCompared.getMiddle().size() > 0) {
+                        //更新
+                        for (Pair<PendingMetaColumn, SimpleTableField> columnPair : columnCompared.getMiddle()) {
+                            PendingMetaColumn oldColumn = columnPair.getLeft();
+                            oldColumn.setRecorder(recorder);
+                            SimpleTableField newColumn = columnPair.getRight();
+                            for (String pk : newTable.getPkColumns()) {
+                                oldColumn.setPrimarykey(newColumn.getColumnName().equals(pk) ? "T" : "F");
+                            }
+                            pendingMetaColumnDao.updateObject(oldColumn.convertFromTableField(newColumn));
+                        }
+                    }
+                }
+            }
+            return new ImmutablePair<>(0, "导入成功！");
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            logger.error(e.getMessage());
+            return new ImmutablePair<>(-1, "导入失败!" + e.getMessage());
         }
+    }
+
+    @Override
+    @Transactional
+    public Pair<Integer, String> publishDatabase(String databaseCode, String recorder){
         List<PendingMetaTable> metaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
         List<Pair<Integer, String>> pairs = new ArrayList<>();
         for (PendingMetaTable pendingMetaTable : metaTables) {
@@ -553,7 +544,7 @@ public class MetaTableManagerImpl
             }
         }
         if (pairs.size() == 0)
-            pairs.add(new ImmutablePair<>(0, "pdm导入发布成功"));
+            pairs.add(new ImmutablePair<>(0, "批量发布成功"));
         StringBuffer sPair = new StringBuffer("");
         for (Pair<Integer, String> pair : pairs) {
             sPair.append(pair.getRight())

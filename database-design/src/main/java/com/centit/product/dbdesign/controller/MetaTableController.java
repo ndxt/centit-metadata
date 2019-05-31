@@ -212,33 +212,6 @@ public class MetaTableController extends BaseController {
 
    }
 
-    private Pair<String, InputStream> fetchInputStreamFromRequest(HttpServletRequest request) throws IOException {
-        String fileName = request.getParameter("name");
-        if(StringUtils.isBlank(fileName))
-            fileName = request.getParameter("fileName");
-        boolean isMultipart = ServletFileUpload.isMultipartContent(request);
-        if (!isMultipart)
-            return new ImmutablePair<>(fileName, request.getInputStream());
-
-        MultipartResolver resolver = new CommonsMultipartResolver(request.getSession().getServletContext());
-        MultipartHttpServletRequest multiRequest = resolver.resolveMultipart(request);
-//        MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
-        Map<String, MultipartFile> map = multiRequest.getFileMap();
-        InputStream fis = null;
-
-        for (Map.Entry<String, MultipartFile> entry : map.entrySet()) {
-            CommonsMultipartFile cMultipartFile = (CommonsMultipartFile) entry.getValue();
-            FileItem fi = cMultipartFile.getFileItem();
-            if (! fi.isFormField())  {
-                fileName = fi.getName();
-                fis = fi.getInputStream();
-                if(fis!=null)
-                    break;
-            }
-        }
-        return  new ImmutablePair<>(fileName, fis);
-    }
-    
     @ApiOperation(value = "导入pdm修改表元数据表")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.POST)
     @RequestMapping(value = "/pdm/{databaseCode}", method = {RequestMethod.POST})
@@ -247,7 +220,7 @@ public class MetaTableController extends BaseController {
         HttpServletRequest request, HttpServletResponse response)
         throws IOException {
 
-        Pair<String, InputStream> fileInfo = fetchInputStreamFromRequest(request);
+        Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
         String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
         try {
             long uploadSize = UploadDownloadUtils.uploadRange(tempFilePath, fileInfo.getRight(), token, size, request);

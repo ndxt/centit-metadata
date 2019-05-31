@@ -118,9 +118,9 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String writeOptLog;
 
-    //Y/N 更新时是否校验时间戳 添加 Last_modify_time datetime
+    //T/F 更新时是否校验时间戳 添加 Last_modify_time datetime
     @Column(name = "UPDATE_CHECK_TIMESTAMP")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank(message = "字段不能为空[T/F]")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String updateCheckTimeStamp;
 

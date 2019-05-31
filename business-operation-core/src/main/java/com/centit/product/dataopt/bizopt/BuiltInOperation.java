@@ -156,6 +156,14 @@ public class BuiltInOperation implements BizOperation {
         return bizModel;
     }
 
+    protected BizModel runSort(BizModel bizModel, JSONObject bizOptJson) {
+        String sour1DSName = getJsonFieldString(bizOptJson,"source", null);
+        List<String> orderByFields = StringBaseOpt.objectToStringList(bizOptJson.get("orderBy"));
+        DataSet dataSet = bizModel.fetchDataSetByName(sour1DSName);
+        /*DataSet destDS = */DataSetOptUtil.sortDataSetByFields(dataSet, orderByFields);
+        return bizModel;
+    }
+
     protected BizModel runJoin(BizModel bizModel, JSONObject bizOptJson) {
         String sour1DSName = getJsonFieldString(bizOptJson,"source", null);
         String sour2DSName = getJsonFieldString(bizOptJson,"source2", null);
@@ -243,6 +251,8 @@ public class BuiltInOperation implements BizOperation {
                 return runCross(bizModel, bizOptJson);
             case "compare":
                 return runCompare(bizModel, bizOptJson);
+            case "sort":
+                return runSort(bizModel, bizOptJson);
             case "join":
                 return runJoin(bizModel, bizOptJson);
             case "union":

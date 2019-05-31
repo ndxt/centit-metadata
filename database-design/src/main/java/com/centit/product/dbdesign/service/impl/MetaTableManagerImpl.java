@@ -340,7 +340,7 @@ public class MetaTableManagerImpl
                         jsonDao.doExecuteSql(sql);
                     } catch (SQLException se) {
                         errors.add(se.getMessage());
-                        throw new RuntimeException("执行sql失败:" + sql, se);
+                        logger.error("执行sql失败:" + sql, se);
                     }
                 }
             } finally {

@@ -279,11 +279,12 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     public MetaRelation getMetaRelationById(String relationId){
         MetaRelation relation = metaRelationDao.getObjectById(relationId);
-        fetchMetaRelationDetail(relation);
+        metaRelationDao.fetchObjectReferences(relation);
+        /*fetchMetaRelationDetail(relation);
         MetaTable table = metaTableDao.getObjectById(relation.getParentTableId());
         if (table!=null) {
             relation.setParentTable(table);
-        }
+        }*/
         return relation;
     }
 

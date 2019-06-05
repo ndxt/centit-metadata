@@ -6,7 +6,6 @@ import com.centit.framework.common.ObjectException;
 import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
-import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.po.MetaColumn;
@@ -21,8 +20,6 @@ import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +32,7 @@ import java.util.*;
 @Service
 @Transactional
 public class MetaObjectServiceImpl implements MetaObjectService {
-    private Logger logger = LoggerFactory.getLogger(MetaObjectServiceImpl.class);
+    //private Logger logger = LoggerFactory.getLogger(MetaObjectServiceImpl.class);
 
     @Autowired
     private IntegrationEnvironment integrationEnvironment;
@@ -88,7 +85,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
 
-    private static Map<String, Object> makeObjectValueByGenerator(Map<String, Object> object, MetaTable metaTable,
+    private static void makeObjectValueByGenerator(Map<String, Object> object, MetaTable metaTable,
                                                     JsonObjectDao sqlDialect)
         throws SQLException, IOException {
 
@@ -118,8 +115,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 }
             }
         }
-
-        return object;
     }
 
     @Override
@@ -196,8 +191,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 MetaTable subTableInfo = fetchTableInfo(md.getChildTableId(),true);
                 if(withChildrenDeep >1 && ja != null) {
                     for (Object subObject : ja){
-                        fetchObjectRefrences(conn, (Map)subObject,
-                            subTableInfo, withChildrenDeep -1);
+                        if(subObject instanceof Map) {
+                            fetchObjectRefrences(conn, (Map<String, Object>) subObject,
+                                subTableInfo, withChildrenDeep - 1);
+                        }
                     }
                 }
                 mainObj.put(md.getRelationName(), ja);
@@ -451,13 +448,11 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         if(BooleanBaseOpt.castObjectToBoolean(tableInfo.getUpdateCheckTimeStamp(),false)){
                             fieldSet.add(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
                         }
-
-                        for (String f : fields) {
-                            fieldSet.add(f);
-                        }
+                        Collections.addAll(fieldSet, fields);
                     }
-                    Pair<String,String[]> q = (fieldSet == null) ? dao.buildFieldSqlWithFieldName(tableInfo,null)
-                        : dao.buildPartFieldSqlWithFieldName(tableInfo, fieldSet, null);
+                    Pair<String,String[]> q = (fieldSet == null) ?
+                        GeneralJsonObjectDao.buildFieldSqlWithFieldName(tableInfo,null)
+                        : GeneralJsonObjectDao.buildPartFieldSqlWithFieldName(tableInfo, fieldSet, null);
 
                     String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null, params.keySet());
                     if(StringUtils.isNotBlank(extFilter)){

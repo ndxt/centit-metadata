@@ -268,16 +268,45 @@ public class MetaDataServiceImpl implements MetaDataService {
         return metaTable;
     }
 
+    private void fetchMetaRelationDetail(MetaRelation relation){
+        metaRelationDao.fetchObjectReferences(relation);
+        MetaTable table = metaTableDao.getObjectById(relation.getChildTableId());
+        if (table!=null) {
+            relation.setChildTable(table);
+        }
+    }
+
+    @Override
+    public MetaRelation getMetaRelationById(String relationId){
+        MetaRelation relation = metaRelationDao.getObjectById(relationId);
+        fetchMetaRelationDetail(relation);
+        MetaTable table = metaTableDao.getObjectById(relation.getParentTableId());
+        if (table!=null) {
+            relation.setParentTable(table);
+        }
+        return relation;
+    }
+
+    @Override
+    public List<MetaRelation> listMetaRelation(String tableId){
+        List<MetaRelation> list = metaRelationDao.listObjectsByProperty("parentTableId", tableId);
+        for(MetaRelation relation : list){
+            fetchMetaRelationDetail(relation);
+        }
+        return list;
+    }
+
+    @Override
+    public List<MetaColumn> listMetaColumns(String tableId){
+        return metaColumnDao.listObjectsByProperty("tableId", tableId);
+    }
 
     @Override
     public List<MetaRelation> listMetaRelation(String tableId, PageDesc pageDesc) {
-        List<MetaRelation> list = metaRelationDao.listObjectsByProperty("parentTableId", tableId);
+        List<MetaRelation> list = metaRelationDao.listObjectsByProperties(
+            CollectionsOpt.createHashMap("parentTableId", tableId),pageDesc);
         for(MetaRelation relation : list){
-            metaRelationDao.fetchObjectReferences(relation);
-            MetaTable table = metaTableDao.getObjectById(relation.getChildTableId());
-            if (table!=null) {
-                relation.setChildTable(table);
-            }
+            fetchMetaRelationDetail(relation);
         }
         return list;
     }

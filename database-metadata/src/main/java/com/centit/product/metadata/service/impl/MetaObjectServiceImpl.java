@@ -472,7 +472,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     if(StringUtils.isNotBlank(filter)) {
                         sql = sql + " where " + filter;
                     }
-                    String orderBy = BaseDaoImpl.fetchSelfOrderSql(sql, params);
+                    String orderBy = GeneralJsonObjectDao.fetchSelfOrderSql(sql, params);
                     if(StringUtils.isNotBlank(orderBy)){
                         sql = sql + " order by "
                             + QueryUtils.cleanSqlStatement(orderBy);
@@ -511,7 +511,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     public JSONArray pageQueryObjects(String tableId, String namedSql, Map<String, Object> params, PageDesc pageDesc) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
-        String orderBy = BaseDaoImpl.fetchSelfOrderSql(namedSql, params);
+        String orderBy = GeneralJsonObjectDao.fetchSelfOrderSql(namedSql, params);
         final String querySql = StringUtils.isBlank(orderBy) ? namedSql
             : QueryUtils.removeOrderBy(namedSql) + " order by "
                 + QueryUtils.cleanSqlStatement(orderBy);

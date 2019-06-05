@@ -38,7 +38,13 @@ public interface MetaDataService {
 
     List<MetaRelation> listMetaRelation(String tableId, PageDesc pageDesc);
 
-    List<MetaColumn> listMetaColumns(String tableName, PageDesc pageDesc);
+    List<MetaColumn> listMetaColumns(String tableId, PageDesc pageDesc);
+
+    MetaRelation getMetaRelationById(String relationId);
+
+    List<MetaRelation> listMetaRelation(String tableId);
+
+    List<MetaColumn> listMetaColumns(String tableId);
 
     void createRelation(MetaRelation relation);
 

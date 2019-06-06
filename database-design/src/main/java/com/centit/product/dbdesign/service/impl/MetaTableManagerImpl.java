@@ -373,7 +373,7 @@ public class MetaTableManagerImpl
                 }
                 return new ImmutablePair<>(0, "发布成功！");
             } else
-                return new ImmutablePair<>(-10, JSON.toJSONString(errors));
+                return new ImmutablePair<>(-10, "发布失败!" + JSON.toJSONString(errors));
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
@@ -442,9 +442,9 @@ public class MetaTableManagerImpl
 
     @Override
     @Transactional
-    public Pair<Integer, String> syncPdm(String databaseCode, String pdmFilePath, String recorder) {
+    public Pair<Integer, String> syncPdm(String databaseCode, String pdmFilePath, List<String> tables, String recorder) {
         try {
-            List<SimpleTableInfo> pdmTables = PdmTableInfo.importTableFromPdm(pdmFilePath);
+            List<SimpleTableInfo> pdmTables = PdmTableInfo.importTableFromPdm(pdmFilePath,tables);
             if (pdmTables == null)
                 return new ImmutablePair<>(-1, "读取文件失败,导入失败！");
             List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});

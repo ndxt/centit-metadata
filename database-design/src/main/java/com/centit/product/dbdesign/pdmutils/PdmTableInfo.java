@@ -69,4 +69,16 @@ public class PdmTableInfo{
         return pdmTables;
     }
 
+    public static List<SimpleTableInfo> importTableFromPdm(String pdmFilePath, List<String> tables) {
+        PdmReader pdmReader = new PdmReader();
+        if(!pdmReader.loadPdmFile(pdmFilePath))
+            return null;
+        List<SimpleTableInfo> pdmTables = new ArrayList<>();
+        for (String table : tables) {
+            SimpleTableInfo pdmTable = pdmReader.getTableMetadata(table);
+            pdmTables.add(pdmTable);
+        }
+        return pdmTables;
+    }
+
 }

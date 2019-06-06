@@ -2,8 +2,6 @@ package com.centit.product.dbdesign.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.centit.fileserver.utils.FileServerConstant;
-import com.centit.fileserver.utils.FileStore;
 import com.centit.fileserver.utils.SystemTempFileUtils;
 import com.centit.fileserver.utils.UploadDownloadUtils;
 import com.centit.framework.common.*;
@@ -11,39 +9,29 @@ import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
+import com.centit.product.dbdesign.pdmutils.PdmTableInfo;
 import com.centit.product.dbdesign.po.MetaChangLog;
 import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
 import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.po.MetaColumn;
+import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;
-import com.centit.support.file.FileSystemOpt;
-import com.centit.support.file.FileType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.multipart.MultipartResolver;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -120,14 +108,12 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "新增表元数据表")
     @RequestMapping(method = {RequestMethod.POST})
-    public void createMdTable(PendingMetaTable mdTable, HttpServletResponse response) {
-        PendingMetaTable table = new PendingMetaTable();
-        table.copyNotNullProperty(mdTable);
-        if (null == table.getTableId()) {
-            table.setTableId(String.valueOf(pendingMetaTableDao.getNextKey()));
-        }
-        mdTableMag.saveNewPendingMetaTable(table);
-        JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
+    public void createMdTable(PendingMetaTable mdTable,HttpServletRequest request,
+                              HttpServletResponse response) {
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        mdTable.setRecorder(userCode);
+        mdTableMag.saveNewPendingMetaTable(mdTable);
+        JsonResultUtils.writeSingleDataJson(mdTable.getTableId(), response);
     }
 
     @ApiOperation(value = "编辑表元数据表")
@@ -199,20 +185,21 @@ public class MetaTableController extends BaseController {
 
    private void completedStoreFile(String databaseCode, String tempFilePath, HttpServletRequest request,
                                     HttpServletResponse response) {
-       String userCode = WebOptUtils.getCurrentUserCode(request);
-       if(StringUtils.isBlank(userCode)){
-           throw new ObjectException("未登录");
-       }
        if ("".equals(tempFilePath)) {
            throw new ObjectException("pdm文件不能为空");
        }
-
-       Pair<Integer, String> ret = mdTableMag.syncPdm(databaseCode,tempFilePath,userCode);
-       JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
-
+       List<SimpleTableInfo> pdmTables = PdmTableInfo.importTableFromPdm(tempFilePath);
+       JSONObject json = new JSONObject();
+       json.put("databaseCode",databaseCode);
+       json.put("tempFilePath",tempFilePath);
+       if (pdmTables == null) {
+           json.put("data", "读取文件失败,导入失败！");
+       } else
+           json.put("data",pdmTables);
+       JsonResultUtils.writeOriginalJson(json.toString(), response);
    }
 
-    @ApiOperation(value = "导入pdm修改表元数据表")
+    @ApiOperation(value = "导入pdm返回表数据")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.POST)
     @RequestMapping(value = "/pdm/{databaseCode}", method = {RequestMethod.POST})
     public void syncPdm(@PathVariable String databaseCode,
@@ -220,6 +207,12 @@ public class MetaTableController extends BaseController {
         HttpServletRequest request, HttpServletResponse response)
         throws IOException {
 
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if (StringUtils.isBlank(userCode)) {
+            JsonResultUtils.writeErrorMessageJson(ResponseData.ERROR_UNAUTHORIZED,
+                "当前用户没有登录，请先登录。", response);
+            return;
+        }
         Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
         String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
         try {
@@ -228,7 +221,7 @@ public class MetaTableController extends BaseController {
                 //上传到临时区成功
                 //fileStore.saveFile(tempFilePath, token, size);
                 completedStoreFile(databaseCode,tempFilePath,request,response);
-                FileSystemOpt.deleteFile(tempFilePath);
+                //FileSystemOpt.deleteFile(tempFilePath);
                 return;
             }else if( uploadSize>0){
                 JsonResultUtils.writeOriginalJson(UploadDownloadUtils.
@@ -240,6 +233,27 @@ public class MetaTableController extends BaseController {
             JsonResultUtils.writeHttpErrorMessage(e.getExceptionCode(),
                 e.getMessage(), response);
         }
+    }
+
+    @ApiOperation(value = "确认导入pdm修改表元数据表")
+    @RequestMapping(value = "/{databaseCode}/publish", method = {RequestMethod.POST})
+    public void publishConfirm(@PathVariable String databaseCode,
+                                HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> params = collectRequestParameters(request);
+        String tempFilePath = params.get("tempFilePath").toString();
+        String[] tableCodes = request.getParameterValues("data");
+        List<String> tables = new ArrayList<>();
+        for (String tableCode : tableCodes) {
+            tables.add(tableCode);
+        }
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if (StringUtils.isBlank(userCode)) {
+            JsonResultUtils.writeErrorMessageJson(ResponseData.ERROR_UNAUTHORIZED,
+                "当前用户没有登录，请先登录。", response);
+            return;
+        }
+        Pair<Integer, String> ret = mdTableMag.syncPdm(databaseCode,tempFilePath,tables,userCode);
+        JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }
 
     @ApiOperation(value = "批量发布表元数据表")

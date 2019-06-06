@@ -51,7 +51,7 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
 
     List<MetaColumn> listFields(String tableId);
 
-    Pair<Integer, String>  syncPdm(String databaseCode, String pdmFilePath, String recorder);
+    Pair<Integer, String>  syncPdm(String databaseCode, String pdmFilePath, List<String> tables, String recorder);
 
     Pair<Integer, String>  publishDatabase(String databaseCode,String recorder);
 }

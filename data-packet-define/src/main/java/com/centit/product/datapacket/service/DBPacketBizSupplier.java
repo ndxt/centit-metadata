@@ -44,7 +44,7 @@ public class DBPacketBizSupplier implements BizSupplier {
                 sqlDSR.setDataSource(JdbcConnect.mapDataSource(
                     integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));
                 sqlDSR.setSqlSen(rdd.getQuerySQL());
-                dataSets.put(rdd.getQueryName(), sqlDSR.load(modelTag));
+                dataSets.put(rdd.getQueryId(), sqlDSR.load(modelTag));
             }
         }
         bizModel.setModelTag(modelTag);

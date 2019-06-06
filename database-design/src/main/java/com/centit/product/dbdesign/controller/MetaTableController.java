@@ -236,8 +236,8 @@ public class MetaTableController extends BaseController {
     }
 
     @ApiOperation(value = "确认导入pdm修改表元数据表")
-    @RequestMapping(value = "/{databaseCode}/publish", method = {RequestMethod.POST})
-    public void publishConfirm(@PathVariable String databaseCode,
+    @RequestMapping(value = "/{databaseCode}/confirm", method = {RequestMethod.POST})
+    public void syncConfirm(@PathVariable String databaseCode,
                                 HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> params = collectRequestParameters(request);
         String tempFilePath = params.get("tempFilePath").toString();

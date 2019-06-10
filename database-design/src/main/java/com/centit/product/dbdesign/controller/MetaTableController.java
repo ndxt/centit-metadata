@@ -199,6 +199,7 @@ public class MetaTableController extends BaseController {
        JsonResultUtils.writeOriginalJson(json.toString(), response);
    }
 
+    @ApiOperation(value = "range")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.GET)
     @RequestMapping(value = "/range", method = {RequestMethod.GET})
     public void checkFileRange(String token, long size,
@@ -211,25 +212,22 @@ public class MetaTableController extends BaseController {
         //String tempFilePath = FileUploadUtils.getTempFilePath(token, size);
         long tempFileSize = SystemTempFileUtils.checkTempFileSize(
             SystemTempFileUtils.getTempFilePath(token, size));
-
+        if (tempFileSize == size) {
+            String databaseCode = request.getParameter("databaseCode");
+            completedStoreFile(databaseCode,SystemTempFileUtils.getTempFilePath(token, size),request,response);
+        }
         JsonResultUtils.writeOriginalJson(
             UploadDownloadUtils.makeRangeUploadJson(tempFileSize).toJSONString(), response);
     }
 
     @ApiOperation(value = "导入pdm返回表数据")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.POST)
-    @RequestMapping(value = "/pdm/{databaseCode}", method = {RequestMethod.POST})
-    public void syncPdm(@PathVariable String databaseCode,
-        String token, long size,
+    @RequestMapping(value = "/range", method = {RequestMethod.POST})
+    public void syncPdm(String token, long size,
         HttpServletRequest request, HttpServletResponse response)
         throws IOException {
 
-        String userCode = WebOptUtils.getCurrentUserCode(request);
-        if (StringUtils.isBlank(userCode)) {
-            JsonResultUtils.writeErrorMessageJson(ResponseData.ERROR_UNAUTHORIZED,
-                "当前用户没有登录，请先登录。", response);
-            return;
-        }
+        String databaseCode = request.getParameter("databaseCode");
         Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
         String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
         try {

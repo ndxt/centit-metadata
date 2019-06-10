@@ -66,6 +66,14 @@ public class MetadataQueryController {
     @GetMapping(value = "/table/{tableId}")
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public MetaTable getMetaTable(@PathVariable String tableId){
+        return metaDataService.getMetaTable(tableId);
+    }
+
+    @ApiOperation(value = "查询单个表元数据(包括字段信息和关联表信息)")
+    @ApiImplicitParam(name = "tableId", value = "表ID")
+    @GetMapping(value = "/table/{tableId}/all")
+    @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
+    public MetaTable getMetaTableWithRelations(@PathVariable String tableId){
         return metaDataService.getMetaTableWithRelations(tableId);
     }
 

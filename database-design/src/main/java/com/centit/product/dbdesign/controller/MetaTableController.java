@@ -199,6 +199,23 @@ public class MetaTableController extends BaseController {
        JsonResultUtils.writeOriginalJson(json.toString(), response);
    }
 
+    @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.GET)
+    @RequestMapping(value = "/range", method = {RequestMethod.GET})
+    public void checkFileRange(String token, long size,
+                               HttpServletRequest request, HttpServletResponse response)
+        throws IOException {
+        //FileRangeInfo fr = new FileRangeInfo(token,size);
+        Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
+
+        //检查临时目录中的文件大小，返回文件的其实点
+        //String tempFilePath = FileUploadUtils.getTempFilePath(token, size);
+        long tempFileSize = SystemTempFileUtils.checkTempFileSize(
+            SystemTempFileUtils.getTempFilePath(token, size));
+
+        JsonResultUtils.writeOriginalJson(
+            UploadDownloadUtils.makeRangeUploadJson(tempFileSize).toJSONString(), response);
+    }
+
     @ApiOperation(value = "导入pdm返回表数据")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.POST)
     @RequestMapping(value = "/pdm/{databaseCode}", method = {RequestMethod.POST})

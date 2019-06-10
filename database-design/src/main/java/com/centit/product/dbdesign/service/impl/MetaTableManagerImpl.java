@@ -463,8 +463,12 @@ public class MetaTableManagerImpl
                     for (SimpleTableField field : columns) {
                         PendingMetaColumn mdColumn = new PendingMetaColumn().convertFromTableField(field);
                         mdColumn.setTableId(metaTable.getTableId());
-                        for (String pkcode : pdmtable.getPkColumns()) {
-                            mdColumn.setPrimarykey(mdColumn.getColumnName().equals(pkcode) ? "T" : "F");
+                        for (String pk :pdmtable.getPkColumns()) {
+                            if (pk.equals(mdColumn.getColumnName())) {
+                                mdColumn.setPrimarykey("T");
+                                break;
+                            } else
+                                mdColumn.setPrimarykey("F");
                         }
                         mdColumn.setRecorder(recorder);
                         pendingMetaColumnDao.saveNewObject(mdColumn);
@@ -498,8 +502,12 @@ public class MetaTableManagerImpl
                             PendingMetaColumn metaColumn = new PendingMetaColumn().convertFromTableField(tableField);
                             metaColumn.setTableId(oldTable.getTableId());
                             metaColumn.setRecorder(recorder);
-                            for (String pk : newTable.getPkColumns()) {
-                                metaColumn.setPrimarykey(metaColumn.getColumnName().equals(pk) ? "T" : "F");
+                            for (String pk :newTable.getPkColumns()) {
+                                if (pk.equals(metaColumn.getColumnName())) {
+                                    metaColumn.setPrimarykey("T");
+                                    break;
+                                } else
+                                    metaColumn.setPrimarykey("F");
                             }
                             pendingMetaColumnDao.saveNewObject(metaColumn);
                         }
@@ -516,8 +524,12 @@ public class MetaTableManagerImpl
                             PendingMetaColumn oldColumn = columnPair.getLeft();
                             oldColumn.setRecorder(recorder);
                             SimpleTableField newColumn = columnPair.getRight();
-                            for (String pk : newTable.getPkColumns()) {
-                                oldColumn.setPrimarykey(newColumn.getColumnName().equals(pk) ? "T" : "F");
+                            for (String pk :newTable.getPkColumns()) {
+                                if (pk.equals(oldColumn.getColumnName())) {
+                                    oldColumn.setPrimarykey("T");
+                                    break;
+                                } else
+                                    oldColumn.setPrimarykey("F");
                             }
                             pendingMetaColumnDao.updateObject(oldColumn.convertFromTableField(newColumn));
                         }

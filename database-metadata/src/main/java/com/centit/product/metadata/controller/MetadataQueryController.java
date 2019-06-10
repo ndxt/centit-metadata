@@ -42,7 +42,7 @@ public class MetadataQueryController {
         return metaDataService.listDatabase();
     }
 
-    @ApiOperation(value = "表元数据")
+    @ApiOperation(value = "数据库中表分页查询")
     @ApiImplicitParam(name = "databaseCode", value = "数据库代码")
     @GetMapping(value = "/{databaseCode}/tables")
     @WrapUpResponseBody
@@ -53,9 +53,9 @@ public class MetadataQueryController {
         return PageQueryResult.createJSONArrayResult(list,pageDesc,MetaTable.class);
     }
 
-    @ApiOperation(value = "数据库表")
+    @ApiOperation(value = "数据库中的表（JDBC元数据）前段应该不需要访问这个接口")
     @ApiImplicitParam(name = "databaseCode", value = "数据库ID")
-    @GetMapping(value = "/{databaseCode}/db_tables")
+    @GetMapping(value = "/{databaseCode}/dbtables")
     public List<SimpleTableInfo> databaseTables(@PathVariable String databaseCode){
         return metaDataService.listRealTables(databaseCode);
     }
@@ -66,7 +66,7 @@ public class MetadataQueryController {
     @GetMapping(value = "/table/{tableId}")
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public MetaTable getMetaTable(@PathVariable String tableId){
-        return metaDataService.getMetaTable(tableId);
+        return metaDataService.getMetaTableWithRelations(tableId);
     }
 
     @ApiOperation(value = "查询列元数据")

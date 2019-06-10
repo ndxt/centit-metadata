@@ -91,9 +91,9 @@ public class MetadataQueryController {
     @ApiOperation(value = "查询单个列元数据")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "tableId", value = "表元数据ID"),
-        @ApiImplicitParam(name = "fieldLabelName", value = "列名")
+        @ApiImplicitParam(name = "columnName", value = "列名")
     })
-    @GetMapping(value = "/{tableId}/{columnName}")
+    @GetMapping(value = "/{tableId}/column/{columnName}")
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public MetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName){
         return metaDataService.getMetaColumn(tableId, columnName);

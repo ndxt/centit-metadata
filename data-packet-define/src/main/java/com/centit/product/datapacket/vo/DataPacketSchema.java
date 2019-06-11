@@ -77,11 +77,12 @@ public class DataPacketSchema implements Serializable {
         dataPacketSchema.packetType = dataPacket.getPacketType();
         dataPacketSchema.packetDesc = dataPacket.getPacketDesc();
         dataPacketSchema.packetParams = dataPacket.getPacketParams();
-        List<ColumnSchema> columnSchemas =  new ArrayList<>();
+
         List<DataSetSchema> dataSetSchemaList = new ArrayList<>();
         if(dataPacket.getRmdbQueries()!=null) {
             for (RmdbQuery rdb : dataPacket.getRmdbQueries()) {
                 DataSetSchema dataSetSchema = new DataSetSchema();
+                List<ColumnSchema> columnSchemas =  new ArrayList<>();
                 dataSetSchema.dataSetId = rdb.getPacketId();
                 dataSetSchema.dataSetName = rdb.getQueryName();
                 dataSetSchema.dataSetTitle = rdb.getQueryDesc();

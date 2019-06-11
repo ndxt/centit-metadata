@@ -1,17 +1,19 @@
 package com.centit.product.datapacket.vo;
 
-import com.centit.support.algorithm.BooleanBaseOpt;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
-public class DataSetSchema{
+public class DataSetSchema implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public DataSetSchema(String dataSetName){
         this.dataSetId = dataSetName;
         this.dataSetName = dataSetName;

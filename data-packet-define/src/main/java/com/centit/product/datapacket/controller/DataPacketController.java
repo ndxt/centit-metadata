@@ -92,9 +92,11 @@ public class DataPacketController extends BaseController {
     public DataPacketSchema getDataPacketSchema(@PathVariable String packetId){
         DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
         DataPacketSchema schema = DataPacketSchema.valueOf(dataPacket);
-        JSONObject obj = dataPacket.getDataOptDesc();
-        if(obj!=null){
-            return DataPacketUtil.calcDataPacketSchema(schema, obj);
+        if(dataPacket!=null) {
+            JSONObject obj = dataPacket.getDataOptDesc();
+            if (obj != null) {
+                return DataPacketUtil.calcDataPacketSchema(schema, obj);
+            }
         }
         return schema;
     }

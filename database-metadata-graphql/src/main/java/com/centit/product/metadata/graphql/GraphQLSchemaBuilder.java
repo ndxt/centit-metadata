@@ -66,11 +66,12 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     }
 
     GraphQLFieldDefinition getQueryFieldDefinition(MetaTable entityType) {
+        String entityName = FieldType.mapPropName(entityType.getTableName());
         return GraphQLFieldDefinition.newFieldDefinition()
-                .name(FieldType.mapPropName(entityType.getTableName()))
-                .description(entityType.getTableLabelName())
+                .name(entityName+"List")
+                .description(entityType.getTableLabelName() + " 列表")
                 .type(new GraphQLList(getObjectType(entityType)))
-                .dataFetcher(new MetadataDataFetcher(metaDataService, dataSourceDesc, entityType))
+                .dataFetcher(new MetadataDataFetcher(metaDataService, dataSourceDesc, entityType, 1))
                 .argument(entityType.getColumns().stream().flatMap(this::getArgument).collect(Collectors.toList()))
                 .build();
     }
@@ -78,8 +79,8 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     private GraphQLFieldDefinition getQueryFieldPageableDefinition(MetaTable entityType) {
         String entityName = FieldType.mapPropName(entityType.getTableName());
         GraphQLObjectType pageType = GraphQLObjectType.newObject()
-                .name(entityName + "Connection")
-                .description("'Connection' response wrapper object for " + entityName + ".  When pagination or aggregation is requested, this object will be returned with metadata about the query.")
+                .name(entityName + "PageList")
+                .description(entityType.getTableLabelName() + " 分页查询列表")
                 .field(GraphQLFieldDefinition.newFieldDefinition().name("pageNo").description("Total index of current page.").type(Scalars.GraphQLLong).build())
                 .field(GraphQLFieldDefinition.newFieldDefinition().name("pageSize").description("Total max number of one page.").type(Scalars.GraphQLLong).build())
                 .field(GraphQLFieldDefinition.newFieldDefinition().name("totalRows").description("Total number of results on the database for this query.").type(Scalars.GraphQLLong).build())
@@ -90,7 +91,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
                 .name(entityName + "Connection")
                 .description("'Connection' request wrapper object for " + entityName + ".  Use this object in a query to request things like pagination or aggregation in an argument.  Use the 'content' field to request actual fields ")
                 .type(pageType)
-                .dataFetcher(new MetadataDataFetcher(metaDataService, dataSourceDesc, entityType))
+                .dataFetcher(new MetadataDataFetcher(metaDataService, dataSourceDesc, entityType, 2))
                 .argument(paginationArgument)
                 .build();
     }

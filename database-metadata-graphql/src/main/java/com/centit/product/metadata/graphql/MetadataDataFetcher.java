@@ -1,5 +1,6 @@
 package com.centit.product.metadata.graphql;
 
+import com.alibaba.fastjson.JSONArray;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.support.algorithm.NumberBaseOpt;
@@ -28,47 +29,33 @@ public class MetadataDataFetcher implements DataFetcher {
     private MetaDataService metaDataService;
     private DataSourceDescription dataSourceDesc;
     protected MetaTable entityType;
+    private final int queryType;// 0 get 1 list 2 page
 
-    public MetadataDataFetcher(MetaDataService metaDataService, DataSourceDescription dataSourceDesc, MetaTable entityType) {
+    public MetadataDataFetcher(MetaDataService metaDataService, DataSourceDescription dataSourceDesc,
+                               MetaTable entityType, int queryType) {
         this.metaDataService = metaDataService;
         this.dataSourceDesc = dataSourceDesc;
         this.entityType = entityType;
+        this.queryType = queryType;
     }
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
         Field field = environment.getFields().iterator().next();
-        Map<String, Object> result = new LinkedHashMap<>();
 
-        PageDesc pageInformation = extractPageInformation(environment, field);
-
-        // See which fields we're requesting
-        //Optional<Field> pageNoSelection = getSelectionField(field, "pageNo");
-        Optional<Field> pageSizeSelection = getSelectionField(field, "pageSize");
-        Optional<Field> totalElementsSelection = getSelectionField(field, "totalRows");
-        Optional<Field> contentSelection = getSelectionField(field, "objList");
-
-        if (contentSelection.isPresent()) {
-            result.put("objList",
-                getQuery(environment, contentSelection.get(), pageInformation));
-        } else {
-            return getQuery(environment, field, new PageDesc());
+        switch (queryType ){
+            case 0: //get
+                return getObject(environment, field);
+            case 1: // list
+                return listObjects(environment, field);
+            case 2: // page
+                return pageQueryObjects(environment, field);
+            default:
+                return null;
         }
-        if (totalElementsSelection.isPresent() || pageSizeSelection.isPresent()) {
-            final Long totalElements = contentSelection
-                .map(contentField -> getCountQuery(environment, contentField))
-                // if no "content" was selected an empty Field can be used
-                .orElseGet(() -> getCountQuery(environment, environment.getField()));
-
-            result.put("pageSize", pageInformation.getPageSize());
-            result.put("totalRows", totalElements);
-            result.put("pageNo", pageInformation.getPageNo());
-        }
-
-        return result;
     }
 
-    private Long getCountQuery(DataFetchingEnvironment environment, Field field) {
+    private Long getCountQuery(DataFetchingEnvironment environment, Map<String, Object> filters) {
         try {
             return TransactionHandler.executeQueryInTransaction(dataSourceDesc,
                 (conn) ->
@@ -109,12 +96,12 @@ public class MetadataDataFetcher implements DataFetcher {
         return new PageDesc(1, Integer.MAX_VALUE);
     }
 
-    protected List<Object> getQuery(DataFetchingEnvironment environment, Field field, PageDesc pageInformation) {
+    private List<Object> listObjects(DataFetchingEnvironment environment, Field field) {
         try {
             return TransactionHandler.executeQueryInTransaction(dataSourceDesc,
                 (conn) ->
                     GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
-                        environment.getArguments(),pageInformation.getRowStart(), pageInformation.getPageSize())
+                        environment.getArguments())
                     );
          } catch (SQLException | IOException e) {
             logger.error(e.getLocalizedMessage(),e);
@@ -122,4 +109,40 @@ public class MetadataDataFetcher implements DataFetcher {
         return new ArrayList<>();
     }
 
+    private Object getObject(DataFetchingEnvironment environment, Field field) {
+        try {
+            JSONArray ja = TransactionHandler.executeQueryInTransaction(dataSourceDesc,
+                (conn) ->
+                    GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
+                        environment.getArguments())
+            );
+            if(ja != null){
+                return ja.get(0);
+            }
+        } catch (SQLException | IOException e) {
+            logger.error(e.getLocalizedMessage(),e);
+        }
+        return null;
+    }
+
+    private Map<String, Object> pageQueryObjects(DataFetchingEnvironment environment, Field field) {
+        Map<String, Object> result = new HashMap<>();
+        PageDesc pageInformation = extractPageInformation(environment, field);
+        try {
+            result.put("objList",
+                TransactionHandler.executeQueryInTransaction(dataSourceDesc,
+                (conn) ->
+                    GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
+                        environment.getArguments(),pageInformation.getRowStart(), pageInformation.getPageSize())
+            ));
+        } catch (SQLException | IOException e) {
+            logger.error(e.getLocalizedMessage(),e);
+        }
+
+        final Long totalElements = getCountQuery(environment, environment.getArguments());
+        result.put("pageSize", pageInformation.getPageSize());
+        result.put("totalRows", totalElements);
+        result.put("pageNo", pageInformation.getPageNo());
+        return result;
+    }
 }

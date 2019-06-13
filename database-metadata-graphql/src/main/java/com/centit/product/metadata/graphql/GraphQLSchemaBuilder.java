@@ -60,10 +60,23 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     GraphQLObjectType getQueryType() {
         List<MetaTable> metaTables = metaDataService.listAllMetaTablesWithDetail(dataSourceDesc.getDatabaseCode());
         GraphQLObjectType.Builder queryType = GraphQLObjectType.newObject().name("QueryType_MD").description("All encompassing schema for this database metadata environment");
+        queryType.fields(metaTables.stream().map(this::getObjectFieldDefinition).collect(Collectors.toList()));
         queryType.fields(metaTables.stream().map(this::getQueryFieldDefinition).collect(Collectors.toList()));
         queryType.fields(metaTables.stream().map(this::getQueryFieldPageableDefinition).collect(Collectors.toList()));
         return queryType.build();
     }
+
+    GraphQLFieldDefinition getObjectFieldDefinition(MetaTable entityType) {
+        String entityName = FieldType.mapPropName(entityType.getTableName());
+        return GraphQLFieldDefinition.newFieldDefinition()
+            .name(entityName)
+            .description(entityType.getTableLabelName() + " 单个对象查询")
+            .type(getObjectType(entityType))
+            .dataFetcher(new MetadataDataFetcher(metaDataService, dataSourceDesc, entityType, 0))
+            .argument(entityType.getColumns().stream().flatMap(this::getArgument).collect(Collectors.toList()))
+            .build();
+    }
+
 
     GraphQLFieldDefinition getQueryFieldDefinition(MetaTable entityType) {
         String entityName = FieldType.mapPropName(entityType.getTableName());
@@ -79,7 +92,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     private GraphQLFieldDefinition getQueryFieldPageableDefinition(MetaTable entityType) {
         String entityName = FieldType.mapPropName(entityType.getTableName());
         GraphQLObjectType pageType = GraphQLObjectType.newObject()
-                .name(entityName + "PageList")
+                .name(entityName + "Page")
                 .description(entityType.getTableLabelName() + " 分页查询列表")
                 .field(GraphQLFieldDefinition.newFieldDefinition().name("pageNo").description("Total index of current page.").type(Scalars.GraphQLLong).build())
                 .field(GraphQLFieldDefinition.newFieldDefinition().name("pageSize").description("Total max number of one page.").type(Scalars.GraphQLLong).build())

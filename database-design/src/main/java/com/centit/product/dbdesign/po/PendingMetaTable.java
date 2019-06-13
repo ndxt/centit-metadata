@@ -334,6 +334,8 @@ public class PendingMetaTable implements
         mt.setTableId(this.getTableId());
         mt.setDatabaseCode(this.getDatabaseCode());
         mt.setTableName(this.getTableName());
+        mt.setTableType("T");
+        mt.setAccessType("N");
         mt.setTableLabelName(this.getTableLabelName());
         mt.setTableComment(this.getTableComment());
         mt.setRecordDate(this.getLastModifyDate());

@@ -1,5 +1,6 @@
 package com.centit.product.dbdesign.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.fileserver.utils.SystemTempFileUtils;
@@ -32,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +65,7 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/log", method = RequestMethod.GET)
     @WrapUpResponseBody
     public PageQueryResult loglist(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
-        Map<String, Object> searchColumn = convertSearchColumn(request);
+        Map<String, Object> searchColumn = collectRequestParameters(request);
         JSONArray listObjects = mdChangLogMag.listMdChangLogsAsJson(field, searchColumn, pageDesc);
         if (ArrayUtils.isNotEmpty(field)) {
             return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, field, MetaChangLog.class);
@@ -87,7 +89,7 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public PageQueryResult listdraft(@PathVariable String databaseCode, String[] field, PageDesc pageDesc,
                                      HttpServletRequest request, HttpServletResponse response) {
-        Map<String, Object> searchColumn = convertSearchColumn(request);
+        Map<String, Object> searchColumn = collectRequestParameters(request);
         searchColumn.put("databaseCode",databaseCode);
         JSONArray listObjects = mdTableMag.listDrafts(field, searchColumn, pageDesc);
         if (ArrayUtils.isNotEmpty(field)) {
@@ -183,20 +185,11 @@ public class MetaTableController extends BaseController {
     }
 
 
-   private void completedStoreFile(String databaseCode, String tempFilePath, HttpServletRequest request,
-                                    HttpServletResponse response) {
+   private  List<SimpleTableInfo> fetchPdmTables(String tempFilePath) {
        if ("".equals(tempFilePath)) {
            throw new ObjectException("pdm文件不能为空");
        }
-       List<SimpleTableInfo> pdmTables = PdmTableInfo.importTableFromPdm(tempFilePath);
-       JSONObject json = new JSONObject();
-       json.put("databaseCode",databaseCode);
-       json.put("tempFilePath",tempFilePath);
-       if (pdmTables == null) {
-           json.put("data", "读取文件失败,导入失败！");
-       } else
-           json.put("data",pdmTables);
-       JsonResultUtils.writeOriginalJson(json.toString(), response);
+       return PdmTableInfo.importTableFromPdm(tempFilePath);
    }
 
     @ApiOperation(value = "range")
@@ -209,15 +202,16 @@ public class MetaTableController extends BaseController {
         Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
 
         //检查临时目录中的文件大小，返回文件的其实点
-        //String tempFilePath = FileUploadUtils.getTempFilePath(token, size);
-        long tempFileSize = SystemTempFileUtils.checkTempFileSize(
-            SystemTempFileUtils.getTempFilePath(token, size));
+        String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
+        long tempFileSize = SystemTempFileUtils.checkTempFileSize(tempFilePath);
+        Map<String, Object> data = new HashMap<>(4);
+        data.put("tempFilePath", token +"_"+size);
+        JSONObject jsonObject = UploadDownloadUtils.makeRangeUploadJson(tempFileSize);
         if (tempFileSize == size) {
-            String databaseCode = request.getParameter("databaseCode");
-            completedStoreFile(databaseCode,SystemTempFileUtils.getTempFilePath(token, size),request,response);
+            data.put("tables",fetchPdmTables(tempFilePath));
+            jsonObject.put("tables",data);
         }
-        JsonResultUtils.writeOriginalJson(
-            UploadDownloadUtils.makeRangeUploadJson(tempFileSize).toJSONString(), response);
+        JsonResultUtils.writeSingleDataJson(jsonObject,response);
     }
 
     @ApiOperation(value = "导入pdm返回表数据")
@@ -227,17 +221,19 @@ public class MetaTableController extends BaseController {
         HttpServletRequest request, HttpServletResponse response)
         throws IOException {
 
-        String databaseCode = request.getParameter("databaseCode");
         Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
         String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
         try {
             long uploadSize = UploadDownloadUtils.uploadRange(tempFilePath, fileInfo.getRight(), token, size, request);
             if(uploadSize==0){
                 //上传到临时区成功
-                //fileStore.saveFile(tempFilePath, token, size);
-                completedStoreFile(databaseCode,tempFilePath,request,response);
+                JSONObject jsonObject = new JSONObject();
+                Map<String, Object> data = new HashMap<>(4);
+                data.put("tempFilePath", token +"_"+size);
+                data.put("tables",fetchPdmTables(tempFilePath));
+                jsonObject.put("tables",data);
+                JsonResultUtils.writeSingleDataJson(jsonObject,response);
                 //FileSystemOpt.deleteFile(tempFilePath);
-                return;
             }else if( uploadSize>0){
                 JsonResultUtils.writeOriginalJson(UploadDownloadUtils.
                     makeRangeUploadJson(uploadSize).toJSONString(), response);
@@ -252,14 +248,17 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "确认导入pdm修改表元数据表")
     @RequestMapping(value = "/{databaseCode}/confirm", method = {RequestMethod.POST})
-    public void syncConfirm(@PathVariable String databaseCode,
+    @WrapUpResponseBody
+    public void syncConfirm(@PathVariable String databaseCode, @RequestBody String data,
                                 HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> params = collectRequestParameters(request);
-        String tempFilePath = params.get("tempFilePath").toString();
-        String[] tableCodes = request.getParameterValues("data");
-        List<String> tables = new ArrayList<>();
-        for (String tableCode : tableCodes) {
-            tables.add(tableCode);
+        JSONObject object = JSON.parseObject(data);
+        object.putAll(params);
+        String tempFilePath =SystemTempFileUtils.getTempDirectory() + object.getString("tempFilePath") + ".tmp";
+        JSONArray jsonArray = object.getJSONArray("data");
+        List<String>  tables = new ArrayList<>();
+        for (Object o : jsonArray) {
+            tables.add(o.toString());
         }
         String userCode = WebOptUtils.getCurrentUserCode(request);
         if (StringUtils.isBlank(userCode)) {

@@ -352,13 +352,11 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             if (subObjects instanceof List) {
                                 List<Map<String, Object>> subTable = (List<Map<String, Object>>)subObjects;
                                 GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
+                                Map<String, Object> ref = md.fetchObjectFk(mainObj);
                                 for(Map<String, Object> subObj : subTable){
                                     makeObjectValueByGenerator(subObj, relTableInfo, dao);
+                                    subObj.putAll(ref);
                                     prepareObjectForSave(subObj, relTableInfo);
-                                }
-                                Map<String, Object> ref = new HashMap<>();
-                                for (Map.Entry<String, String> rc : md.getReferenceColumns().entrySet()) {
-                                    ref.put(rc.getValue(), mainObj.get(rc.getKey()));
                                 }
                                 dao.replaceObjectsAsTabulation(subTable, ref);
                             }

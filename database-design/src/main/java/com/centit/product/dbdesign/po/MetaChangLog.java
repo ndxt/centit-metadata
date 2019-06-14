@@ -1,5 +1,6 @@
 package com.centit.product.dbdesign.po;
 
+import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.database.orm.GeneratorCondition;
 import com.centit.support.database.orm.GeneratorTime;
@@ -9,7 +10,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -39,6 +39,10 @@ public class MetaChangLog implements java.io.Serializable {
     @Column(name = "TABLE_ID")
     private String tableID;
 
+    @ApiModelProperty(value = "数据库ID")
+    @Column(name = "DATABASE_CODE")
+    private String databaseCode;
+
     @ApiModelProperty(value = "提交日期", required = true)
     @Column(name = "CHANGE_DATE")
     @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
@@ -47,8 +51,7 @@ public class MetaChangLog implements java.io.Serializable {
 
     @ApiModelProperty(value = "提交人", required = true)
     @Column(name = "CHANGER")
-    @NotBlank(message = "字段不能为空")
-    //@Length(max = 6, message = "字段长度不能大于{max}")
+    @DictionaryMap(fieldName = "changerName", value = "userCode")
     private String  changer;
 
     @ApiModelProperty(value = "更改脚本")

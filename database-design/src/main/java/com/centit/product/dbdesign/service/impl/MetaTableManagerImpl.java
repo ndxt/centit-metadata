@@ -252,7 +252,7 @@ public class MetaTableManagerImpl
             }
         }
 
-        if ("1".equals(ptable.getWorkFlowOptType())) {
+        if ("1".equals(ptable.getWorkFlowOptType()) || "2".equals(ptable.getWorkFlowOptType())) {
             PendingMetaColumn col = ptable.findFieldByName(MetaTable.WORKFLOW_INST_ID_PROP);
             if (col == null) {
                 col = new PendingMetaColumn(ptable, MetaTable.WORKFLOW_INST_ID_FIELD);
@@ -264,7 +264,9 @@ public class MetaTableManagerImpl
                 col.setRecorder(currentUser);
                 ptable.addMdColumn(col);
             }
-        } else if ("2".equals(ptable.getWorkFlowOptType())) {
+        }
+
+        if ("2".equals(ptable.getWorkFlowOptType())) {
             PendingMetaColumn col = ptable.findFieldByName(MetaTable.WORKFLOW_NODE_INST_ID_PROP);
             if (col == null) {
                 col = new PendingMetaColumn(ptable, MetaTable.WORKFLOW_NODE_INST_ID_FIELD);
@@ -308,29 +310,10 @@ public class MetaTableManagerImpl
             dbc.setUsername(mdb.getUsername());
             dbc.setPassword(mdb.getClearPassword());
             Connection conn = DbcpConnectPools.getDbcpConnect(dbc);
-            JsonObjectDao jsonDao = null;
+
             DBType databaseType = DBType.mapDBType(conn);
             ptable.setDatabaseType(databaseType);
-            switch (databaseType) {
-                case Oracle:
-                    jsonDao = new OracleJsonObjectDao(conn);
-                    break;
-                case DB2:
-                    jsonDao = new DB2JsonObjectDao(conn);
-                    break;
-                case SqlServer:
-                    jsonDao = new SqlSvrJsonObjectDao(conn);
-                    break;
-                case MySql:
-                    jsonDao = new MySqlJsonObjectDao(conn);
-                    break;
-                case PostgreSql:
-                    jsonDao = new PostgreSqlJsonObjectDao();
-                    break;
-                default:
-                    jsonDao = new OracleJsonObjectDao(conn);
-                    break;
-            }
+            JsonObjectDao jsonDao = GeneralJsonObjectDao.createJsonObjectDao(conn);
             //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
             checkPendingMetaTable(ptable, currentUser);
             List<String> sqls = makeAlterTableSqls(ptable);

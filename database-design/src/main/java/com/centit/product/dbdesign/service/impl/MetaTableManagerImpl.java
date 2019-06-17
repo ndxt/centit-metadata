@@ -6,26 +6,28 @@ import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
-import com.centit.product.dbdesign.dao.*;
+import com.centit.product.dbdesign.dao.MetaChangLogDao;
+import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
+import com.centit.product.dbdesign.dao.PendingMetaTableDao;
 import com.centit.product.dbdesign.pdmutils.PdmTableInfo;
-import com.centit.product.dbdesign.po.*;
+import com.centit.product.dbdesign.po.MetaChangLog;
+import com.centit.product.dbdesign.po.PendingMetaColumn;
+import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.dao.MetaColumnDao;
-import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.po.MetaColumn;
-import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.database.ddl.*;
-import com.centit.support.database.jsonmaptable.*;
+import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
+import com.centit.support.database.jsonmaptable.JsonObjectDao;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.*;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -427,6 +429,19 @@ public class MetaTableManagerImpl
     }
 
     @Override
+    public List<PendingMetaColumn> listMetaColumns(String tableId, PageDesc pageDesc) {
+        Map<String, Object> filterMap = new HashMap<String, Object>();
+        filterMap.put("tableId", tableId);
+
+        return pendingMetaColumnDao.listObjectsByProperties(filterMap,pageDesc);
+    }
+
+    @Override
+    public PendingMetaColumn getMetaColumn(String tableId, String columnName) {
+        return pendingMetaColumnDao.getObjectById(new MetaColumn(tableId, columnName));
+    }
+
+    @Override
     @Transactional
     public Pair<Integer, String> syncPdm(String databaseCode, String pdmFilePath, List<String> tables, String recorder) {
         try {
@@ -660,5 +675,15 @@ public class MetaTableManagerImpl
         return new ImmutableTriple<>(insertList,updateList,delList);
     }
 
+    @Override
+    public void updateMetaTable(PendingMetaTable metaTable) {
+        pendingMdTableDao.updateObject(metaTable);
+    }
+
+    @Override
+    public void updateMetaColumn(PendingMetaColumn metaColumn) {
+        pendingMetaColumnDao.updateObject(metaColumn);
+
+    }
 }
 

@@ -71,24 +71,25 @@ public class MetaChangLog implements java.io.Serializable {
     }
     /** minimal constructor */
     public MetaChangLog(
-        String tableID
+        String tableID, String databaseCode
         ,Date  changeDate,String  changer) {
 
         this.tableID = tableID;
-
+        this.databaseCode = databaseCode;
         this.changeDate= changeDate;
         this.changer= changer;
     }
 
 /** full constructor */
     public MetaChangLog(
-     String tableID
+     String tableID, String databaseCode
     ,String  changeId,Date  changeDate,String  changer,String  changeScript,String  changeComment) {
 
 
         this.tableID = tableID;
 
         this.changeId= changeId;
+        this.databaseCode =databaseCode;
         this.changeDate= changeDate;
         this.changer= changer;
         this.changeScript= changeScript;
@@ -100,6 +101,7 @@ public class MetaChangLog implements java.io.Serializable {
         this.setTableID(other.getTableID());
 
         this.changeId= other.getChangeId();
+        this.databaseCode = other.getDatabaseCode();
         this.changeDate= other.getChangeDate();
         this.changer= other.getChanger();
         this.changeScript= other.getChangeScript();
@@ -114,6 +116,8 @@ public class MetaChangLog implements java.io.Serializable {
 
         if( other.getChangeId() != null)
             this.changeId= other.getChangeId();
+        if( other.getDatabaseCode() !=null)
+            this.databaseCode= other.getDatabaseCode();
         if( other.getChangeDate() != null)
             this.changeDate= other.getChangeDate();
         if( other.getChanger() != null)
@@ -130,6 +134,7 @@ public class MetaChangLog implements java.io.Serializable {
     public MetaChangLog clearProperties(){
 
         this.changeId= null;
+        this.databaseCode= null;
         this.changeDate= null;
         this.changer= null;
         this.changeScript= null;

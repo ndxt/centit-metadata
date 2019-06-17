@@ -22,14 +22,15 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
+import static com.centit.support.json.JSONOpt.objectToJSONObject;
+
 public class MetadataDataFetcher implements DataFetcher {
 
+    private final int queryType;// 0 get 1 list 2 page
     protected Logger logger = LoggerFactory.getLogger(MetadataDataFetcher.class);
-
+    protected MetaTable entityType;
     private MetaDataService metaDataService;
     private DataSourceDescription dataSourceDesc;
-    protected MetaTable entityType;
-    private final int queryType;// 0 get 1 list 2 page
 
     public MetadataDataFetcher(MetaDataService metaDataService, DataSourceDescription dataSourceDesc,
                                MetaTable entityType, int queryType) {
@@ -43,13 +44,15 @@ public class MetadataDataFetcher implements DataFetcher {
     public Object get(DataFetchingEnvironment environment) {
         Field field = environment.getFields().iterator().next();
 
-        switch (queryType ){
+        switch (queryType) {
             case 0: //get
-                return getObject(environment, field);
+                return getObject(environment);
             case 1: // list
-                return listObjects(environment, field);
+                return listObjects(environment);
             case 2: // page
                 return pageQueryObjects(environment, field);
+            case 3: // page
+                return saveObject(environment);
             default:
                 return null;
         }
@@ -64,7 +67,7 @@ public class MetadataDataFetcher implements DataFetcher {
                             "select count(1) as c from " + entityType.getTableName()))
             );
         } catch (SQLException | IOException e) {
-            logger.error(e.getLocalizedMessage(),e);
+            logger.error(e.getLocalizedMessage(), e);
         }
         return 0L;
     }
@@ -96,31 +99,43 @@ public class MetadataDataFetcher implements DataFetcher {
         return new PageDesc(1, Integer.MAX_VALUE);
     }
 
-    private List<Object> listObjects(DataFetchingEnvironment environment, Field field) {
+    private List<Object> listObjects(DataFetchingEnvironment environment) {
         try {
             return TransactionHandler.executeQueryInTransaction(dataSourceDesc,
                 (conn) ->
                     GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
                         environment.getArguments())
-                    );
-         } catch (SQLException | IOException e) {
-            logger.error(e.getLocalizedMessage(),e);
+            );
+        } catch (SQLException | IOException e) {
+            logger.error(e.getLocalizedMessage(), e);
         }
         return new ArrayList<>();
     }
 
-    private Object getObject(DataFetchingEnvironment environment, Field field) {
+    private Object getObject(DataFetchingEnvironment environment) {
         try {
             JSONArray ja = TransactionHandler.executeQueryInTransaction(dataSourceDesc,
                 (conn) ->
                     GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
                         environment.getArguments())
             );
-            if(ja != null){
+            if (ja != null) {
                 return ja.get(0);
             }
         } catch (SQLException | IOException e) {
-            logger.error(e.getLocalizedMessage(),e);
+            logger.error(e.getLocalizedMessage(), e);
+        }
+        return null;
+    }
+
+    private Object saveObject(DataFetchingEnvironment environment) {
+        try {
+            TransactionHandler.executeQueryInTransaction(dataSourceDesc,
+                conn -> GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).mergeObject(environment.getArguments())
+            );
+            return environment.getArguments();
+        } catch (SQLException | IOException e) {
+            logger.error(e.getLocalizedMessage(), e);
         }
         return null;
     }
@@ -131,12 +146,12 @@ public class MetadataDataFetcher implements DataFetcher {
         try {
             result.put("objList",
                 TransactionHandler.executeQueryInTransaction(dataSourceDesc,
-                (conn) ->
-                    GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
-                        environment.getArguments(),pageInformation.getRowStart(), pageInformation.getPageSize())
-            ));
+                    (conn) ->
+                        GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
+                            environment.getArguments(), pageInformation.getRowStart(), pageInformation.getPageSize())
+                ));
         } catch (SQLException | IOException e) {
-            logger.error(e.getLocalizedMessage(),e);
+            logger.error(e.getLocalizedMessage(), e);
         }
 
         final Long totalElements = getCountQuery(environment, environment.getArguments());

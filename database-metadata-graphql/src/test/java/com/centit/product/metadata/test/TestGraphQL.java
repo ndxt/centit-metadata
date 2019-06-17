@@ -42,12 +42,23 @@ public class TestGraphQL {
         System.out.println(dataSource.getUrl());
         dataSourceDesc.setDatabaseCode("0000000124");
         GraphQLExecutor executor = new GraphQLExecutor(metaDataService, dataSourceDesc);
-        ExecutionResult result =executor.execute("query receipt { receiptPaymentList(receiptId:\"10\")\n" +
+
+        ExecutionResult result =executor.execute("mutation  receipt { contractReceiptsSave(receiptId:\"10\",receiptAmount:300)\n" +
             "{\n" +
-            "  amount\n" +
-            "  paymentId\n" +
+            "  receiptAmount\n" +
+            "  contractId\n" +
             "  receiptId\n" +
-            "  relationId\n" +
+
+            "}"+
+            "}");
+        System.out.println(JSON.toJSONString(result.getErrors()));
+        System.out.println(JSON.toJSONString(result.getData()));
+        result =executor.execute("query  receipt { contractReceipts(receiptId:\"10\")\n" +
+            "{\n" +
+            "  receiptAmount\n" +
+            "  contractId\n" +
+            "  receiptId\n" +
+
             "}"+
             "}");
         System.out.println(JSON.toJSONString(result.getErrors()));

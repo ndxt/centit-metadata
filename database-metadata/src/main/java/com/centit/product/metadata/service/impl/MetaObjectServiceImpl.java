@@ -328,14 +328,15 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    public int innerSaveObject(String tableId, Map<String, Object> mainObj, boolean isMerge) {
+    public int innerSaveObject(String tableId, Map<String, Object> mainObj, boolean isUpdate) {
         MetaTable tableInfo = fetchTableInfo(tableId, true);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             return TransactionHandler.executeQueryInTransaction( JdbcConnect.mapDataSource(databaseInfo),
                 (conn) ->{
-                    if(isMerge) {
-                        GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).mergeObject(mainObj);
+                    if(isUpdate) {
+                        prepareObjectForSave(mainObj, tableInfo);
+                        GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(mainObj);
                     }else {
                         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
                         makeObjectValueByGenerator(mainObj, tableInfo, dao);

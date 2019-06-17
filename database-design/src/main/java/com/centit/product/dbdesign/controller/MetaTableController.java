@@ -7,11 +7,13 @@ import com.centit.fileserver.utils.SystemTempFileUtils;
 import com.centit.fileserver.utils.UploadDownloadUtils;
 import com.centit.framework.common.*;
 import com.centit.framework.core.controller.BaseController;
+import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
 import com.centit.product.dbdesign.pdmutils.PdmTableInfo;
 import com.centit.product.dbdesign.po.MetaChangLog;
+import com.centit.product.dbdesign.po.PendingMetaColumn;
 import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
 import com.centit.product.dbdesign.service.MetaTableManager;
@@ -20,6 +22,7 @@ import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,10 +65,12 @@ public class MetaTableController extends BaseController {
     private PendingMetaTableDao pendingMetaTableDao;
 
     @ApiOperation(value = "查询表元数据更改发布记录")
-    @RequestMapping(value = "/log", method = RequestMethod.GET)
+    @RequestMapping(value = "/{databaseCode}/log", method = RequestMethod.GET)
     @WrapUpResponseBody
-    public PageQueryResult loglist(String[] field, PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
+    public PageQueryResult loglist(@PathVariable String databaseCode, String[] field, PageDesc pageDesc,
+                                   HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = collectRequestParameters(request);
+        searchColumn.put("databaseCode",databaseCode);
         JSONArray listObjects = mdChangLogMag.listMdChangLogsAsJson(field, searchColumn, pageDesc);
         if (ArrayUtils.isNotEmpty(field)) {
             return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, field, MetaChangLog.class);
@@ -102,7 +107,7 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "查询单个表元数据表")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.GET})
-    @WrapUpResponseBody
+    @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public PendingMetaTable getMdTableDraft(@PathVariable String tableId) {
         PendingMetaTable mdTable = mdTableMag.getPendingMetaTable(tableId);
         return mdTable;
@@ -116,6 +121,25 @@ public class MetaTableController extends BaseController {
         mdTable.setRecorder(userCode);
         mdTableMag.saveNewPendingMetaTable(mdTable);
         JsonResultUtils.writeSingleDataJson(mdTable.getTableId(), response);
+    }
+
+    @ApiOperation(value = "只修改表元数据表,表与字段分开")
+    @PutMapping(value = "/table/{tableId}")
+    @WrapUpResponseBody
+    public void updateMetaTable(@PathVariable String tableId, @RequestBody PendingMetaTable metaTable,HttpServletRequest request){
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        metaTable.setTableId(tableId);
+        metaTable.setRecorder(userCode);
+        mdTableMag.updateMetaTable(metaTable);
+    }
+
+    @ApiOperation(value = "修改列表元数据")
+    @PutMapping(value = "/column/{tableId}/{columnCode}")
+    @WrapUpResponseBody
+    public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode, @RequestBody PendingMetaColumn metaColumn){
+        metaColumn.setTableId(tableId);
+        metaColumn.setColumnName(columnCode);
+        mdTableMag.updateMetaColumn(metaColumn);
     }
 
     @ApiOperation(value = "编辑表元数据表")
@@ -282,5 +306,27 @@ public class MetaTableController extends BaseController {
         }
         Pair<Integer, String> ret = mdTableMag.publishDatabase(databaseCode, userCode);
         JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
+    }
+
+    @ApiOperation(value = "查询列表元数据")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "tableId", value = "表ID")
+    })
+    @GetMapping(value = "/{tableId}/columns")
+    @WrapUpResponseBody
+    public PageQueryResult<PendingMetaColumn> listColumns(@PathVariable String tableId, PageDesc pageDesc){
+        List<PendingMetaColumn> list = mdTableMag.listMetaColumns(tableId, pageDesc);
+        return PageQueryResult.createResult(list, pageDesc);
+    }
+
+    @ApiOperation(value = "查询单个列表元数据")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "tableId", value = "表元数据ID"),
+        @ApiImplicitParam(name = "columnName", value = "列名")
+    })
+    @GetMapping(value = "/{tableId}/column/{columnName}")
+    @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
+    public PendingMetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName){
+        return mdTableMag.getMetaColumn(tableId, columnName);
     }
 }

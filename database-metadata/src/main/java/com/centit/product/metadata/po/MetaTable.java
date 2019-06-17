@@ -158,6 +158,15 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @ApiModelProperty(hidden = true)
     private DBType databaseType;
 
+    public void setDatabaseType(DBType databaseType) {
+        this.databaseType = databaseType;
+        if (this.mdColumns != null) {
+            for (MetaColumn col : this.mdColumns) {
+                col.setDatabaseType(databaseType);
+            }
+        }
+    }
+
     public List<MetaColumn> getMdColumns() {
         if (this.mdColumns == null)
             this.mdColumns = new ArrayList<>();

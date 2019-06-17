@@ -30,7 +30,7 @@ import java.util.Map;
 @Api(value = "数据库元数据查询", tags = "元数据查询")
 @RestController
 @RequestMapping(value = "query")
-public class MetadataQueryController {
+public class MetadataQueryController extends  BaseController {
 
     @Autowired
     private MetaDataService metaDataService;
@@ -47,7 +47,7 @@ public class MetadataQueryController {
     @GetMapping(value = "/{databaseCode}/tables")
     @WrapUpResponseBody
     public PageQueryResult metaTables(@PathVariable String databaseCode, PageDesc pageDesc, HttpServletRequest request){
-        Map<String, Object> searchColumn = BaseController.convertSearchColumn(request);
+        Map<String, Object> searchColumn = collectRequestParameters(request);
         searchColumn.put("databaseCode",databaseCode);
         JSONArray list = metaDataService.listMetaTables(searchColumn, pageDesc);
         return PageQueryResult.createJSONArrayResult(list,pageDesc,MetaTable.class);

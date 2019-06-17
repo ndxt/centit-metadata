@@ -3,6 +3,7 @@ package com.centit.product.dbdesign.service;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.jdbc.service.BaseEntityManager;
 import com.centit.product.dbdesign.po.MetaChangLog;
+import com.centit.product.dbdesign.po.PendingMetaColumn;
 import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
@@ -49,9 +50,17 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
 
     List<MetaColumn> getNotInFormFields(String tableId);
 
+    List<PendingMetaColumn> listMetaColumns(String tableId, PageDesc pageDesc);
+
+    PendingMetaColumn getMetaColumn(String tableId, String columnName);
+
     List<MetaColumn> listFields(String tableId);
 
     Pair<Integer, String>  syncPdm(String databaseCode, String pdmFilePath, List<String> tables, String recorder);
 
     Pair<Integer, String>  publishDatabase(String databaseCode,String recorder);
+
+    void updateMetaTable(PendingMetaTable metaTable);
+
+    void updateMetaColumn(PendingMetaColumn metaColumn);
 }

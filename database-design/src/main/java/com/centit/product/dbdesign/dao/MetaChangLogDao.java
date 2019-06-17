@@ -35,6 +35,8 @@ public class MetaChangLogDao extends BaseDaoImpl<MetaChangLog, String>
 
             filterField.put("changeId" , CodeBook.EQUAL_HQL_ID);
 
+            filterField.put("databaseCode" , CodeBook.EQUAL_HQL_ID);
+
             filterField.put("changeDate" , CodeBook.EQUAL_HQL_ID);
 
             filterField.put("changer" , CodeBook.EQUAL_HQL_ID);

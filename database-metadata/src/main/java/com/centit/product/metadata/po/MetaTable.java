@@ -307,7 +307,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         List<String> pks = new ArrayList<>();
         for (MetaColumn c : mdColumns) {
             if (c.isPrimaryKey()) {
-                pks.add(c.getFieldLabelName());
+                pks.add(c.getColumnName());
             }
         }
         return pks;

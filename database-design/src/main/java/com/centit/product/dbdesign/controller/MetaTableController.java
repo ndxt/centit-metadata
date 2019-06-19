@@ -179,8 +179,9 @@ public class MetaTableController extends BaseController {
         }
         Pair<Integer, String> ret = mdTableMag.publishMetaTable(ptableId, userCode);
         if (ret.getLeft() == -1){
-            JSONObject jsonObject = JSONObject.parseObject(ret.getRight());
-            JsonResultUtils.writeSingleErrorDataJson(-1,"发布失败",jsonObject, response);
+            JsonResultUtils.writeSingleErrorDataJson(-1,"发布失败",ret.getRight(), response);
+        } else if (ret.getLeft() == 0) {
+            JsonResultUtils.writeSingleErrorDataJson(0,"发布成功",ret.getRight(), response);
         } else
             JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }
@@ -300,6 +301,7 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "批量发布表元数据表")
     @RequestMapping(value = "/{databaseCode}/publish", method = {RequestMethod.POST})
+    @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public void publishDatabase(@PathVariable String databaseCode,
                                HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
@@ -310,8 +312,9 @@ public class MetaTableController extends BaseController {
         }
         Pair<Integer, String> ret = mdTableMag.publishDatabase(databaseCode, userCode);
         if (ret.getLeft() == -1){
-            JSONObject jsonObject = JSONObject.parseObject(ret.getRight());
-            JsonResultUtils.writeSingleErrorDataJson(-1,"发布失败",jsonObject, response);
+            JsonResultUtils.writeSingleErrorDataJson(-1,"发布失败",ret.getRight(), response);
+        } else if (ret.getLeft() == 0) {
+            JsonResultUtils.writeSingleErrorDataJson(0,"发布成功",ret.getRight(), response);
         } else
             JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }

@@ -3,7 +3,6 @@ package com.centit.product.dbdesign.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
@@ -338,8 +337,6 @@ public class MetaTableManagerImpl
                 chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
                 chgLog.setTableID(ptable.getTableId());
                 chgLog.setChanger(currentUser);
-                if (CodeRepositoryUtil.getUserInfoByCode(currentUser) !=null)
-                    chgLog.setChangerName(CodeRepositoryUtil.getUserInfoByCode(currentUser).getUserName());
                 metaChangLogDao.saveNewObject(chgLog);
             }
             if (sqls.size() == 0)
@@ -363,13 +360,13 @@ public class MetaTableManagerImpl
                         }
                     }
                 }
-                return new ImmutablePair<>(0, "发布成功！");
+                return new ImmutablePair<>(0, chgLog.getChangeId());
             } else
-                return new ImmutablePair<>(-1, JSON.toJSONString(chgLog));
+                return new ImmutablePair<>(-1, chgLog.getChangeId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
-            return new ImmutablePair<>(-2, "发布失败!" + e.getMessage());
+            return new ImmutablePair<>(1, "发布失败!" + e.getMessage());
         }
     }
 
@@ -453,7 +450,7 @@ public class MetaTableManagerImpl
             if (pdmTables == null)
                 return new ImmutablePair<>(-1, "读取文件失败,导入失败！");
             List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
-            Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName(), o2.getTableName());
+            Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
             Triple<List<SimpleTableInfo>, List<Pair<PendingMetaTable, SimpleTableInfo>>, List<PendingMetaTable>> triple = CollectionsOpt.compareTwoTableList(pendingMetaTables,pdmTables,comparator);
             if (triple.getLeft() != null && triple.getLeft().size() > 0) {
                 //新增
@@ -499,7 +496,7 @@ public class MetaTableManagerImpl
                     oldTable = pendingMdTableDao.fetchObjectReferences(oldTable);
                     List<PendingMetaColumn> oldColumns = oldTable.getColumns();
                     List<SimpleTableField> newColumns = newTable.getColumns();
-                    Comparator<TableField> columnComparator = (o1, o2) -> StringUtils.compare(o1.getColumnName(), o2.getColumnName());
+                    Comparator<TableField> columnComparator = (o1, o2) -> StringUtils.compare(o1.getColumnName().toUpperCase(), o2.getColumnName().toUpperCase());
                     Triple<List<SimpleTableField>, List<Pair<PendingMetaColumn, SimpleTableField>>, List<PendingMetaColumn>> columnCompared = CollectionsOpt.compareTwoTableList(oldColumns, newColumns, columnComparator);
                     if (columnCompared.getLeft() != null && columnCompared.getLeft().size() > 0) {
                         //新增
@@ -620,20 +617,18 @@ public class MetaTableManagerImpl
                 chgLog.setChangeComment(JSON.toJSONString(errors));
                 chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
                 chgLog.setChanger(recorder);
-                if (CodeRepositoryUtil.getUserInfoByCode(recorder) !=null)
-                    chgLog.setChangerName(CodeRepositoryUtil.getUserInfoByCode(recorder).getUserName());
                 metaChangLogDao.saveNewObject(chgLog);
             }
             if (success.size() == 0)
                 return new ImmutablePair<>(1, "信息未变更，无需批量发布");
             if (errors.size() == 0)
-                return new ImmutablePair<>(0, "批量发布成功");
+                return new ImmutablePair<>(0, chgLog.getChangeId());
             else
-                return new ImmutablePair<>(-1, JSON.toJSONString(chgLog));
+                return new ImmutablePair<>(-1, chgLog.getChangeId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
-            return new ImmutablePair<>(-2, "批量发布失败!" + e.getMessage());
+            return new ImmutablePair<>(1, "批量发布失败!" + e.getMessage());
         }
     }
 

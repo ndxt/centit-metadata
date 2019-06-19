@@ -85,7 +85,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
 
-    private static void makeObjectValueByGenerator(Map<String, Object> object, MetaTable metaTable,
+    private static void makeObjectValueByGenerator(Map<String, Object> object, Map<String, Object> extParams, MetaTable metaTable,
                                                     JsonObjectDao sqlDialect)
         throws SQLException, IOException {
 
@@ -108,8 +108,14 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             object.put(col.getPropertyName(), col.getAutoCreateParam());
                             break;
                         case "F":
-                            object.put(col.getPropertyName(),
-                                VariableFormula.calculate(col.getAutoCreateParam(), object));
+                            if(extParams != null){
+                                object.put(col.getPropertyName(),
+                                    VariableFormula.calculate(col.getAutoCreateParam(),
+                                        CollectionsOpt.unionTwoMap(object,extParams)));
+                            } else {
+                                object.put(col.getPropertyName(),
+                                    VariableFormula.calculate(col.getAutoCreateParam(), object));
+                            }
                             break;
                     }
                 }
@@ -254,20 +260,25 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 */
     @Override
-    public int saveObject(String tableId, Map<String, Object> object) {
+    public int saveObject(String tableId, Map<String, Object> object, Map<String, Object> extParams) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
                 (conn) -> {
                     GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                    makeObjectValueByGenerator(object, tableInfo, dao);
+                    makeObjectValueByGenerator(object, extParams, tableInfo, dao);
                     prepareObjectForSave(object, tableInfo);
                     return dao.saveNewObject(object);
                 });
         } catch (SQLException | IOException e) {
             throw new ObjectException(object, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
+    }
+
+    @Override
+    public int saveObject(String tableId, Map<String, Object> object) {
+        return saveObject(tableId,object, null);
     }
 
     @Override
@@ -328,7 +339,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    public int innerSaveObject(String tableId, Map<String, Object> mainObj, boolean isUpdate) {
+    public int innerSaveObject(String tableId, Map<String, Object> mainObj,Map<String, Object> extParams, boolean isUpdate) {
         MetaTable tableInfo = fetchTableInfo(tableId, true);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -339,7 +350,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(mainObj);
                     }else {
                         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                        makeObjectValueByGenerator(mainObj, tableInfo, dao);
+                        makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao);
                         prepareObjectForSave(mainObj, tableInfo);
                         dao.saveNewObject(mainObj);
                         //GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).saveNewObject(mainObj);
@@ -355,7 +366,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                 GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
                                 Map<String, Object> ref = md.fetchObjectFk(mainObj);
                                 for(Map<String, Object> subObj : subTable){
-                                    makeObjectValueByGenerator(subObj, relTableInfo, dao);
+                                    makeObjectValueByGenerator(subObj, extParams, relTableInfo, dao);
                                     subObj.putAll(ref);
                                     prepareObjectForSave(subObj, relTableInfo);
                                 }
@@ -371,13 +382,18 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public int saveObjectWithChildren(String tableId,  Map<String, Object> bizModel) {
-        return innerSaveObject(tableId, bizModel, false);
+    public int saveObjectWithChildren(String tableId, Map<String, Object> bizModel, Map<String, Object> extParams) {
+        return innerSaveObject(tableId, bizModel, extParams, false);
+    }
+
+    @Override
+    public int saveObjectWithChildren(String tableId, Map<String, Object> bizModel) {
+        return innerSaveObject(tableId, bizModel, null,false);
     }
 
     @Override
     public int updateObjectWithChildren(String tableId, Map<String, Object> bizModel) {
-        return innerSaveObject(tableId, bizModel, true);
+        return innerSaveObject(tableId, bizModel, null,true);
     }
 
     @Override

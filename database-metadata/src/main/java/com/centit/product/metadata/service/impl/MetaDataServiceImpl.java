@@ -96,8 +96,8 @@ public class MetaDataServiceImpl implements MetaDataService {
     public void syncDb(String databaseCode, String recorder){
         List<SimpleTableInfo> dbTables = listRealTables(databaseCode);
         List<MetaTable> metaTables = metaTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
-        Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName(), o2.getTableName());
-        Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple = compareMetaBetweenDbTables(metaTables, dbTables, comparator);
+        Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
+        Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple = CollectionsOpt.compareTwoTableList(metaTables, dbTables, comparator);
         if(triple.getLeft() != null && triple.getLeft().size() > 0){
             //新增
             for(SimpleTableInfo table : triple.getLeft()){
@@ -147,8 +147,8 @@ public class MetaDataServiceImpl implements MetaDataService {
                 oldTable = metaTableDao.fetchObjectReferences(oldTable);
                 List<MetaColumn> oldColumns = oldTable.getColumns();
                 List<SimpleTableField> newColumns = newTable.getColumns();
-                Comparator<TableField> columnComparator = (o1, o2) -> StringUtils.compare(o1.getColumnName(), o2.getColumnName());
-                Triple<List<SimpleTableField>, List<Pair<MetaColumn, SimpleTableField>>, List<MetaColumn>> columnCompared = compareMetaBetweenDbTables(oldColumns, newColumns, columnComparator);
+                Comparator<TableField> columnComparator = (o1, o2) -> StringUtils.compare(o1.getColumnName().toUpperCase(), o2.getColumnName().toUpperCase());
+                Triple<List<SimpleTableField>, List<Pair<MetaColumn, SimpleTableField>>, List<MetaColumn>> columnCompared = CollectionsOpt.compareTwoTableList(oldColumns, newColumns, columnComparator);
                 if(columnCompared.getLeft() != null && columnCompared.getLeft().size() > 0){
                     //新增
                     for(SimpleTableField tableField : columnCompared.getLeft()){
@@ -192,52 +192,6 @@ public class MetaDataServiceImpl implements MetaDataService {
                 }
             }
         }
-    }
-
-    private <K,V> Triple<List<K>, List<Pair<V, K>>, List<V>>
-            compareMetaBetweenDbTables(List<V> metaTables, List<K> simpleTableInfos, Comparator comparator){
-        if(metaTables==null ||metaTables.size()==0)
-            return new ImmutableTriple<> (
-                simpleTableInfos,null,null);
-        if(simpleTableInfos==null ||simpleTableInfos.size()==0)
-            return new ImmutableTriple<> (
-                null,null,metaTables);
-        List<V> oldList = CollectionsOpt.cloneList(metaTables);
-        List<K> newList = CollectionsOpt.cloneList(simpleTableInfos);
-        Collections.sort(oldList, comparator);
-        Collections.sort(newList, comparator);
-        //---------------------------------------
-        int i=0; int sl = oldList.size();
-        int j=0; int dl = newList.size();
-        List<K> insertList = new ArrayList<>();
-        List<V> delList = new ArrayList<>();
-        List<Pair<V,K>> updateList = new ArrayList<>();
-        while(i<sl&&j<dl){
-            int n = comparator.compare(oldList.get(i), newList.get(j));
-            if(n<0){
-                delList.add(oldList.get(i));
-                i++;
-            }else if(n==0){
-                updateList.add( new ImmutablePair<>(oldList.get(i),newList.get(j)));
-                i++;
-                j++;
-            }else {
-                insertList.add(newList.get(j));
-                j++;
-            }
-        }
-
-        while(i<sl){
-            delList.add(oldList.get(i));
-            i++;
-        }
-
-        while(j<dl){
-            insertList.add(newList.get(j));
-            j++;
-        }
-
-        return new ImmutableTriple<>(insertList,updateList,delList);
     }
 
     @Override

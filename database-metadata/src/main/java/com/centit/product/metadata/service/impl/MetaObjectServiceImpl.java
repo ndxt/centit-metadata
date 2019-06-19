@@ -85,7 +85,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
 
-    private static void makeObjectValueByGenerator(Map<String, Object> object, Map<String, Object> extParams, MetaTable metaTable,
+    private static void makeObjectValueByGenerator(Map<String, Object> object, Map<String, Object> currentUserInfo, MetaTable metaTable,
                                                     JsonObjectDao sqlDialect)
         throws SQLException, IOException {
 
@@ -108,10 +108,12 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             object.put(col.getPropertyName(), col.getAutoCreateParam());
                             break;
                         case "F":
-                            if(extParams != null){
+                            if(currentUserInfo != null){
+                                Map<String, Object> objectMap = new HashMap<>(object.size()+5);
+                                objectMap.putAll(object);
+                                objectMap.put("currentUser", currentUserInfo);
                                 object.put(col.getPropertyName(),
-                                    VariableFormula.calculate(col.getAutoCreateParam(),
-                                        CollectionsOpt.unionTwoMap(object,extParams)));
+                                    VariableFormula.calculate(col.getAutoCreateParam(),objectMap));
                             } else {
                                 object.put(col.getPropertyName(),
                                     VariableFormula.calculate(col.getAutoCreateParam(), object));
@@ -223,51 +225,15 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    /*private void fetchBizModelRefrences(Connection conn, BizModel mainObj,
-                                      MetaTable tableInfo, String formTableSql, String whereSql ,int withChildrenDeep) throws SQLException, IOException {
-        // 重构bizModel获取方式
-    public BizModel getObjectAsBizModel(String tableId, Map<String, Object> pk, int withChildrenDeep) {
-        MetaTable tableInfo = fetchTableInfo(tableId,true);
-        DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
-        try {
-            return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
-                (conn) ->{
-                    SimpleBizModel bizModel = new SimpleBizModel(FieldType.mapClassName(tableInfo.getTableName()));
-                    Map<String, Object> mainObj =
-                        GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).getObjectById(pk);
-                    SimpleDataSet dataSet = new SingleRowDataSet(mainObj);
-                    dataSet.setDataSetName(tableInfo.getTableName());
-                    bizModel.putMainDataSet(dataSet);
-                    List<MetaRelation> mds = tableInfo.getMdRelations();
-                    if(mds!=null) {
-                        for (MetaRelation md : mds) {
-                            MetaTable relTableInfo = fetchTableInfo(md.getChildTableId(),true);
-                            Map<String, Object> ref = new HashMap<>();
-                            for(Map.Entry<String, String> rc : md.getReferenceColumns().entrySet()){
-                                ref.put(rc.getValue(), mainObj.get(rc.getKey()));
-                            }
-                            JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo).listObjectsByProperties(ref);
-                            SimpleDataSet subDataSet = new SimpleDataSet((List)ja);
-                            subDataSet.setDataSetName(relTableInfo.getTableName());
-                            bizModel.putDataSet(md.getRelationName(), subDataSet);
-                        }
-                    }
-                    return bizModel;
-                });
-        } catch (SQLException | IOException e) {
-            throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
-        }
-    }
-*/
     @Override
-    public int saveObject(String tableId, Map<String, Object> object, Map<String, Object> extParams) {
+    public int saveObject(String tableId, Map<String, Object> object, Map<String, Object> currentUserInfo) {
         MetaTable tableInfo = fetchTableInfo(tableId, false);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
                 (conn) -> {
                     GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                    makeObjectValueByGenerator(object, extParams, tableInfo, dao);
+                    makeObjectValueByGenerator(object, currentUserInfo, tableInfo, dao);
                     prepareObjectForSave(object, tableInfo);
                     return dao.saveNewObject(object);
                 });
@@ -339,7 +305,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    public int innerSaveObject(String tableId, Map<String, Object> mainObj,Map<String, Object> extParams, boolean isUpdate) {
+    public int innerSaveObject(String tableId, Map<String, Object> mainObj,Map<String, Object> currentUserInfo, boolean isUpdate) {
         MetaTable tableInfo = fetchTableInfo(tableId, true);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -350,7 +316,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(mainObj);
                     }else {
                         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                        makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao);
+                        makeObjectValueByGenerator(mainObj, currentUserInfo, tableInfo, dao);
                         prepareObjectForSave(mainObj, tableInfo);
                         dao.saveNewObject(mainObj);
                         //GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).saveNewObject(mainObj);
@@ -366,7 +332,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                 GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
                                 Map<String, Object> ref = md.fetchObjectFk(mainObj);
                                 for(Map<String, Object> subObj : subTable){
-                                    makeObjectValueByGenerator(subObj, extParams, relTableInfo, dao);
+                                    makeObjectValueByGenerator(subObj, currentUserInfo, relTableInfo, dao);
                                     subObj.putAll(ref);
                                     prepareObjectForSave(subObj, relTableInfo);
                                 }
@@ -382,18 +348,18 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public int saveObjectWithChildren(String tableId, Map<String, Object> bizModel, Map<String, Object> extParams) {
-        return innerSaveObject(tableId, bizModel, extParams, false);
+    public int saveObjectWithChildren(String tableId, Map<String, Object> object, Map<String, Object> currentUserInfo) {
+        return innerSaveObject(tableId, object, currentUserInfo, false);
     }
 
     @Override
-    public int saveObjectWithChildren(String tableId, Map<String, Object> bizModel) {
-        return innerSaveObject(tableId, bizModel, null,false);
+    public int saveObjectWithChildren(String tableId, Map<String, Object> object) {
+        return innerSaveObject(tableId, object, null,false);
     }
 
     @Override
-    public int updateObjectWithChildren(String tableId, Map<String, Object> bizModel) {
-        return innerSaveObject(tableId, bizModel, null,true);
+    public int updateObjectWithChildren(String tableId, Map<String, Object> object) {
+        return innerSaveObject(tableId, object, null,true);
     }
 
     @Override

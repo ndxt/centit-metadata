@@ -66,6 +66,12 @@ public class MetaColumn implements TableField,java.io.Serializable {
     @Length(max = 32, message = "字段长度不能大于{max}")
     private String columnType;
 
+    @ApiModelProperty(value = "字段类型", hidden = true)
+    @Column(name = "JAVA_TYPE")
+    @NotBlank(message = "字段不能为空")
+    @Length(max = 32, message = "字段长度不能大于{max}")
+    private String javaType;
+
     @ApiModelProperty(value = "字段长度", hidden = true)
     @Column(name = "COLUMN_LENGTH")
     private int columnLength;

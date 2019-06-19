@@ -63,7 +63,8 @@ public class MetaChangLog implements java.io.Serializable {
     @Length(max = 2048, message = "字段长度不能大于{max}")
     private String  changeComment;
 
-
+    @Transient
+    private String changerName;
     // Constructors
     /** default constructor */
     public MetaChangLog() {

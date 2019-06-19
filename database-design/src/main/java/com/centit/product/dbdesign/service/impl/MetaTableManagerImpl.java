@@ -3,6 +3,7 @@ package com.centit.product.dbdesign.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
@@ -30,7 +31,6 @@ import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.commons.logging.Log;
@@ -338,8 +338,12 @@ public class MetaTableManagerImpl
                 chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
                 chgLog.setTableID(ptable.getTableId());
                 chgLog.setChanger(currentUser);
+                if (CodeRepositoryUtil.getUserInfoByCode(currentUser) !=null)
+                    chgLog.setChangerName(CodeRepositoryUtil.getUserInfoByCode(currentUser).getUserName());
                 metaChangLogDao.saveNewObject(chgLog);
             }
+            if (sqls.size() == 0)
+                return new ImmutablePair<>(1, "信息未变更，无需批量发布");
             if (errors.size() == 0) {
                 ptable.setRecorder(currentUser);
                 ptable.setTableState("S");
@@ -361,11 +365,11 @@ public class MetaTableManagerImpl
                 }
                 return new ImmutablePair<>(0, "发布成功！");
             } else
-                return new ImmutablePair<>(-10, "发布失败!" + JSON.toJSONString(errors));
+                return new ImmutablePair<>(-1, JSON.toJSONString(chgLog));
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
-            return new ImmutablePair<>(-1, "发布失败!" + e.getMessage());
+            return new ImmutablePair<>(-2, "发布失败!" + e.getMessage());
         }
     }
 
@@ -450,7 +454,7 @@ public class MetaTableManagerImpl
                 return new ImmutablePair<>(-1, "读取文件失败,导入失败！");
             List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
             Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName(), o2.getTableName());
-            Triple<List<SimpleTableInfo>, List<Pair<PendingMetaTable, SimpleTableInfo>>, List<PendingMetaTable>> triple = compareMetaBetweenPdmTables(pendingMetaTables, pdmTables, comparator);
+            Triple<List<SimpleTableInfo>, List<Pair<PendingMetaTable, SimpleTableInfo>>, List<PendingMetaTable>> triple = CollectionsOpt.compareTwoTableList(pendingMetaTables,pdmTables,comparator);
             if (triple.getLeft() != null && triple.getLeft().size() > 0) {
                 //新增
                 for (SimpleTableInfo pdmtable : triple.getLeft()) {
@@ -496,7 +500,7 @@ public class MetaTableManagerImpl
                     List<PendingMetaColumn> oldColumns = oldTable.getColumns();
                     List<SimpleTableField> newColumns = newTable.getColumns();
                     Comparator<TableField> columnComparator = (o1, o2) -> StringUtils.compare(o1.getColumnName(), o2.getColumnName());
-                    Triple<List<SimpleTableField>, List<Pair<PendingMetaColumn, SimpleTableField>>, List<PendingMetaColumn>> columnCompared = compareMetaBetweenPdmTables(oldColumns, newColumns, columnComparator);
+                    Triple<List<SimpleTableField>, List<Pair<PendingMetaColumn, SimpleTableField>>, List<PendingMetaColumn>> columnCompared = CollectionsOpt.compareTwoTableList(oldColumns, newColumns, columnComparator);
                     if (columnCompared.getLeft() != null && columnCompared.getLeft().size() > 0) {
                         //新增
                         for (SimpleTableField tableField : columnCompared.getLeft()) {
@@ -592,7 +596,7 @@ public class MetaTableManagerImpl
                     metaTable.setLastModifyDate(new Date());
                     pendingMdTableDao.mergeObject(metaTable);
                     if (sqls.size() > 0) {
-                        MetaTable table = metaTable.mapToMetaTable(); //new MetaTable(ptable)
+                        MetaTable table = metaTable.mapToMetaTable();
                         metaTableDao.mergeObject(table);
 
                         List<MetaColumn> metaColumns = table.getColumns();
@@ -616,63 +620,21 @@ public class MetaTableManagerImpl
                 chgLog.setChangeComment(JSON.toJSONString(errors));
                 chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
                 chgLog.setChanger(recorder);
+                if (CodeRepositoryUtil.getUserInfoByCode(recorder) !=null)
+                    chgLog.setChangerName(CodeRepositoryUtil.getUserInfoByCode(recorder).getUserName());
                 metaChangLogDao.saveNewObject(chgLog);
             }
+            if (success.size() == 0)
+                return new ImmutablePair<>(1, "信息未变更，无需批量发布");
             if (errors.size() == 0)
                 return new ImmutablePair<>(0, "批量发布成功");
             else
-                return new ImmutablePair<>(-1, "批量发布失败!" + JSON.toJSONString(errors));
+                return new ImmutablePair<>(-1, JSON.toJSONString(chgLog));
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
-            return new ImmutablePair<>(-1, "批量发布失败!" + e.getMessage());
+            return new ImmutablePair<>(-2, "批量发布失败!" + e.getMessage());
         }
-    }
-
-    private <K,V> Triple<List<K>, List<Pair<V, K>>, List<V>>
-    compareMetaBetweenPdmTables(List<V> metaTables, List<K> simpleTableInfos, Comparator comparator){
-        if(metaTables==null ||metaTables.size()==0)
-            return new ImmutableTriple<>(
-                simpleTableInfos,null,null);
-        if(simpleTableInfos==null ||simpleTableInfos.size()==0)
-            return new ImmutableTriple<> (
-                null,null,metaTables);
-        List<V> oldList = CollectionsOpt.cloneList(metaTables);
-        List<K> newList = CollectionsOpt.cloneList(simpleTableInfos);
-        Collections.sort(oldList, comparator);
-        Collections.sort(newList, comparator);
-        //---------------------------------------
-        int i=0; int sl = oldList.size();
-        int j=0; int dl = newList.size();
-        List<K> insertList = new ArrayList<>();
-        List<V> delList = new ArrayList<>();
-        List<Pair<V,K>> updateList = new ArrayList<>();
-        while(i<sl&&j<dl){
-            int n = comparator.compare(oldList.get(i), newList.get(j));
-            if(n<0){
-                delList.add(oldList.get(i));
-                i++;
-            }else if(n==0){
-                updateList.add( new ImmutablePair<>(oldList.get(i),newList.get(j)));
-                i++;
-                j++;
-            }else {
-                insertList.add(newList.get(j));
-                j++;
-            }
-        }
-
-        while(i<sl){
-            delList.add(oldList.get(i));
-            i++;
-        }
-
-        while(j<dl){
-            insertList.add(newList.get(j));
-            j++;
-        }
-
-        return new ImmutableTriple<>(insertList,updateList,delList);
     }
 
     @Override

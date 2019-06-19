@@ -82,7 +82,7 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "查看单个表元数据发布记录")
     @RequestMapping(value = "/log/{changeId}", method = {RequestMethod.GET})
-    @WrapUpResponseBody
+    @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public MetaChangLog getMdTableLog(@PathVariable String changeId) {
         MetaChangLog changLog = mdTableMag.getMetaChangLog(changeId);
         return changLog;
@@ -178,7 +178,11 @@ public class MetaTableController extends BaseController {
             return;
         }
         Pair<Integer, String> ret = mdTableMag.publishMetaTable(ptableId, userCode);
-        JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
+        if (ret.getLeft() == -1){
+            JSONObject jsonObject = JSONObject.parseObject(ret.getRight());
+            JsonResultUtils.writeSingleErrorDataJson(-1,"发布失败",jsonObject, response);
+        } else
+            JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }
 
     @ApiOperation(value = "列出未加入表单的field")
@@ -305,7 +309,11 @@ public class MetaTableController extends BaseController {
             return;
         }
         Pair<Integer, String> ret = mdTableMag.publishDatabase(databaseCode, userCode);
-        JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
+        if (ret.getLeft() == -1){
+            JSONObject jsonObject = JSONObject.parseObject(ret.getRight());
+            JsonResultUtils.writeSingleErrorDataJson(-1,"发布失败",jsonObject, response);
+        } else
+            JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }
 
     @ApiOperation(value = "查询列表元数据")

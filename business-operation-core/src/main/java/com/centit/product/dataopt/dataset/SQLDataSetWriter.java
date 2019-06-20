@@ -55,6 +55,13 @@ public class SQLDataSetWriter implements DataSetWriter {
         this.tableInfo = tableInfo;
     }
 
+    private void fetchConnect(){
+        try {
+            connection = DbcpConnectPools.getDbcpConnect(dataSource);
+        } catch (SQLException e) {
+            throw new ObjectException(ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
     /**
      * 将 dataSet 数据集 持久化
      * @param dataSet 数据集
@@ -84,11 +91,7 @@ public class SQLDataSetWriter implements DataSetWriter {
         } else { // 这部分也可以 直接运行sql语句 而不是用 GeneralJsonObjectDao 方式来提高效率
             boolean createConn = false;
             if (connection == null) {
-                try {
-                    connection = DbcpConnectPools.getDbcpConnect(dataSource);
-                } catch (SQLException e) {
-                    throw new ObjectException(ObjectException.DATABASE_OPERATE_EXCEPTION, e);
-                }
+                fetchConnect();
                 createConn = true;
             }
 
@@ -142,11 +145,7 @@ public class SQLDataSetWriter implements DataSetWriter {
         } else {
             boolean createConn = false;
             if (connection == null) {
-                try {
-                    connection = DbcpConnectPools.getDbcpConnect(dataSource);
-                } catch (SQLException e) {
-                    throw new ObjectException(ObjectException.DATABASE_OPERATE_EXCEPTION, e);
-                }
+                fetchConnect();
                 createConn = true;
             }
 

@@ -23,6 +23,7 @@ import javax.validation.constraints.Pattern;
 import java.util.Date;
 
 /**
+ * @author codefan
  * @author zouwy
 */
 @ApiModel

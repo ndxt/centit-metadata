@@ -17,8 +17,11 @@ public interface MetaObjectService {
 
     Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep);
 
+    Map<String, Object> makeNewObject(String tableId, Map<String, Object> extParams);
+    Map<String, Object> makeNewObject(String tableId);
+
     int saveObject(String tableId, Map<String, Object> object);
-    int saveObject(String tableId, Map<String, Object> object, Map<String, Object> currentUserInfo);
+    int saveObject(String tableId, Map<String, Object> object, Map<String, Object> extParams);
 
     int updateObject(String tableId, Map<String, Object> object);
 
@@ -30,7 +33,7 @@ public interface MetaObjectService {
     void deleteObject(String tableId, Map<String, Object> pk);
 
     int saveObjectWithChildren(String tableId, Map<String, Object> object);
-    int saveObjectWithChildren(String tableId, Map<String, Object> object, Map<String, Object> currentUserInfo);
+    int saveObjectWithChildren(String tableId, Map<String, Object> object, Map<String, Object> extParams);
 
     int updateObjectWithChildren(String tableId, Map<String, Object> object);
 

@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * @author codefan
  * @author zouwy
  */
 @ApiModel
@@ -167,5 +168,13 @@ public class MetaRelation implements TableReference, java.io.Serializable {
             fk.put(mrd.getChildColumnName(), parentObject.get(mrd.getParentColumnName()));
         }
         return fk;
+    }
+
+    public Map<String, Object> fetchParentPk(Map<String, Object> childObject){
+        Map<String, Object> pk = new HashMap<>(8);
+        for (MetaRelDetail mrd : relationDetails) {
+            pk.put(mrd.getParentColumnName(), childObject.get(mrd.getChildColumnName()));
+        }
+        return pk;
     }
 }

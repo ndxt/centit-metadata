@@ -69,7 +69,7 @@ public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
     GraphQLFieldDefinition getObjectSaveDefinition(MetaTable entityType) {
         String entityName = FieldType.mapPropName(entityType.getTableName());
         return GraphQLFieldDefinition.newFieldDefinition()
-            .name(entityName + "Save")
+            .name(entityName)
             .description(entityType.getTableLabelName() + " 单个对象保存")
             .type(getObjectType(entityType))
             .dataFetcher(new MetadataDataFetcher(metaDataService, dataSourceDesc, entityType, 3))

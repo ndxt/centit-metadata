@@ -18,6 +18,7 @@ import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.database.ddl.*;
@@ -451,7 +452,7 @@ public class MetaTableManagerImpl
                 return new ImmutablePair<>(-1, "读取文件失败,导入失败！");
             List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
             Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
-            Triple<List<SimpleTableInfo>, List<Pair<PendingMetaTable, SimpleTableInfo>>, List<PendingMetaTable>> triple = CollectionsOpt.compareTwoTableList(pendingMetaTables,pdmTables,comparator);
+            Triple<List<SimpleTableInfo>, List<Pair<PendingMetaTable, SimpleTableInfo>>, List<PendingMetaTable>> triple = MetaDataServiceImpl.compareMetaBetweenDbTables(pendingMetaTables,pdmTables,comparator);
             if (triple.getLeft() != null && triple.getLeft().size() > 0) {
                 //新增
                 for (SimpleTableInfo pdmtable : triple.getLeft()) {
@@ -497,7 +498,8 @@ public class MetaTableManagerImpl
                     List<PendingMetaColumn> oldColumns = oldTable.getColumns();
                     List<SimpleTableField> newColumns = newTable.getColumns();
                     Comparator<TableField> columnComparator = (o1, o2) -> StringUtils.compare(o1.getColumnName().toUpperCase(), o2.getColumnName().toUpperCase());
-                    Triple<List<SimpleTableField>, List<Pair<PendingMetaColumn, SimpleTableField>>, List<PendingMetaColumn>> columnCompared = CollectionsOpt.compareTwoTableList(oldColumns, newColumns, columnComparator);
+                    Triple<List<SimpleTableField>, List<Pair<PendingMetaColumn, SimpleTableField>>, List<PendingMetaColumn>> columnCompared =
+                        MetaDataServiceImpl.compareMetaBetweenDbTables(oldColumns, newColumns, columnComparator);
                     if (columnCompared.getLeft() != null && columnCompared.getLeft().size() > 0) {
                         //新增
                         for (SimpleTableField tableField : columnCompared.getLeft()) {

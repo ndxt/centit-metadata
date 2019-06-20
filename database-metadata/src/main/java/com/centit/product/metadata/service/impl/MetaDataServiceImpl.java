@@ -194,7 +194,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
     }
 
-    private <K,V> Triple<List<K>, List<Pair<V, K>>, List<V>>
+    public static <K,V> Triple<List<K>, List<Pair<V, K>>, List<V>>
             compareMetaBetweenDbTables(List<V> metaTables, List<K> simpleTableInfos, Comparator comparator){
         if(metaTables==null ||metaTables.size()==0)
             return new ImmutableTriple<> (

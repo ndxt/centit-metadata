@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
-import static com.centit.support.json.JSONOpt.objectToJSONObject;
-
 public class MetadataDataFetcher implements DataFetcher {
 
     private final int queryType;// 0 get 1 list 2 page
@@ -60,7 +58,7 @@ public class MetadataDataFetcher implements DataFetcher {
 
     private Long getCountQuery(DataFetchingEnvironment environment, Map<String, Object> filters) {
         try {
-            return Connection conn = ConnectThreadHolder.fetchConnect(dataSourceDesc,
+            return TransactionHandler.executeQueryInTransaction(dataSourceDesc,
                 (conn) ->
                     NumberBaseOpt.castObjectToLong(
                         DatabaseAccess.getScalarObjectQuery(conn,
@@ -101,7 +99,7 @@ public class MetadataDataFetcher implements DataFetcher {
 
     private List<Object> listObjects(DataFetchingEnvironment environment) {
         try {
-            return Connection conn = ConnectThreadHolder.fetchConnect(dataSourceDesc,
+            return TransactionHandler.executeQueryInTransaction(dataSourceDesc,
                 (conn) ->
                     GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
                         environment.getArguments())
@@ -114,7 +112,7 @@ public class MetadataDataFetcher implements DataFetcher {
 
     private Object getObject(DataFetchingEnvironment environment) {
         try {
-            JSONArray ja = Connection conn = ConnectThreadHolder.fetchConnect(dataSourceDesc,
+            JSONArray ja = TransactionHandler.executeQueryInTransaction(dataSourceDesc,
                 (conn) ->
                     GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
                         environment.getArguments())
@@ -130,8 +128,9 @@ public class MetadataDataFetcher implements DataFetcher {
 
     private Object saveObject(DataFetchingEnvironment environment) {
         try {
-            Connection conn = ConnectThreadHolder.fetchConnect(dataSourceDesc,
-                conn -> GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).mergeObject(environment.getArguments())
+            TransactionHandler.executeQueryInTransaction(dataSourceDesc,
+                conn -> GeneralJsonObjectDao.createJsonObjectDao(conn, entityType)
+                    .mergeObject(environment.getArguments())
             );
             return environment.getArguments();
         } catch (SQLException | IOException e) {
@@ -145,7 +144,7 @@ public class MetadataDataFetcher implements DataFetcher {
         PageDesc pageInformation = extractPageInformation(environment, field);
         try {
             result.put("objList",
-                Connection conn = ConnectThreadHolder.fetchConnect(dataSourceDesc,
+                TransactionHandler.executeQueryInTransaction(dataSourceDesc,
                     (conn) ->
                         GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
                             environment.getArguments(), pageInformation.getRowStart(), pageInformation.getPageSize())

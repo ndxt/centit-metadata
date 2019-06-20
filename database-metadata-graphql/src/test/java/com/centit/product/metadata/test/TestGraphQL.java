@@ -43,7 +43,7 @@ public class TestGraphQL {
         dataSourceDesc.setDatabaseCode("0000000124");
         GraphQLExecutor executor = new GraphQLExecutor(metaDataService, dataSourceDesc);
 
-        ExecutionResult result =executor.execute("mutation  receipt { contractReceiptsSave(receiptId:\"10\",receiptAmount:300)\n" +
+        ExecutionResult result =executor.execute("mutation  receipt { contractReceipts(receiptId:\"10\",receiptAmount:300)\n" +
             "{\n" +
             "  receiptAmount\n" +
             "  contractId\n" +

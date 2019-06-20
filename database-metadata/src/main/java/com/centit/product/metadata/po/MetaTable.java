@@ -23,6 +23,7 @@ import javax.validation.constraints.Pattern;
 import java.util.*;
 
 /**
+ * @author codefan
  * @author zouwy
  */
 @Data
@@ -154,6 +155,10 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @JoinColumn(name = "tableId", referencedColumnName = "parentTableId")
     private List<MetaRelation> mdRelations;
 
+    @OneToMany(targetEntity = MetaRelation.class)
+    @JoinColumn(name = "tableId", referencedColumnName = "childTableId")
+    private List<MetaRelation> parents;
+
     @Transient
     @ApiModelProperty(hidden = true)
     private DBType databaseType;
@@ -193,16 +198,31 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         return res;
     }
 
+    public List<MetaRelation> getParents() {
+        if (this.parents == null)
+            this.parents = new ArrayList<>(4);
+        return this.parents;
+    }
+
+    public void addParent(MetaRelation parent) {
+        this.getParents().add(parent);
+    }
+
+    public void removeParent(MetaRelation parent) {
+        if (this.parents == null)
+            return;
+        this.parents.remove(parent);
+    }
+
     public List<MetaRelation> getMdRelations() {
         if (this.mdRelations == null)
-            this.mdRelations = new ArrayList<>();
+            this.mdRelations = new ArrayList<>(4);
         return this.mdRelations;
     }
 
+
     public void addMdRelation(MetaRelation mdRelation) {
-        if (this.mdRelations == null)
-            this.mdRelations = new ArrayList<>();
-        this.mdRelations.add(mdRelation);
+        this.getMdRelations().add(mdRelation);
     }
 
     public void removeMdRelation(MetaRelation mdRelation) {

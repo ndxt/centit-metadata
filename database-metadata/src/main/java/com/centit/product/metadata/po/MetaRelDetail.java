@@ -12,6 +12,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 
 /**
+ * @author codefan
  * @author zouwy
  */
 @Data

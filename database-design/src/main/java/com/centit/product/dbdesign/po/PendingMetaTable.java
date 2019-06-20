@@ -140,6 +140,7 @@ public class PendingMetaTable implements
      * default constructor
      */
     public PendingMetaTable() {
+        this.tableState = "W";
     }
 
     /**
@@ -341,6 +342,7 @@ public class PendingMetaTable implements
         mt.setRecordDate(this.getLastModifyDate());
         mt.setWorkFlowOptType(this.getWorkFlowOptType());
         mt.setRecorder(this.getRecorder());
+        mt.setDatabaseType(this.getDatabaseType());
         List<MetaColumn> columns = new ArrayList<>();
         if (this.getColumns() != null && this.getColumns().size() > 0) {
             for (PendingMetaColumn pc : this.getColumns()) {

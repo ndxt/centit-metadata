@@ -226,11 +226,6 @@ public class MetaColumn implements TableField,java.io.Serializable {
     }
 
     @Override
-    public String getJavaType() {
-        return FieldType.mapToJavaType(this.columnType,this.columnPrecision);
-    }
-
-    @Override
     public boolean isMandatory() {
         return "T".equals(mandatory);
     }
@@ -240,11 +235,11 @@ public class MetaColumn implements TableField,java.io.Serializable {
     }
 
     public int getColumnLength() {
-        if("string".equalsIgnoreCase(this.columnType) ||
-                "integer".equalsIgnoreCase(this.columnType)||
-                "float".equalsIgnoreCase(this.columnType) ||
-                "varchar".equalsIgnoreCase(this.columnType)||
-                "number".equalsIgnoreCase(this.columnType))
+        if("string".equalsIgnoreCase(this.javaType) ||
+                "integer".equalsIgnoreCase(this.javaType)||
+                "float".equalsIgnoreCase(this.javaType) ||
+                "varchar".equalsIgnoreCase(this.javaType)||
+                "number".equalsIgnoreCase(this.javaType))
             return columnLength;
         return 0;
     }

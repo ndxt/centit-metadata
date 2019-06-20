@@ -341,7 +341,7 @@ public class MetaTableManagerImpl
                 metaChangLogDao.saveNewObject(chgLog);
             }
             if (sqls.size() == 0)
-                return new ImmutablePair<>(1, "信息未变更，无需批量发布");
+                return new ImmutablePair<>(1, "信息未变更，无需发布");
             if (errors.size() == 0) {
                 ptable.setRecorder(currentUser);
                 ptable.setTableState("S");

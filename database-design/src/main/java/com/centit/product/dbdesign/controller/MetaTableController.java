@@ -119,8 +119,10 @@ public class MetaTableController extends BaseController {
                               HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         mdTable.setRecorder(userCode);
-        mdTableMag.saveNewPendingMetaTable(mdTable);
-        JsonResultUtils.writeSingleDataJson(mdTable.getTableId(), response);
+        PendingMetaTable table = new PendingMetaTable();
+        table.copyNotNullProperty(mdTable);
+        mdTableMag.saveNewPendingMetaTable(table);
+        JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
     }
 
     @ApiOperation(value = "只修改表元数据表,表与字段分开")
@@ -178,12 +180,16 @@ public class MetaTableController extends BaseController {
             return;
         }
         Pair<Integer, String> ret = mdTableMag.publishMetaTable(ptableId, userCode);
+        JSONObject json = new JSONObject();
+        json.put(ResponseData.RES_CODE_FILED, ret.getLeft());
         if (ret.getLeft() == -1){
-            JsonResultUtils.writeSingleErrorDataJson(-1,"发布失败",ret.getRight(), response);
+            json.put(ResponseData.RES_MSG_FILED, "发布失败");
         } else if (ret.getLeft() == 0) {
-            JsonResultUtils.writeSingleErrorDataJson(0,"发布成功",ret.getRight(), response);
+            json.put(ResponseData.RES_MSG_FILED, "发布成功");
         } else
-            JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
+            json.put(ResponseData.RES_MSG_FILED, ret.getRight());
+        json.put(ResponseData.RES_DATA_FILED, ret.getRight());
+        JsonResultUtils.writeSingleDataJson(json,response);
     }
 
     @ApiOperation(value = "列出未加入表单的field")
@@ -311,12 +317,16 @@ public class MetaTableController extends BaseController {
             return;
         }
         Pair<Integer, String> ret = mdTableMag.publishDatabase(databaseCode, userCode);
+        JSONObject json = new JSONObject();
+        json.put(ResponseData.RES_CODE_FILED, ret.getLeft());
         if (ret.getLeft() == -1){
-            JsonResultUtils.writeSingleErrorDataJson(-1,"发布失败",ret.getRight(), response);
+            json.put(ResponseData.RES_MSG_FILED, "发布失败");
         } else if (ret.getLeft() == 0) {
-            JsonResultUtils.writeSingleErrorDataJson(0,"发布成功",ret.getRight(), response);
+            json.put(ResponseData.RES_MSG_FILED, "发布成功");
         } else
-            JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
+            json.put(ResponseData.RES_MSG_FILED, ret.getRight());
+        json.put(ResponseData.RES_DATA_FILED, ret.getRight());
+        JsonResultUtils.writeSingleDataJson(json,response);
     }
 
     @ApiOperation(value = "查询列表元数据")

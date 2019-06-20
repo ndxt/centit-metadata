@@ -250,17 +250,19 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     public MetaColumn mapToMetaColumn(){
         MetaColumn mc = new MetaColumn();
+        mc.setDatabaseType(this.getDatabaseType());
         mc.setTableId(this.getTableId());
         mc.setColumnName(this.getColumnName());
         mc.setFieldLabelName(this.getFieldLabelName());
         mc.setColumnComment(this.getColumnComment());
         mc.setColumnOrder(this.getColumnOrder());
-        mc.setColumnType(getColumnFieldType());
+        mc.setColumnType(this.getColumnType());
+        mc.setJavaType(this.getColumnFieldType());
         mc.setColumnLength(this.getMaxLength());
         mc.setColumnPrecision(this.getScale());
         mc.setAccessType("N");
         mc.setMandatory(this.isMandatory()?"T":"F");
-        mc.setPrimaryKey(this.getPrimarykey());
+        mc.setPrimaryKey(this.getPrimarykey()==null?"F":this.getPrimarykey());
         mc.setLastModifyDate(this.getLastModifyDate());
         mc.setRecorder(this.getRecorder());
         return mc;
@@ -268,7 +270,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     public PendingMetaColumn convertFromTableField(SimpleTableField tableField){
         this.columnName = tableField.getColumnName();
-        this.columnFieldType = tableField.getColumnType();
+        this.columnFieldType = tableField.getJavaType();
         if(StringUtils.isNotBlank(tableField.getFieldLabelName())){
             this.fieldLabelName = tableField.getFieldLabelName();
         }

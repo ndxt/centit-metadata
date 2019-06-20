@@ -60,7 +60,7 @@ public class MetadataDataFetcher implements DataFetcher {
 
     private Long getCountQuery(DataFetchingEnvironment environment, Map<String, Object> filters) {
         try {
-            return TransactionHandler.executeQueryInTransaction(dataSourceDesc,
+            return Connection conn = ConnectThreadHolder.fetchConnect(dataSourceDesc,
                 (conn) ->
                     NumberBaseOpt.castObjectToLong(
                         DatabaseAccess.getScalarObjectQuery(conn,
@@ -101,7 +101,7 @@ public class MetadataDataFetcher implements DataFetcher {
 
     private List<Object> listObjects(DataFetchingEnvironment environment) {
         try {
-            return TransactionHandler.executeQueryInTransaction(dataSourceDesc,
+            return Connection conn = ConnectThreadHolder.fetchConnect(dataSourceDesc,
                 (conn) ->
                     GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
                         environment.getArguments())
@@ -114,7 +114,7 @@ public class MetadataDataFetcher implements DataFetcher {
 
     private Object getObject(DataFetchingEnvironment environment) {
         try {
-            JSONArray ja = TransactionHandler.executeQueryInTransaction(dataSourceDesc,
+            JSONArray ja = Connection conn = ConnectThreadHolder.fetchConnect(dataSourceDesc,
                 (conn) ->
                     GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
                         environment.getArguments())
@@ -130,7 +130,7 @@ public class MetadataDataFetcher implements DataFetcher {
 
     private Object saveObject(DataFetchingEnvironment environment) {
         try {
-            TransactionHandler.executeQueryInTransaction(dataSourceDesc,
+            Connection conn = ConnectThreadHolder.fetchConnect(dataSourceDesc,
                 conn -> GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).mergeObject(environment.getArguments())
             );
             return environment.getArguments();
@@ -145,7 +145,7 @@ public class MetadataDataFetcher implements DataFetcher {
         PageDesc pageInformation = extractPageInformation(environment, field);
         try {
             result.put("objList",
-                TransactionHandler.executeQueryInTransaction(dataSourceDesc,
+                Connection conn = ConnectThreadHolder.fetchConnect(dataSourceDesc,
                     (conn) ->
                         GeneralJsonObjectDao.createJsonObjectDao(conn, entityType).listObjectsByProperties(
                             environment.getArguments(), pageInformation.getRowStart(), pageInformation.getPageSize())

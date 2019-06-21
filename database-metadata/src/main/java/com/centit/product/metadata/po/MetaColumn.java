@@ -196,6 +196,7 @@ public class MetaColumn implements TableField,java.io.Serializable {
     public MetaColumn convertFromTableField(SimpleTableField tableField){
         this.columnName = tableField.getColumnName();
         this.columnType = tableField.getColumnType();
+        this.javaType = StringUtils.isNotBlank(this.javaType) ? this.javaType : tableField.getJavaType();
         if(StringUtils.isNotBlank(tableField.getFieldLabelName())){
             this.fieldLabelName = tableField.getFieldLabelName();
         }
@@ -237,7 +238,9 @@ public class MetaColumn implements TableField,java.io.Serializable {
     public int getColumnLength() {
         if("string".equalsIgnoreCase(this.javaType) ||
                 "integer".equalsIgnoreCase(this.javaType)||
+                "long".equalsIgnoreCase(this.javaType)||
                 "float".equalsIgnoreCase(this.javaType) ||
+                "double".equalsIgnoreCase(this.javaType)||
                 "varchar".equalsIgnoreCase(this.javaType)||
                 "number".equalsIgnoreCase(this.javaType))
             return columnLength;
@@ -255,8 +258,9 @@ public class MetaColumn implements TableField,java.io.Serializable {
     }
 
     public int getColumnPrecision() {
-        if("float".equalsIgnoreCase(this.columnType) ||
-                "number".equalsIgnoreCase(this.columnType))
+        if("float".equalsIgnoreCase(this.javaType) ||
+                "double".equalsIgnoreCase(this.javaType)||
+                "number".equalsIgnoreCase(this.javaType))
             return columnPrecision;
         return 0;
     }

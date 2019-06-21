@@ -216,7 +216,7 @@ public class MetaTableManagerImpl
                     sqls.add(ddlOpt.makeAddColumnSql(
                         ptable.getTableName(), pcol));
                 } else {
-                    if (pcol.getColumnType().equals(ocol.getColumnType())) {
+                    if (pcol.getColumnType().equalsIgnoreCase(ocol.getColumnType())) {
                         if (pcol.getMaxLength() != ocol.getMaxLength() ||
                             pcol.getScale() != ocol.getScale()) {
                             sqls.add(ddlOpt.makeModifyColumnSql(

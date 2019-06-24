@@ -236,13 +236,11 @@ public class MetaColumn implements TableField,java.io.Serializable {
     }
 
     public int getColumnLength() {
-        if("string".equalsIgnoreCase(this.javaType) ||
-                "integer".equalsIgnoreCase(this.javaType)||
-                "long".equalsIgnoreCase(this.javaType)||
-                "float".equalsIgnoreCase(this.javaType) ||
-                "double".equalsIgnoreCase(this.javaType)||
-                "varchar".equalsIgnoreCase(this.javaType)||
-                "number".equalsIgnoreCase(this.javaType))
+        if(FieldType.STRING.equalsIgnoreCase(this.javaType) ||
+            FieldType.FLOAT.equalsIgnoreCase(this.javaType) ||
+            FieldType.DOUBLE.equalsIgnoreCase(this.javaType)||
+            FieldType.MONEY.equalsIgnoreCase(this.javaType) ||
+            FieldType.INTEGER.equalsIgnoreCase(this.javaType))
             return columnLength;
         return 0;
     }
@@ -257,10 +255,18 @@ public class MetaColumn implements TableField,java.io.Serializable {
         return getColumnLength();
     }
 
+    @Override
+    @ApiModelProperty(hidden = true)
+    @JSONField(serialize = false)
+    public int getScale() {
+        return this.getColumnPrecision();
+    }
+
     public int getColumnPrecision() {
-        if("float".equalsIgnoreCase(this.javaType) ||
-                "double".equalsIgnoreCase(this.javaType)||
-                "number".equalsIgnoreCase(this.javaType))
+        if(FieldType.FLOAT.equalsIgnoreCase(this.javaType) ||
+            FieldType.DOUBLE.equalsIgnoreCase(this.javaType)||
+            FieldType.MONEY.equalsIgnoreCase(this.javaType) ||
+            FieldType.INTEGER.equalsIgnoreCase(this.javaType))
             return columnPrecision;
         return 0;
     }
@@ -279,10 +285,5 @@ public class MetaColumn implements TableField,java.io.Serializable {
         return this.getColumnLength();
     }
 
-    @Override
-    @ApiModelProperty(hidden = true)
-    @JSONField(serialize = false)
-    public int getScale() {
-        return this.getColumnPrecision();
-    }
+
 }

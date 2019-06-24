@@ -218,13 +218,11 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     @Override
     public int getMaxLength() {
-        if("string".equalsIgnoreCase(this.columnFieldType) ||
-                "integer".equalsIgnoreCase(this.columnFieldType)||
-                "long".equalsIgnoreCase(this.columnFieldType)||
-                "float".equalsIgnoreCase(this.columnFieldType) ||
-                "double".equalsIgnoreCase(this.columnFieldType)||
-                "varchar".equalsIgnoreCase(this.columnFieldType)||
-                "number".equalsIgnoreCase(this.columnFieldType))
+        if(FieldType.STRING.equalsIgnoreCase(this.columnFieldType) ||
+            FieldType.FLOAT.equalsIgnoreCase(this.columnFieldType) ||
+            FieldType.DOUBLE.equalsIgnoreCase(this.columnFieldType)||
+            FieldType.MONEY.equalsIgnoreCase(this.columnFieldType) ||
+            FieldType.INTEGER.equalsIgnoreCase(this.columnFieldType))
             return maxLengthM==null?0:maxLengthM.intValue();
         return 0;
     }
@@ -234,9 +232,10 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     }
     @Override
     public int getScale() {
-        if("float".equalsIgnoreCase(this.columnFieldType) ||
-                "double".equalsIgnoreCase(this.columnFieldType)||
-                "number".equalsIgnoreCase(this.columnFieldType))
+        if(FieldType.FLOAT.equalsIgnoreCase(this.columnFieldType) ||
+            FieldType.DOUBLE.equalsIgnoreCase(this.columnFieldType)||
+            FieldType.MONEY.equalsIgnoreCase(this.columnFieldType)||
+            FieldType.INTEGER.equalsIgnoreCase(this.columnFieldType))
             return scaleM==null?0:scaleM.intValue();
         return 0;
     }

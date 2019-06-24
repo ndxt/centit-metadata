@@ -9,7 +9,7 @@ import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
-import com.centit.product.dbdesign.pdmutils.PdmTableInfo;
+import com.centit.product.dbdesign.pdmutils.PdmTableInfoUtils;
 import com.centit.product.dbdesign.po.MetaChangLog;
 import com.centit.product.dbdesign.po.PendingMetaColumn;
 import com.centit.product.dbdesign.po.PendingMetaTable;
@@ -396,13 +396,13 @@ public class MetaTableManagerImpl
 
     @Override
     public List<Pair<String, String>> listTablesInPdm(String pdmFilePath) {
-        return PdmTableInfo.listTablesInPdm(pdmFilePath);
+        return PdmTableInfoUtils.listTablesInPdm(pdmFilePath);
     }
 
     @Override
     @Transactional
     public boolean importTableFromPdm(String pdmFilePath, String tableCode, String databaseCode) {
-        PendingMetaTable metaTable = PdmTableInfo.importTableFromPdm(pdmFilePath, tableCode, databaseCode);
+        PendingMetaTable metaTable = PdmTableInfoUtils.importTableFromPdm(pdmFilePath, tableCode, databaseCode);
         if (metaTable == null)
             return false;
         pendingMdTableDao.saveNewObject(metaTable);
@@ -446,7 +446,7 @@ public class MetaTableManagerImpl
     @Transactional
     public Pair<Integer, String> syncPdm(String databaseCode, String pdmFilePath, List<String> tables, String recorder) {
         try {
-            List<SimpleTableInfo> pdmTables = PdmTableInfo.importTableFromPdm(pdmFilePath,tables);
+            List<SimpleTableInfo> pdmTables = PdmTableInfoUtils.importTableFromPdm(pdmFilePath,tables);
             if (pdmTables == null)
                 return new ImmutablePair<>(-1, "读取文件失败,导入失败！");
             List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});

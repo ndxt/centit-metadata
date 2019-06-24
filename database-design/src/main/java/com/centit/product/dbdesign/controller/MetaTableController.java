@@ -11,7 +11,7 @@ import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
-import com.centit.product.dbdesign.pdmutils.PdmTableInfo;
+import com.centit.product.dbdesign.pdmutils.PdmTableInfoUtils;
 import com.centit.product.dbdesign.po.MetaChangLog;
 import com.centit.product.dbdesign.po.PendingMetaColumn;
 import com.centit.product.dbdesign.po.PendingMetaTable;
@@ -224,7 +224,7 @@ public class MetaTableController extends BaseController {
        if ("".equals(tempFilePath)) {
            throw new ObjectException("pdm文件不能为空");
        }
-       return PdmTableInfo.importTableFromPdm(tempFilePath);
+       return PdmTableInfoUtils.importTableFromPdm(tempFilePath);
    }
 
     @ApiOperation(value = "range")

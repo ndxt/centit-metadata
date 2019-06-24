@@ -10,7 +10,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PdmTableInfo{
+public abstract class PdmTableInfoUtils {
 
     public static List<Pair<String, String>> listTablesInPdm(String pdmFilePath) {
         PdmReader pdmReader = new PdmReader();

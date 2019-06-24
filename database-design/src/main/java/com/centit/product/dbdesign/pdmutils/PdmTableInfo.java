@@ -5,7 +5,6 @@ import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.support.database.metadata.PdmReader;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.SimpleTableInfo;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
@@ -37,10 +36,10 @@ public class PdmTableInfo{
         for(SimpleTableField field : pdmTable.getColumns()){
             PendingMetaColumn mdColumn = new PendingMetaColumn();
             mdColumn.setColumnName(field.getColumnName());
-            mdColumn.setColumnFieldType(field.getColumnType());
+            mdColumn.setFieldType(field.getColumnType());
             mdColumn.setColumnComment(field.getColumnComment());
             mdColumn.setMaxLengthM(field.getMaxLength());
-            mdColumn.setScaleM(field.getScale());
+            mdColumn.setScale(field.getScale());
             mdColumn.setMandatory(field.isMandatory()?"T":"F");
             mdColumn.setPrimarykey("F");
 

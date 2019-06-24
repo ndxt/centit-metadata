@@ -68,18 +68,18 @@ public class MetaColumn implements TableField,java.io.Serializable {
     private String columnType;
 
     @ApiModelProperty(value = "字段类型", hidden = true)
-    @Column(name = "JAVA_TYPE")
+    @Column(name = "FIELD_TYPE")
     @NotBlank(message = "字段不能为空")
     @Length(max = 32, message = "字段长度不能大于{max}")
-    private String javaType;
+    private String fieldType;
 
     @ApiModelProperty(value = "字段长度", hidden = true)
     @Column(name = "COLUMN_LENGTH")
     private int columnLength;
 
     @ApiModelProperty(value = "字段精度", hidden = true)
-    @Column(name = "COLUMN_PRECISION")
-    private int columnPrecision;
+    @Column(name = "SCALE")
+    private Integer scale;
 
     /**
      * 字段类别 控制自定义表单中是否可以 访问字段
@@ -196,7 +196,7 @@ public class MetaColumn implements TableField,java.io.Serializable {
     public MetaColumn convertFromTableField(SimpleTableField tableField){
         this.columnName = tableField.getColumnName();
         this.columnType = tableField.getColumnType();
-        this.javaType = StringUtils.isNotBlank(this.javaType) ? this.javaType : tableField.getJavaType();
+        this.fieldType =  tableField.getFieldType();
         if(StringUtils.isNotBlank(tableField.getFieldLabelName())){
             this.fieldLabelName = tableField.getFieldLabelName();
         }
@@ -204,7 +204,7 @@ public class MetaColumn implements TableField,java.io.Serializable {
             this.columnComment = tableField.getColumnComment();
         }
         this.columnLength = tableField.getMaxLength();
-        this.columnPrecision = tableField.getScale();
+        this.scale = tableField.getScale();
         this.mandatory = tableField.isMandatory() ? "T" : "F";
         this.accessType = StringUtils.isNotBlank(this.accessType) ? this.accessType : "N";
         return this;
@@ -235,39 +235,34 @@ public class MetaColumn implements TableField,java.io.Serializable {
         return "T".equals(primaryKey);
     }
 
-    public int getColumnLength() {
-        if(FieldType.STRING.equalsIgnoreCase(this.javaType) ||
-            FieldType.FLOAT.equalsIgnoreCase(this.javaType) ||
-            FieldType.DOUBLE.equalsIgnoreCase(this.javaType)||
-            FieldType.MONEY.equalsIgnoreCase(this.javaType) ||
-            FieldType.INTEGER.equalsIgnoreCase(this.javaType))
+    public Integer getColumnLength() {
+        if(FieldType.STRING.equalsIgnoreCase(this.fieldType) ||
+            FieldType.FLOAT.equalsIgnoreCase(this.fieldType) ||
+            FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
+            FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
+            FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
             return columnLength;
         return 0;
     }
 
-    public void setColumnLength(int columnLength){
+    public void setColumnLength(Integer columnLength){
         this.columnLength = columnLength;
     }
 
 
     @Override
-    public int getPrecision() {
+    public Integer getPrecision() {
         return getColumnLength();
     }
 
     @Override
     @ApiModelProperty(hidden = true)
-    @JSONField(serialize = false)
-    public int getScale() {
-        return this.getColumnPrecision();
-    }
-
-    public int getColumnPrecision() {
-        if(FieldType.FLOAT.equalsIgnoreCase(this.javaType) ||
-            FieldType.DOUBLE.equalsIgnoreCase(this.javaType)||
-            FieldType.MONEY.equalsIgnoreCase(this.javaType) ||
-            FieldType.INTEGER.equalsIgnoreCase(this.javaType))
-            return columnPrecision;
+    public Integer getScale() {
+        if(FieldType.FLOAT.equalsIgnoreCase(this.fieldType) ||
+            FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
+            FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
+            FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
+            return scale;
         return 0;
     }
 
@@ -281,9 +276,19 @@ public class MetaColumn implements TableField,java.io.Serializable {
     @Override
     @ApiModelProperty(hidden = true)
     @JSONField(serialize = false)
-    public int getMaxLength() {
+    public Integer getMaxLength() {
         return this.getColumnLength();
     }
 
-
+    public String getJavaTypeFullName(){
+        String javaType = FieldType.mapToJavaType(fieldType, scale);
+        if ("Date".equals(javaType))
+            return "java.util." + javaType;
+        if ("Timestamp".equals(javaType))
+            return "java.sql.Timestamp";
+        if ("byte[]".equals(javaType)) {
+            return javaType;
+        }
+        return "java.lang." + javaType;
+    }
 }

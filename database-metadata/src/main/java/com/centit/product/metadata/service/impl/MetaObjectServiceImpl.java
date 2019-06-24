@@ -46,7 +46,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         for(MetaColumn col :  metaTable.getMdColumns()) {
             Object fieldValue = object.get(col.getPropertyName());
             if(fieldValue != null) {
-                switch (col.getJavaType()){
+                switch (col.getFieldType()){
                     case FieldType.DATE:
                     case FieldType.DATETIME:
                         object.put(col.getPropertyName(), DatetimeOpt.castObjectToSqlDate(fieldValue));
@@ -58,7 +58,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     case FieldType.LONG:
                         object.put(col.getPropertyName(), NumberBaseOpt.castObjectToLong(fieldValue));
                         break;
-                    case "BigDecimal":
+                    case FieldType.MONEY:
                         object.put(col.getPropertyName(), NumberBaseOpt.castObjectToBigDecimal(fieldValue));
                         break;
                     case FieldType.FLOAT:

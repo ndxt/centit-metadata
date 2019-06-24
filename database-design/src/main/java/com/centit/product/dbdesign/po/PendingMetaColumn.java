@@ -61,10 +61,10 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     private String  columnComment;
 
     @ApiModelProperty(value = "字段类型", required = true)
-    @Column(name = "COLUMN_TYPE")
+    @Column(name = "FIELD_TYPE")
     @NotBlank(message = "字段不能为空")
     @Length(max = 32, message = "字段长度不能大于{max}")
-    private String  columnFieldType;
+    private String fieldType;
 
     @ApiModelProperty(value = "字段长度")
     @Column(name = "MAX_LENGTH")
@@ -72,7 +72,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     @ApiModelProperty(value = "字段精度")
     @Column(name = "SCALE")
-    private Integer  scaleM;
+    private Integer scale;
 
     @ApiModelProperty(value = "显示次序")
     @Column(name = "COLUMN_ORDER")
@@ -119,7 +119,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 //        PendingMetaColumnId cid,String  fieldLabelName,String  columnType,String  accessType,String  columnState) {
 //        this.cid=cid;
 //        this.fieldLabelName= fieldLabelName;
-//        this.columnFieldType= columnType;
+//        this.fieldType= columnType;
 //        this.accessType= accessType;
 //        this.columnState= columnState;
 //    }
@@ -132,9 +132,9 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.fieldLabelName= fieldLabelName;
         this.columnComment= columnComment;
         this.columnOrder= columnOrder;
-        this.columnFieldType= columnType;
+        this.fieldType = columnType;
         this.maxLengthM= maxLength;
-        this.scaleM= scale;
+        this.scale = scale;
         this.mandatory= mandatory;
         this.primarykey= primarykey;
         this.lastModifyDate= lastModifyDate;
@@ -147,9 +147,9 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.fieldLabelName= other.getFieldLabelName();
         this.columnComment= other.getColumnComment();
         this.columnOrder= other.getColumnOrder();
-        this.columnFieldType= other.getColumnFieldType();
+        this.fieldType = other.getFieldType();
         this.maxLengthM= other.getMaxLengthM();
-        this.scaleM= other.getScaleM();
+        this.scale = other.getScale();
         this.mandatory= other.isMandatory()?"T":"F";
         this.primarykey= other.getPrimarykey();
         this.lastModifyDate= other.getLastModifyDate();
@@ -168,11 +168,11 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         if( other.getColumnOrder() != null)
             this.columnOrder= other.getColumnOrder();
         if( other.getColumnType() != null)
-            this.columnFieldType= other.getColumnFieldType();
+            this.fieldType = other.getFieldType();
         if( other.getMaxLengthM() != null)
             this.maxLengthM= other.getMaxLengthM();
-        if( other.getScaleM() != null)
-            this.scaleM= other.getScaleM();
+        if( other.getScale() != null)
+            this.scale = other.getScale();
         if( other.getMandatory() != null)
             this.mandatory= other.isMandatory()?"T":"F";
         if( other.getPrimarykey() != null)
@@ -190,7 +190,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.fieldLabelName= null;
         this.columnComment= null;
         this.columnOrder= null;
-        this.columnFieldType= null;
+        this.fieldType = null;
         this.mandatory= null;
         this.primarykey= null;
         this.lastModifyDate= null;
@@ -202,10 +202,12 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     public String getPropertyName() {
         return FieldType.mapPropName(getColumnName());
     }
+
     @Override
-    public String getJavaType() {
-        return FieldType.mapToJavaType(this.columnFieldType, this.scaleM==null?0:this.scaleM);
+    public String  getFieldType() {
+        return fieldType;
     }
+
     @Override
     public boolean isMandatory() {
         return "T".equals(mandatory) ||  "Y".equals(mandatory) || "1".equals(mandatory);
@@ -217,26 +219,27 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
 
     @Override
-    public int getMaxLength() {
-        if(FieldType.STRING.equalsIgnoreCase(this.columnFieldType) ||
-            FieldType.FLOAT.equalsIgnoreCase(this.columnFieldType) ||
-            FieldType.DOUBLE.equalsIgnoreCase(this.columnFieldType)||
-            FieldType.MONEY.equalsIgnoreCase(this.columnFieldType) ||
-            FieldType.INTEGER.equalsIgnoreCase(this.columnFieldType))
+    public Integer getMaxLength() {
+        if(FieldType.STRING.equalsIgnoreCase(this.fieldType) ||
+            FieldType.FLOAT.equalsIgnoreCase(this.fieldType) ||
+            FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
+            FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
+            FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
             return maxLengthM==null?0:maxLengthM.intValue();
         return 0;
     }
     @Override
-    public int getPrecision() {
+    public Integer getPrecision() {
         return getMaxLength();
     }
+
     @Override
-    public int getScale() {
-        if(FieldType.FLOAT.equalsIgnoreCase(this.columnFieldType) ||
-            FieldType.DOUBLE.equalsIgnoreCase(this.columnFieldType)||
-            FieldType.MONEY.equalsIgnoreCase(this.columnFieldType)||
-            FieldType.INTEGER.equalsIgnoreCase(this.columnFieldType))
-            return scaleM==null?0:scaleM.intValue();
+    public Integer getScale() {
+        if(FieldType.FLOAT.equalsIgnoreCase(this.fieldType) ||
+            FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
+            FieldType.MONEY.equalsIgnoreCase(this.fieldType)||
+            FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
+            return scale ==null?0: scale.intValue();
         return 0;
     }
 
@@ -244,10 +247,23 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     public String getDefaultValue() {
         return null;
     }
+
     @Override
     @JSONField(serialize=false)
     public String getColumnType() {
-        return FieldType.mapToDatabaseType(this.columnFieldType, this.databaseType);
+        return FieldType.mapToDatabaseType(this.fieldType, this.databaseType);
+    }
+
+    public String getJavaTypeFullName(){
+        String javaType = FieldType.mapToJavaType(fieldType, scale);
+        if ("Date".equals(javaType))
+            return "java.util." + javaType;
+        if ("Timestamp".equals(javaType))
+            return "java.sql.Timestamp";
+        if ("byte[]".equals(javaType)) {
+            return javaType;
+        }
+        return "java.lang." + javaType;
     }
 
     public MetaColumn mapToMetaColumn(){
@@ -259,9 +275,9 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         mc.setColumnComment(this.getColumnComment());
         mc.setColumnOrder(this.getColumnOrder());
         mc.setColumnType(this.getColumnType());
-        mc.setJavaType(this.getColumnFieldType());
+        mc.setFieldType(this.getFieldType());
         mc.setColumnLength(this.getMaxLength());
-        mc.setColumnPrecision(this.getScale());
+        mc.setScale(this.getScale());
         mc.setAccessType("N");
         mc.setMandatory(this.isMandatory()?"T":"F");
         mc.setPrimaryKey(this.getPrimarykey()==null?"F":this.getPrimarykey());
@@ -272,7 +288,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     public PendingMetaColumn convertFromTableField(SimpleTableField tableField){
         this.columnName = tableField.getColumnName();
-        this.columnFieldType = tableField.getJavaType();
+        this.fieldType = tableField.getFieldType();
         if(StringUtils.isNotBlank(tableField.getFieldLabelName())){
             this.fieldLabelName = tableField.getFieldLabelName();
         }
@@ -280,7 +296,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
             this.columnComment = tableField.getColumnComment();
         }
         this.maxLengthM = tableField.getMaxLength();
-        this.scaleM = tableField.getScale();
+        this.scale = tableField.getScale();
         this.mandatory = tableField.isMandatory() ? "T" : "F";
         return this;
     }

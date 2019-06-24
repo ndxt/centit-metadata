@@ -7,11 +7,10 @@ import com.centit.framework.common.ObjectException;
 import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
-import com.centit.product.metadata.dao.MetaRelationDao;
-import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.support.algorithm.*;
 import com.centit.support.compiler.VariableFormula;
@@ -33,14 +32,12 @@ import java.util.*;
 @Service
 public class MetaObjectServiceImpl implements MetaObjectService {
     //private Logger logger = LoggerFactory.getLogger(MetaObjectServiceImpl.class);
+
     @Autowired
     private IntegrationEnvironment integrationEnvironment;
 
     @Autowired
-    private MetaTableDao metaTableDao;
-
-    @Autowired
-    private MetaRelationDao metaRelationDao;
+    private MetaDataCache metaDataCache;
 
     private static Map<String, Object> prepareObjectForSave(Map<String, Object> object, MetaTable metaTable){
         for(MetaColumn col :  metaTable.getMdColumns()) {
@@ -124,42 +121,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    @Override
-    public String getTableId(String databaseCode, String tableName){
-        MetaTable metaTable = metaTableDao.getMetaTable(databaseCode, tableName);
-        if(metaTable==null){
-            return null;
-        }
-        return metaTable.getTableId();
-    }
 
-    @Override
-    public MetaTable getTableInfo(String tableId){
-        return metaTableDao.getObjectById(tableId);
-    }
-
-    private MetaTable fetchTableInfo(String tableId, int fetchType){
-        MetaTable metaTable = metaTableDao.getObjectById(tableId);
-        metaTableDao.fetchObjectReference(metaTable, "mdColumns");//mdRelations
-        if(fetchType == 1 || fetchType == 3) {
-            metaTableDao.fetchObjectReference(metaTable, "mdRelations");
-            if (metaTable.getMdRelations().size() > 0) {
-                for (MetaRelation mr : metaTable.getMdRelations()) {
-                    metaRelationDao.fetchObjectReference(mr, "relationDetails");
-                }
-            }
-        }
-        if(fetchType == 2 || fetchType == 3){
-            metaTableDao.fetchObjectReference(metaTable, "parents");
-            if( metaTable.getParents().size()>0) {
-                for (MetaRelation parent : metaTable.getParents()){
-                    metaRelationDao.fetchObjectReference(parent, "relationDetails");
-                }
-            }
-        }
-        //metaTableDao.fetchObjectReferences(metaTable);
-        return metaTable;
-    }
 
     private DatabaseInfo fetchDatabaseInfo(String databaseCode){
         return integrationEnvironment.getDatabaseInfo(databaseCode);
@@ -181,7 +143,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public Map<String, Object> getObjectById(String tableId, Map<String, Object> pk) {
-        MetaTable tableInfo = fetchTableInfo(tableId, 0);
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(JdbcConnect.mapDataSource(databaseInfo));
@@ -196,7 +158,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         List<MetaRelation> mds = tableInfo.getParents();
         if(mds!=null) {
             for (MetaRelation md : mds) {
-                MetaTable parentTableInfo = fetchTableInfo(md.getParentTableId(),0);
+                MetaTable parentTableInfo = metaDataCache.getTableInfo(md.getParentTableId());
                 Map<String, Object> ref = md.fetchParentPk(mainObj);
                 if(ref.size()>0) {
                     JSONObject ja = GeneralJsonObjectDao.createJsonObjectDao(conn, parentTableInfo)
@@ -212,7 +174,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         List<MetaRelation> mds = tableInfo.getMdRelations();
         if(mds!=null) {
             for (MetaRelation md : mds) {
-                MetaTable subTableInfo = fetchTableInfo(md.getChildTableId(),3);
+                MetaTable subTableInfo = metaDataCache.getTableInfoWithRelations(md.getChildTableId());
                 Map<String, Object> ref = md.fetchObjectFk(mainObj);
                 JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
                     .listObjectsByProperties(ref);
@@ -232,7 +194,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public Map<String, Object>  getObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep) {
-        MetaTable tableInfo = fetchTableInfo(tableId,3);
+        MetaTable tableInfo = metaDataCache.getTableInfoAll(tableId);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(JdbcConnect.mapDataSource(databaseInfo));
@@ -249,7 +211,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public Map<String, Object> makeNewObject(String tableId, Map<String, Object> extParams){
-        MetaTable tableInfo = fetchTableInfo(tableId, 2);
+        MetaTable tableInfo = metaDataCache.getTableInfoWithParents(tableId);
         JSONObject objectMap = new JSONObject();
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -270,7 +232,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public int saveObject(String tableId, Map<String, Object> object, Map<String, Object> extParams) {
-        MetaTable tableInfo = fetchTableInfo(tableId, 0);
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(JdbcConnect.mapDataSource(databaseInfo));
@@ -290,7 +252,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public int updateObject(String tableId, Map<String, Object> object) {
-        MetaTable tableInfo = fetchTableInfo(tableId, 0);
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         prepareObjectForSave(object, tableInfo);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -303,7 +265,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public int updateObjectByProperties(String tableId, final Collection<String> fields, final Map<String, Object> object){
-        MetaTable tableInfo = fetchTableInfo(tableId, 0);
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         prepareObjectForSave(object, tableInfo);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -318,7 +280,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public int updateObjectsByProperties(String tableId, final Collection<String> fields,
                                   final Map<String, Object> fieldValues,final Map<String, Object> properties){
-        MetaTable tableInfo = fetchTableInfo(tableId, 0);
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         prepareObjectForSave(fieldValues, tableInfo);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -333,7 +295,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public void deleteObject(String tableId, Map<String, Object> pk) {
-        MetaTable tableInfo = fetchTableInfo(tableId, 0);
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         //prepareObjectForSave(pk, tableInfo);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -345,7 +307,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     public int innerSaveObject(String tableId, Map<String, Object> mainObj,Map<String, Object> extParams, boolean isUpdate) {
-        MetaTable tableInfo = fetchTableInfo(tableId, 1);
+        MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect( JdbcConnect.mapDataSource(databaseInfo));
@@ -362,7 +324,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             List<MetaRelation> mds = tableInfo.getMdRelations();
             if(mds!=null) {
                 for (MetaRelation md : mds) {
-                    MetaTable relTableInfo = fetchTableInfo(md.getChildTableId(), 1);
+                    MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
 
                     Object subObjects = mainObj.get(md.getRelationName());
                     if (subObjects instanceof List) {
@@ -401,7 +363,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public void deleteObjectWithChildren(String tableId, Map<String, Object> pk) {
-        MetaTable tableInfo = fetchTableInfo(tableId, 1);
+        MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(JdbcConnect.mapDataSource(databaseInfo));
@@ -411,7 +373,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             List<MetaRelation> mds = tableInfo.getMdRelations();
             if(mds!=null) {
                 for (MetaRelation md : mds) {
-                    MetaTable relTableInfo = fetchTableInfo(md.getChildTableId(), 0);
+                    MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
                     GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
                         .deleteObjectsByProperties(md.fetchObjectFk(mainObj));
                 }
@@ -425,7 +387,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public JSONArray listObjectsByProperties(String tableId, Map<String, Object> filter) {
-        MetaTable tableInfo = fetchTableInfo(tableId, 0);
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(JdbcConnect.mapDataSource(databaseInfo));
@@ -438,7 +400,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public JSONArray pageQueryObjects(String tableId, String extFilter, Map<String, Object> params, String [] fields,PageDesc pageDesc) {
-        MetaTable tableInfo = fetchTableInfo(tableId, 0);
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
 
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -511,7 +473,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public JSONArray pageQueryObjects(String tableId, String namedSql, Map<String, Object> params, PageDesc pageDesc) {
-        MetaTable tableInfo = fetchTableInfo(tableId, 0);
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         String orderBy = GeneralJsonObjectDao.fetchSelfOrderSql(namedSql, params);
         final String querySql = StringUtils.isBlank(orderBy) ? namedSql

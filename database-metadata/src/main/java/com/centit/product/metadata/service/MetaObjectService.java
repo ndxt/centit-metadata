@@ -1,17 +1,12 @@
 package com.centit.product.metadata.service;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.database.utils.PageDesc;
 
 import java.util.Collection;
 import java.util.Map;
 
 public interface MetaObjectService {
-
-    String getTableId(String databaseCode, String tableName);
-
-    MetaTable getTableInfo(String tableId);
 
     Map<String, Object> getObjectById(String tableId, Map<String, Object> pk);
 

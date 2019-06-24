@@ -75,7 +75,7 @@ public class MetaColumn implements TableField,java.io.Serializable {
 
     @ApiModelProperty(value = "字段长度", hidden = true)
     @Column(name = "COLUMN_LENGTH")
-    private int columnLength;
+    private Integer columnLength;
 
     @ApiModelProperty(value = "字段精度", hidden = true)
     @Column(name = "SCALE")

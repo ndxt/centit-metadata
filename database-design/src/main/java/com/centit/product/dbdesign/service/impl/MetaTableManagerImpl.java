@@ -216,8 +216,8 @@ public class MetaTableManagerImpl
                         ptable.getTableName(), pcol));
                 } else {
                     if (pcol.getColumnType().equalsIgnoreCase(ocol.getColumnType())) {
-                        if (pcol.getMaxLength() != ocol.getMaxLength() ||
-                            pcol.getScale() != ocol.getScale()) {
+                        if (!pcol.getMaxLength().equals(ocol.getMaxLength()) ||
+                            !pcol.getScale().equals(ocol.getScale())) {
                             sqls.add(ddlOpt.makeModifyColumnSql(
                                 ptable.getTableName(), ocol, pcol));
                         }

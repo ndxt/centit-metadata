@@ -128,7 +128,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     //T/F 更新时是否校验时间戳 添加 lastModifyTime datetime
     @Column(name = "UPDATE_CHECK_TIMESTAMP")
-    @NotBlank(message = "字段不能为空[T/F]")
+    @NotBlank(message = "字段不能为空[Y/N]")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String updateCheckTimeStamp;
 

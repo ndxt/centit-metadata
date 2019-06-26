@@ -156,18 +156,14 @@ public class MetaColumn implements TableField,java.io.Serializable {
     private String  autoCreateParam;
 
     /**
-     * 与流程中业务关联关系
-     * 0: 不是工作流变量 1：流程业务变量 2： 流程过程变量
+     * 与流程中变量关联关系
+     * 0: 不是流程变量 1：流程业务变量 2： 流程过程变量
      */
     @Column(name = "WORKFLOW_VARIABLE_TYPE")
     @Pattern(regexp = "[0-2]")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String workFlowVariableType;
 
-    @ApiModelProperty(value = "Y/N 更新时是否校验时间戳 添加 Last_modify_time datetime")
-    @Column(name = "UPDATE_CHECK_TIMESTAMP")
-    @Length(max = 1, message = "字段长度不能大于{max}")
-    private String updateCheckTimeStamp;
     /**
      * 更改时间
      */

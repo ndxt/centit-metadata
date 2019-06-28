@@ -443,6 +443,8 @@ public abstract class DataSetOptUtil {
         int j=0;
         List<Map<String, Object>> newData = new ArrayList<>();
         // 根据主键排序
+        int nInsertMain = -1;
+        int nInsertSlave = -1;
         while(i < mainData.size() && j< slaveData.size()){
             int nc = compareTwoRow(mainData.get(i), slaveData.get(j), primaryFields);
             //匹配
@@ -450,12 +452,31 @@ public abstract class DataSetOptUtil {
             if(nc == 0){
                 newRow.putAll(slaveData.get(j));
                 newRow.putAll(mainData.get(i));
-                i++; j++;
+                nInsertMain = i;
+                nInsertSlave = j;
+                boolean incI = i <  mainData.size()-1 && compareTwoRow(mainData.get(i), mainData.get(i+1), primaryFields) !=0;
+                boolean incJ = j <  slaveData.size()-1 && compareTwoRow(slaveData.get(j), slaveData.get(j+1), primaryFields) != 0;
+                if(! incI && i <  mainData.size()-1){
+                    i++;
+                }
+                if(! incJ &&  j < slaveData.size()-1){
+                    j++;
+                }
+                if( (incI && incJ) || (!incI && !incJ)) {
+                    i++;
+                    j++;
+                }
             } else if(nc < 0){
-                newRow.putAll(mainData.get(i));
+                if(nInsertMain < i) {
+                    newRow.putAll(mainData.get(i));
+                    nInsertMain = i;
+                }
                 i++;
             } else {
-                newRow.putAll(slaveData.get(j));
+                if(nInsertSlave < j) {
+                    newRow.putAll(slaveData.get(j));
+                    nInsertSlave = j;
+                }
                 j++;
             }
             newData.add(newRow);

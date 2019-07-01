@@ -60,7 +60,8 @@ public class DataPacketSchema implements Serializable {
             return null;
         }
         for(DataSetSchema dss : dataSets){
-            if(StringUtils.equals(dss.getDataSetName(), dataSetName)){
+            if(StringUtils.equals(dss.getDataSetName(), dataSetName)||
+                StringUtils.equals(dss.getDataSetId(), dataSetName)){
                 return dss;
             }
         }

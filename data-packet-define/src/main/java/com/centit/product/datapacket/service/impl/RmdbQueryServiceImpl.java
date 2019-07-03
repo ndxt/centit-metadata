@@ -75,7 +75,7 @@ public class RmdbQueryServiceImpl implements RmdbQueryService {
     @Override
     public JSONArray queryViewSqlData(String databaseCode, String sql, Map<String, Object> params) {
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
-        QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(new QueryAndNamedParams(sql, params));
+        QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(QueryUtils.translateQuery(sql, params));
         try{
             return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
                 (conn) -> DatabaseAccess.findObjectsAsJSON(conn,
@@ -96,7 +96,7 @@ public class RmdbQueryServiceImpl implements RmdbQueryService {
     @Override
     public List<ColumnSchema> generateSqlFields(String databaseCode, String sql, Map<String, Object> params){
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
-        QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(new QueryAndNamedParams(sql, params));
+        QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(QueryUtils.translateQuery(sql, params));
         String sSql = QueryUtils.buildLimitQuerySQL(qap.getQuery(),0,2,false,
             DBType.mapDBType(databaseInfo.getDatabaseUrl()));
         List<ColumnSchema> columnSchemas = new ArrayList<>(50);

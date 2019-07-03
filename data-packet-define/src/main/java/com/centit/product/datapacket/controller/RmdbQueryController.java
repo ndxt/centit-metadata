@@ -17,7 +17,6 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -81,27 +80,27 @@ public class RmdbQueryController extends BaseController {
         @ApiImplicitParam(name = "databaseCode", value = "数据库代码", required = true),
         @ApiImplicitParam(name = "sql", value = "查询SQL", required = true)
     })
-    @GetMapping(value = "/reviewdata")
+    @RequestMapping(value = "/reviewdata", method = {RequestMethod.POST})
     @WrapUpResponseBody
     public JSONArray queryViewSqlData(String databaseCode, String sql, HttpServletRequest request){
-        Map<String, Object> params = collectRequestParameters(request);
+        Map<String, Object> params = collectRequestParameters(request);;
         //table.put("column", rmdbQueryService.generateColumn(databaseCode, HtmlUtils.htmlUnescape(sql)));
-        return rmdbQueryService.queryViewSqlData(databaseCode, HtmlUtils.htmlUnescape(sql), params);
+        return rmdbQueryService.queryViewSqlData(databaseCode, sql, params);
     }
 
     @ApiOperation(value = "生成查询字段列表")
     @ApiImplicitParam(name = "sql", value = "查询SQL", required = true)
-    @GetMapping(value = "/sqlcolumn")
+    @RequestMapping(value = "/sqlcolumn", method = {RequestMethod.POST})
     @WrapUpResponseBody
     public List<ColumnSchema> generateSqlcolumn(String databaseCode, String sql, HttpServletRequest request){
         Map<String, Object> params = collectRequestParameters(request);
-        return rmdbQueryService.generateSqlFields(databaseCode, HtmlUtils.htmlUnescape(sql), params);
+        return rmdbQueryService.generateSqlFields(databaseCode, sql, params);
     }
 
 
     @ApiOperation(value = "生成参数名称列表")
     @ApiImplicitParam(name = "sql", value = "查询SQL", required = true)
-    @GetMapping(value = "/param")
+    @RequestMapping(value = "/param", method = {RequestMethod.POST})
     @WrapUpResponseBody
     public Set<String> generateParam(String sql ){
         return rmdbQueryService.generateSqlParams(sql);

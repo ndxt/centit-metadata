@@ -369,7 +369,7 @@ public class MetaTableManagerImpl
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
-            return new ImmutablePair<>(1, "发布失败!" + e.getMessage());
+            return new ImmutablePair<>(-2, "发布失败!" + e.getMessage());
         }
     }
 
@@ -633,7 +633,7 @@ public class MetaTableManagerImpl
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
-            return new ImmutablePair<>(1, "批量发布失败!" + e.getMessage());
+            return new ImmutablePair<>(-2, "批量发布失败!" + e.getMessage());
         }
     }
 

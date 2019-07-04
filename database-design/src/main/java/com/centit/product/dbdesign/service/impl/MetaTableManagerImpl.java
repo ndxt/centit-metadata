@@ -261,6 +261,7 @@ public class MetaTableManagerImpl
                 col.setColumnComment("业务对应的工作流程实例ID");
                 col.setFieldType(FieldType.INTEGER);
                 col.setMaxLengthM(12);
+                col.setScale(0);
                 col.setLastModifyDate(DatetimeOpt.currentUtilDate());
                 col.setRecorder(currentUser);
                 ptable.addMdColumn(col);
@@ -275,6 +276,7 @@ public class MetaTableManagerImpl
                 col.setColumnComment("业务对应的工作流节点ID");
                 col.setFieldType(FieldType.INTEGER);
                 col.setMaxLengthM(12);
+                col.setScale(0);
                 col.setLastModifyDate(DatetimeOpt.currentUtilDate());
                 col.setRecorder(currentUser);
                 ptable.addMdColumn(col);
@@ -317,8 +319,9 @@ public class MetaTableManagerImpl
             JsonObjectDao jsonDao = GeneralJsonObjectDao.createJsonObjectDao(conn);
             //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
             checkPendingMetaTable(ptable, currentUser);
-            List<String> sqls = makeAlterTableSqls(ptable);
+            List<String> sqls = new ArrayList<>();
             try {
+                 sqls = makeAlterTableSqls(ptable);
                 for (String sql : sqls) {
                     try {
                         jsonDao.doExecuteSql(sql);
@@ -573,8 +576,9 @@ public class MetaTableManagerImpl
                 JsonObjectDao jsonDao = GeneralJsonObjectDao.createJsonObjectDao(conn);
                 //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
                 checkPendingMetaTable(metaTable, recorder);
-                List<String> sqls = makeAlterTableSqls(metaTable);
+                List<String> sqls = new ArrayList<>();
                 try {
+                    sqls = makeAlterTableSqls(metaTable);
                     for (String sql : sqls) {
                         try {
                             jsonDao.doExecuteSql(sql);

@@ -237,7 +237,7 @@ public class MetaColumn implements TableField,java.io.Serializable {
             FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
             FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
             FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
-            return columnLength;
+            return columnLength==null?0:columnLength;
         return 0;
     }
 
@@ -258,7 +258,7 @@ public class MetaColumn implements TableField,java.io.Serializable {
             FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
             FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
             FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
-            return scale;
+            return scale==null?0:scale;
         return 0;
     }
 

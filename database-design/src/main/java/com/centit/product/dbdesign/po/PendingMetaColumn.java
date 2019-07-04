@@ -225,7 +225,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
             FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
             FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
             FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
-            return maxLengthM;
+            return maxLengthM==null?0:maxLengthM;
         return 0;
     }
     @Override
@@ -239,7 +239,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
             FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
             FieldType.MONEY.equalsIgnoreCase(this.fieldType)||
             FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
-            return scale;
+            return scale ==null?0:scale;
         return 0;
     }
 

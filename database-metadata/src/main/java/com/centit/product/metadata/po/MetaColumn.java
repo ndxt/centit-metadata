@@ -236,7 +236,8 @@ public class MetaColumn implements TableField,java.io.Serializable {
             FieldType.FLOAT.equalsIgnoreCase(this.fieldType) ||
             FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
             FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
-            FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
+            FieldType.INTEGER.equalsIgnoreCase(this.fieldType)||
+            FieldType.LONG.equalsIgnoreCase(this.fieldType))
             return columnLength==null?0:columnLength;
         return 0;
     }

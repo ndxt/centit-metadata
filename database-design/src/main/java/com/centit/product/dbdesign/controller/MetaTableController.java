@@ -183,7 +183,7 @@ public class MetaTableController extends BaseController {
         Pair<Integer, String> ret = mdTableMag.publishMetaTable(ptableId, userCode);
         JSONObject json = new JSONObject();
         json.put(ResponseData.RES_CODE_FILED, ret.getLeft());
-        if (ret.getLeft() == -1){
+        if (ret.getLeft() == 1){
             json.put(ResponseData.RES_MSG_FILED, "发布失败");
         } else if (ret.getLeft() == 0) {
             json.put(ResponseData.RES_MSG_FILED, "发布成功");
@@ -321,7 +321,7 @@ public class MetaTableController extends BaseController {
         Pair<Integer, String> ret = mdTableMag.publishDatabase(databaseCode, userCode);
         JSONObject json = new JSONObject();
         json.put(ResponseData.RES_CODE_FILED, ret.getLeft());
-        if (ret.getLeft() == -1){
+        if (ret.getLeft() == 1){
             json.put(ResponseData.RES_MSG_FILED, "发布失败");
         } else if (ret.getLeft() == 0) {
             json.put(ResponseData.RES_MSG_FILED, "发布成功");

@@ -275,11 +275,11 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         if (mdColumns == null)
             return null;
         for (MetaColumn c : mdColumns) {
-            if (c.getPropertyName().equals(name))
+            if (c.getPropertyName().equalsIgnoreCase(name))
                 return c;
         }
         for (MetaColumn c : mdColumns) {
-            if (c.getFieldLabelName().equals(name))
+            if (c.getFieldLabelName().equalsIgnoreCase(name))
                 return c;
         }
         return null;
@@ -290,11 +290,11 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         if (mdColumns == null)
             return null;
         for (MetaColumn c : mdColumns) {
-            if (c.getColumnName().equals(name))
+            if (c.getColumnName().equalsIgnoreCase(name))
                 return c;
         }
         for (MetaColumn c : mdColumns) {
-            if (c.getPropertyName().equals(name))
+            if (c.getPropertyName().equalsIgnoreCase(name))
                 return c;
         }
         return null;
@@ -305,7 +305,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         if (mdColumns == null)
             return false;
         for (MetaColumn c : mdColumns) {
-            if (c.getFieldLabelName().equals(colName)) {
+            if (c.getFieldLabelName().equalsIgnoreCase(colName)) {
                 return c.isPrimaryKey();
             }
         }

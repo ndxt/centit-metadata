@@ -277,7 +277,7 @@ public class PendingMetaTable implements
         if (mdColumns == null)
             return null;
         for (PendingMetaColumn c : mdColumns) {
-            if (c.getPropertyName().equals(name))
+            if (c.getPropertyName().equalsIgnoreCase(name))
                 return c;
         }
         return null;
@@ -288,7 +288,7 @@ public class PendingMetaTable implements
         if (mdColumns == null)
             return null;
         for (PendingMetaColumn c : mdColumns) {
-            if (c.getColumnName().equals(name))
+            if (c.getColumnName().equalsIgnoreCase(name))
                 return c;
         }
         return null;
@@ -299,7 +299,7 @@ public class PendingMetaTable implements
         if (mdColumns == null)
             return false;
         for (PendingMetaColumn c : mdColumns) {
-            if (c.getColumnName().equals(colname)) {
+            if (c.getColumnName().equalsIgnoreCase(colname)) {
                 return c.isPrimaryKey();
             }
         }

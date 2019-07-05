@@ -343,7 +343,7 @@ public class MetaTableManagerImpl
                 metaChangLogDao.saveNewObject(chgLog);
             }
             if (sqls.size() == 0)
-                return new ImmutablePair<>(1, "信息未变更，无需发布");
+                return new ImmutablePair<>(2, "信息未变更，无需发布");
             if (errors.size() == 0) {
                 ptable.setRecorder(currentUser);
                 ptable.setTableState("S");
@@ -365,11 +365,11 @@ public class MetaTableManagerImpl
                 }
                 return new ImmutablePair<>(0, chgLog.getChangeId());
             } else
-                return new ImmutablePair<>(-1, chgLog.getChangeId());
+                return new ImmutablePair<>(1, chgLog.getChangeId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
-            return new ImmutablePair<>(-2, "发布失败!" + e.getMessage());
+            return new ImmutablePair<>(-1, "发布失败!" + e.getMessage());
         }
     }
 
@@ -469,7 +469,7 @@ public class MetaTableManagerImpl
                         PendingMetaColumn mdColumn = new PendingMetaColumn().convertFromTableField(field);
                         mdColumn.setTableId(metaTable.getTableId());
                         for (String pk :pdmtable.getPkColumns()) {
-                            if (pk.equals(mdColumn.getColumnName())) {
+                            if (pk.equalsIgnoreCase(mdColumn.getColumnName())) {
                                 mdColumn.setPrimarykey("T");
                                 break;
                             } else
@@ -509,7 +509,7 @@ public class MetaTableManagerImpl
                             metaColumn.setTableId(oldTable.getTableId());
                             metaColumn.setRecorder(recorder);
                             for (String pk :newTable.getPkColumns()) {
-                                if (pk.equals(metaColumn.getColumnName())) {
+                                if (pk.equalsIgnoreCase(metaColumn.getColumnName())) {
                                     metaColumn.setPrimarykey("T");
                                     break;
                                 } else
@@ -531,7 +531,7 @@ public class MetaTableManagerImpl
                             oldColumn.setRecorder(recorder);
                             SimpleTableField newColumn = columnPair.getRight();
                             for (String pk :newTable.getPkColumns()) {
-                                if (pk.equals(oldColumn.getColumnName())) {
+                                if (pk.equalsIgnoreCase(oldColumn.getColumnName())) {
                                     oldColumn.setPrimarykey("T");
                                     break;
                                 } else
@@ -625,15 +625,15 @@ public class MetaTableManagerImpl
                 metaChangLogDao.saveNewObject(chgLog);
             }
             if (success.size() == 0)
-                return new ImmutablePair<>(1, "信息未变更，无需批量发布");
+                return new ImmutablePair<>(2, "信息未变更，无需批量发布");
             if (errors.size() == 0)
                 return new ImmutablePair<>(0, chgLog.getChangeId());
             else
-                return new ImmutablePair<>(-1, chgLog.getChangeId());
+                return new ImmutablePair<>(1, chgLog.getChangeId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
-            return new ImmutablePair<>(-2, "批量发布失败!" + e.getMessage());
+            return new ImmutablePair<>(-1, "批量发布失败!" + e.getMessage());
         }
     }
 

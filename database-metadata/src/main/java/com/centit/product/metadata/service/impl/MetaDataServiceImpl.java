@@ -115,7 +115,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                     MetaColumn column = new MetaColumn().convertFromTableField(tableField);
                     column.setTableId(metaTable.getTableId());
                     for (String pk :table.getPkColumns()) {
-                        if (pk.equals(column.getColumnName())) {
+                        if (pk.equalsIgnoreCase(column.getColumnName())) {
                             column.setPrimaryKey("T");
                             break;
                         } else
@@ -156,7 +156,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                         metaColumn.setTableId(oldTable.getTableId());
                         metaColumn.setRecorder(recorder);
                         for (String pk :newTable.getPkColumns()) {
-                            if (pk.equals(metaColumn.getColumnName())) {
+                            if (pk.equalsIgnoreCase(metaColumn.getColumnName())) {
                                 metaColumn.setPrimaryKey("T");
                                 break;
                             } else
@@ -181,7 +181,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                         oldColumn.setRecorder(recorder);
                         SimpleTableField newColumn = columnPair.getRight();
                         for (String pk :newTable.getPkColumns()) {
-                            if (pk.equals(oldColumn.getColumnName())) {
+                            if (pk.equalsIgnoreCase(oldColumn.getColumnName())) {
                                 oldColumn.setPrimaryKey("T");
                                 break;
                             } else

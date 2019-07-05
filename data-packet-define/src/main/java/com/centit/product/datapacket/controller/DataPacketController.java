@@ -101,6 +101,21 @@ public class DataPacketController extends BaseController {
         return schema;
     }
 
+    @ApiOperation(value = "根据额外的操作步骤获取数据包模式")
+    @GetMapping(value = "/extendschema/{packetId}")
+    @WrapUpResponseBody
+    public DataPacketSchema getDataPacketSchemaWithOpt(@PathVariable String packetId, String optsteps){
+        DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
+        DataPacketSchema schema = DataPacketSchema.valueOf(dataPacket);
+        if(dataPacket!=null) {
+            JSONObject obj = JSON.parseObject(optsteps);
+            if (obj != null) {
+                return DataPacketUtil.calcDataPacketSchema(schema, obj);
+            }
+        }
+        return schema;
+    }
+
     @ApiOperation(value = "查询数据包")
     @GetMapping
     @WrapUpResponseBody

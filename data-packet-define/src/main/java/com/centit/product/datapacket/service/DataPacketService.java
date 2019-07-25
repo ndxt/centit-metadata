@@ -16,6 +16,8 @@ public interface DataPacketService {
 
     void updateDataPacket(DataPacket dataPacket);
 
+    void updateDataPacketOptJson(String packetId, String dataPacketOptJson);
+
     void deleteDataPacket(String packetId);
 
     List<DataPacket> listDataPacket(Map<String, Object> params, PageDesc pageDesc);

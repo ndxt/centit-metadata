@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.centit.framework.ip.service.IntegrationEnvironment;
+import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.product.dataopt.bizopt.BuiltInOperation;
 import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.datapacket.dao.DataPacketDao;
@@ -13,6 +14,7 @@ import com.centit.product.datapacket.po.RmdbQuery;
 import com.centit.product.datapacket.po.RmdbQueryColumn;
 import com.centit.product.datapacket.service.DBPacketBizSupplier;
 import com.centit.product.datapacket.service.DataPacketService;
+import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.security.Md5Encoder;
@@ -59,6 +61,14 @@ public class DataPacketServiceImpl implements DataPacketService {
         dataPacketDao.updateObject(dataPacket);
         dataPacketDao.saveObjectReferences(dataPacket);
         mergeDataPacket(dataPacket);
+    }
+
+    @Override
+    public void updateDataPacketOptJson(String packetId, String dataPacketOptJson){
+        DatabaseOptUtils.batchUpdateObject(dataPacketDao, DataPacket.class,
+            CollectionsOpt.createHashMap("dataOptDescJson",dataPacketOptJson ),
+            CollectionsOpt.createHashMap("packetId",packetId )
+        );
     }
 
     private void mergeDataPacket(DataPacket dataPacket) {

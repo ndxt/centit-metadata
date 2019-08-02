@@ -259,9 +259,8 @@ public class MetaTableManagerImpl
                 col = new PendingMetaColumn(ptable, MetaTable.WORKFLOW_INST_ID_FIELD);
                 col.setFieldLabelName("流程实例ID");
                 col.setColumnComment("业务对应的工作流程实例ID");
-                col.setFieldType(FieldType.INTEGER);
-                col.setMaxLengthM(12);
-                col.setScale(0);
+                col.setFieldType(FieldType.STRING);
+                col.setMaxLength(32);
                 col.setLastModifyDate(DatetimeOpt.currentUtilDate());
                 col.setRecorder(currentUser);
                 ptable.addMdColumn(col);
@@ -274,9 +273,8 @@ public class MetaTableManagerImpl
                 col = new PendingMetaColumn(ptable, MetaTable.WORKFLOW_NODE_INST_ID_FIELD);
                 col.setFieldLabelName("节点实例ID");
                 col.setColumnComment("业务对应的工作流节点ID");
-                col.setFieldType(FieldType.INTEGER);
-                col.setMaxLengthM(12);
-                col.setScale(0);
+                col.setFieldType(FieldType.STRING);
+                col.setMaxLength(32);
                 col.setLastModifyDate(DatetimeOpt.currentUtilDate());
                 col.setRecorder(currentUser);
                 ptable.addMdColumn(col);

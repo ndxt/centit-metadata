@@ -38,7 +38,7 @@ public abstract class PdmTableInfoUtils {
             mdColumn.setColumnName(field.getColumnName());
             mdColumn.setFieldType(field.getColumnType());
             mdColumn.setColumnComment(field.getColumnComment());
-            mdColumn.setMaxLengthM(field.getMaxLength());
+            mdColumn.setMaxLength(field.getMaxLength());
             mdColumn.setScale(field.getScale());
             mdColumn.setMandatory(field.isMandatory()?"T":"F");
             mdColumn.setPrimarykey("F");

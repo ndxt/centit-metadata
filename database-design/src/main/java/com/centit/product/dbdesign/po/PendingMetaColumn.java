@@ -68,7 +68,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     @ApiModelProperty(value = "字段长度")
     @Column(name = "MAX_LENGTH")
-    private Integer  maxLengthM;
+    private Integer maxLength;
 
     @ApiModelProperty(value = "字段精度")
     @Column(name = "SCALE")
@@ -133,7 +133,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.columnComment= columnComment;
         this.columnOrder= columnOrder;
         this.fieldType = columnType;
-        this.maxLengthM= maxLength;
+        this.maxLength = maxLength;
         this.scale = scale;
         this.mandatory= mandatory;
         this.primarykey= primarykey;
@@ -148,7 +148,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.columnComment= other.getColumnComment();
         this.columnOrder= other.getColumnOrder();
         this.fieldType = other.getFieldType();
-        this.maxLengthM= other.getMaxLengthM();
+        this.maxLength = other.getMaxLength();
         this.scale = other.getScale();
         this.mandatory= other.isMandatory()?"T":"F";
         this.primarykey= other.getPrimarykey();
@@ -169,8 +169,8 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
             this.columnOrder= other.getColumnOrder();
         if( other.getColumnType() != null)
             this.fieldType = other.getFieldType();
-        if( other.getMaxLengthM() != null)
-            this.maxLengthM= other.getMaxLengthM();
+        if( other.getMaxLength() != null)
+            this.maxLength = other.getMaxLength();
         if( other.getScale() != null)
             this.scale = other.getScale();
         if( other.getMandatory() != null)
@@ -226,7 +226,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
             FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
             FieldType.INTEGER.equalsIgnoreCase(this.fieldType)||
             FieldType.LONG.equalsIgnoreCase(this.fieldType))
-            return maxLengthM==null?0:maxLengthM;
+            return maxLength ==null?0: maxLength;
         return 0;
     }
     @Override
@@ -296,7 +296,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         if(StringUtils.isNotBlank(tableField.getColumnComment()) && StringUtils.isBlank(this.columnComment)){
             this.columnComment = tableField.getColumnComment();
         }
-        this.maxLengthM = tableField.getMaxLength();
+        this.maxLength = tableField.getMaxLength();
         this.scale = tableField.getScale();
         this.mandatory = tableField.isMandatory() ? "T" : "F";
         return this;

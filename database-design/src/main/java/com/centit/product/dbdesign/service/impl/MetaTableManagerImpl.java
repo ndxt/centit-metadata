@@ -261,7 +261,6 @@ public class MetaTableManagerImpl
                 col.setColumnComment("业务对应的工作流程实例ID");
                 col.setFieldType(FieldType.STRING);
                 col.setMaxLength(32);
-                col.setScale(0);
                 col.setLastModifyDate(DatetimeOpt.currentUtilDate());
                 col.setRecorder(currentUser);
                 ptable.addMdColumn(col);
@@ -276,7 +275,6 @@ public class MetaTableManagerImpl
                 col.setColumnComment("业务对应的工作流节点ID");
                 col.setFieldType(FieldType.STRING);
                 col.setMaxLength(32);
-                col.setScale(0);
                 col.setLastModifyDate(DatetimeOpt.currentUtilDate());
                 col.setRecorder(currentUser);
                 ptable.addMdColumn(col);

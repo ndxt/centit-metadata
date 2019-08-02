@@ -78,7 +78,23 @@ public class DataPacketController extends BaseController {
     public void updateDataPacketOpt(@PathVariable String packetId, @RequestBody String dataOptDescJson){
         dataPacketService.updateDataPacketOptJson(packetId, dataOptDescJson);
     }
-
+    @ApiOperation(value = "获取数据包数据并对数据进行业务处理")
+    @PutMapping(value = "/dataopts/{packetId}/{queryId}")
+    @WrapUpResponseBody
+    public BizModel fetchDataPacketDataWithOpt(@PathVariable String packetId,@PathVariable String queryId, @RequestBody String optsteps){
+        Map<String, Object> params = new HashMap<>();
+        params.put("queryId",queryId);
+        BizModel bizModel = dataPacketService.fetchDataPacketData(packetId, params);
+        //optsteps =StringEscapeUtils.unescapeHtml4(optsteps);
+        if(StringUtils.isNotBlank(optsteps)){
+            JSONObject obj = JSON.parseObject(optsteps);
+            if(obj!=null){
+                BuiltInOperation builtInOperation = new BuiltInOperation(obj);
+                return builtInOperation.apply(bizModel);
+            }
+        }
+        return bizModel;
+    }
     @ApiOperation(value = "删除数据包")
     @DeleteMapping(value = "/{packetId}")
     @WrapUpResponseBody
@@ -190,26 +206,5 @@ public class DataPacketController extends BaseController {
         return sqlDSR.load(modelTag);
     }
 
-    @ApiOperation(value = "获取数据包数据并对数据进行业务处理")
-    @ApiImplicitParams({@ApiImplicitParam(
-        name = "queryId", value="数据查询ID",
-        required=true, paramType = "path", dataType ="String"
-    ), @ApiImplicitParam(
-        name = "optsteps", value="数据操作，steps的json格式字符串，参见js代码中的说明"
-    )})
-    @GetMapping(value = "/dataopts/{packetId}")
-    @WrapUpResponseBody
-    public BizModel fetchDataPacketDataWithOpt(@PathVariable String packetId, String optsteps, HttpServletRequest request){
-        Map<String, Object> params = BaseController.collectRequestParameters(request);
-        BizModel bizModel = dataPacketService.fetchDataPacketData(packetId, params);
-        optsteps =StringEscapeUtils.unescapeHtml4(optsteps);
-        if(StringUtils.isNotBlank(optsteps)){
-            JSONObject obj = JSON.parseObject(optsteps);
-            if(obj!=null){
-                BuiltInOperation builtInOperation = new BuiltInOperation(obj);
-                return builtInOperation.apply(bizModel);
-            }
-        }
-        return bizModel;
-    }
+
 }

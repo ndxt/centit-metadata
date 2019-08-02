@@ -202,6 +202,7 @@ public class DataPacketController extends BaseController {
     public BizModel fetchDataPacketDataWithOpt(@PathVariable String packetId, String optsteps, HttpServletRequest request){
         Map<String, Object> params = BaseController.collectRequestParameters(request);
         BizModel bizModel = dataPacketService.fetchDataPacketData(packetId, params);
+        optsteps =StringEscapeUtils.unescapeHtml4(optsteps);
         if(StringUtils.isNotBlank(optsteps)){
             JSONObject obj = JSON.parseObject(optsteps);
             if(obj!=null){

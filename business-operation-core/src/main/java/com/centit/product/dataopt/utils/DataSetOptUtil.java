@@ -18,22 +18,18 @@ import java.util.*;
 public abstract class DataSetOptUtil {
     /**
      * 数据集 映射
-     * @param inData 原始数据集
-     * @param fieldMap 字段映射关系
+     * @param inRow 原始数据
+     * @param formulaMap 字段映射关系
      * @return 新的数据集
      */
-    public static DataSet mapDateSet(DataSet inData, Collection<Map.Entry<String, String>> fieldMap) {
-        List<Map<String, Object>> data = inData.getData();
-        List<Map<String, Object>> newData = new ArrayList<>(data.size());
-
-        for(Map<String, Object> obj : data ){
-            Map<String, Object> newRow = new HashMap<>(fieldMap.size());
-            for(Map.Entry<String, String> ent : fieldMap){
-                newRow.put(ent.getKey(), obj.get(ent.getValue()));
-            }
-            newData.add(newRow);
+    private static Map<String, Object> mapDateRow(Map<String, Object> inRow,
+                                                  Collection<Map.Entry<String, String>> formulaMap) {
+        Map<String, Object> newRow = new HashMap<>(formulaMap.size());
+        for(Map.Entry<String, String> ent : formulaMap){
+            newRow.put(ent.getKey(),
+                VariableFormula.calculate(ent.getValue(), inRow));
         }
-        return new SimpleDataSet(newData);
+        return newRow;
     }
 
     /**
@@ -46,12 +42,7 @@ public abstract class DataSetOptUtil {
         List<Map<String, Object>> data = inData.getData();
         List<Map<String, Object>> newData = new ArrayList<>(data.size());
         for(Map<String, Object> obj : data ){
-            Map<String, Object> newRow = new HashMap<>(formulaMap.size());
-            for(Map.Entry<String, String> ent : formulaMap){
-                newRow.put(ent.getKey(),
-                    VariableFormula.calculate(ent.getValue(), obj));
-            }
-            newData.add(newRow);
+            newData.add(mapDateRow(obj,formulaMap));
         }
         return new SimpleDataSet(newData);
     }
@@ -65,12 +56,7 @@ public abstract class DataSetOptUtil {
     public static DataSet appendDeriveField(DataSet inData,Collection<Map.Entry<String, String>> formulaMap) {
         List<Map<String, Object>> data = inData.getData();
         for(Map<String, Object> obj : data ){
-            Map<String, Object> newRow = new HashMap<>(formulaMap.size());
-            for(Map.Entry<String, String> ent : formulaMap){
-                newRow.put(ent.getKey(),
-                    VariableFormula.calculate(ent.getValue(), obj));
-            }
-            obj.putAll(newRow);
+            obj.putAll(mapDateRow(obj,formulaMap));
         }
         return inData;
     }
@@ -370,7 +356,10 @@ public abstract class DataSetOptUtil {
      * @param primaryFields 主键列
      * @return DataSet
      */
-    public static DataSet compareTabulation(DataSet currDataSet, DataSet lastDataSet, List<String> primaryFields) {
+    public static DataSet compareTabulation(DataSet currDataSet,
+                                            DataSet lastDataSet,
+                                            List<String> primaryFields,
+                                            Collection<Map.Entry<String, String>> formulaMap) {
         if (currDataSet == null || lastDataSet == null) {
             return null;
         }
@@ -391,30 +380,30 @@ public abstract class DataSetOptUtil {
             //匹配
             Map<String, Object> newRow = new LinkedHashMap<>();
             if(nc == 0){
-                appendData(newRow, currData.get(i), primaryFields,":curr",true);
-                appendData(newRow, lastData.get(j), primaryFields,":next",false);
+                appendData(newRow, currData.get(i), primaryFields,":left",true);
+                appendData(newRow, lastData.get(j), primaryFields,":right",false);
                 i++; j++;
             } else if(nc < 0){
-                appendData(newRow, currData.get(i), primaryFields,":curr",true);
+                appendData(newRow, currData.get(i), primaryFields,":left",true);
                 i++;
             } else {
-                appendData(newRow, lastData.get(j), primaryFields,":next",true);
+                appendData(newRow, lastData.get(j), primaryFields,":right",true);
                 j++;
             }
-            newData.add(newRow);
+            newData.add(mapDateRow(newRow,formulaMap));
         }
 
         while(i < currData.size()){
             Map<String, Object> newRow = new LinkedHashMap<>();
-            appendData(newRow, currData.get(i), primaryFields,":curr",true);
-            newData.add(newRow);
+            appendData(newRow, currData.get(i), primaryFields,":left",true);
+            newData.add(mapDateRow(newRow,formulaMap));
             i++;
         }
 
         while(j< lastData.size()){
             Map<String, Object> newRow = new LinkedHashMap<>();
-            appendData(newRow, lastData.get(j), primaryFields,":next",true);
-            newData.add(newRow);
+            appendData(newRow, lastData.get(j), primaryFields,":right",true);
+            newData.add(mapDateRow(newRow,formulaMap));
             j++;
         }
         return new SimpleDataSet(newData);
@@ -594,6 +583,29 @@ public abstract class DataSetOptUtil {
                 if (cr != 0) {
                     return cr;
                 }
+            }
+        }
+        return 0;
+    }
+
+    private static int compareTwoRowWithMap(Map<String, Object> data1, Map<String, Object> data2, List<Map.Entry<String, String>> fields) {
+        if((data1 == null && data2 == null) || fields == null){
+            return 0;
+        }
+
+        if(data1 == null){
+            return -1;
+        }
+
+        if(data2 == null){
+            return 1;
+        }
+
+        for (Map.Entry<String, String> field : fields) {
+            int cr = GeneralAlgorithm.compareTwoObject(
+                data1.get(field.getKey()), data2.get(field.getValue()));
+            if (cr != 0) {
+                return cr;
             }
         }
         return 0;

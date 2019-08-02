@@ -1,6 +1,7 @@
 package com.centit.product.dataopt.datarule;
 
 import com.centit.support.algorithm.BooleanBaseOpt;
+import com.centit.support.algorithm.GeneralAlgorithm;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.compiler.VariableFormula;
@@ -20,6 +21,10 @@ public abstract class CheckRuleUtils {
         return object.get(rule.getCheckParams()[paramNo]);
     }
 
+    private static Object getRuleParam(CheckRule rule, int paramNo){
+        return rule.getCheckParams()[paramNo];
+    }
+
     private static String getStringRuleParam(CheckRule rule, int paramNo){
         return rule.getCheckParams()[paramNo];
     }
@@ -36,7 +41,7 @@ public abstract class CheckRuleUtils {
             return true;
         int datalen = StringBaseOpt.castObjectToString(data).length();
         return datalen>= getIntRuleParam(rule,1)
-            || datalen<= getIntRuleParam(rule,2);
+            && datalen<= getIntRuleParam(rule,2);
     }
 
     public static boolean checkMinLength(Map<String, Object> object, CheckRule rule){
@@ -46,7 +51,7 @@ public abstract class CheckRuleUtils {
         if(data==null)
             return true;
         int datalen = StringBaseOpt.castObjectToString(data).length();
-        return datalen>= getIntRuleParam(rule,1);
+        return datalen >= getIntRuleParam(rule,1);
     }
 
     public static boolean checkMaxLength(Map<String, Object> object, CheckRule rule){
@@ -56,7 +61,39 @@ public abstract class CheckRuleUtils {
         if(data==null)
             return true;
         int datalen = StringBaseOpt.castObjectToString(data).length();
-        return datalen<= getIntRuleParam(rule,1);
+        return datalen <= getIntRuleParam(rule,1);
+    }
+
+    public static boolean checkDataValue(Map<String, Object> object, CheckRule rule){
+        if(!checkRuleParams(rule,3))
+            return true;
+        Object data = getObjectProperty(object, rule, 0);
+        if(data==null)
+            return true;
+        return GeneralAlgorithm.compareTwoObject(
+                data,getRuleParam(rule,1)) >= 0
+            && GeneralAlgorithm.compareTwoObject(
+                data,getRuleParam(rule,2)) <= 0 ;
+    }
+
+    public static boolean checkMinValue(Map<String, Object> object, CheckRule rule){
+        if(!checkRuleParams(rule,2))
+            return true;
+        Object data = getObjectProperty(object, rule, 0);
+        if(data==null)
+            return true;
+        return GeneralAlgorithm.compareTwoObject(
+            data,getRuleParam(rule,1)) >= 0;
+    }
+
+    public static boolean checkMaxValue(Map<String, Object> object, CheckRule rule){
+        if(!checkRuleParams(rule,2))
+            return true;
+        Object data = getObjectProperty(object, rule, 0);
+        if(data==null)
+            return true;
+        return GeneralAlgorithm.compareTwoObject(
+            data,getRuleParam(rule,1)) <= 0;
     }
 
     private static final int[] weight = { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 }; // 十七位数字本体码权重
@@ -122,6 +159,12 @@ public abstract class CheckRuleUtils {
                 return checkMinLength(object, rule);
             case "maxlength":
                 return checkMaxLength(object, rule);
+            case "value":
+                return checkDataValue(object, rule);
+            case "minvalue":
+                return checkMinValue(object, rule);
+            case "maxvalue":
+                return checkMaxValue(object, rule);
             case "idcard":
                 return checkIdCardNo(object, rule);
             case "regex":

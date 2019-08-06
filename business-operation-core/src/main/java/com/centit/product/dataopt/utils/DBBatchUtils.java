@@ -68,9 +68,9 @@ public abstract class DBBatchUtils {
         QueryLogUtils.printSql(logger,sqlPair.getLeft(), sqlPair.getRight());
         try(PreparedStatement stmt = conn.prepareStatement(sqlPair.getLeft())){
             for(Map<String, Object> object : objects ) {
-                if (!GeneralJsonObjectDao.checkHasAllPkColumns(tableInfo, object)) {
-                    throw new SQLException("缺少主键对应的属性。");
-                }
+//                if (!GeneralJsonObjectDao.checkHasAllPkColumns(tableInfo, object)) {
+//                    throw new SQLException("缺少主键对应的属性。");
+//                }
                 DatabaseAccess.setQueryStmtParameters(stmt, sqlPair.getRight(), object);
                 n += stmt.executeUpdate();
             }
@@ -97,9 +97,9 @@ public abstract class DBBatchUtils {
             PreparedStatement insertStmt = conn.prepareStatement(insertSqlPair.getLeft());
             PreparedStatement updateStmt = conn.prepareStatement(updateSqlPair.getLeft())){
             for(Map<String, Object> object : objects ) {
-                if (!GeneralJsonObjectDao.checkHasAllPkColumns(tableInfo, object)) {
-                    throw new SQLException("缺少主键对应的属性。");
-                }
+//                if (!GeneralJsonObjectDao.checkHasAllPkColumns(tableInfo, object)) {
+//                    throw new SQLException("缺少主键对应的属性。");
+//                }
                 DatabaseAccess.setQueryStmtParameters(checkStmt, checkSqlPair.getRight(), object);
                 ResultSet rs = checkStmt.executeQuery();
                 boolean exists = false;

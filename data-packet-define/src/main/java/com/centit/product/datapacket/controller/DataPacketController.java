@@ -72,12 +72,13 @@ public class DataPacketController extends BaseController {
         dataPacketService.updateDataPacket(dataPacket);
     }
 
-    @ApiOperation(value = "编辑数据數據庫裏")
+    @ApiOperation(value = "编辑数据包数据处理描述信息")
     @PutMapping(value = "/opt/{packetId}")
     @WrapUpResponseBody
     public void updateDataPacketOpt(@PathVariable String packetId, @RequestBody String dataOptDescJson){
         dataPacketService.updateDataPacketOptJson(packetId, dataOptDescJson);
     }
+
     @ApiOperation(value = "获取数据包数据并对数据进行业务处理")
     @PutMapping(value = "/dataopts/{packetId}/{queryId}")
     @WrapUpResponseBody

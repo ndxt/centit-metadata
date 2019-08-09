@@ -217,4 +217,18 @@ public class DataPacketServiceImpl implements DataPacketService {
         setDataPacketBuf(bizModel, dataPacket, paramsMap);
         return bizModel;
     }
+    public BizModel fetchDataPacketData(String packetId, Map<String, Object> paramsMap,String optsteps){
+        DataPacket dataPacket = this.getDataPacket(packetId);
+        BizModel bizModel = fetchDataPacketDataFromBuf(dataPacket, paramsMap);
+        if(bizModel==null) {
+            bizModel = innerFetchDataPacketData(dataPacket, paramsMap);
+        }
+        JSONObject obj = JSON.parseObject(optsteps);
+        if(obj!=null) {
+            BuiltInOperation builtInOperation = new BuiltInOperation(obj);
+            bizModel = builtInOperation.apply(bizModel);
+        }
+        setDataPacketBuf(bizModel, dataPacket, paramsMap);
+        return bizModel;
+    }
 }

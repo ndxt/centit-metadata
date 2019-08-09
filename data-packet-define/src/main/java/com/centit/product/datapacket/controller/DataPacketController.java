@@ -151,6 +151,32 @@ public class DataPacketController extends BaseController {
               HttpServletRequest request){
         Map<String, Object> params = BaseController.collectRequestParameters(request);
         BizModel  bizModel = dataPacketService.fetchDataPacketData(packetId, params);
+        BizModel dup = getBizModel(datasets, bizModel);
+        if (dup != null) return dup;
+        return bizModel;
+    }
+
+    @ApiOperation(value = "获取数据包数据并对数据进行业务处理")
+    @PutMapping(value = "/dataopts/{packetId}")
+    @WrapUpResponseBody
+    public BizModel fetchDataPacketDataWithOpt(@PathVariable String packetId,
+                                               String datasets,
+                                               @RequestBody String optsteps,
+        HttpServletRequest request){
+        Map<String, Object> params = BaseController.collectRequestParameters(request);
+        BizModel bizModel = null;
+        //optsteps =StringEscapeUtils.unescapeHtml4(optsteps);
+        if(StringUtils.isNotBlank(optsteps)){
+            bizModel = dataPacketService.fetchDataPacketData(packetId, params,optsteps);
+        } else{
+             bizModel = dataPacketService.fetchDataPacketData(packetId, params);
+        }
+        BizModel dup = getBizModel(datasets, bizModel);
+        if (dup != null) return dup;
+        return bizModel;
+    }
+
+    private BizModel getBizModel(String datasets, BizModel bizModel) {
         if(StringUtils.isNotBlank(datasets)){
             String[] dss = datasets.split(",");
             SimpleBizModel dup = new SimpleBizModel(bizModel.getModelName());
@@ -165,25 +191,9 @@ public class DataPacketController extends BaseController {
             dup.setBizData(dataMap);
             return dup;
         }
-        return bizModel;
+        return null;
     }
 
-    @ApiOperation(value = "获取数据包数据并对数据进行业务处理")
-    @PutMapping(value = "/dataopts/{packetId}")
-    @WrapUpResponseBody
-    public BizModel fetchDataPacketDataWithOpt(@PathVariable String packetId,
-                                               @RequestBody String optsteps,
-        HttpServletRequest request){
-        Map<String, Object> params = BaseController.collectRequestParameters(request);
-        BizModel bizModel = null;
-        //optsteps =StringEscapeUtils.unescapeHtml4(optsteps);
-        if(StringUtils.isNotBlank(optsteps)){
-            bizModel = dataPacketService.fetchDataPacketData(packetId, params,optsteps);
-        } else{
-             bizModel = dataPacketService.fetchDataPacketData(packetId, params);
-        }
-        return bizModel;
-    }
     @ApiOperation(value = "获取数据库查询数据")
     @ApiImplicitParam(name = "queryId", value = "数据查询ID", required = true,
         paramType = "path", dataType ="String")

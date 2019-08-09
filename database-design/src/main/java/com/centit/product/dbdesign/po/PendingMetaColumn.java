@@ -256,7 +256,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     }
 
     public String getJavaTypeFullName(){
-        String javaType = FieldType.mapToJavaType(fieldType, scale);
+        String javaType = FieldType.mapToJavaType(fieldType, getScale());
         if ("Date".equals(javaType))
             return "java.util." + javaType;
         if ("Timestamp".equals(javaType))

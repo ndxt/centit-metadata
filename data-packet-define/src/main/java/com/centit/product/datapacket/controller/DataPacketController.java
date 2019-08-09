@@ -157,10 +157,10 @@ public class DataPacketController extends BaseController {
     }
 
     @ApiOperation(value = "获取数据包数据并对数据进行业务处理")
-    @PutMapping(value = "/dataopts/{packetId}")
+    @PutMapping(value = "/dataopts/{packetId}/{datasets}")
     @WrapUpResponseBody
     public BizModel fetchDataPacketDataWithOpt(@PathVariable String packetId,
-                                               String datasets,
+                                               @PathVariable String datasets,
                                                @RequestBody String optsteps,
         HttpServletRequest request){
         Map<String, Object> params = BaseController.collectRequestParameters(request);

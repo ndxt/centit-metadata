@@ -146,11 +146,12 @@ public class BuiltInOperation implements BizOperation {
 
         String targetDSName = getJsonFieldString(bizOptJson, "target", bizModel.getModelName());
         Object primaryKey = bizOptJson.get("primaryKey");
+        Object analyse = bizOptJson.get("fieldsMap");
         List<String> pks = StringBaseOpt.objectToStringList(primaryKey);
         DataSet dataSet = bizModel.fetchDataSetByName(sour1DSName);
         DataSet dataSet2 = bizModel.fetchDataSetByName(sour2DSName);
         if(dataSet != null && dataSet2 != null) {
-            DataSet destDS = DataSetOptUtil.compareTabulation(dataSet, dataSet2, pks);
+            DataSet destDS = DataSetOptUtil.compareTabulation(dataSet, dataSet2, pks,((Map) analyse).entrySet());
             bizModel.putDataSet(targetDSName, destDS);
         }
         return bizModel;

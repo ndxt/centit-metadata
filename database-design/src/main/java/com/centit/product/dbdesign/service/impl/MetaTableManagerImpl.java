@@ -174,7 +174,7 @@ public class MetaTableManagerImpl
 
     @Transactional
     public List<String> makeAlterTableSqls(PendingMetaTable ptable) {
-        MetaTable stable = metaTableDao.getObjectById(ptable.getTableId());
+        MetaTable stable = metaTableDao.getMetaTable(ptable.getDatabaseCode(),ptable.getTableName());
         stable = metaTableDao.fetchObjectReferences(stable);
 
         DatabaseInfo mdb = integrationEnvironment.getDatabaseInfo(ptable.getDatabaseCode());

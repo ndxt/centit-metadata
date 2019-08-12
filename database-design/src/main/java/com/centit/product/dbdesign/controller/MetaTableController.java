@@ -52,7 +52,7 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping("/mdtable")
-@Api(value = "表元数据", tags = "表元数据")
+@Api(value = "数据重构", tags = "数据重构")
 public class MetaTableController extends BaseController {
     //private static final Log log = LogFactory.getLog(MetaTableController.class);
 
@@ -65,7 +65,7 @@ public class MetaTableController extends BaseController {
     @Resource
     private PendingMetaTableDao pendingMetaTableDao;
 
-    @ApiOperation(value = "查询表元数据更改发布记录")
+    @ApiOperation(value = "查询重构记录")
     @RequestMapping(value = "/{databaseCode}/log", method = RequestMethod.GET)
     @WrapUpResponseBody
     public PageQueryResult loglist(@PathVariable String databaseCode, String[] field, PageDesc pageDesc,
@@ -81,7 +81,7 @@ public class MetaTableController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "查看单个表元数据发布记录")
+    @ApiOperation(value = "查看单个表重构记录")
     @RequestMapping(value = "/log/{changeId}", method = {RequestMethod.GET})
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public MetaChangLog getMdTableLog(@PathVariable String changeId) {
@@ -89,7 +89,7 @@ public class MetaTableController extends BaseController {
         return changLog;
     }
 
-    @ApiOperation(value = "查询表元数据表")
+    @ApiOperation(value = "查询重构表")
     @ApiImplicitParam(name = "databaseCode", value = "数据库代码")
     @RequestMapping(value="/{databaseCode}/list",method = RequestMethod.GET)
     @WrapUpResponseBody
@@ -106,7 +106,7 @@ public class MetaTableController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "查询单个表元数据表")
+    @ApiOperation(value = "查询单个表重构字段")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.GET})
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public PendingMetaTable getMdTableDraft(@PathVariable String tableId) {
@@ -114,19 +114,27 @@ public class MetaTableController extends BaseController {
         return mdTable;
     }
 
-    @ApiOperation(value = "新增表元数据表")
+    @ApiOperation(value = "新增重构表")
     @RequestMapping(method = {RequestMethod.POST})
     public void createMdTable(PendingMetaTable mdTable,HttpServletRequest request,
                               HttpServletResponse response) {
-        String userCode = WebOptUtils.getCurrentUserCode(request);
-        mdTable.setRecorder(userCode);
-        PendingMetaTable table = new PendingMetaTable();
-        table.copyNotNullProperty(mdTable);
-        mdTableMag.saveNewPendingMetaTable(table);
-        JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
+        Map<String, Object> searchColumn = collectRequestParameters(request);
+        searchColumn.put("tableName",mdTable.getTableName());
+        PageDesc pageDesc=new PageDesc();
+        JSONArray listObjects = mdTableMag.listDrafts(new String[]{}, searchColumn, pageDesc);
+        if (listObjects.isEmpty()) {
+            String userCode = WebOptUtils.getCurrentUserCode(request);
+            mdTable.setRecorder(userCode);
+            PendingMetaTable table = new PendingMetaTable();
+            table.copyNotNullProperty(mdTable);
+            mdTableMag.saveNewPendingMetaTable(table);
+            JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
+        } else{
+            JsonResultUtils.writeErrorMessageJson(800,mdTable.getTableName()+"已存在", response);
+        }
     }
 
-    @ApiOperation(value = "只修改表元数据表,表与字段分开")
+    @ApiOperation(value = "修改重构表")
     @PutMapping(value = "/table/{tableId}")
     @WrapUpResponseBody
     public void updateMetaTable(@PathVariable String tableId, @RequestBody PendingMetaTable metaTable,HttpServletRequest request){
@@ -136,7 +144,7 @@ public class MetaTableController extends BaseController {
         mdTableMag.updateMetaTable(metaTable);
     }
 
-    @ApiOperation(value = "修改列表元数据")
+    @ApiOperation(value = "修改重构表字段")
     @PutMapping(value = "/column/{tableId}/{columnCode}")
     @WrapUpResponseBody
     public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode, @RequestBody PendingMetaColumn metaColumn){
@@ -145,7 +153,7 @@ public class MetaTableController extends BaseController {
         mdTableMag.updateMetaColumn(metaColumn);
     }
 
-    @ApiOperation(value = "编辑表元数据表")
+    @ApiOperation(value = "编辑重构表")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.PUT})
     @WrapUpResponseBody
     public void updateMdTable(@PathVariable String tableId, @RequestBody PendingMetaTable mdTable) {
@@ -153,14 +161,14 @@ public class MetaTableController extends BaseController {
         mdTableMag.savePendingMetaTable(mdTable);
     }
 
-    @ApiOperation(value = "删除单个表元数据表")
+    @ApiOperation(value = "删除重构表")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.DELETE})
     @WrapUpResponseBody
     public void deleteMdTable(@PathVariable String tableId) {
         mdTableMag.deletePendingMetaTable(tableId);
     }
 
-    @ApiOperation(value = "查看发布表元数据表的sql")
+    @ApiOperation(value = "查看发布重构表sql")
     @RequestMapping(value = "/beforePublish/{ptableId}", method = {RequestMethod.POST})
     public void alertSqlBeforePublish(@PathVariable String ptableId,
                                       HttpServletRequest request, HttpServletResponse response) {
@@ -170,7 +178,7 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeResponseDataAsJson(resData, response);
     }
 
-    @ApiOperation(value = "发布表元数据表")
+    @ApiOperation(value = "发布重构表")
     @RequestMapping(value = "/publish/{ptableId}", method = {RequestMethod.POST})
     public void publishMdTable(@PathVariable String ptableId,
                                HttpServletRequest request, HttpServletResponse response) {

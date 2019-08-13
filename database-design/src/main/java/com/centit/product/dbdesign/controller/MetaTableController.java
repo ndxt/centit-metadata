@@ -158,6 +158,10 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public void updateMdTable(@PathVariable String tableId, @RequestBody PendingMetaTable mdTable) {
         mdTable.setTableId(tableId);
+        List<String> sqls = mdTableMag.makeAlterTableSqls(mdTable);
+        if(sqls.size() > 0){
+            mdTable.setTableState("W");
+        }
         mdTableMag.savePendingMetaTable(mdTable);
     }
 
@@ -183,6 +187,7 @@ public class MetaTableController extends BaseController {
     public void publishMdTable(@PathVariable String ptableId,
                                HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
+
         if (StringUtils.isBlank(userCode)) {
             JsonResultUtils.writeErrorMessageJson(ResponseData.ERROR_UNAUTHORIZED,
                 "当前用户没有登录，请先登录。", response);

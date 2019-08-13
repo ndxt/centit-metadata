@@ -552,7 +552,7 @@ public class MetaTableManagerImpl
     @Transactional
     public Pair<Integer, String> publishDatabase(String databaseCode, String recorder){
         try {
-            List<PendingMetaTable> metaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
+            List<PendingMetaTable> metaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ? and table_state='W'", new Object[]{databaseCode});
             List<String> success = new ArrayList<>();
             List<String> errors = new ArrayList<>();
             for (PendingMetaTable metaTable : metaTables) {

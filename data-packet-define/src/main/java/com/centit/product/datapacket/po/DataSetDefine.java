@@ -22,8 +22,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "Q_RMDB_QUERY")
-public class RmdbQuery implements Serializable {
+@Table(name = "q_dataset_define")
+public class DataSetDefine implements Serializable {
     private static final long serialVersionUID = 1;
 
     @ApiModelProperty(value = "查询ID", hidden = true)
@@ -64,7 +64,13 @@ public class RmdbQuery implements Serializable {
     @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
     @JSONField(serialize = false)
     private Date recordDate;
-
+    /**
+     * 数据包类别，主要有 D database， F file ， P directory 文件夹 , 默认值为D
+     */
+    @ApiModelProperty(value = "数据集类别，主要有 D database, E excel,C csv,J json, 默认值为D")
+    @Column(name = "SET_TYPE")
+    @NotBlank(message = "字段不能为空")
+    private String setType;
     /**
      * 字段名 描述
      */
@@ -75,12 +81,12 @@ public class RmdbQuery implements Serializable {
 
     @Transient
     private Map<String, String> fieldNames;*/
-    @OneToMany(targetEntity = RmdbQueryColumn.class)
+    @OneToMany(targetEntity = DataSetColumnDesc.class)
     @JoinColumn(name = "queryId", referencedColumnName = "queryId")
-    private List<RmdbQueryColumn> columns;
+    private List<DataSetColumnDesc> columns;
 
 
-    public List<RmdbQueryColumn> getColumns() {
+    public List<DataSetColumnDesc> getColumns() {
         if(columns==null){
             columns = new ArrayList<>(4);
         }

@@ -8,16 +8,15 @@ import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.ip.service.IntegrationEnvironment;
-import com.centit.product.dataopt.bizopt.BuiltInOperation;
 import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.core.SimpleBizModel;
 import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
-import com.centit.product.datapacket.po.RmdbQuery;
+import com.centit.product.datapacket.po.DataSetDefine;
 import com.centit.product.datapacket.service.DataPacketService;
-import com.centit.product.datapacket.service.RmdbQueryService;
+import com.centit.product.datapacket.service.DataSetDefineService;
 import com.centit.product.datapacket.utils.DataPacketUtil;
 import com.centit.product.datapacket.vo.DataPacketSchema;
 import com.centit.support.database.utils.JdbcConnect;
@@ -45,7 +44,7 @@ public class DataPacketController extends BaseController {
     private DataPacketService dataPacketService;
 
     @Autowired
-    private RmdbQueryService rmdbQueryService;
+    private DataSetDefineService dataSetDefineService;
 
     @Autowired
     private IntegrationEnvironment integrationEnvironment;
@@ -201,7 +200,7 @@ public class DataPacketController extends BaseController {
     @WrapUpResponseBody
     public SimpleDataSet fetchDBQueryData(@PathVariable String queryId, HttpServletRequest request){
         Map<String, Object> params = collectRequestParameters(request);
-        RmdbQuery query = rmdbQueryService.getDbQuery(queryId);
+        DataSetDefine query = dataSetDefineService.getDbQuery(queryId);
         DataPacket dataPacket = dataPacketService.getDataPacket(query.getPacketId());
         Map<String, Object> modelTag = dataPacket.getPacketParamsValue();
 

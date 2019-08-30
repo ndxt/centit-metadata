@@ -35,13 +35,6 @@ public class DataPacket implements Serializable {
     @Column(name = "PACKET_NAME")
     @NotBlank(message = "字段不能为空")
     private String packetName;
-    /**
-     * 数据包类别，主要有 D database， F file ， P directory 文件夹 , 默认值为D
-     */
-    @ApiModelProperty(value = "数据包类别，主要有 D database, F file, P directory 文件夹, 默认值为D")
-    @Column(name = "PACKET_TYPE")
-    @NotBlank(message = "字段不能为空")
-    private String packetType;
 
     /*
      * 数据包参数： 查询参数描述
@@ -94,20 +87,16 @@ public class DataPacket implements Serializable {
     @JoinColumn(name = "packetId", referencedColumnName = "packetId")
     private List<DataPacketParam> packetParams;
 
-    @OneToMany(targetEntity = RmdbQuery.class)
+    @OneToMany(targetEntity = DataSetDefine.class)
     @JoinColumn(name = "packetId", referencedColumnName = "packetId")
-    private List<RmdbQuery> rmdbQueries;
+    private List<DataSetDefine> dataSetDefines;
 
     public DataPacket(){
-        packetType = "D";
         bufferFreshPeriod = -1;
     }
 
-    public List<RmdbQuery> getRmdbQueries() {
-        if("D".equals(packetType)){
-            return rmdbQueries;
-        }
-        return null;
+    public List<DataSetDefine> getDataSetDefines() {
+            return dataSetDefines;
     }
 
     public List<DataPacketParam> getPacketParams() {

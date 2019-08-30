@@ -2,8 +2,8 @@ package com.centit.product.datapacket.vo;
 
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.DataPacketParam;
-import com.centit.product.datapacket.po.RmdbQuery;
-import com.centit.product.datapacket.po.RmdbQueryColumn;
+import com.centit.product.datapacket.po.DataSetDefine;
+import com.centit.product.datapacket.po.DataSetColumnDesc;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -21,11 +21,6 @@ public class DataPacketSchema implements Serializable {
 
     @ApiModelProperty(value = "数据包名称模板")
     private String packetName;
-    /**
-     * 数据包类别，主要有 D database， F file ， P directory 文件夹 , 默认值为D
-     */
-    @ApiModelProperty(value = "数据包类别，主要有 D database, F file, P directory 文件夹, 默认值为D")
-    private String packetType;
 
     /**
      * 详细描述
@@ -75,20 +70,19 @@ public class DataPacketSchema implements Serializable {
         DataPacketSchema dataPacketSchema = new DataPacketSchema();
         dataPacketSchema.packetId = dataPacket.getPacketId();
         dataPacketSchema.packetName = dataPacket.getPacketName();
-        dataPacketSchema.packetType = dataPacket.getPacketType();
         dataPacketSchema.packetDesc = dataPacket.getPacketDesc();
         dataPacketSchema.packetParams = dataPacket.getPacketParams();
 
         List<DataSetSchema> dataSetSchemaList = new ArrayList<>();
-        if(dataPacket.getRmdbQueries()!=null) {
-            for (RmdbQuery rdb : dataPacket.getRmdbQueries()) {
+        if(dataPacket.getDataSetDefines()!=null) {
+            for (DataSetDefine rdb : dataPacket.getDataSetDefines()) {
                 DataSetSchema dataSetSchema = new DataSetSchema();
                 List<ColumnSchema> columnSchemas =  new ArrayList<>();
                 dataSetSchema.dataSetId = rdb.getQueryId();
                 dataSetSchema.dataSetName = rdb.getQueryName();
                 dataSetSchema.dataSetTitle = rdb.getQueryDesc();
                 if (rdb.getColumns() != null && rdb.getColumns().size() > 0) {
-                    for (RmdbQueryColumn queryColumn : rdb.getColumns()) {
+                    for (DataSetColumnDesc queryColumn : rdb.getColumns()) {
                         ColumnSchema schema = new ColumnSchema();
                         schema.setColumnCode(queryColumn.getColumnCode());
                         schema.setPropertyName(queryColumn.getPropertyName());

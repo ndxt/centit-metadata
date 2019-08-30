@@ -14,9 +14,9 @@ import java.io.Serializable;
 
 @Data
 @Entity
-@Table(name = "Q_RMDB_QUERY_COLUMN")
-@ApiModel(value = "数据包字段")
-public class RmdbQueryColumn implements Serializable {
+@Table(name = "q_dataset_columndesc")
+@ApiModel(value = "数据集字段描述")
+public class DataSetColumnDesc implements Serializable {
 
     private static final long serialVersionUID = -4897866009902238572L;
 
@@ -52,10 +52,10 @@ public class RmdbQueryColumn implements Serializable {
     @ApiModelProperty(value = "对应数据字典代码")
     private String catalogCode;
 
-    public RmdbQueryColumn() {
+    public DataSetColumnDesc() {
     }
 
-    public RmdbQueryColumn(String columnCode, String columnName) {
+    public DataSetColumnDesc(String columnCode, String columnName) {
         this.columnCode = columnCode;
         this.columnName = columnName;
     }

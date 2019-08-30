@@ -5,14 +5,11 @@ import com.centit.framework.common.ObjectException;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.datapacket.vo.ColumnSchema;
-import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.utils.*;
 import com.centit.product.datapacket.dao.DataPacketDao;
-import com.centit.product.datapacket.dao.RmdbQueryDao;
-import com.centit.product.datapacket.po.DataPacket;
-import com.centit.product.datapacket.po.RmdbQuery;
-import com.centit.product.datapacket.service.RmdbQueryService;
-import org.apache.commons.lang3.ArrayUtils;
+import com.centit.product.datapacket.dao.DataSetDefineDao;
+import com.centit.product.datapacket.po.DataSetDefine;
+import com.centit.product.datapacket.service.DataSetDefineService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,46 +26,46 @@ import java.util.Set;
 
 @Service
 @Transactional
-public class RmdbQueryServiceImpl implements RmdbQueryService {
+public class DataSetDefineServiceImpl implements DataSetDefineService {
 
-    private final Logger logger = LoggerFactory.getLogger(RmdbQueryServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(DataSetDefineServiceImpl.class);
 
     @Autowired
     private DataPacketDao dataPacketDao;
 
     @Autowired
-    private RmdbQueryDao resourceColumnDao;
+    private DataSetDefineDao resourceColumnDao;
 
     @Autowired
     private IntegrationEnvironment integrationEnvironment;
 
     @Override
-    public void createDbQuery(RmdbQuery rmdbQuery) {
-        resourceColumnDao.saveNewObject(rmdbQuery);
-        resourceColumnDao.saveObjectReferences(rmdbQuery);
+    public void createDbQuery(DataSetDefine dataSetDefine) {
+        resourceColumnDao.saveNewObject(dataSetDefine);
+        resourceColumnDao.saveObjectReferences(dataSetDefine);
     }
 
     @Override
-    public void updateDbQuery(RmdbQuery rmdbQuery) {
-        rmdbQuery.setRecordDate(new Date());
-        resourceColumnDao.updateObject(rmdbQuery);
-        resourceColumnDao.saveObjectReferences(rmdbQuery);
+    public void updateDbQuery(DataSetDefine dataSetDefine) {
+        dataSetDefine.setRecordDate(new Date());
+        resourceColumnDao.updateObject(dataSetDefine);
+        resourceColumnDao.saveObjectReferences(dataSetDefine);
     }
 
     @Override
     public void deleteDbQuery(String queryId) {
-        RmdbQuery rmdbQuery = resourceColumnDao.getObjectById(queryId);
+        DataSetDefine dataSetDefine = resourceColumnDao.getObjectById(queryId);
         resourceColumnDao.deleteObjectById(queryId);
-        resourceColumnDao.deleteObjectReferences(rmdbQuery);
+        resourceColumnDao.deleteObjectReferences(dataSetDefine);
     }
 
     @Override
-    public List<RmdbQuery> listDbQuery(Map<String, Object> params, PageDesc pageDesc) {
+    public List<DataSetDefine> listDbQuery(Map<String, Object> params, PageDesc pageDesc) {
         return resourceColumnDao.listObjectsByProperties(params, pageDesc);
     }
 
     @Override
-    public RmdbQuery getDbQuery(String queryId) {
+    public DataSetDefine getDbQuery(String queryId) {
         return resourceColumnDao.getObjectWithReferences(queryId);
     }
 

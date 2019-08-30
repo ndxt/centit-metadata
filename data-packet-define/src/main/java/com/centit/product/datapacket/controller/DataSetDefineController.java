@@ -32,7 +32,7 @@ public class DataSetDefineController extends BaseController {
     @Autowired
     private DataSetDefineService dataSetDefineService;
 
-    @ApiOperation(value = "新增数据库查询")
+    @ApiOperation(value = "新增数据集")
     @PostMapping
     @WrapUpResponseBody
     public void createDbQuery(DataSetDefine dataSetDefine, HttpServletRequest request){
@@ -44,7 +44,7 @@ public class DataSetDefineController extends BaseController {
         dataSetDefineService.createDbQuery(dataSetDefine);
     }
 
-    @ApiOperation(value = "编辑数据库查询")
+    @ApiOperation(value = "编辑数据集")
     @PutMapping(value = "/{queryId}")
     @WrapUpResponseBody
     public void updateDbQuery(@PathVariable String queryId, DataSetDefine dataSetDefine){
@@ -53,14 +53,14 @@ public class DataSetDefineController extends BaseController {
         dataSetDefineService.updateDbQuery(dataSetDefine);
     }
 
-    @ApiOperation(value = "删除数据库查询")
+    @ApiOperation(value = "删除数据集")
     @DeleteMapping(value = "/{queryId}")
     @WrapUpResponseBody
     public void deleteDbQuery(@PathVariable String queryId){
         dataSetDefineService.deleteDbQuery(queryId);
     }
 
-    @ApiOperation(value = "查询数据库查询")
+    @ApiOperation(value = "查询数据集")
     @GetMapping
     @WrapUpResponseBody
     public PageQueryResult<DataSetDefine> listDbQuery(PageDesc pageDesc){
@@ -68,7 +68,7 @@ public class DataSetDefineController extends BaseController {
         return PageQueryResult.createResult(list, pageDesc);
     }
 
-    @ApiOperation(value = "查询单个数据库查询")
+    @ApiOperation(value = "查询单个数据集")
     @GetMapping(value = "/{queryId}")
     @WrapUpResponseBody
     public DataSetDefine getDbQuery(@PathVariable String queryId){

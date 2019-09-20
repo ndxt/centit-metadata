@@ -85,10 +85,7 @@ public class MetaChangLog implements java.io.Serializable {
     public MetaChangLog(
      String tableID, String databaseCode
     ,String  changeId,Date  changeDate,String  changer,String  changeScript,String  changeComment) {
-
-
         this.tableID = tableID;
-
         this.changeId= changeId;
         this.databaseCode =databaseCode;
         this.changeDate= changeDate;
@@ -111,10 +108,8 @@ public class MetaChangLog implements java.io.Serializable {
     }
 
     public MetaChangLog copyNotNullProperty(MetaChangLog other){
-
-    if( other.getTableID() != null)
-        this.setTableID(other.getTableID());
-
+        if( other.getTableID() != null)
+            this.setTableID(other.getTableID());
         if( other.getChangeId() != null)
             this.changeId= other.getChangeId();
         if( other.getDatabaseCode() !=null)

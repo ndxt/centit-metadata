@@ -84,7 +84,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     private String  mandatory;
 
     @ApiModelProperty(value = "是否为主键")
-    @Column(name = "PRIMARYKEY")
+    @Column(name = "PRIMARY_KEY")
     @Length( message = "字段长度不能大于{max}")
     private String  primarykey;
 

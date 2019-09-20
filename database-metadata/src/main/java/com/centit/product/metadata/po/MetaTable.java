@@ -367,7 +367,11 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         Map<String, Object> pk = new HashMap<>(8);
         for (MetaColumn c : mdColumns) {
             if (c.isPrimaryKey()) {
-                pk.put(c.getPropertyName(), object.get(c.getPropertyName()));
+                Object pkValue = object.get(c.getPropertyName());
+                if(pkValue==null){
+                    return null;
+                }
+                pk.put(c.getPropertyName(), pkValue);
             }
         }
         return pk;

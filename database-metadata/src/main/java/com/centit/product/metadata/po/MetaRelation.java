@@ -165,7 +165,11 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     public Map<String, Object> fetchObjectFk(Map<String, Object> parentObject){
         Map<String, Object> fk = new HashMap<>(8);
         for (MetaRelDetail mrd : relationDetails) {
-            fk.put(mrd.getChildColumnName(), parentObject.get(mrd.getParentColumnName()));
+            Object fkValue = parentObject.get(mrd.getParentColumnName());
+            if(fkValue==null){
+                return null;
+            }
+            fk.put(mrd.getChildColumnName(), fkValue);
         }
         return fk;
     }
@@ -173,7 +177,11 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     public Map<String, Object> fetchParentPk(Map<String, Object> childObject){
         Map<String, Object> pk = new HashMap<>(8);
         for (MetaRelDetail mrd : relationDetails) {
-            pk.put(mrd.getParentColumnName(), childObject.get(mrd.getChildColumnName()));
+            Object pkValue = childObject.get(mrd.getChildColumnName());
+            if(pkValue==null){
+                return null;
+            }
+            pk.put(mrd.getParentColumnName(), pkValue);
         }
         return pk;
     }

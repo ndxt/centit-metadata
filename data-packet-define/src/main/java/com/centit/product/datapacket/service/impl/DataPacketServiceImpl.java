@@ -8,10 +8,10 @@ import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.product.dataopt.bizopt.BuiltInOperation;
 import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.datapacket.dao.DataPacketDao;
-import com.centit.product.datapacket.dao.RmdbQueryDao;
+import com.centit.product.datapacket.dao.DataSetDefineDao;
 import com.centit.product.datapacket.po.DataPacket;
-import com.centit.product.datapacket.po.RmdbQuery;
-import com.centit.product.datapacket.po.RmdbQueryColumn;
+import com.centit.product.datapacket.po.DataSetDefine;
+import com.centit.product.datapacket.po.DataSetColumnDesc;
 import com.centit.product.datapacket.service.DBPacketBizSupplier;
 import com.centit.product.datapacket.service.DataPacketService;
 import com.centit.support.algorithm.CollectionsOpt;
@@ -44,7 +44,7 @@ public class DataPacketServiceImpl implements DataPacketService {
     private DataPacketDao dataPacketDao;
 
     @Autowired
-    private RmdbQueryDao rmdbQueryDao;
+    private DataSetDefineDao dataSetDefineDao;
 
     @Autowired
     private IntegrationEnvironment integrationEnvironment;
@@ -72,13 +72,13 @@ public class DataPacketServiceImpl implements DataPacketService {
     }
 
     private void mergeDataPacket(DataPacket dataPacket) {
-        if (dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() > 0) {
-            for (RmdbQuery db : dataPacket.getRmdbQueries()) {
+        if (dataPacket.getDataSetDefines()!=null && dataPacket.getDataSetDefines().size() > 0) {
+            for (DataSetDefine db : dataPacket.getDataSetDefines()) {
                 if (db.getColumns() != null && db.getColumns().size() >0) {
-                    for (RmdbQueryColumn column : db.getColumns()) {
+                    for (DataSetColumnDesc column : db.getColumns()) {
                         column.setPacketId(db.getPacketId());
                     }
-                    rmdbQueryDao.saveObjectReferences(db);
+                    dataSetDefineDao.saveObjectReferences(db);
                 }
             }
         }
@@ -87,9 +87,9 @@ public class DataPacketServiceImpl implements DataPacketService {
     @Override
     public void deleteDataPacket(String packetId) {
         DataPacket dataPacket = dataPacketDao.getObjectWithReferences(packetId);
-        if (dataPacket!=null && dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() > 0) {
-            for (RmdbQuery db : dataPacket.getRmdbQueries()) {
-                rmdbQueryDao.deleteObjectReferences(db);
+        if (dataPacket!=null && dataPacket.getDataSetDefines()!=null && dataPacket.getDataSetDefines().size() > 0) {
+            for (DataSetDefine db : dataPacket.getDataSetDefines()) {
+                dataSetDefineDao.deleteObjectReferences(db);
             }
         }
         dataPacketDao.deleteObjectById(packetId);
@@ -104,9 +104,9 @@ public class DataPacketServiceImpl implements DataPacketService {
     @Override
     public DataPacket getDataPacket(String packetId) {
         DataPacket dataPacket = dataPacketDao.getObjectWithReferences(packetId);
-        if (dataPacket!=null && dataPacket.getRmdbQueries()!=null && dataPacket.getRmdbQueries().size() >0 ) {
-            for (RmdbQuery db : dataPacket.getRmdbQueries()) {
-                rmdbQueryDao.fetchObjectReferences(db);
+        if (dataPacket!=null && dataPacket.getDataSetDefines()!=null && dataPacket.getDataSetDefines().size() >0 ) {
+            for (DataSetDefine db : dataPacket.getDataSetDefines()) {
+                dataSetDefineDao.fetchObjectReferences(db);
             }
         }
         return dataPacket;

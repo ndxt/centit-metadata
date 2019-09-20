@@ -6,8 +6,8 @@ import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
-import com.centit.product.datapacket.po.RmdbQuery;
-import com.centit.product.datapacket.service.RmdbQueryService;
+import com.centit.product.datapacket.po.DataSetDefine;
+import com.centit.product.datapacket.service.DataSetDefineService;
 import com.centit.product.datapacket.vo.ColumnSchema;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
@@ -24,55 +24,55 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Api(value = "数据库查询", tags = "数据库查询")
+@Api(value = "数据集查询", tags = "数据集查询")
 @RestController
 @RequestMapping(value = "query")
-public class RmdbQueryController extends BaseController {
+public class DataSetDefineController extends BaseController {
 
     @Autowired
-    private RmdbQueryService rmdbQueryService;
+    private DataSetDefineService dataSetDefineService;
 
-    @ApiOperation(value = "新增数据库查询")
+    @ApiOperation(value = "新增数据集")
     @PostMapping
     @WrapUpResponseBody
-    public void createDbQuery(RmdbQuery rmdbQuery, HttpServletRequest request){
+    public void createDbQuery(DataSetDefine dataSetDefine, HttpServletRequest request){
         String userCode = WebOptUtils.getCurrentUserCode(request);
         if(StringUtils.isBlank(userCode)){
             throw new ObjectException("未登录");
         }
-        rmdbQuery.setRecorder(userCode);
-        rmdbQueryService.createDbQuery(rmdbQuery);
+        dataSetDefine.setRecorder(userCode);
+        dataSetDefineService.createDbQuery(dataSetDefine);
     }
 
-    @ApiOperation(value = "编辑数据库查询")
+    @ApiOperation(value = "编辑数据集")
     @PutMapping(value = "/{queryId}")
     @WrapUpResponseBody
-    public void updateDbQuery(@PathVariable String queryId, RmdbQuery rmdbQuery){
-        rmdbQuery.setQueryId(queryId);
-        //rmdbQuery.setQuerySql(HtmlUtils.htmlUnescape(dataResource.getQuerySql()));
-        rmdbQueryService.updateDbQuery(rmdbQuery);
+    public void updateDbQuery(@PathVariable String queryId, DataSetDefine dataSetDefine){
+        dataSetDefine.setQueryId(queryId);
+        //dataSetDefine.setQuerySql(HtmlUtils.htmlUnescape(dataResource.getQuerySql()));
+        dataSetDefineService.updateDbQuery(dataSetDefine);
     }
 
-    @ApiOperation(value = "删除数据库查询")
+    @ApiOperation(value = "删除数据集")
     @DeleteMapping(value = "/{queryId}")
     @WrapUpResponseBody
     public void deleteDbQuery(@PathVariable String queryId){
-        rmdbQueryService.deleteDbQuery(queryId);
+        dataSetDefineService.deleteDbQuery(queryId);
     }
 
-    @ApiOperation(value = "查询数据库查询")
+    @ApiOperation(value = "查询数据集")
     @GetMapping
     @WrapUpResponseBody
-    public PageQueryResult<RmdbQuery> listDbQuery(PageDesc pageDesc){
-        List<RmdbQuery> list = rmdbQueryService.listDbQuery(new HashMap<>(), pageDesc);
+    public PageQueryResult<DataSetDefine> listDbQuery(PageDesc pageDesc){
+        List<DataSetDefine> list = dataSetDefineService.listDbQuery(new HashMap<>(), pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }
 
-    @ApiOperation(value = "查询单个数据库查询")
+    @ApiOperation(value = "查询单个数据集")
     @GetMapping(value = "/{queryId}")
     @WrapUpResponseBody
-    public RmdbQuery getDbQuery(@PathVariable String queryId){
-        return rmdbQueryService.getDbQuery(queryId);
+    public DataSetDefine getDbQuery(@PathVariable String queryId){
+        return dataSetDefineService.getDbQuery(queryId);
     }
 
     @ApiOperation(value = "预览数据值返回前20行")
@@ -84,8 +84,8 @@ public class RmdbQueryController extends BaseController {
     @WrapUpResponseBody
     public JSONArray queryViewSqlData(String databaseCode, String sql, HttpServletRequest request){
         Map<String, Object> params = collectRequestParameters(request);;
-        //table.put("column", rmdbQueryService.generateColumn(databaseCode, HtmlUtils.htmlUnescape(sql)));
-        return rmdbQueryService.queryViewSqlData(databaseCode, sql, params);
+        //table.put("column", dataSetDefineService.generateColumn(databaseCode, HtmlUtils.htmlUnescape(sql)));
+        return dataSetDefineService.queryViewSqlData(databaseCode, sql, params);
     }
 
     @ApiOperation(value = "生成查询字段列表")
@@ -94,7 +94,7 @@ public class RmdbQueryController extends BaseController {
     @WrapUpResponseBody
     public List<ColumnSchema> generateSqlcolumn(String databaseCode, String sql, HttpServletRequest request){
         Map<String, Object> params = collectRequestParameters(request);
-        return rmdbQueryService.generateSqlFields(databaseCode, sql, params);
+        return dataSetDefineService.generateSqlFields(databaseCode, sql, params);
     }
 
 
@@ -103,7 +103,7 @@ public class RmdbQueryController extends BaseController {
     @RequestMapping(value = "/param", method = {RequestMethod.POST})
     @WrapUpResponseBody
     public Set<String> generateParam(String sql ){
-        return rmdbQueryService.generateSqlParams(sql);
+        return dataSetDefineService.generateSqlParams(sql);
     }
 
 }

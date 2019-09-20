@@ -2,7 +2,7 @@ package com.centit.product.datapacket.service;
 
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.datapacket.po.DataPacket;
-import com.centit.product.datapacket.po.RmdbQuery;
+import com.centit.product.datapacket.po.DataSetDefine;
 import com.centit.support.database.utils.JdbcConnect;
 import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.dataopt.core.BizSupplier;
@@ -32,14 +32,14 @@ public class DBPacketBizSupplier implements BizSupplier {
     @Override
     public BizModel get() {
         SimpleBizModel bizModel = new SimpleBizModel(this.dbPacket.getPacketName());
-        Map<String, DataSet> dataSets = new HashMap<>(this.dbPacket.getRmdbQueries()!=null ?
-            this.dbPacket.getRmdbQueries().size()+1 : 1);
+        Map<String, DataSet> dataSets = new HashMap<>(this.dbPacket.getDataSetDefines()!=null ?
+            this.dbPacket.getDataSetDefines().size()+1 : 1);
         Map<String, Object> modelTag = this.dbPacket.getPacketParamsValue();
         if(queryParams!=null && queryParams.size()>0) {
             modelTag.putAll(queryParams);
         }
-        if (this.dbPacket.getRmdbQueries() !=null && this.dbPacket.getRmdbQueries().size() >0) {
-            for (RmdbQuery rdd : this.dbPacket.getRmdbQueries()) {
+        if (this.dbPacket.getDataSetDefines() !=null && this.dbPacket.getDataSetDefines().size() >0) {
+            for (DataSetDefine rdd : this.dbPacket.getDataSetDefines()) {
                 SQLDataSetReader sqlDSR = new SQLDataSetReader();
                 sqlDSR.setDataSource(JdbcConnect.mapDataSource(
                     integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));

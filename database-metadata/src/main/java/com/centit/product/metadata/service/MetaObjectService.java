@@ -20,10 +20,13 @@ public interface MetaObjectService {
 
     int updateObject(String tableId, Map<String, Object> object);
 
-    int updateObjectByProperties(String tableId, final Collection<String> fields,final Map<String, Object> object);
+    int updateObjectFields(String tableId, final Collection<String> fields,final Map<String, Object> object);
 
     int updateObjectsByProperties(String tableId, final Collection<String> fields,
-                                  final Map<String, Object> fieldValues,final Map<String, Object> properties);
+                                  final Map<String, Object> fieldValues,final Map<String, Object> filterProperties);
+
+    int updateObjectsByProperties(String tableId,
+                                  final Map<String, Object> fieldValues,final Map<String, Object> filterProperties);
 
     void deleteObject(String tableId, Map<String, Object> pk);
 

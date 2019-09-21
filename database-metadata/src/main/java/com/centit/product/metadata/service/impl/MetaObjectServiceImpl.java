@@ -264,7 +264,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public int updateObjectByProperties(String tableId, final Collection<String> fields, final Map<String, Object> object){
+    public int updateObjectFields(String tableId, final Collection<String> fields, final Map<String, Object> object){
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         prepareObjectForSave(object, tableInfo);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
@@ -279,19 +279,25 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public int updateObjectsByProperties(String tableId, final Collection<String> fields,
-                                  final Map<String, Object> fieldValues,final Map<String, Object> properties){
+                                  final Map<String, Object> fieldValues,final Map<String, Object> filterProperties){
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         prepareObjectForSave(fieldValues, tableInfo);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(JdbcConnect.mapDataSource(databaseInfo));
             return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
-                    .updateObjectsByProperties(fields, fieldValues, properties);
+                    .updateObjectsByProperties(fields, fieldValues, filterProperties);
         } catch (SQLException e) {
             throw new ObjectException(fieldValues, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
+    @Override
+    public int updateObjectsByProperties(String tableId,
+                                         final Map<String, Object> fieldValues,final Map<String, Object> filterProperties) {
+        return updateObjectsByProperties( tableId, fieldValues.keySet(),
+         fieldValues, filterProperties);
+    }
 
     @Override
     public void deleteObject(String tableId, Map<String, Object> pk) {

@@ -188,11 +188,7 @@ public class MetaTableController extends BaseController {
                                HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
 
-        if (StringUtils.isBlank(userCode)) {
-            JsonResultUtils.writeErrorMessageJson(ResponseData.ERROR_UNAUTHORIZED,
-                "当前用户没有登录，请先登录。", response);
-            return;
-        }
+
         Pair<Integer, String> ret = mdTableMag.publishMetaTable(ptableId, userCode);
         JSONObject json = new JSONObject();
         json.put(ResponseData.RES_CODE_FILED, ret.getLeft());

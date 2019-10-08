@@ -33,9 +33,7 @@ public class MetadataSyncController extends BaseController {
     @WrapUpResponseBody
     public void syncDb(@PathVariable String databaseCode, HttpServletRequest request){
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        if(StringUtils.isBlank(userCode)){
-            throw new ObjectException("未登录");
-        }
+
         metaDataService.syncDb(databaseCode, userCode);
     }
 
@@ -50,9 +48,7 @@ public class MetadataSyncController extends BaseController {
     @WrapUpResponseBody
     public void updateMetaTable(@PathVariable String tableId, @RequestBody MetaTable metaTable,HttpServletRequest request){
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        if(StringUtils.isBlank(userCode)){
-            throw new ObjectException("未登录");
-        }
+
         metaTable.setTableId(tableId);
         metaTable.setRecorder(userCode);
         metaDataService.updateMetaTable(metaTable);

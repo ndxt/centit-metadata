@@ -303,7 +303,10 @@ public abstract class DataSetOptUtil {
         Map<String, Object> preRow = null;
         Map<String, Object> newRow = null;
         for(Map<String, Object> row : data){
-            if(compareTwoRow(preRow,row, rowHeaderFields) !=0 ){
+            if(row == null){
+                continue;
+            }
+            if(compareTwoRow(preRow, row, rowHeaderFields) !=0 ){
                 if(preRow!=null && newRow!=null){
                     newData.add(newRow);
                 }

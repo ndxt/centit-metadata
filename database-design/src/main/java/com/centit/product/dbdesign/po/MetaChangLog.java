@@ -31,7 +31,7 @@ public class MetaChangLog implements java.io.Serializable {
     @ApiModelProperty(value = "编号", hidden = true)
     @Id
     @Column(name = "CHANGE_ID")
-    @ValueGenerator(strategy = GeneratorType.SEQUENCE, value = "S_META_CHANGLOG_ID")
+    @ValueGenerator(strategy = GeneratorType.UUID22)
     private String  changeId;
 
 

@@ -335,7 +335,7 @@ public class MetaTableManagerImpl
                 chgLog.setDatabaseCode(ptable.getDatabaseCode());
                 chgLog.setChangeScript(JSON.toJSONString(sqls));
                 chgLog.setChangeComment(JSON.toJSONString(errors));
-                chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
+                //chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
                 chgLog.setTableID(ptable.getTableId());
                 chgLog.setChanger(currentUser);
                 metaChangLogDao.saveNewObject(chgLog);

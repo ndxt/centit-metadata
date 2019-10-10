@@ -115,6 +115,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                     VariableFormula.calculate(col.getAutoCreateParam(), object));
                             }
                             break;
+                        default:
+                            break;
                     }
                 }
             }

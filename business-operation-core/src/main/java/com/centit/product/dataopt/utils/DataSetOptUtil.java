@@ -111,7 +111,7 @@ public abstract class DataSetOptUtil {
             }
         }
         for(Triple<String, String,String> tr :  statDesc){
-            Double db = null;
+            Double db ;//= null;
             switch (tr.getRight()){
                 case "min":
                     db = StatUtils.min(listDoubleToArray(tempData.get(tr.getLeft())));
@@ -141,6 +141,9 @@ public abstract class DataSetOptUtil {
                     db = StatUtils.variance(listDoubleToArray(tempData.get(tr.getLeft())));
                     break;
                 /* percentile 这个没有实现*/
+                default:
+                    db = (double) tempData.get(tr.getLeft()).size();
+                    break;
             }
             newRow.put(tr.getLeft(), db);
         }
@@ -198,11 +201,11 @@ public abstract class DataSetOptUtil {
                     newData.add(newRow);
                 }
                 // 新建数据临时数据空间
-                for(Triple<String, String,String> tr :  statDesc){
+                for(Triple<String, String,String> tr : statDesc){
                     tempData.get(tr.getLeft()).clear();
                 }
             }
-            for(Triple<String, String,String> tr :  statDesc){
+            for(Triple<String, String,String> tr : statDesc){
                 tempData.get(tr.getLeft()).add(
                     NumberBaseOpt.castObjectToDouble(row.get(tr.getMiddle())));
             }

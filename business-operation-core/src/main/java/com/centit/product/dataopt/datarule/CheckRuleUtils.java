@@ -171,7 +171,9 @@ public abstract class CheckRuleUtils {
                 return checkRegex(object, rule);
             case "formula":
                 return checkFormula(object, rule);
+            default:
+                return true;
         }
-        return true;
+        //return true;
     }
 }

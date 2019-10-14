@@ -1,13 +1,14 @@
 package com.centit.product.dataopt.dataset;
 
-import com.centit.framework.common.ObjectException;
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.core.DataSetWriter;
 import com.centit.product.dataopt.utils.DBBatchUtils;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.DbcpConnectPools;
+import com.centit.support.database.utils.PersistenceException;
 import com.centit.support.database.utils.TransactionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,7 @@ public class SQLDataSetWriter implements DataSetWriter {
         try {
             connection = DbcpConnectPools.getDbcpConnect(dataSource);
         } catch (SQLException e) {
-            throw new ObjectException(ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
     /**
@@ -157,7 +158,7 @@ public class SQLDataSetWriter implements DataSetWriter {
                                 return GeneralJsonObjectDao.createJsonObjectDao(connection, tableInfo)
                                     .mergeObject(row);
                             } catch (IOException e) {
-                                throw new ObjectException(ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+                                throw new ObjectException(PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
                             }
                         });
                     row.put(WRITER_ERROR_TAG, "ok");

@@ -277,15 +277,8 @@ public class MetaColumn implements TableField,java.io.Serializable {
         return this.getColumnLength();
     }
 
-    public String getJavaTypeFullName(){
-        String javaType = FieldType.mapToJavaType(fieldType, scale);
-        if ("Date".equals(javaType))
-            return "java.util." + javaType;
-        if ("Timestamp".equals(javaType))
-            return "java.sql.Timestamp";
-        if ("byte[]".equals(javaType)) {
-            return javaType;
-        }
-        return "java.lang." + javaType;
+    @Override
+    public Class<?> getJavaType() {
+        return FieldType.mapToJavaType(fieldType, scale);
     }
 }

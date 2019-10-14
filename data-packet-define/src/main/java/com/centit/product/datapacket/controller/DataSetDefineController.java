@@ -1,7 +1,7 @@
 package com.centit.product.datapacket.controller;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.framework.common.ObjectException;
+import com.centit.support.common.ObjectException;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;

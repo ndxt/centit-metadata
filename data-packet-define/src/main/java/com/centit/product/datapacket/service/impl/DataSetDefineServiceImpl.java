@@ -1,15 +1,15 @@
 package com.centit.product.datapacket.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.framework.common.ObjectException;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
-import com.centit.product.datapacket.vo.ColumnSchema;
-import com.centit.support.database.utils.*;
 import com.centit.product.datapacket.dao.DataPacketDao;
 import com.centit.product.datapacket.dao.DataSetDefineDao;
 import com.centit.product.datapacket.po.DataSetDefine;
 import com.centit.product.datapacket.service.DataSetDefineService;
+import com.centit.product.datapacket.vo.ColumnSchema;
+import com.centit.support.common.ObjectException;
+import com.centit.support.database.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Transactional
@@ -109,7 +106,7 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
                     col.setColumnCode(rsd.getColumnName(i));
                     col.setPropertyName(FieldType.mapPropName(rsd.getColumnName(i)));
                     col.setColumnName(col.getPropertyName());
-                    col.setDataType(FieldType.mapToJavaType(rsd.getColumnType(i)));
+                    col.setDataType(FieldType.mapToFieldType(rsd.getColumnType(i)));
                     col.setIsStatData("F");
                     columnSchemas.add(col);
                 }
@@ -119,7 +116,7 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
             //throw new ObjectException("执行查询出错!");
             List<String> fields = QueryUtils.getSqlFiledNames(sql);
             if(fields==null){
-                throw new ObjectException(sSql, ObjectException.DATABASE_OPERATE_EXCEPTION,
+                throw new ObjectException(sSql, PersistenceException.DATABASE_OPERATE_EXCEPTION,
                     "执行查询出错，SQL：{},Param:{}"+ sSql);
             }
             for(String s : QueryUtils.getSqlFiledNames(sql)){

@@ -1,7 +1,7 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.framework.common.ObjectException;
+import com.centit.support.common.ObjectException;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.metadata.dao.MetaColumnDao;

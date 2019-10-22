@@ -59,11 +59,6 @@ public class DatasetVariableTranslate implements VariableTranslate {
         return dataSet.get(currentPos).get(varName);
     }
 
-    @Override
-    public Object getLabelValue(String labelName) {
-        return getVarValue(labelName);
-    }
-
     public void setDataSet(List<Map<String, Object>> varObj) {
         this.dataSet = varObj;
     }

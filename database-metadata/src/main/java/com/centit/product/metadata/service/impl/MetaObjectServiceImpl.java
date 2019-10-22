@@ -136,7 +136,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             if(FieldType.BOOLEAN.equals(field.getFieldType())){
                 Object v = object.get(field.getPropertyName());
                 if(v!=null){
-                    object.put(field.getPropertyName(), BooleanBaseOpt.castObjectToBoolean(v,false));
+                    object.put(field.getPropertyName(),
+                        BooleanBaseOpt.castObjectToBoolean(v,false));
                 }
             } else if(FieldType.JSON_OBJECT.equals(field.getFieldType())){
                 Object v = object.get(field.getPropertyName());

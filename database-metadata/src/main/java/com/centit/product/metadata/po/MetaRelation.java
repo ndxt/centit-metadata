@@ -7,6 +7,7 @@ import com.centit.support.database.orm.GeneratorCondition;
 import com.centit.support.database.orm.GeneratorTime;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
+import com.centit.support.database.utils.FieldType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -165,9 +166,12 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     public Map<String, Object> fetchObjectFk(Map<String, Object> parentObject){
         Map<String, Object> fk = new HashMap<>(8);
         for (MetaRelDetail mrd : relationDetails) {
-            Object fkValue = parentObject.get(mrd.getParentColumnName());
+            Object fkValue = parentObject.get(FieldType.mapPropName(mrd.getParentColumnName()));
             if(fkValue==null){
-                return null;
+                fkValue = parentObject.get(mrd.getParentColumnName());
+                if (fkValue==null) {
+                    return null;
+                }
             }
             fk.put(mrd.getChildColumnName(), fkValue);
         }

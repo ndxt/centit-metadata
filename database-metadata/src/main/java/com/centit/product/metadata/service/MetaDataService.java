@@ -36,6 +36,7 @@ public interface MetaDataService {
 
     MetaTable getMetaTableWithRelations(String databaseCode, String tableName);
 
+    List<MetaRelation> listMetaRelation(Map<String,Object> condition, PageDesc pageDesc);
     List<MetaRelation> listMetaRelation(String tableId, PageDesc pageDesc);
 
     List<MetaColumn> listMetaColumns(String tableId, PageDesc pageDesc);

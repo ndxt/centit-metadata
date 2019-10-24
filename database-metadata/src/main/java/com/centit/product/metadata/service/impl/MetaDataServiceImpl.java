@@ -315,9 +315,18 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    public List<MetaRelation> listMetaRelation(Map<String,Object> condition, PageDesc pageDesc) {
+        List<MetaRelation> list = metaRelationDao.listObjectsByProperties(
+            condition,pageDesc);
+        for(MetaRelation relation : list){
+            fetchMetaRelationDetail(relation);
+        }
+        return list;
+    }
+    @Override
     public List<MetaRelation> listMetaRelation(String tableId, PageDesc pageDesc) {
         List<MetaRelation> list = metaRelationDao.listObjectsByProperties(
-            CollectionsOpt.createHashMap("parentTableId", tableId),pageDesc);
+            CollectionsOpt.createHashMap("parentTableId",tableId),pageDesc);
         for(MetaRelation relation : list){
             fetchMetaRelationDetail(relation);
         }

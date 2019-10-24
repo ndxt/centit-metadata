@@ -102,8 +102,10 @@ public class MetadataQueryController extends  BaseController {
     @ApiOperation(value = "查询关联关系元数据")
     @GetMapping(value = "/{tableId}/relations")
     @WrapUpResponseBody
-    public PageQueryResult<MetaRelation> metaRelation(@PathVariable String tableId, PageDesc pageDesc){
-        List<MetaRelation> list = metaDataService.listMetaRelation(tableId, pageDesc);
+    public PageQueryResult<MetaRelation> metaRelation(@PathVariable String tableId,HttpServletRequest request, PageDesc pageDesc){
+        Map<String,Object> condition = BaseController.collectRequestParameters(request);
+        condition.put("parentTableId",tableId);
+        List<MetaRelation> list = metaDataService.listMetaRelation(condition, pageDesc);
         return PageQueryResult.createResultMapDict(list, pageDesc);
     }
 

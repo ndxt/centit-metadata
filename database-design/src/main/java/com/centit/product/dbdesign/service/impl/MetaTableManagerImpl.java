@@ -362,45 +362,53 @@ public class MetaTableManagerImpl
 
     private void pendingToMeta(String currentUser, PendingMetaTable ptable) {
         MetaTable metaTable = metaTableDao.getMetaTable(ptable.getDatabaseCode(),ptable.getTableName());
-        metaTable=metaTableDao.getObjectCascadeById(metaTable.getTableId());
-        metaTable.setWorkFlowOptType(ptable.getWorkFlowOptType());
-        metaTable.setRecorder(currentUser);
-        metaTable.setRecordDate(new Date());
-        metaTableDao.mergeObject(metaTable);
-        Set<MetaColumn> setMetaColumn= new HashSet<>();
-        setMetaColumn.addAll(metaTable.getMdColumns());
-        Set<PendingMetaColumn> setPendingMetaColumn= new HashSet<>();
-        setPendingMetaColumn.addAll(ptable.getMdColumns());
-        for (MetaColumn m:setMetaColumn){
-            for(PendingMetaColumn p:setPendingMetaColumn){
-                if(m.getColumnName().equalsIgnoreCase(p.getColumnName())){
-                    m.setColumnLength(p.getMaxLength());
-                    m.setFieldLabelName(p.getFieldLabelName());
-                    m.setColumnOrder(p.getColumnOrder());
-                    m.setPrimaryKey(p.getPrimarykey());
-                    m.setFieldType(p.getFieldType());
-                    m.setColumnType(FieldType.mapToDatabaseType(p.getFieldType(),m.getDatabaseType()));
-                    m.setScale(p.getScale());
-                    m.setMandatory(p.getMandatory());
-                    p.setIsCompare(true);
-                    m.setIsCompare(true);
+        if (metaTable!=null) {
+            metaTable = metaTableDao.getObjectCascadeById(metaTable.getTableId());
+            metaTable.setWorkFlowOptType(ptable.getWorkFlowOptType());
+            metaTable.setRecorder(currentUser);
+            metaTable.setRecordDate(new Date());
+            metaTableDao.mergeObject(metaTable);
+            Set<MetaColumn> setMetaColumn = new HashSet<>();
+            setMetaColumn.addAll(metaTable.getMdColumns());
+            Set<PendingMetaColumn> setPendingMetaColumn = new HashSet<>();
+            setPendingMetaColumn.addAll(ptable.getMdColumns());
+            for (MetaColumn m : setMetaColumn) {
+                for (PendingMetaColumn p : setPendingMetaColumn) {
+                    if (m.getColumnName().equalsIgnoreCase(p.getColumnName())) {
+                        m.setColumnLength(p.getMaxLength());
+                        m.setFieldLabelName(p.getFieldLabelName());
+                        m.setColumnOrder(p.getColumnOrder());
+                        m.setPrimaryKey(p.getPrimarykey());
+                        m.setFieldType(p.getFieldType());
+                        m.setColumnType(FieldType.mapToDatabaseType(p.getFieldType(), m.getDatabaseType()));
+                        m.setScale(p.getScale());
+                        m.setMandatory(p.getMandatory());
+                        p.setIsCompare(true);
+                        m.setIsCompare(true);
+                    }
                 }
             }
-        }
-        for (MetaColumn m:setMetaColumn){
-            if (m.getIsCompare()){
-                metaColumnDao.updateObject(m);
-            } else{
-                metaColumnDao.deleteObject(m);
+            for (MetaColumn m : setMetaColumn) {
+                if (m.getIsCompare()) {
+                    metaColumnDao.updateObject(m);
+                } else {
+                    metaColumnDao.deleteObject(m);
+                }
+            }
+            for (PendingMetaColumn p : setPendingMetaColumn) {
+                if (p.getIsCompare() == null || !p.getIsCompare()) {
+                    MetaColumn tmp = p.mapToMetaColumn();
+                    tmp.setTableId(metaTable.getTableId());
+                    metaColumnDao.saveNewObject(tmp);
+                }
+            }
+        } else{
+            metaTableDao.saveNewObject(ptable.mapToMetaTable());
+            for(PendingMetaColumn p:ptable.getMdColumns()){
+                metaColumnDao.saveNewObject(p.mapToMetaColumn());
             }
         }
-        for(PendingMetaColumn p:setPendingMetaColumn){
-            if(p.getIsCompare()==null || !p.getIsCompare()){
-                MetaColumn tmp = p.mapToMetaColumn();
-                tmp.setTableId(metaTable.getTableId());
-                metaColumnDao.saveNewObject(tmp);
-            }
-        }
+
     }
 
     @Override

@@ -282,7 +282,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     private void fetchMetaRelationDetail(MetaRelation relation){
         metaRelationDao.fetchObjectReferences(relation);
-        MetaTable table = metaTableDao.getObjectById(relation.getChildTableId());
+        MetaTable table = metaTableDao.getObjectCascadeById(relation.getChildTableId());
         if (table!=null) {
             relation.setChildTable(table);
         }

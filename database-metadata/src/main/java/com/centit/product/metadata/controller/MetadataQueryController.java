@@ -46,7 +46,7 @@ public class MetadataQueryController extends  BaseController {
     @ApiImplicitParam(name = "databaseCode", value = "数据库代码")
     @GetMapping(value = "/{databaseCode}/tables")
     @WrapUpResponseBody
-    public PageQueryResult metaTables(@PathVariable String databaseCode, PageDesc pageDesc, HttpServletRequest request){
+    public PageQueryResult<Object> metaTables(@PathVariable String databaseCode, PageDesc pageDesc, HttpServletRequest request){
         Map<String, Object> searchColumn = collectRequestParameters(request);
         searchColumn.put("databaseCode",databaseCode);
         JSONArray list = metaDataService.listMetaTables(searchColumn, pageDesc);

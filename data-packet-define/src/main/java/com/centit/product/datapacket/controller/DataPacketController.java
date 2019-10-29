@@ -114,7 +114,7 @@ public class DataPacketController extends BaseController {
         DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
         DataPacketSchema schema = DataPacketSchema.valueOf(dataPacket);
         if(dataPacket!=null) {
-            JSONObject obj = JSON.parseObject(optsteps);
+            JSONObject obj = JSON.parseObject(StringEscapeUtils.unescapeHtml4(optsteps));
             if (obj != null) {
                 return DataPacketUtil.calcDataPacketSchema(schema, obj);
             }

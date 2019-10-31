@@ -125,8 +125,8 @@ public class DataPacketController extends BaseController {
     @ApiOperation(value = "查询数据包")
     @GetMapping
     @WrapUpResponseBody
-    public PageQueryResult<DataPacket> listDataPacket(PageDesc pageDesc){
-        List<DataPacket> list = dataPacketService.listDataPacket(new HashMap<>(), pageDesc);
+    public PageQueryResult<DataPacket> listDataPacket(HttpServletRequest request,PageDesc pageDesc){
+        List<DataPacket> list = dataPacketService.listDataPacket(BaseController.collectRequestParameters(request), pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }
 

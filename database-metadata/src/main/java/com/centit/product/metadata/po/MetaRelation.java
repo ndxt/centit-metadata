@@ -7,6 +7,7 @@ import com.centit.support.database.orm.GeneratorCondition;
 import com.centit.support.database.orm.GeneratorTime;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
+import com.centit.support.database.utils.FieldType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -162,10 +163,18 @@ public class MetaRelation implements TableReference, java.io.Serializable {
         return false;
     }
 
+    private Object fetchObjectColumn(Map<String, Object> parentObject, String columnName){
+        Object fkValue = parentObject.get(columnName);
+        if(fkValue == null){
+            fkValue = parentObject.get(FieldType.mapPropName(columnName));
+        }
+        return fkValue;
+    }
+
     public Map<String, Object> fetchObjectFk(Map<String, Object> parentObject){
         Map<String, Object> fk = new HashMap<>(8);
         for (MetaRelDetail mrd : relationDetails) {
-            Object fkValue = parentObject.get(mrd.getParentColumnName());
+            Object fkValue = fetchObjectColumn(parentObject,mrd.getParentColumnName());
             if(fkValue==null){
                 return null;
             }
@@ -177,7 +186,7 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     public Map<String, Object> fetchParentPk(Map<String, Object> childObject){
         Map<String, Object> pk = new HashMap<>(8);
         for (MetaRelDetail mrd : relationDetails) {
-            Object pkValue = childObject.get(mrd.getChildColumnName());
+            Object pkValue = fetchObjectColumn(childObject, mrd.getChildColumnName());
             if(pkValue==null){
                 return null;
             }

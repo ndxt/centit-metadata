@@ -101,7 +101,8 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     @Transient
     private DBType databaseType;
-
+    @Transient
+    private Boolean isCompare;
     // Constructors
     /** default constructor */
     public PendingMetaColumn() {

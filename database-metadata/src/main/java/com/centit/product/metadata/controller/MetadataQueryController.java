@@ -46,7 +46,7 @@ public class MetadataQueryController extends  BaseController {
     @ApiImplicitParam(name = "databaseCode", value = "数据库代码")
     @GetMapping(value = "/{databaseCode}/tables")
     @WrapUpResponseBody
-    public PageQueryResult metaTables(@PathVariable String databaseCode, PageDesc pageDesc, HttpServletRequest request){
+    public PageQueryResult<Object> metaTables(@PathVariable String databaseCode, PageDesc pageDesc, HttpServletRequest request){
         Map<String, Object> searchColumn = collectRequestParameters(request);
         searchColumn.put("databaseCode",databaseCode);
         JSONArray list = metaDataService.listMetaTables(searchColumn, pageDesc);
@@ -102,8 +102,10 @@ public class MetadataQueryController extends  BaseController {
     @ApiOperation(value = "查询关联关系元数据")
     @GetMapping(value = "/{tableId}/relations")
     @WrapUpResponseBody
-    public PageQueryResult<MetaRelation> metaRelation(@PathVariable String tableId, PageDesc pageDesc){
-        List<MetaRelation> list = metaDataService.listMetaRelation(tableId, pageDesc);
+    public PageQueryResult<MetaRelation> metaRelation(@PathVariable String tableId,HttpServletRequest request, PageDesc pageDesc){
+        Map<String,Object> condition = BaseController.collectRequestParameters(request);
+        condition.put("parentTableId",tableId);
+        List<MetaRelation> list = metaDataService.listMetaRelation(condition, pageDesc);
         return PageQueryResult.createResultMapDict(list, pageDesc);
     }
 

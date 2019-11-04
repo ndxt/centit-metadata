@@ -5,7 +5,6 @@ import com.centit.support.common.LeftRightPair;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.DatabaseAccess;
-import com.centit.support.database.utils.DatabaseAccessException;
 import com.centit.support.database.utils.QueryLogUtils;
 import com.centit.support.database.utils.QueryUtils;
 import org.slf4j.Logger;
@@ -50,7 +49,7 @@ public abstract class DBBatchUtils {
                 n += stmt.executeUpdate();
             }
         }catch (SQLException e) {
-            throw new DatabaseAccessException(sqlPair.getLeft(), e);
+            throw DatabaseAccess.createAccessException(sqlPair.getLeft(), e);
         }
         return n;
     }
@@ -75,7 +74,7 @@ public abstract class DBBatchUtils {
                 n += stmt.executeUpdate();
             }
         }catch (SQLException e) {
-            throw new DatabaseAccessException(sqlPair.getLeft(), e);
+            throw DatabaseAccess.createAccessException(sqlPair.getLeft(), e);
         }
         return n;
     }
@@ -120,7 +119,7 @@ public abstract class DBBatchUtils {
                 }
             }
         }catch (SQLException e) {
-            throw new DatabaseAccessException(insertSqlPair.getLeft(), e);
+            throw DatabaseAccess.createAccessException(insertSqlPair.getLeft(), e);
         }
         return n;
     }

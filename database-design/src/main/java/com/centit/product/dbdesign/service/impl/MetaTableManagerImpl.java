@@ -317,7 +317,7 @@ public class MetaTableManagerImpl
             JsonObjectDao jsonDao = GeneralJsonObjectDao.createJsonObjectDao(conn);
             //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
             checkPendingMetaTable(ptable, currentUser);
-            List<String> sqls = new ArrayList<>();
+            List<String> sqls;
             try {
                  sqls = makeAlterTableSqls(ptable);
                 for (String sql : sqls) {
@@ -348,18 +348,7 @@ public class MetaTableManagerImpl
                 ptable.setLastModifyDate(new Date());
                 pendingMdTableDao.mergeObject(ptable);
                 if (sqls.size() > 0) {
-                    MetaTable table = ptable.mapToMetaTable(); //new MetaTable(ptable)
-                    metaTableDao.mergeObject(table);
-
-                    List<MetaColumn> metaColumns = table.getColumns();
-                    Map<String, Object> cFilter = new HashMap<>();
-                    cFilter.put("tableId", table.getTableId());
-                    metaColumnDao.deleteObjectsByProperties(cFilter);
-                    if (metaColumns != null && metaColumns.size() > 0) {
-                        for (MetaColumn metaColumn : metaColumns) {
-                            metaColumnDao.saveNewObject(metaColumn);
-                        }
-                    }
+                    pendingToMeta(currentUser, ptable);
                 }
                 return new ImmutablePair<>(0, chgLog.getChangeId());
             } else
@@ -369,6 +358,57 @@ public class MetaTableManagerImpl
             logger.error(e.getMessage());
             return new ImmutablePair<>(-1, "发布失败!" + e.getMessage());
         }
+    }
+
+    private void pendingToMeta(String currentUser, PendingMetaTable ptable) {
+        MetaTable metaTable = metaTableDao.getMetaTable(ptable.getDatabaseCode(),ptable.getTableName());
+        if (metaTable!=null) {
+            metaTable = metaTableDao.getObjectCascadeById(metaTable.getTableId());
+            metaTable.setWorkFlowOptType(ptable.getWorkFlowOptType());
+            metaTable.setRecorder(currentUser);
+            metaTable.setRecordDate(new Date());
+            metaTableDao.mergeObject(metaTable);
+            Set<MetaColumn> setMetaColumn = new HashSet<>();
+            setMetaColumn.addAll(metaTable.getMdColumns());
+            Set<PendingMetaColumn> setPendingMetaColumn = new HashSet<>();
+            setPendingMetaColumn.addAll(ptable.getMdColumns());
+            for (MetaColumn m : setMetaColumn) {
+                for (PendingMetaColumn p : setPendingMetaColumn) {
+                    if (m.getColumnName().equalsIgnoreCase(p.getColumnName())) {
+                        m.setColumnLength(p.getMaxLength());
+                        m.setFieldLabelName(p.getFieldLabelName());
+                        m.setColumnOrder(p.getColumnOrder());
+                        m.setPrimaryKey(p.getPrimarykey());
+                        m.setFieldType(p.getFieldType());
+                        m.setColumnType(FieldType.mapToDatabaseType(p.getFieldType(), m.getDatabaseType()));
+                        m.setScale(p.getScale());
+                        m.setMandatory(p.getMandatory());
+                        p.setIsCompare(true);
+                        m.setIsCompare(true);
+                    }
+                }
+            }
+            for (MetaColumn m : setMetaColumn) {
+                if (m.getIsCompare()) {
+                    metaColumnDao.updateObject(m);
+                } else {
+                    metaColumnDao.deleteObject(m);
+                }
+            }
+            for (PendingMetaColumn p : setPendingMetaColumn) {
+                if (p.getIsCompare() == null || !p.getIsCompare()) {
+                    MetaColumn tmp = p.mapToMetaColumn();
+                    tmp.setTableId(metaTable.getTableId());
+                    metaColumnDao.saveNewObject(tmp);
+                }
+            }
+        } else{
+            metaTableDao.saveNewObject(ptable.mapToMetaTable());
+            for(PendingMetaColumn p:ptable.getMdColumns()){
+                metaColumnDao.saveNewObject(p.mapToMetaColumn());
+            }
+        }
+
     }
 
     @Override
@@ -596,18 +636,7 @@ public class MetaTableManagerImpl
                     metaTable.setLastModifyDate(new Date());
                     pendingMdTableDao.mergeObject(metaTable);
                     if (sqls.size() > 0) {
-                        MetaTable table = metaTable.mapToMetaTable();
-                        metaTableDao.mergeObject(table);
-
-                        List<MetaColumn> metaColumns = table.getColumns();
-                        Map<String, Object> cFilter = new HashMap<>();
-                        cFilter.put("tableId", table.getTableId());
-                        metaColumnDao.deleteObjectsByProperties(cFilter);
-                        if (metaColumns != null && metaColumns.size() > 0) {
-                            for (MetaColumn metaColumn : metaColumns) {
-                                metaColumnDao.saveNewObject(metaColumn);
-                            }
-                        }
+                        pendingToMeta(recorder,metaTable);
                     }
                 } else {
                     errors.add(error.toString());

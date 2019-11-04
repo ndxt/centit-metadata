@@ -114,7 +114,7 @@ public class DataPacketController extends BaseController {
         DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
         DataPacketSchema schema = DataPacketSchema.valueOf(dataPacket);
         if(dataPacket!=null) {
-            JSONObject obj = JSON.parseObject(optsteps);
+            JSONObject obj = JSON.parseObject(StringEscapeUtils.unescapeHtml4(optsteps));
             if (obj != null) {
                 return DataPacketUtil.calcDataPacketSchema(schema, obj);
             }
@@ -125,8 +125,8 @@ public class DataPacketController extends BaseController {
     @ApiOperation(value = "查询数据包")
     @GetMapping
     @WrapUpResponseBody
-    public PageQueryResult<DataPacket> listDataPacket(PageDesc pageDesc){
-        List<DataPacket> list = dataPacketService.listDataPacket(new HashMap<>(), pageDesc);
+    public PageQueryResult<DataPacket> listDataPacket(HttpServletRequest request,PageDesc pageDesc){
+        List<DataPacket> list = dataPacketService.listDataPacket(BaseController.collectRequestParameters(request), pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }
 

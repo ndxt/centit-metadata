@@ -2,9 +2,8 @@ package com.centit.product.metadata.dao;
 
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
-import com.centit.product.metadata.po.MetaRelation;
-import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.product.metadata.po.MetaTable;
+import com.centit.support.algorithm.CollectionsOpt;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;

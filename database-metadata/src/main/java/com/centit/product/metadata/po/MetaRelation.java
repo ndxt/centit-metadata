@@ -164,9 +164,9 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     }
 
     private Object fetchObjectColumn(Map<String, Object> parentObject, String columnName){
-        Object fkValue = parentObject.get(columnName);
+        Object fkValue = parentObject.get(FieldType.mapPropName(columnName));
         if(fkValue == null){
-            fkValue = parentObject.get(FieldType.mapPropName(columnName));
+            fkValue = parentObject.get(columnName);
         }
         return fkValue;
     }
@@ -174,8 +174,8 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     public Map<String, Object> fetchObjectFk(Map<String, Object> parentObject){
         Map<String, Object> fk = new HashMap<>(8);
         for (MetaRelDetail mrd : relationDetails) {
-            Object fkValue = fetchObjectColumn(parentObject,mrd.getParentColumnName());
-            if(fkValue==null){
+            Object fkValue = fetchObjectColumn(parentObject, mrd.getParentColumnName());
+            if(fkValue == null){
                 return null;
             }
             fk.put(mrd.getChildColumnName(), fkValue);

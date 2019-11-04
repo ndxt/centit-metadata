@@ -2,12 +2,12 @@ package com.centit.product.metadata.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.ip.po.DatabaseInfo;
-import com.centit.support.database.metadata.SimpleTableInfo;
-import com.centit.support.database.utils.PageDesc;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.vo.MetaTableCascade;
+import com.centit.support.database.metadata.SimpleTableInfo;
+import com.centit.support.database.utils.PageDesc;
 
 import java.util.List;
 import java.util.Map;
@@ -36,6 +36,7 @@ public interface MetaDataService {
 
     MetaTable getMetaTableWithRelations(String databaseCode, String tableName);
 
+    List<MetaRelation> listMetaRelation(Map<String,Object> condition, PageDesc pageDesc);
     List<MetaRelation> listMetaRelation(String tableId, PageDesc pageDesc);
 
     List<MetaColumn> listMetaColumns(String tableId, PageDesc pageDesc);

@@ -1,7 +1,6 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.support.common.ObjectException;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.metadata.dao.MetaColumnDao;
@@ -13,6 +12,7 @@ import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.vo.MetaTableCascade;
 import com.centit.support.algorithm.CollectionsOpt;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.*;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.JdbcConnect;
@@ -282,7 +282,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     private void fetchMetaRelationDetail(MetaRelation relation){
         metaRelationDao.fetchObjectReferences(relation);
-        MetaTable table = metaTableDao.getObjectById(relation.getChildTableId());
+        MetaTable table = metaTableDao.getObjectCascadeById(relation.getChildTableId());
         if (table!=null) {
             relation.setChildTable(table);
         }
@@ -315,9 +315,18 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    public List<MetaRelation> listMetaRelation(Map<String,Object> condition, PageDesc pageDesc) {
+        List<MetaRelation> list = metaRelationDao.listObjectsByProperties(
+            condition,pageDesc);
+        for(MetaRelation relation : list){
+            fetchMetaRelationDetail(relation);
+        }
+        return list;
+    }
+    @Override
     public List<MetaRelation> listMetaRelation(String tableId, PageDesc pageDesc) {
         List<MetaRelation> list = metaRelationDao.listObjectsByProperties(
-            CollectionsOpt.createHashMap("parentTableId", tableId),pageDesc);
+            CollectionsOpt.createHashMap("parentTableId",tableId),pageDesc);
         for(MetaRelation relation : list){
             fetchMetaRelationDetail(relation);
         }

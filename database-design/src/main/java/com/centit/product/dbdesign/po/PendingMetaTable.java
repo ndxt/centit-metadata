@@ -295,18 +295,6 @@ public class PendingMetaTable implements
     }
 
     @Override
-    public boolean isParmaryKey(String colname) {
-        if (mdColumns == null)
-            return false;
-        for (PendingMetaColumn c : mdColumns) {
-            if (c.getColumnName().equalsIgnoreCase(colname)) {
-                return c.isPrimaryKey();
-            }
-        }
-        return false;
-    }
-
-    @Override
     public List<PendingMetaColumn> getColumns() {
         return mdColumns;
     }

@@ -21,54 +21,24 @@ public class WebInitializer implements WebApplicationInitializer {
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
 
-        initializeSpringConfig(servletContext);
-        initializeSystemSpringMvcConfig(servletContext);
-        initializeNormalSpringMvcConfig(servletContext);
+        String [] servletUrlPatterns = {"/system/*", "/metadata/*"};
+        WebConfig.registerSpringConfig(servletContext, ServiceConfig.class);
+        WebConfig.registerServletConfig(servletContext, "system",
+            "/system/*",
+            SystemSpringMvcConfig.class,SwaggerConfig.class);
+        WebConfig.registerServletConfig(servletContext, "metadata",
+            "/metadata/*",
+            NormalSpringMvcConfig.class,SwaggerConfig.class);
 
         WebConfig.registerRequestContextListener(servletContext);
-//        WebConfig.registerSingleSignOutHttpSessionListener(servletContext);
-        WebConfig.registerCharacterEncodingFilter(servletContext);
-        WebConfig.registerHttpPutFormContentFilter(servletContext);
-        WebConfig.registerHiddenHttpMethodFilter(servletContext);
+        WebConfig.registerSingleSignOutHttpSessionListener(servletContext);
+        WebConfig.registerCharacterEncodingFilter(servletContext, servletUrlPatterns);
+        WebConfig.registerHttpPutFormContentFilter(servletContext, servletUrlPatterns);
+        WebConfig.registerHiddenHttpMethodFilter(servletContext, servletUrlPatterns);
         WebConfig.registerRequestThreadLocalFilter(servletContext);
-        WebConfig.registerSpringSecurityFilter(servletContext);
-        //Session
-//        WebConfig.registerHttpSessionEventPublisher(servletContext);
-//        WebConfig.initializeH2Console(servletContext);
+        WebConfig.registerSpringSecurityFilter(servletContext, servletUrlPatterns);
     }
 
-    /**
-     * 加载Spring 配置
-     * @param servletContext ServletContext
-     */
-    private void initializeSpringConfig(ServletContext servletContext){
-        AnnotationConfigWebApplicationContext springContext = new AnnotationConfigWebApplicationContext();
-        springContext.register(ServiceConfig.class);
-        //springContext.s
-        servletContext.addListener(new ContextLoaderListener(springContext));
-        //servletContext.addListener(new HttpSessionEventPublisher());
-    }
 
-    private void initializeSystemSpringMvcConfig(ServletContext servletContext) {
-        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-        context.register(SystemSpringMvcConfig.class, SwaggerConfig.class);
-        ServletRegistration.Dynamic system  = servletContext.addServlet("system", new DispatcherServlet(context));
-        system.addMapping("/system/*");
-        system.setLoadOnStartup(1);
-        system.setAsyncSupported(true);
-    }
-
-    /**
-     * 加载Servlet 项目配置
-     * @param servletContext ServletContext
-     */
-    private void initializeNormalSpringMvcConfig(ServletContext servletContext) {
-        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-        context.register(NormalSpringMvcConfig.class, SwaggerConfig.class);
-        ServletRegistration.Dynamic system  = servletContext.addServlet("service", new DispatcherServlet(context));
-        system.addMapping("/service/*");
-        system.setLoadOnStartup(1);
-        system.setAsyncSupported(true);
-    }
 
 }

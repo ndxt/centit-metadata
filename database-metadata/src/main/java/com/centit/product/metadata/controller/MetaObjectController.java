@@ -22,7 +22,7 @@ import java.util.Map;
  * 对外公开的应该式自定义数据库表对应的额接口
  */
 @RestController
-@RequestMapping(value = "chart")
+@RequestMapping(value = "object")
 @Api(value = "基于元数据的数据访问服务", tags = "数据访问")
 public class MetaObjectController extends BaseController {
 

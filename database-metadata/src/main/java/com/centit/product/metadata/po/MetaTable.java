@@ -241,7 +241,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         this.tableType = tableInfo.getTableType();
         this.accessType = StringUtils.isNotBlank(this.accessType) ? this.accessType : "N";
         this.workFlowOptType = StringUtils.isNotBlank(this.workFlowOptType) ? this.workFlowOptType : "0";
-        this.fulltextSearch = StringUtils.isNoneBlank(this.fulltextSearch) ? this.fulltextSearch : "F";
+        this.fulltextSearch = StringUtils.isNotBlank(this.fulltextSearch) ? this.fulltextSearch : "F";
         return this;
     }
 
@@ -295,18 +295,6 @@ public class MetaTable implements TableInfo, java.io.Serializable {
                 return c;
         }
         return null;
-    }
-
-    @Override
-    public boolean isParmaryKey(String colName) {
-        if (mdColumns == null)
-            return false;
-        for (MetaColumn c : mdColumns) {
-            if (c.getFieldLabelName().equalsIgnoreCase(colName)) {
-                return c.isPrimaryKey();
-            }
-        }
-        return false;
     }
 
     @Override

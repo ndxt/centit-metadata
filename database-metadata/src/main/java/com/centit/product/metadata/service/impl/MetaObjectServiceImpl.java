@@ -462,7 +462,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 Collections.addAll(fieldSet, fields);
             }
             Pair<String,String[]> q = (fieldSet == null) ?
-                GeneralJsonObjectDao.buildFieldSqlWithFieldName(tableInfo,null)
+                GeneralJsonObjectDao.buildFieldSqlWithFieldName(tableInfo,null, true)
                 : GeneralJsonObjectDao.buildPartFieldSqlWithFieldName(tableInfo, fieldSet, null);
 
             String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null, params.keySet());

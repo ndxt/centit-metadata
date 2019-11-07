@@ -80,13 +80,13 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     @ApiModelProperty(value = "是否必填")
     @Column(name = "MANDATORY")
-    @Length( message = "字段长度不能大于{max}")
-    private String  mandatory;
+    @Length(max=1, message = "字段长度不能大于{max}")
+    private Boolean  mandatory;
 
     @ApiModelProperty(value = "是否为主键")
     @Column(name = "PRIMARY_KEY")
-    @Length( message = "字段长度不能大于{max}")
-    private String  primarykey;
+    @Length(max=1, message = "字段长度不能大于{max}")
+    private Boolean primaryKey;
 
     @ApiModelProperty(value = "更改时间", hidden = true)
     @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
@@ -115,32 +115,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.columnName = columnName;
     }
 
-    /** minimal constructor */
-//    public PendingMetaColumn(
-//        PendingMetaColumnId cid,String  fieldLabelName,String  columnType,String  accessType,String  columnState) {
-//        this.cid=cid;
-//        this.fieldLabelName= fieldLabelName;
-//        this.fieldType= columnType;
-//        this.accessType= accessType;
-//        this.columnState= columnState;
-//    }
 
-/** full constructor */
-    public PendingMetaColumn(String  fieldLabelName,String  columnComment,Long  columnOrder,String  columnType,
-            Integer  maxLength,Integer  scale,String  mandatory,String  primarykey,String  defaultValue,Date  lastModifyDate,String  recorder) {
-
-//        this.cid=cid;
-        this.fieldLabelName= fieldLabelName;
-        this.columnComment= columnComment;
-        this.columnOrder= columnOrder;
-        this.fieldType = columnType;
-        this.maxLength = maxLength;
-        this.scale = scale;
-        this.mandatory= mandatory;
-        this.primarykey= primarykey;
-        this.lastModifyDate= lastModifyDate;
-        this.recorder= recorder;
-    }
 
     public PendingMetaColumn copy(PendingMetaColumn other){
 
@@ -151,8 +126,8 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.fieldType = other.getFieldType();
         this.maxLength = other.getMaxLength();
         this.scale = other.getScale();
-        this.mandatory= other.isMandatory()?"T":"F";
-        this.primarykey= other.getPrimarykey();
+        this.mandatory= other.isMandatory();
+        this.primaryKey = other.getPrimaryKey();
         this.lastModifyDate= other.getLastModifyDate();
         this.recorder= other.getRecorder();
 
@@ -175,9 +150,9 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         if( other.getScale() != null)
             this.scale = other.getScale();
         if( other.getMandatory() != null)
-            this.mandatory= other.isMandatory()?"T":"F";
-        if( other.getPrimarykey() != null)
-            this.primarykey= other.getPrimarykey();
+            this.mandatory= other.isMandatory();
+        if( other.getPrimaryKey() != null)
+            this.primaryKey = other.getPrimaryKey();
         if( other.getLastModifyDate() != null)
             this.lastModifyDate= other.getLastModifyDate();
         if( other.getRecorder() != null)
@@ -193,7 +168,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.columnOrder= null;
         this.fieldType = null;
         this.mandatory= null;
-        this.primarykey= null;
+        this.primaryKey = null;
         this.lastModifyDate= null;
         this.recorder= null;
 
@@ -211,13 +186,19 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     @Override
     public boolean isMandatory() {
-        return "T".equals(mandatory) ||  "Y".equals(mandatory) || "1".equals(mandatory);
+        return mandatory==null ? false : mandatory;
+    }
+
+    @Override
+    public boolean isLazyFetch() {
+        return FieldType.TEXT.equals(fieldType) ||
+            FieldType.BYTE_ARRAY.equals(fieldType) ||
+            FieldType.JSON_OBJECT.equals(fieldType) ;
     }
 
     public boolean isPrimaryKey() {
-        return "T".equals(primarykey) ||  "Y".equals(primarykey) || "1".equals(primarykey);
+        return primaryKey == null ? false : primaryKey;
     }
-
 
     @Override
     public Integer getMaxLength() {
@@ -273,8 +254,8 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         mc.setColumnLength(this.getMaxLength());
         mc.setScale(this.getScale());
         mc.setAccessType("N");
-        mc.setMandatory(this.isMandatory()?"T":"F");
-        mc.setPrimaryKey(this.getPrimarykey()==null?"F":this.getPrimarykey());
+        mc.setMandatory(this.isMandatory());
+        mc.setPrimaryKey(this.isPrimaryKey());
         mc.setLastModifyDate(this.getLastModifyDate());
         mc.setRecorder(this.getRecorder());
         return mc;
@@ -291,7 +272,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         }
         this.maxLength = tableField.getMaxLength();
         this.scale = tableField.getScale();
-        this.mandatory = tableField.isMandatory() ? "T" : "F";
+        this.mandatory = tableField.isMandatory();
         return this;
     }
 }

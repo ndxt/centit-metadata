@@ -378,7 +378,7 @@ public class MetaTableManagerImpl
                         m.setColumnLength(p.getMaxLength());
                         m.setFieldLabelName(p.getFieldLabelName());
                         m.setColumnOrder(p.getColumnOrder());
-                        m.setPrimaryKey(p.getPrimarykey());
+                        m.setPrimaryKey(p.getPrimaryKey());
                         m.setFieldType(p.getFieldType());
                         m.setColumnType(FieldType.mapToDatabaseType(p.getFieldType(), m.getDatabaseType()));
                         m.setScale(p.getScale());
@@ -508,10 +508,10 @@ public class MetaTableManagerImpl
                         mdColumn.setTableId(metaTable.getTableId());
                         for (String pk :pdmtable.getPkColumns()) {
                             if (pk.equalsIgnoreCase(mdColumn.getColumnName())) {
-                                mdColumn.setPrimarykey("T");
+                                mdColumn.setPrimaryKey(true);
                                 break;
                             } else
-                                mdColumn.setPrimarykey("F");
+                                mdColumn.setPrimaryKey(false);
                         }
                         mdColumn.setRecorder(recorder);
                         pendingMetaColumnDao.saveNewObject(mdColumn);
@@ -548,10 +548,10 @@ public class MetaTableManagerImpl
                             metaColumn.setRecorder(recorder);
                             for (String pk :newTable.getPkColumns()) {
                                 if (pk.equalsIgnoreCase(metaColumn.getColumnName())) {
-                                    metaColumn.setPrimarykey("T");
+                                    metaColumn.setPrimaryKey(true);
                                     break;
                                 } else
-                                    metaColumn.setPrimarykey("F");
+                                    metaColumn.setPrimaryKey(false);
                             }
                             pendingMetaColumnDao.saveNewObject(metaColumn);
                         }
@@ -570,10 +570,10 @@ public class MetaTableManagerImpl
                             SimpleTableField newColumn = columnPair.getRight();
                             for (String pk :newTable.getPkColumns()) {
                                 if (pk.equalsIgnoreCase(oldColumn.getColumnName())) {
-                                    oldColumn.setPrimarykey("T");
+                                    oldColumn.setPrimaryKey(true);
                                     break;
                                 } else
-                                    oldColumn.setPrimarykey("F");
+                                    oldColumn.setPrimaryKey(false);
                             }
                             pendingMetaColumnDao.updateObject(oldColumn.convertFromTableField(newColumn));
                         }

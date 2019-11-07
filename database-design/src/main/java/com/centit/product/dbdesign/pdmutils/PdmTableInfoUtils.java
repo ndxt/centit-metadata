@@ -40,8 +40,8 @@ public abstract class PdmTableInfoUtils {
             mdColumn.setColumnComment(field.getColumnComment());
             mdColumn.setMaxLength(field.getMaxLength());
             mdColumn.setScale(field.getScale());
-            mdColumn.setMandatory(field.isMandatory()?"T":"F");
-            mdColumn.setPrimarykey("F");
+            mdColumn.setMandatory(field.isMandatory());
+            mdColumn.setPrimaryKey(false);
 
             metaTable.addMdColumn(mdColumn);
         }
@@ -49,7 +49,7 @@ public abstract class PdmTableInfoUtils {
         for(String pkcode : pdmTable.getPkColumns()){
             PendingMetaColumn col = metaTable.findFieldByColumn(pkcode);
             if(col!=null)
-                col.setPrimarykey("T");
+                col.setPrimaryKey(true);
         }
 
         return metaTable;

@@ -116,10 +116,10 @@ public class MetaDataServiceImpl implements MetaDataService {
                     column.setTableId(metaTable.getTableId());
                     for (String pk :table.getPkColumns()) {
                         if (pk.equalsIgnoreCase(column.getColumnName())) {
-                            column.setPrimaryKey("T");
+                            column.setPrimaryKey(true);
                             break;
                         } else
-                            column.setPrimaryKey("F");
+                            column.setPrimaryKey(false);
                     }
                     if (column.getFieldLabelName() ==null || "".equals(column.getFieldLabelName())) {
                         column.setFieldLabelName(column.getColumnName());
@@ -157,10 +157,10 @@ public class MetaDataServiceImpl implements MetaDataService {
                         metaColumn.setRecorder(recorder);
                         for (String pk :newTable.getPkColumns()) {
                             if (pk.equalsIgnoreCase(metaColumn.getColumnName())) {
-                                metaColumn.setPrimaryKey("T");
+                                metaColumn.setPrimaryKey(true);
                                 break;
                             } else
-                                metaColumn.setPrimaryKey("F");
+                                metaColumn.setPrimaryKey(false);
                         }
                         if (metaColumn.getFieldLabelName() ==null || "".equals(metaColumn.getFieldLabelName())) {
                             metaColumn.setFieldLabelName(metaColumn.getColumnName());
@@ -182,10 +182,10 @@ public class MetaDataServiceImpl implements MetaDataService {
                         SimpleTableField newColumn = columnPair.getRight();
                         for (String pk :newTable.getPkColumns()) {
                             if (pk.equalsIgnoreCase(oldColumn.getColumnName())) {
-                                oldColumn.setPrimaryKey("T");
+                                oldColumn.setPrimaryKey(true);
                                 break;
                             } else
-                                oldColumn.setPrimaryKey("F");
+                                oldColumn.setPrimaryKey(false);
                         }
                         metaColumnDao.updateObject(oldColumn.convertFromTableField(newColumn));
                     }

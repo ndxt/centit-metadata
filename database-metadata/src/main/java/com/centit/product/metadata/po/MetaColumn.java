@@ -31,7 +31,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Entity
 @Table(name = "F_MD_COLUMN")
-public class MetaColumn implements TableField,java.io.Serializable {
+public class MetaColumn implements TableField, java.io.Serializable {
     private static final long serialVersionUID =  201901071109L;
 
     @ApiModelProperty(value = "表ID", hidden = true)
@@ -89,26 +89,29 @@ public class MetaColumn implements TableField,java.io.Serializable {
     @Column(name = "ACCESS_TYPE")
     @NotBlank(message = "字段不能为空")
     @Pattern(regexp = "[HRCN]")
-    @Length(  message = "字段长度不能大于{max}")
-    private String  accessType;
+    @Length(max = 1, message = "字段长度不能大于{max}")
+    private String accessType;
 
+    /**
+     * 延迟加载，获取单个对象时 包括这个地段，查询时 不包括 这个字段
+     */
+    @ApiModelProperty(value = "字段类别（可编辑）(字段类别.H：隐藏；R：只读；C：只能创建不能修改；N：可读写)")
+    @Column(name = "LAZY_FETCH")
+    private Boolean lazyFetch;
     /**
      * 是否必填 T-F
      */
     @ApiModelProperty(value = "是否必填", hidden = true)
     @Column(name = "MANDATORY")
-    @Pattern(regexp = "[TF]")
-    @Length(  message = "字段长度不能大于{max}")
-    private String  mandatory;
+    @NotBlank(message = "字段不能为空")
+    private Boolean mandatory;
 
     /**
      * 是否为主键
      */
     @ApiModelProperty(value = "是否主键", hidden = true)
     @Column(name = "PRIMARY_KEY")
-    @Pattern(regexp = "[TF]")
-    @Length(  message = "字段长度不能大于{max}")
-    private String primaryKey;
+    private Boolean primaryKey;
 
     /**
      * 引用类型 0：没有：1： 数据字典 2：JSON表达式 3：sql语句  Y：年份 M：月份
@@ -116,7 +119,7 @@ public class MetaColumn implements TableField,java.io.Serializable {
     @ApiModelProperty(value = "引用类型 0：没有：1： 数据字典 2：JSON表达式 3：sql语句  Y：年份 M：月份")
     @Column(name = "REFERENCE_TYPE")
     @Length(message = "字段长度不能大于{max}")
-    private String  referenceType;
+    private String referenceType;
     /**
      * 引用数据 根据paramReferenceType类型（1,2,3）填写对应值
      */
@@ -145,7 +148,7 @@ public class MetaColumn implements TableField,java.io.Serializable {
     @ApiModelProperty(value = "自动生成规则   C 常量  U uuid S sequence F 函数")
     @Column(name = "AUTO_CREATE_RULE")
     @Length(max = 200, message = "字段长度不能大于{max}")
-    private String  autoCreateRule;
+    private String autoCreateRule;
 
     /**
      * 自动生成参数
@@ -153,7 +156,7 @@ public class MetaColumn implements TableField,java.io.Serializable {
     @ApiModelProperty(value = "自动生成参数")
     @Column(name = "AUTO_CREATE_PARAM")
     @Length(max = 200, message = "字段长度不能大于{max}")
-    private String  autoCreateParam;
+    private String autoCreateParam;
 
     /**
      * 与流程中变量关联关系
@@ -178,13 +181,15 @@ public class MetaColumn implements TableField,java.io.Serializable {
     @Column(name = "RECORDER")
     @Length(max = 8, message = "字段长度不能大于{max}")
     @DictionaryMap(fieldName = "recorderName", value = "userCode")
-    private String  recorder;
+    private String recorder;
 
     @Transient
     @ApiModelProperty(hidden = true)
     private DBType databaseType;
+
     @Transient
     private Boolean isCompare;
+
     public MetaColumn(@NotBlank(message = "字段不能为空") String tableId, @NotBlank(message = "字段不能为空") String columnName) {
         this.tableId = tableId;
         this.columnName = columnName;
@@ -202,8 +207,9 @@ public class MetaColumn implements TableField,java.io.Serializable {
         }
         this.columnLength = tableField.getMaxLength();
         this.scale = tableField.getScale();
-        this.mandatory = tableField.isMandatory() ? "T" : "F";
-        this.accessType = StringUtils.isNotBlank(this.accessType) ? this.accessType : "N";
+        this.mandatory = tableField.isMandatory();
+        this.lazyFetch = tableField.isLazyFetch();
+        this.accessType = StringUtils.isBlank(this.accessType) ? "N" : this.accessType;
         return this;
     }
 
@@ -223,15 +229,6 @@ public class MetaColumn implements TableField,java.io.Serializable {
         return FieldType.mapPropName(this.columnName);
     }
 
-    @Override
-    public boolean isMandatory() {
-        return "T".equals(mandatory);
-    }
-
-    public boolean isPrimaryKey() {
-        return "T".equals(primaryKey);
-    }
-
     public Integer getColumnLength() {
         if(FieldType.STRING.equalsIgnoreCase(this.fieldType) ||
             FieldType.FLOAT.equalsIgnoreCase(this.fieldType) ||
@@ -239,7 +236,7 @@ public class MetaColumn implements TableField,java.io.Serializable {
             FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
             FieldType.INTEGER.equalsIgnoreCase(this.fieldType)||
             FieldType.LONG.equalsIgnoreCase(this.fieldType))
-            return columnLength==null?0:columnLength;
+            return columnLength == null ? 0 : columnLength;
         return 0;
     }
 
@@ -260,7 +257,7 @@ public class MetaColumn implements TableField,java.io.Serializable {
             FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
             FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
             FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
-            return scale==null?0:scale;
+            return scale == null ? 0 : scale;
         return 0;
     }
 
@@ -270,6 +267,26 @@ public class MetaColumn implements TableField,java.io.Serializable {
         return FieldType.mapToDatabaseType(this.columnType,this.databaseType);
     }
 
+    /**
+     * @return 是否有 not null 约束
+     */
+    @Override
+    public boolean isMandatory() {
+        return mandatory==null ? false : mandatory;
+    }
+
+    public boolean isPrimaryKey() {
+        return primaryKey==null ? false : primaryKey;
+    }
+    /**
+     * @return 是否是懒加载；
+     * 获取单个对象时，一般加载所有字段，获取列表时默认不加载lazy字段
+     * 一般 lob字段为懒加载
+     */
+    @Override
+    public boolean isLazyFetch() {
+        return lazyFetch==null ? false : lazyFetch;
+    }
 
     @Override
     @ApiModelProperty(hidden = true)

@@ -312,20 +312,6 @@ public class PendingMetaTable implements
     }
 
     @Override
-    public List<String> getPkColumns() {
-        if (mdColumns == null)
-            return null;
-
-        List<String> pks = new ArrayList<>();
-        for (PendingMetaColumn c : mdColumns) {
-            if (c.isPrimaryKey()) {
-                pks.add(c.getColumnName());
-            }
-        }
-        return pks;
-    }
-
-    @Override
     public List<? extends TableReference> getReferences() {
         return null;
     }

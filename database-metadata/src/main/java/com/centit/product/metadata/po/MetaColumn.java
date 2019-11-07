@@ -275,6 +275,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
         return mandatory==null ? false : mandatory;
     }
 
+    @Override
     public boolean isPrimaryKey() {
         return primaryKey==null ? false : primaryKey;
     }

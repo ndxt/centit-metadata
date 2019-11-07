@@ -95,7 +95,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
     /**
      * 延迟加载，获取单个对象时 包括这个地段，查询时 不包括 这个字段
      */
-    @ApiModelProperty(value = "字段类别（可编辑）(字段类别.H：隐藏；R：只读；C：只能创建不能修改；N：可读写)")
+    @ApiModelProperty(value = "是否延迟加载")
     @Column(name = "LAZY_FETCH")
     private Boolean lazyFetch;
     /**

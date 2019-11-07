@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 @Api(value = "数据库元数据信息完善", tags = "元数据信息完善")
 @RestController
 @RequestMapping(value = "update")
-public class MetadataSyncController extends BaseController {
+public class MetadataUpdateController extends BaseController {
 
     @Autowired
     private MetaDataService metaDataService;

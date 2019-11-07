@@ -196,6 +196,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
             FieldType.JSON_OBJECT.equals(fieldType) ;
     }
 
+    @Override
     public boolean isPrimaryKey() {
         return primaryKey == null ? false : primaryKey;
     }

@@ -320,28 +320,12 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     @Override
     @ApiModelProperty(hidden = true)
-    public List<String> getPkColumns() {
-        if (mdColumns == null)
-            return null;
-
-        List<String> pks = new ArrayList<>();
-        for (MetaColumn c : mdColumns) {
-            if (c.isPrimaryKey()) {
-                pks.add(c.getColumnName());
-            }
-        }
-        return pks;
-    }
-
-    @Override
-    @ApiModelProperty(hidden = true)
     public List<? extends TableReference> getReferences() {
         return this.mdRelations;
     }
 
     @Override
     @ApiModelProperty(hidden = true)
-    @JSONField()
     public String getTableLabelName() {
         return this.tableLabelName;
     }

@@ -7,7 +7,6 @@ import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.metadata.TableReference;
 import com.centit.support.database.orm.GeneratorCondition;
-import com.centit.support.database.orm.GeneratorTime;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
 import com.centit.support.database.utils.DBType;
@@ -31,8 +30,7 @@ import java.util.*;
 @Entity
 @Table(name = "F_MD_TABLE")
 public class MetaTable implements TableInfo, java.io.Serializable {
-
-    private static final long serialVersionUID = -6882747282877249264L;
+    private static final long serialVersionUID = 1L;
     public static final String OBJECT_AS_CLOB_FIELD = "JSON_OBJECT_FIELD";
     public static final String UPDATE_CHECK_TIMESTAMP_FIELD = "LAST_MODIFY_TIME";
     public static final String UPDATE_CHECK_TIMESTAMP_PROP = "lastModifyTime";
@@ -40,7 +38,6 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     public static final String WORKFLOW_INST_ID_PROP = "flowInstId";
     public static final String WORKFLOW_NODE_INST_ID_FIELD = "NODE_INST_ID";
     public static final String WORKFLOW_NODE_INST_ID_PROP = "nodeInstId";
-
 
     /**
      * 主键前缀
@@ -78,7 +75,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @Column(name = "ACCESS_TYPE")
     @NotBlank(message = "字段不能为空")
     @Pattern(regexp = "[HRCN]")
-    @Length(  message = "字段长度不能大于{max}")
+    @Length(max = 1, message = "字段长度不能大于{max}")
     private String  accessType;
 
     /**
@@ -136,7 +133,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
      * 更改时间
      */
     @Column(name = "RECORD_DATE")
-    @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
+    @ValueGenerator(strategy = GeneratorType.FUNCTION, condition = GeneratorCondition.ALWAYS, value = "today()")
     private Date recordDate;
 
     /**

@@ -298,18 +298,6 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     }
 
     @Override
-    public boolean isParmaryKey(String colName) {
-        if (mdColumns == null)
-            return false;
-        for (MetaColumn c : mdColumns) {
-            if (c.getFieldLabelName().equalsIgnoreCase(colName)) {
-                return c.isPrimaryKey();
-            }
-        }
-        return false;
-    }
-
-    @Override
     @ApiModelProperty(hidden = true)
     public List<MetaColumn> getColumns() {
         return mdColumns;

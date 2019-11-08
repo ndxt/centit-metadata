@@ -41,15 +41,9 @@ public abstract class PdmTableInfoUtils {
             mdColumn.setMaxLength(field.getMaxLength());
             mdColumn.setScale(field.getScale());
             mdColumn.setMandatory(field.isMandatory());
-            mdColumn.setPrimaryKey(false);
+            mdColumn.setPrimaryKey(field.isPrimaryKey());
 
             metaTable.addMdColumn(mdColumn);
-        }
-
-        for(String pkcode : pdmTable.getPkColumns()){
-            PendingMetaColumn col = metaTable.findFieldByColumn(pkcode);
-            if(col!=null)
-                col.setPrimaryKey(true);
         }
 
         return metaTable;

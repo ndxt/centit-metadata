@@ -212,6 +212,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
         this.columnLength = tableField.getMaxLength();
         this.scale = tableField.getScale();
         this.mandatory = tableField.isMandatory();
+        this.primaryKey = tableField.isPrimaryKey();
         this.lazyFetch = tableField.isLazyFetch();
         this.accessType = StringUtils.isBlank(this.accessType) ? "N" : this.accessType;
         return this;

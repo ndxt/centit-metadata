@@ -511,13 +511,6 @@ public class MetaTableManagerImpl
                     for (SimpleTableField field : columns) {
                         PendingMetaColumn mdColumn = new PendingMetaColumn().convertFromTableField(field);
                         mdColumn.setTableId(metaTable.getTableId());
-                        for (String pk :pdmtable.getPkColumns()) {
-                            if (pk.equalsIgnoreCase(mdColumn.getColumnName())) {
-                                mdColumn.setPrimaryKey(true);
-                                break;
-                            } else
-                                mdColumn.setPrimaryKey(false);
-                        }
                         mdColumn.setRecorder(recorder);
                         pendingMetaColumnDao.saveNewObject(mdColumn);
                     }
@@ -551,13 +544,6 @@ public class MetaTableManagerImpl
                             PendingMetaColumn metaColumn = new PendingMetaColumn().convertFromTableField(tableField);
                             metaColumn.setTableId(oldTable.getTableId());
                             metaColumn.setRecorder(recorder);
-                            for (String pk :newTable.getPkColumns()) {
-                                if (pk.equalsIgnoreCase(metaColumn.getColumnName())) {
-                                    metaColumn.setPrimaryKey(true);
-                                    break;
-                                } else
-                                    metaColumn.setPrimaryKey(false);
-                            }
                             pendingMetaColumnDao.saveNewObject(metaColumn);
                         }
                     }
@@ -573,13 +559,6 @@ public class MetaTableManagerImpl
                             PendingMetaColumn oldColumn = columnPair.getLeft();
                             oldColumn.setRecorder(recorder);
                             SimpleTableField newColumn = columnPair.getRight();
-                            for (String pk :newTable.getPkColumns()) {
-                                if (pk.equalsIgnoreCase(oldColumn.getColumnName())) {
-                                    oldColumn.setPrimaryKey(true);
-                                    break;
-                                } else
-                                    oldColumn.setPrimaryKey(false);
-                            }
                             pendingMetaColumnDao.updateObject(oldColumn.convertFromTableField(newColumn));
                         }
                     }

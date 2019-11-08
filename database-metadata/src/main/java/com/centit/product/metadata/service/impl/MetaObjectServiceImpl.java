@@ -451,7 +451,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             HashSet<String> fieldSet = null ;
             if(fields !=null && fields.length>0) {
                 fieldSet = new HashSet<>((fields.length + 5) * 3 / 2);
-                fieldSet.addAll(tableInfo.getPkColumns());
+                for(TableField pkField : tableInfo.getPkFields()) {
+                    fieldSet.add(pkField.getPropertyName());
+                }
                 if(!"0".equals(tableInfo.getWorkFlowOptType())){
                     fieldSet.add(MetaTable.WORKFLOW_INST_ID_PROP);
                     fieldSet.add(MetaTable.WORKFLOW_NODE_INST_ID_PROP);

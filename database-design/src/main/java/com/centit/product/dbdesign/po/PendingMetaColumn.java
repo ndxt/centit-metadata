@@ -273,6 +273,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         }
         this.maxLength = tableField.getMaxLength();
         this.scale = tableField.getScale();
+        this.primaryKey = tableField.isPrimaryKey();
         this.mandatory = tableField.isMandatory();
         return this;
     }

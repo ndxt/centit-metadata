@@ -93,14 +93,16 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     @Column(name = "LAST_MODIFY_DATE")
     private Date lastModifyDate;
 
-    @ApiModelProperty(value = "主表信息")
-    //@OneToMany(targetEntity = MetaTable.class)
-    //@JoinColumn(name = "parentTableId", referencedColumnName = "tableId")
+    @ApiModelProperty(hidden = true)
+    @OneToMany(targetEntity = MetaTable.class)
+    @JoinColumn(name = "parentTableId", referencedColumnName = "tableId")
+    @JSONField( serialize = false)
     private MetaTable parentTable;
 
-    @ApiModelProperty(value = "从表信息")
-    //@OneToMany(targetEntity = MetaTable.class)
-    //@JoinColumn(name = "childTableId", referencedColumnName = "tableId")
+    @ApiModelProperty(hidden = true)
+    @OneToMany(targetEntity = MetaTable.class)
+    @JoinColumn(name = "childTableId", referencedColumnName = "tableId")
+    @JSONField(serialize = false)
     private MetaTable childTable;
 
 

@@ -336,7 +336,7 @@ public class MetaDataServiceImpl implements MetaDataService {
             //insert
             for(MetaRelation relation : comparedRelation.getLeft()){
                 metaRelationDao.saveNewObject(relation);
-                metaRelationDao.saveObjectReferences(relation);
+                metaRelationDao.saveObjectReference(relation, "relationDetails");
             }
         }
 
@@ -345,7 +345,7 @@ public class MetaDataServiceImpl implements MetaDataService {
             for(MetaRelation relation : comparedRelation.getRight()){
                 relation = metaRelationDao.fetchObjectReferences(relation);
                 metaRelationDao.deleteObject(relation);
-                metaRelationDao.deleteObjectReferences(relation);
+                metaRelationDao.deleteObjectReference(relation, "relationDetails");
             }
         }
 
@@ -353,15 +353,15 @@ public class MetaDataServiceImpl implements MetaDataService {
             //update
             for(Pair<MetaRelation, MetaRelation> pair : comparedRelation.getMiddle()){
                 MetaRelation oldRelation = pair.getLeft();
-                oldRelation = metaRelationDao.fetchObjectReferences(oldRelation);
+                oldRelation = metaRelationDao.fetchObjectReference(oldRelation, "relationDetails");
                 MetaRelation newRelation = pair.getRight();
                 oldRelation.setRelationName(newRelation.getRelationName());
                 oldRelation.setRelationComment(newRelation.getRelationComment());
                 metaRelationDao.updateObject(oldRelation);
 
-                metaRelationDao.deleteObjectReferences(oldRelation);
+                metaRelationDao.deleteObjectReference(oldRelation, "relationDetails");
                 newRelation.setRelationId(oldRelation.getRelationId());
-                metaRelationDao.saveObjectReferences(newRelation);
+                metaRelationDao.saveObjectReference(newRelation, "relationDetails");
             }
         }
     }

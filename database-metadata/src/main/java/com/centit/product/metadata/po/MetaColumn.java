@@ -13,7 +13,6 @@ import com.centit.support.database.utils.FieldType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 
@@ -146,7 +145,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
      */
     @ApiModelProperty(value = "自动生成规则   C 常量  U uuid S sequence F 函数")
     @Column(name = "AUTO_CREATE_RULE")
-    @Length(max = 200, message = "字段长度不能大于{max}")
+    @Length(max = 1, message = "字段长度不能大于{max}")
     private String autoCreateRule;
 
     /**

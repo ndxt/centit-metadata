@@ -60,7 +60,7 @@ public abstract class DBBatchUtils {
                                   final List<Map<String, Object>> objects) throws SQLException {
         // 这个要重写，需要重新拼写sql语句， 直接拼写为？参数的sql语句据
         List<String> fields = achieveAllFields( objects);
-        String sql = GeneralJsonObjectDao.buildUpdateSql(tableInfo, fields ,true) +
+        String sql = GeneralJsonObjectDao.buildUpdateSql(tableInfo, fields) +
             " where " +  GeneralJsonObjectDao.buildFilterSqlByPk(tableInfo,null);
         LeftRightPair<String,List<String>> sqlPair = QueryUtils.transNamedParamSqlToParamSql(sql);
         int n = 0;
@@ -85,7 +85,7 @@ public abstract class DBBatchUtils {
         List<String> fields = achieveAllFields( objects);
         String sql = GeneralJsonObjectDao.buildInsertSql(tableInfo, fields);
         LeftRightPair<String,List<String>> insertSqlPair = QueryUtils.transNamedParamSqlToParamSql(sql);
-        sql = GeneralJsonObjectDao.buildUpdateSql(tableInfo, fields ,true) +
+        sql = GeneralJsonObjectDao.buildUpdateSql(tableInfo, fields) +
             " where " +  GeneralJsonObjectDao.buildFilterSqlByPk(tableInfo,null);
         LeftRightPair<String,List<String>> updateSqlPair = QueryUtils.transNamedParamSqlToParamSql(sql);
         sql = "select count(*) as checkExists from " + tableInfo.getTableName()

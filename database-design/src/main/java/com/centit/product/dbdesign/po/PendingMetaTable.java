@@ -102,7 +102,7 @@ public class PendingMetaTable implements
     @ApiModelProperty(value = "更新时是否校验时间戳")
     @Column(name = "UPDATE_CHECK_TIMESTAMP")
     @Length(max = 1, message = "字段长度不能大于{max}")
-    private String updateCheckTimeStamp;
+    private Boolean updateCheckTimeStamp;
 
     /**
      * 更改时间 null
@@ -141,50 +141,8 @@ public class PendingMetaTable implements
      */
     public PendingMetaTable() {
         this.tableState = "W";
+        this.updateCheckTimeStamp = false;
     }
-
-    /**
-     * minimal constructor
-     *
-     * @param workFlowOptType
-     * @param updateCheckTimeStamp
-     */
-    public PendingMetaTable(
-        String tableId
-        , String tableName, String tableLabelName, String tableState, String isInWorkflow, String workFlowOptType, String updateCheckTimeStamp) {
-        this.tableId = tableId;
-        this.tableName = tableName;
-        this.tableLabelName = tableLabelName;
-        this.tableState = tableState;
-        this.workFlowOptType = workFlowOptType;
-        this.updateCheckTimeStamp = updateCheckTimeStamp;
-    }
-
-
-    /**
-     * full constructor
-     *
-     * @param updateCheckTimeStamp
-     * @param workFlowOptType
-     */
-    public PendingMetaTable(
-            String tableId
-        , String databaseCode, String tableName, String tableLabelName, String tableType, String tableState, String tableComment, String isInWorkflow, Date lastModifyDate, String recorder, String updateCheckTimeStamp, String workFlowOptType) {
-
-
-        this.tableId = tableId;
-
-        this.setDatabaseCode(databaseCode);
-        this.tableName = tableName;
-        this.tableLabelName = tableLabelName;
-        this.tableState = tableState;
-        this.tableComment = tableComment;
-        this.workFlowOptType = workFlowOptType;
-        this.updateCheckTimeStamp = updateCheckTimeStamp;
-        this.lastModifyDate = lastModifyDate;
-        this.recorder = recorder;
-    }
-
 
     public void addMdColumn(PendingMetaColumn mdColumn) {
         if (mdColumn == null)

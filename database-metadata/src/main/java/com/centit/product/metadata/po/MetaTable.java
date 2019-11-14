@@ -3,6 +3,7 @@ package com.centit.product.metadata.po;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.framework.core.dao.DictionaryMapColumn;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.metadata.TableReference;
@@ -32,6 +33,7 @@ import java.util.*;
 public class MetaTable implements TableInfo, java.io.Serializable {
     private static final long serialVersionUID = 1L;
     public static final String OBJECT_AS_CLOB_FIELD = "JSON_OBJECT_FIELD";
+    public static final String OBJECT_AS_CLOB_PROP = "jsonObjectField";
     public static final String UPDATE_CHECK_TIMESTAMP_FIELD = "LAST_MODIFY_TIME";
     public static final String UPDATE_CHECK_TIMESTAMP_PROP = "lastModifyTime";
     public static final String WORKFLOW_INST_ID_FIELD = "FLOW_INST_ID";
@@ -116,18 +118,26 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @Column(name = "FULLTEXT_SEARCH")
     @NotBlank(message = "字段不能为空[T/F]")
     @Length(max = 1, message = "字段长度不能大于{max}")
-    private String fulltextSearch;
+    private Boolean fulltextSearch;
+
+    /**
+     * 对象标题模板，用于全文检索时的标题显示
+     */
+    @ApiModelProperty(value = "对象标题模板，用于全文检索时的标题显示")
+    @Column(name = "OBJECT_TITLE")
+    @Length(max = 500, message = "字段长度不能大于{max}")
+    private String  objectTitle;
 
     @Column(name = "WRITE_OPT_LOG")
     @NotBlank(message = "字段不能为空[T/F]")
     @Length(max = 1, message = "字段长度不能大于{max}")
-    private String writeOptLog;
+    private Boolean writeOptLog;
 
     //T/F 更新时是否校验时间戳 添加 lastModifyTime datetime
     @Column(name = "UPDATE_CHECK_TIMESTAMP")
-    @NotBlank(message = "字段不能为空[Y/N]")
+    @NotBlank(message = "字段不能为空[T/F]")
     @Length(max = 1, message = "字段长度不能大于{max}")
-    private String updateCheckTimeStamp;
+    private Boolean updateCheckTimeStamp;
 
     /**
      * 更改时间
@@ -228,6 +238,13 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         this.mdRelations.remove(mdRelation);
     }
 
+    public MetaTable(){
+        this.accessType = "N";
+        this.workFlowOptType = "0";
+        this.fulltextSearch =  false;
+        this.writeOptLog = false;
+    }
+
     //将数据库表同步到元数据表
     public MetaTable convertFromDbTable(SimpleTableInfo tableInfo){
 
@@ -239,9 +256,9 @@ public class MetaTable implements TableInfo, java.io.Serializable {
             this.tableComment = tableInfo.getTableComment();
         }
         this.tableType = tableInfo.getTableType();
-        this.accessType = StringUtils.isNotBlank(this.accessType) ? this.accessType : "N";
-        this.workFlowOptType = StringUtils.isNotBlank(this.workFlowOptType) ? this.workFlowOptType : "0";
-        this.fulltextSearch = StringUtils.isNotBlank(this.fulltextSearch) ? this.fulltextSearch : "F";
+        this.accessType = StringUtils.isBlank(this.accessType) ? "N" : this.accessType;
+        this.workFlowOptType = StringUtils.isBlank(this.workFlowOptType) ?  "0" : this.workFlowOptType;
+        this.fulltextSearch = this.fulltextSearch ==null ? false : this.fulltextSearch;
         return this;
     }
 
@@ -344,5 +361,21 @@ public class MetaTable implements TableInfo, java.io.Serializable {
             }
         }
         return pk;
+    }
+
+    public String fetchObjectPkAsId(Map<String, Object> object){
+        StringBuilder pkId = new StringBuilder();
+        int pkNo = 0;
+        for (MetaColumn c : mdColumns) {
+            if (c.isPrimaryKey()) {
+                Object pkValue = object.get(c.getPropertyName());
+                if(pkNo>0){
+                    pkId.append(":");
+                }
+                pkId.append(StringBaseOpt.castObjectToString(pkValue));
+                pkNo++;
+            }
+        }
+        return pkId.toString();
     }
 }

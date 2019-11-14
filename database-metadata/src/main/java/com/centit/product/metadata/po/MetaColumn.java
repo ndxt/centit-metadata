@@ -189,10 +189,14 @@ public class MetaColumn implements TableField, java.io.Serializable {
     private Boolean isCompare;
 
     public MetaColumn() {
-
+        this.accessType = "N";
+        this.mandatory = false;
+        this.lazyFetch = false;
+        this.primaryKey = false;
     }
 
     public MetaColumn(@NotBlank(message = "字段不能为空") String tableId, @NotBlank(message = "字段不能为空") String columnName) {
+        this();
         this.tableId = tableId;
         this.columnName = columnName;
     }

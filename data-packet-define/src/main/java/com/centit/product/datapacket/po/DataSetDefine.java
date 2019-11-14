@@ -22,7 +22,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "q_dataset_define")
+@Table(name = "Q_DATASET_DEFINE")
 public class DataSetDefine implements Serializable {
     private static final long serialVersionUID = 1;
 

@@ -80,9 +80,11 @@ public class DataPacket implements Serializable {
     @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
     @JSONField(serialize = false)
     private Date recordDate;
+
     @ApiModelProperty(value = "业务模块代码")
     @Column(name = "APPLICATION_ID")
     private String  applicationId;
+
     @OneToMany(targetEntity = DataPacketParam.class)
     @JoinColumn(name = "packetId", referencedColumnName = "packetId")
     private List<DataPacketParam> packetParams;

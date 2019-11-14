@@ -14,7 +14,7 @@ import java.io.Serializable;
 
 @Data
 @Entity
-@Table(name = "q_dataset_columndesc")
+@Table(name = "Q_DATASET_COLUMNDESC")
 @ApiModel(value = "数据集字段描述")
 public class DataSetColumnDesc implements Serializable {
 

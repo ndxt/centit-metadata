@@ -1,9 +1,13 @@
-package com.centit.product.dataopt.dataset;
+package com.centit.product.datapacket.utils;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.product.dataopt.core.DataSetReader;
 import com.centit.product.dataopt.core.SimpleDataSet;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
+import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
+import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -21,14 +25,14 @@ import java.util.Map;
  *      数据库连接信息 DatabaseInfo
  *      对应的表信息 SimpleTableInfo
  */
-public class SQLDataSetReader implements DataSetReader {
+public class KeyValueTableReader implements DataSetReader {
 
-    private static final Logger logger = LoggerFactory.getLogger(SQLDataSetReader.class);
+    private static final Logger logger = LoggerFactory.getLogger(KeyValueTableReader.class);
     private DataSourceDescription dataSource;
     /**
-     * 参数驱动sql
+     * KeyValueTable 的表明
      */
-    private String sqlSen;
+    private TableInfo tableInfo;
 
     private Connection connection;
     /**
@@ -46,16 +50,31 @@ public class SQLDataSetReader implements DataSetReader {
                 conn = DbcpConnectPools.getDbcpConnect(dataSource);
                 createConnect = true;
             }
-            QueryAndNamedParams qap = QueryUtils.translateQuery(sqlSen, params);
-            Map<String, Object> paramsMap = new HashMap<>(params.size() + 6);
-            paramsMap.putAll(params);
-            paramsMap.putAll(qap.getParams());
 
-            JSONArray jsonArray = DatabaseAccess.findObjectsByNamedSqlAsJSON(
-                conn, qap.getQuery(), paramsMap);
+            GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+            JSONArray ja = dao.listObjectsByProperties(params);
+            if(ja==null){
+                return null;
+            }
+            List<Map<String, Object>> keyValueData = new ArrayList<>(ja.size()+1);
+            for(Object obj : ja){
+                if(obj instanceof Map){
+                    Object value = ((Map) obj).get("objectJson");
+                    if(value!=null) {
+                        if (value instanceof Map) {
+                            keyValueData.add((Map) value);
+                        } else {
+                            Object json = JSON.parse(StringBaseOpt.castObjectToString(value));
+                            if (json instanceof Map) {
+                                keyValueData.add((Map) json);
+                            }
+                        }
+                    }
+                }
+            }
 
             SimpleDataSet dataSet = new SimpleDataSet();
-            dataSet.setData((List)jsonArray);
+            dataSet.setData(keyValueData);
             return dataSet;
         } catch (SQLException | IOException e) {
             logger.error(e.getLocalizedMessage());
@@ -71,8 +90,8 @@ public class SQLDataSetReader implements DataSetReader {
         this.dataSource = dataSource;
     }
 
-    public void setSqlSen(String sqlSen) {
-        this.sqlSen = sqlSen;
+    public void setTableInfo(TableInfo tableInfo) {
+        this.tableInfo = tableInfo;
     }
 
     public void setConnection(Connection connection) {

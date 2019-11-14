@@ -163,6 +163,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     private Map<String, Object> innerGetObjectById(final Connection conn, final TableInfo tableInfo,final Map<String, Object> pk)
         throws IOException, SQLException {
         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+        if (pk.size()==0){
+            throw new ObjectException(tableInfo.getTableName()+"没有传入主键");
+        }
         if(dao.checkHasAllPkColumns(pk)){
             return formatObject(dao.getObjectById(pk), tableInfo);
         } else if( pk.containsKey("flowInstId")) {

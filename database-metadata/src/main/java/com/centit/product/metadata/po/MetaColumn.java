@@ -55,6 +55,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
     @Length(max = 256, message = "字段长度不能大于{max}")
     private String  columnComment;
 
+    @OrderBy
     @ApiModelProperty(value = "显示顺序（可编辑）")
     @Column(name = "COLUMN_ORDER")
     private Long columnOrder;

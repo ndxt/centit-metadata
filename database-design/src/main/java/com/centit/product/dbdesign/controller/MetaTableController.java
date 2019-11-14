@@ -20,6 +20,7 @@ import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.SimpleTableInfo;
+import com.centit.support.database.utils.FieldType;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.file.FileSystemOpt;
 import io.swagger.annotations.Api;
@@ -361,5 +362,11 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public PendingMetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName){
         return mdTableMag.getMetaColumn(tableId, columnName);
+    }
+    @ApiOperation(value = "查询所有数据类型")
+    @GetMapping(value = "/allType")
+    @WrapUpResponseBody
+    public Map<String,String> getAllTypeMap(){
+        return FieldType.getAllTypeMap();
     }
 }

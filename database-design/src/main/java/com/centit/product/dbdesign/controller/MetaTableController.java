@@ -363,10 +363,4 @@ public class MetaTableController extends BaseController {
     public PendingMetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName){
         return mdTableMag.getMetaColumn(tableId, columnName);
     }
-    @ApiOperation(value = "查询所有数据类型")
-    @GetMapping(value = "/allType")
-    @WrapUpResponseBody
-    public Map<String,String> getAllTypeMap(){
-        return FieldType.getAllTypeMap();
-    }
 }

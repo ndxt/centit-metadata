@@ -388,4 +388,21 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         }
         return pkId.toString();
     }
+
+    public Map<String, Object> parseObjectPkId(String pkId){
+        String [] pkIds = pkId.split(":");
+        int len = pkIds.length;
+        Map<String, Object> pk = new HashMap<>(8);
+        int pkNo = 0;
+        for (MetaColumn c : mdColumns) {
+            if (c.isPrimaryKey()) {
+                if(pkNo >= len){
+                    return null;
+                }
+                pk.put(c.getPropertyName(), pkIds[pkNo]);
+                pkNo++;
+            }
+        }
+        return pk;
+    }
 }

@@ -74,6 +74,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @Column(name = "SCALE")
     private Integer scale;
 
+    @OrderBy
     @ApiModelProperty(value = "显示次序")
     @Column(name = "COLUMN_ORDER")
     private Long  columnOrder;

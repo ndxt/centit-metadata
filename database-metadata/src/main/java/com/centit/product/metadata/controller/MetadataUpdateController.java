@@ -6,6 +6,7 @@ import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.support.database.utils.FieldType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 @Api(value = "数据库元数据信息完善", tags = "元数据信息完善")
 @RestController
@@ -23,6 +25,12 @@ public class MetadataUpdateController extends BaseController {
     @Autowired
     private MetaDataService metaDataService;
 
+    @ApiOperation(value = "获取所有业务数据类型Map")
+    @GetMapping(value = "/fieldType")
+    @WrapUpResponseBody
+    public Map<String, String> listFieldType(){
+        return FieldType.getAllTypeMap();
+    }
 
     @ApiOperation(value = "同步数据库")
     @ApiImplicitParam(name = "databaseCode", value = "数据库ID")

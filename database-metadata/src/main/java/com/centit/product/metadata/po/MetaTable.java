@@ -243,6 +243,18 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         this.workFlowOptType = "0";
         this.fulltextSearch =  false;
         this.writeOptLog = false;
+        this.updateCheckTimeStamp = false;
+    }
+
+    public boolean isWriteOptLog(){
+        return writeOptLog != null && writeOptLog;
+    }
+
+    public boolean isUpdateCheckTimeStamp(){
+        return updateCheckTimeStamp != null && updateCheckTimeStamp;
+    }
+    public boolean isFulltextSearch(){
+        return fulltextSearch != null && fulltextSearch;
     }
 
     //将数据库表同步到元数据表
@@ -257,8 +269,6 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         }
         this.tableType = tableInfo.getTableType();
         this.accessType = StringUtils.isBlank(this.accessType) ? "N" : this.accessType;
-        this.workFlowOptType = StringUtils.isBlank(this.workFlowOptType) ?  "0" : this.workFlowOptType;
-        this.fulltextSearch = this.fulltextSearch ==null ? false : this.fulltextSearch;
         return this;
     }
 

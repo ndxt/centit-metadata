@@ -280,12 +280,12 @@ public class MetaColumn implements TableField, java.io.Serializable {
      */
     @Override
     public boolean isMandatory() {
-        return mandatory==null ? false : mandatory;
+        return mandatory !=null && mandatory;
     }
 
     @Override
     public boolean isPrimaryKey() {
-        return primaryKey==null ? false : primaryKey;
+        return primaryKey !=null && primaryKey;
     }
     /**
      * @return 是否是懒加载；
@@ -294,7 +294,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
      */
     @Override
     public boolean isLazyFetch() {
-        return lazyFetch==null ? false : lazyFetch;
+        return lazyFetch!=null && lazyFetch;
     }
 
     @Override

@@ -252,18 +252,18 @@ public class MetaTableManagerImpl
                 col.setRecorder(currentUser);
                 ptable.addMdColumn(col);
             }
-            PendingMetaColumn col2 = ptable.findFieldByName(MetaTable.OBJECT_AS_CLOB_PROP);
-            if (col2 == null) {
-                col2 = new PendingMetaColumn(ptable, MetaTable.OBJECT_AS_CLOB_FIELD);
-                col2.setFieldLabelName("大字段field");
-                col2.setColumnComment("大字段field");
-                col2.setFieldType(FieldType.TEXT);
-                col2.setLastModifyDate(DatetimeOpt.currentUtilDate());
-                col2.setRecorder(currentUser);
-                ptable.addMdColumn(col2);
+            col = ptable.findFieldByName(MetaTable.OBJECT_AS_CLOB_PROP);
+            if (col == null) {
+                col = new PendingMetaColumn(ptable, MetaTable.OBJECT_AS_CLOB_FIELD);
+                col.setFieldLabelName("大字段field");
+                col.setColumnComment("大字段field");
+                col.setFieldType(FieldType.JSON_OBJECT);
+                col.setLastModifyDate(DatetimeOpt.currentUtilDate());
+                col.setRecorder(currentUser);
+                ptable.addMdColumn(col);
             }
         }
-        if ("Y".equals(ptable.getUpdateCheckTimeStamp())) {
+        if (ptable.isUpdateCheckTimeStamp()) {
             PendingMetaColumn col = ptable.findFieldByName(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
             if (col == null) {
                 col = new PendingMetaColumn(ptable, MetaTable.UPDATE_CHECK_TIMESTAMP_FIELD);
@@ -446,20 +446,6 @@ public class MetaTableManagerImpl
 
         JSONArray listTables =
             pendingMdTableDao.listObjectsAsJson(searchColumn, pageDesc);
-
-        List<DatabaseInfo> databases = integrationEnvironment.listDatabaseInfo();
-        for (Object obj : listTables) {
-            JSONObject table = (JSONObject) obj;
-            String databaseCode = table.getString("databaseCode");
-            if (databaseCode != null) {
-                for (DatabaseInfo di : databases) {
-                    if (databaseCode.equals(di.getDatabaseCode())) {
-                        table.put("databaseName", di.getDatabaseName());
-                        break;
-                    }
-                }
-            }
-        }
         return listTables;
     }
 

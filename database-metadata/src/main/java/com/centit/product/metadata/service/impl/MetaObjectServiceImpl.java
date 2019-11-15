@@ -81,7 +81,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return object;
     }
 
-
     private static void makeObjectValueByGenerator(Map<String, Object> object, Map<String, Object> extParams, MetaTable metaTable,
                                                     JsonObjectDao sqlDialect)
         throws SQLException, IOException {
@@ -459,7 +458,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
             String querySql = QueryUtils.buildLimitQuerySQL(sql,
                 pageDesc.getRowStart(), pageDesc.getPageSize(),false,
-                /*databaseInfo.getDDBType()*/ DBType.mapDBType(conn));
+                databaseInfo.getDBType());
 
             JSONArray objs = GeneralJsonObjectDao.findObjectsByNamedSql(conn,
                 querySql, params, q.getRight());//, pageDesc.getPageNo(), pageDesc.getPageSize());

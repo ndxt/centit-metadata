@@ -240,6 +240,29 @@ public class MetaTableManagerImpl
     }
 
     public void checkPendingMetaTable(PendingMetaTable ptable, String currentUser) {
+        if("C".equals(ptable.getTableType())){
+            PendingMetaColumn col = ptable.findFieldByName(MetaTable.OBJECT_AS_CLOB_ID_PROP);
+            if (col == null) {
+                col = new PendingMetaColumn(ptable, MetaTable.OBJECT_AS_CLOB_ID_FIELD);
+                col.setFieldLabelName("大字段ID");
+                col.setColumnComment("大字段ID");
+                col.setFieldType(FieldType.STRING);
+                col.setMaxLength(64);
+                col.setLastModifyDate(DatetimeOpt.currentUtilDate());
+                col.setRecorder(currentUser);
+                ptable.addMdColumn(col);
+            }
+            PendingMetaColumn col2 = ptable.findFieldByName(MetaTable.OBJECT_AS_CLOB_PROP);
+            if (col2 == null) {
+                col2 = new PendingMetaColumn(ptable, MetaTable.OBJECT_AS_CLOB_FIELD);
+                col2.setFieldLabelName("大字段field");
+                col2.setColumnComment("大字段field");
+                col2.setFieldType(FieldType.TEXT);
+                col2.setLastModifyDate(DatetimeOpt.currentUtilDate());
+                col2.setRecorder(currentUser);
+                ptable.addMdColumn(col2);
+            }
+        }
         if ("Y".equals(ptable.getUpdateCheckTimeStamp())) {
             PendingMetaColumn col = ptable.findFieldByName(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
             if (col == null) {

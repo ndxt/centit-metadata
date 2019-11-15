@@ -32,6 +32,8 @@ import java.util.*;
 @Table(name = "F_MD_TABLE")
 public class MetaTable implements TableInfo, java.io.Serializable {
     private static final long serialVersionUID = 1L;
+    public static final String OBJECT_AS_CLOB_ID_FIELD = "JSON_OBJECT_ID";
+    public static final String OBJECT_AS_CLOB_ID_PROP = "jsonObjectID";
     public static final String OBJECT_AS_CLOB_FIELD = "JSON_OBJECT_FIELD";
     public static final String OBJECT_AS_CLOB_PROP = "jsonObjectField";
     public static final String UPDATE_CHECK_TIMESTAMP_FIELD = "LAST_MODIFY_TIME";

@@ -3,12 +3,12 @@ package com.centit.product.dataopt.bizopt;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.product.dataopt.core.BizModel;
+import com.centit.product.dataopt.core.BizOperation;
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.datarule.CheckRule;
 import com.centit.product.dataopt.utils.BizOptUtils;
-import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.product.dataopt.core.BizOperation;
 import com.centit.product.dataopt.utils.DataSetOptUtil;
+import com.centit.support.algorithm.StringBaseOpt;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;

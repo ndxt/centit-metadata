@@ -20,6 +20,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author codefan
@@ -229,6 +230,29 @@ public class MetaColumn implements TableField, java.io.Serializable {
     @JSONField(serialize = false)
     @Override
     public String getDefaultValue() {
+        return null;
+    }
+
+    /**
+     * @param obj        对象
+     * @param fieldValue 字段值
+     */
+    @Override
+    public void setObjectFieldValue(Object obj, Object fieldValue) {
+        if(obj instanceof Map){
+            ((Map) obj).put(this.getPropertyName(), fieldValue);
+        }
+    }
+
+    /**
+     * @param obj 对象
+     * @return 字段值
+     */
+    @Override
+    public Object getObjectFieldValue(Object obj) {
+        if(obj instanceof Map){
+            return ((Map) obj).get(this.getPropertyName());
+        }
         return null;
     }
 

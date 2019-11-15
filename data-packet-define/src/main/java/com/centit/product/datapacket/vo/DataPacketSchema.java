@@ -2,8 +2,8 @@ package com.centit.product.datapacket.vo;
 
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.DataPacketParam;
-import com.centit.product.datapacket.po.DataSetDefine;
 import com.centit.product.datapacket.po.DataSetColumnDesc;
+import com.centit.product.datapacket.po.DataSetDefine;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;

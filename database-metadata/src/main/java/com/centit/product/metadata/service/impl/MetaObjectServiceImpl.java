@@ -163,6 +163,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     private Map<String, Object> innerGetObjectById(final Connection conn, final TableInfo tableInfo,final Map<String, Object> pk)
         throws IOException, SQLException {
         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+        if (pk.size()==0){
+            throw new ObjectException(tableInfo.getTableName()+"没有传入主键");
+        }
         if(dao.checkHasAllPkColumns(pk)){
             return formatObject(dao.getObjectById(pk), tableInfo);
         } else if( pk.containsKey("flowInstId")) {
@@ -446,7 +449,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(JdbcConnect.mapDataSource(databaseInfo));
-            GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+            //GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
 
             HashSet<String> fieldSet = null ;
             if(fields !=null && fields.length>0) {
@@ -463,9 +466,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 }
                 Collections.addAll(fieldSet, fields);
             }
-            Pair<String,String[]> q = (fieldSet == null) ?
-                GeneralJsonObjectDao.buildFieldSqlWithFieldName(tableInfo,null, true)
-                : GeneralJsonObjectDao.buildPartFieldSqlWithFieldName(tableInfo, fieldSet, null);
+            Pair<String, TableField[]> q = (fieldSet == null) ?
+                GeneralJsonObjectDao.buildFieldSqlWithFields(tableInfo, null, true)
+                : GeneralJsonObjectDao.buildPartFieldSqlWithFields(tableInfo, fieldSet, null);
 
             String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null, params.keySet());
             if(StringUtils.isNotBlank(extFilter)){
@@ -480,14 +483,19 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             if(StringUtils.isNotBlank(filter)) {
                 sql = sql + " where " + filter;
             }
+
             String orderBy = GeneralJsonObjectDao.fetchSelfOrderSql(sql, params);
             if(StringUtils.isNotBlank(orderBy)){
                 sql = sql + " order by "
                     + QueryUtils.cleanSqlStatement(orderBy);
             }
 
-            JSONArray objs = dao.findObjectsByNamedSqlAsJSON(
-                sql, params, q.getRight(), pageDesc.getPageNo(), pageDesc.getPageSize());
+            String querySql = QueryUtils.buildLimitQuerySQL(sql,
+                pageDesc.getRowStart(), pageDesc.getPageSize(),false,
+                /*databaseInfo.getDDBType()*/ DBType.mapDBType(conn));
+
+            JSONArray objs = GeneralJsonObjectDao.findObjectsByNamedSql(conn,
+                querySql, params, q.getRight());//, pageDesc.getPageNo(), pageDesc.getPageSize());
 
             String sGetCountSql = "select count(1) as totalRows from " + tableInfo.getTableName();
             if(StringUtils.isNotBlank(filter))

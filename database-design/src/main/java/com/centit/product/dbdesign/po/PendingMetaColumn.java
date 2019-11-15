@@ -19,6 +19,7 @@ import org.hibernate.validator.constraints.Length;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.util.Date;
+import java.util.Map;
 
 
 /**
@@ -232,6 +233,30 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     public String getDefaultValue() {
         return null;
     }
+
+    /**
+     * @param obj        对象
+     * @param fieldValue 字段值
+     */
+    @Override
+    public void setObjectFieldValue(Object obj, Object fieldValue) {
+        if(obj instanceof Map){
+            ((Map) obj).put(this.getPropertyName(), fieldValue);
+        }
+    }
+
+    /**
+     * @param obj 对象
+     * @return 字段值
+     */
+    @Override
+    public Object getObjectFieldValue(Object obj) {
+        if(obj instanceof Map){
+            return ((Map) obj).get(this.getPropertyName());
+        }
+        return null;
+    }
+
 
     @Override
     @JSONField(serialize=false)

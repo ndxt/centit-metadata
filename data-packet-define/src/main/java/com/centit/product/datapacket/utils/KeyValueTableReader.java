@@ -8,7 +8,8 @@ import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.metadata.TableInfo;
-import com.centit.support.database.utils.*;
+import com.centit.support.database.utils.DataSourceDescription;
+import com.centit.support.database.utils.DbcpConnectPools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

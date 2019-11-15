@@ -19,6 +19,7 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -73,7 +74,16 @@ public class PendingMetaTable implements
     @NotBlank(message = "字段不能为空")
     @Length(max = 100, message = "字段长度不能大于{max}")
     private String tableLabelName;
-
+    /**
+     * 表类型 T，C
+     */
+    @ApiModelProperty(value = "表类型（T-表；C-大字段）", required = true)
+    @Column(name = "TABLE_TYPE")
+    @NotBlank(message = "字段不能为空")
+    @Pattern(regexp = "[TC]")
+    @Length(max = 1, message = "字段长度不能大于{max}")
+    @DictionaryMap(fieldName = "tableTypeText", value = "TableType")
+    private String tableType;
     /**
      * 描述 null
      */
@@ -261,13 +271,15 @@ public class PendingMetaTable implements
     public List<? extends TableReference> getReferences() {
         return null;
     }
-
+public String getTableType(){
+        return this.tableType=="C"?"C":"T";
+}
     public MetaTable mapToMetaTable(){
         MetaTable mt = new MetaTable();
         mt.setTableId(this.getTableId());
         mt.setDatabaseCode(this.getDatabaseCode());
         mt.setTableName(this.getTableName());
-        mt.setTableType("T");
+        mt.setTableType(this.getTableType());
         mt.setAccessType("N");
         mt.setTableLabelName(this.getTableLabelName());
         mt.setTableComment(this.getTableComment());

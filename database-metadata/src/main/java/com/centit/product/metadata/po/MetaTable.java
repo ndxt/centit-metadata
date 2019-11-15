@@ -32,6 +32,8 @@ import java.util.*;
 @Table(name = "F_MD_TABLE")
 public class MetaTable implements TableInfo, java.io.Serializable {
     private static final long serialVersionUID = 1L;
+    public static final String OBJECT_AS_CLOB_ID_FIELD = "OBJECT_ID";
+    public static final String OBJECT_AS_CLOB_ID_PROP = "objectId";
     public static final String OBJECT_AS_CLOB_FIELD = "OBJECT_JSON";
     public static final String OBJECT_AS_CLOB_PROP = "objectJson";
     public static final String UPDATE_CHECK_TIMESTAMP_FIELD = "LAST_MODIFY_TIME";
@@ -40,8 +42,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     public static final String WORKFLOW_INST_ID_PROP = "flowInstId";
     public static final String WORKFLOW_NODE_INST_ID_FIELD = "NODE_INST_ID";
     public static final String WORKFLOW_NODE_INST_ID_PROP = "nodeInstId";
-    public static final String KEY_VALUE_TABLE_ID_FIELD = "OBJECT_ID";
-    public static final String KEY_VALUE_TABLE_ID_PROP = "objectId";
+
     /**
      * 主键前缀
      */
@@ -360,4 +361,50 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         return dictionaryMapColumns;
     }
 
+    public Map<String, Object> fetchObjectPk(Map<String, Object> object){
+        Map<String, Object> pk = new HashMap<>(8);
+        for (MetaColumn c : mdColumns) {
+            if (c.isPrimaryKey()) {
+                Object pkValue = object.get(c.getPropertyName());
+                if(pkValue==null){
+                    return null;
+                }
+                pk.put(c.getPropertyName(), pkValue);
+            }
+        }
+        return pk;
+    }
+
+    public String fetchObjectPkAsId(Map<String, Object> object){
+        StringBuilder pkId = new StringBuilder();
+        int pkNo = 0;
+        for (MetaColumn c : mdColumns) {
+            if (c.isPrimaryKey()) {
+                Object pkValue = object.get(c.getPropertyName());
+                if(pkNo>0){
+                    pkId.append(":");
+                }
+                pkId.append(StringBaseOpt.castObjectToString(pkValue));
+                pkNo++;
+            }
+        }
+        return pkId.toString();
+    }
+
+    public Map<String, Object> parseObjectPkId(String pkId){
+        String [] pkIds = pkId.split(":");
+        int len = pkIds.length;
+        Map<String, Object> pk = new HashMap<>(8);
+        int pkNo = 0;
+        for (MetaColumn c : mdColumns) {
+            if (c.isPrimaryKey()) {
+                if(pkNo >= len){
+                    return null;
+                }
+                pk.put(c.getPropertyName(), pkIds[pkNo]);
+                pkNo++;
+            }
+        }
+        return pk;
+    }
 }

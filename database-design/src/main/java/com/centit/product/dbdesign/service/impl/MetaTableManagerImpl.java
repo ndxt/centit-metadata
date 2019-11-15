@@ -446,20 +446,6 @@ public class MetaTableManagerImpl
 
         JSONArray listTables =
             pendingMdTableDao.listObjectsAsJson(searchColumn, pageDesc);
-
-        List<DatabaseInfo> databases = integrationEnvironment.listDatabaseInfo();
-        for (Object obj : listTables) {
-            JSONObject table = (JSONObject) obj;
-            String databaseCode = table.getString("databaseCode");
-            if (databaseCode != null) {
-                for (DatabaseInfo di : databases) {
-                    if (databaseCode.equals(di.getDatabaseCode())) {
-                        table.put("databaseName", di.getDatabaseName());
-                        break;
-                    }
-                }
-            }
-        }
         return listTables;
     }
 

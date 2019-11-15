@@ -122,8 +122,9 @@ public class MetaTableController extends BaseController {
     @RequestMapping(method = {RequestMethod.POST})
     public void createMdTable(PendingMetaTable mdTable,HttpServletRequest request,
                               HttpServletResponse response) {
-        Map<String, Object> searchColumn = collectRequestParameters(request);
+        Map<String, Object> searchColumn = new HashMap<>();
         searchColumn.put("tableName",mdTable.getTableName());
+        searchColumn.put("databaseCode",mdTable.getDatabaseCode());
         PageDesc pageDesc=new PageDesc();
         JSONArray listObjects = mdTableMag.listDrafts(new String[]{}, searchColumn, pageDesc);
         if (listObjects.isEmpty()) {

@@ -57,6 +57,7 @@ public class PendingMetaTable implements
      */
     @ApiModelProperty(value = "数据库ID")
     @Column(name = "DATABASE_CODE")
+    @DictionaryMap(value="databaseInfo",fieldName = "databaseName")
     private String databaseCode;
     /**
      * 表代码 null
@@ -150,8 +151,7 @@ public class PendingMetaTable implements
      * default constructor
      */
     public PendingMetaTable() {
-        this.tableState = "W";
-        this.updateCheckTimeStamp = false;
+
     }
 
     public void addMdColumn(PendingMetaColumn mdColumn) {

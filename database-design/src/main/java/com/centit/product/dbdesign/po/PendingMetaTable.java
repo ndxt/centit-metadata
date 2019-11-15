@@ -153,7 +153,9 @@ public class PendingMetaTable implements
     public PendingMetaTable() {
 
     }
-
+    public boolean isUpdateCheckTimeStamp(){
+        return updateCheckTimeStamp != null && updateCheckTimeStamp;
+    }
     public void addMdColumn(PendingMetaColumn mdColumn) {
         if (mdColumn == null)
             return;

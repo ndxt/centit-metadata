@@ -128,38 +128,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return integrationEnvironment.getDatabaseInfo(databaseCode);
     }
 
-    private Map<String, Object> formatObject(Map<String, Object> object, final TableInfo tableInfo){
-        if(object==null){
-            return null;
-        }
-        for(TableField field : tableInfo.getColumns()){
-            if(FieldType.BOOLEAN.equals(field.getFieldType())){
-                Object v = object.get(field.getPropertyName());
-                if(v!=null){
-                    object.put(field.getPropertyName(),
-                        BooleanBaseOpt.castObjectToBoolean(v,false));
-                }
-            } else if(FieldType.JSON_OBJECT.equals(field.getFieldType())){
-                Object v = object.get(field.getPropertyName());
-                if(v!=null){
-                    object.put(field.getPropertyName(),
-                        JSON.parse(StringBaseOpt.castObjectToString(v)));
-                }
-            }
-        }
-        return object;
-    }
-
-    private JSONArray formatObjectArray(JSONArray ja, final TableInfo tableInfo){
-        if(ja==null) {
-            return null;
-        }
-        for(Object obj : ja){
-            formatObject((Map<String, Object>) obj, tableInfo);
-        }
-        return ja;
-    }
-
     private Map<String, Object> innerGetObjectById(final Connection conn, final TableInfo tableInfo,final Map<String, Object> pk)
         throws IOException, SQLException {
         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
@@ -167,9 +135,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             throw new ObjectException(tableInfo.getTableName()+"没有传入主键");
         }
         if(dao.checkHasAllPkColumns(pk)){
-            return formatObject(dao.getObjectById(pk), tableInfo);
+            return dao.getObjectById(pk);
         } else if( pk.containsKey("flowInstId")) {
-            return formatObject(dao.getObjectByProperties(pk), tableInfo);
+            return dao.getObjectByProperties(pk);
         } else {
             throw new ObjectException("表或者视图 " + tableInfo.getTableName()
                 +" 缺少对应主键:"+ JSON.toJSONString(pk) );
@@ -199,7 +167,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 if(ref.size()>0) {
                     JSONObject ja = GeneralJsonObjectDao.createJsonObjectDao(conn, parentTableInfo)
                         .getObjectById(ref);
-                    mainObj.put(md.getRelationName(), formatObject(ja,parentTableInfo));
+                    mainObj.put(md.getRelationName(),ja);
                 }
             }
         }
@@ -223,7 +191,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         }
                     }
                 }
-                mainObj.put(md.getRelationName(), formatObjectArray(ja, subTableInfo));
+                mainObj.put(md.getRelationName(), ja);
             }
         }
     }
@@ -434,7 +402,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(JdbcConnect.mapDataSource(databaseInfo));
             JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).listObjectsByProperties(filter);
-            return DictionaryMapUtils.mapJsonArray(formatObjectArray(ja, tableInfo), tableInfo.fetchDictionaryMapColumns());
+            return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns());
         } catch (SQLException | IOException e) {
             throw new ObjectException(filter, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -450,7 +418,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(JdbcConnect.mapDataSource(databaseInfo));
             //GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-
             HashSet<String> fieldSet = null ;
             if(fields !=null && fields.length>0) {
                 fieldSet = new HashSet<>((fields.length + 5) * 3 / 2);
@@ -505,7 +472,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 sGetCountSql, params);
             pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
 
-            return DictionaryMapUtils.mapJsonArray(formatObjectArray(objs, tableInfo), tableInfo.fetchDictionaryMapColumns());
+            return DictionaryMapUtils.mapJsonArray(objs, tableInfo.fetchDictionaryMapColumns());
 
         } catch (SQLException | IOException e) {
             throw new ObjectException(params, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
@@ -533,12 +500,13 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(JdbcConnect.mapDataSource(databaseInfo));
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+
             JSONArray objs = dao.findObjectsByNamedSqlAsJSON(
                 querySql, params, null, pageDesc.getPageNo(), pageDesc.getPageSize());
 
             pageDesc.setTotalRows(
                 NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, querySql, params)));
-            return DictionaryMapUtils.mapJsonArray(formatObjectArray(objs, tableInfo), tableInfo.fetchDictionaryMapColumns());
+            return DictionaryMapUtils.mapJsonArray(objs, tableInfo.fetchDictionaryMapColumns());
         } catch (SQLException | IOException e) {
             throw new ObjectException(params, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }

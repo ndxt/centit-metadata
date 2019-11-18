@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
+import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
@@ -175,7 +176,8 @@ public class MetaTableManagerImpl
     @Transactional
     public List<String> makeAlterTableSqls(PendingMetaTable ptable) {
         MetaTable stable = metaTableDao.getMetaTable(ptable.getDatabaseCode(),ptable.getTableName());
-        stable = metaTableDao.fetchObjectReferences(stable);
+        if(stable!=null)
+          stable = metaTableDao.fetchObjectReferences(stable);
 
         DatabaseInfo mdb = integrationEnvironment.getDatabaseInfo(ptable.getDatabaseCode());
         //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
@@ -240,29 +242,6 @@ public class MetaTableManagerImpl
     }
 
     public void checkPendingMetaTable(PendingMetaTable ptable, String currentUser) {
-        if("C".equals(ptable.getTableType())){
-            PendingMetaColumn col = ptable.findFieldByName(MetaTable.OBJECT_AS_CLOB_ID_PROP);
-            if (col == null) {
-                col = new PendingMetaColumn(ptable, MetaTable.OBJECT_AS_CLOB_ID_FIELD);
-                col.setFieldLabelName("大字段ID");
-                col.setColumnComment("大字段ID");
-                col.setFieldType(FieldType.STRING);
-                col.setMaxLength(64);
-                col.setLastModifyDate(DatetimeOpt.currentUtilDate());
-                col.setRecorder(currentUser);
-                ptable.addMdColumn(col);
-            }
-            col = ptable.findFieldByName(MetaTable.OBJECT_AS_CLOB_PROP);
-            if (col == null) {
-                col = new PendingMetaColumn(ptable, MetaTable.OBJECT_AS_CLOB_FIELD);
-                col.setFieldLabelName("大字段field");
-                col.setColumnComment("大字段field");
-                col.setFieldType(FieldType.JSON_OBJECT);
-                col.setLastModifyDate(DatetimeOpt.currentUtilDate());
-                col.setRecorder(currentUser);
-                ptable.addMdColumn(col);
-            }
-        }
         if (ptable.isUpdateCheckTimeStamp()) {
             PendingMetaColumn col = ptable.findFieldByName(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
             if (col == null) {
@@ -357,6 +336,7 @@ public class MetaTableManagerImpl
                 ptable.setTableState("S");
                 ptable.setLastModifyDate(new Date());
                 pendingMdTableDao.mergeObject(ptable);
+                pendingMdTableDao.saveObjectReferences(ptable);
                 if (sqls.size() > 0) {
                     pendingToMeta(currentUser, ptable);
                 }
@@ -615,6 +595,7 @@ public class MetaTableManagerImpl
                     metaTable.setTableState("S");
                     metaTable.setLastModifyDate(new Date());
                     pendingMdTableDao.mergeObject(metaTable);
+                    pendingMdTableDao.saveObjectReferences(metaTable);
                     if (sqls.size() > 0) {
                         pendingToMeta(recorder,metaTable);
                     }

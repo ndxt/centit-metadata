@@ -21,8 +21,11 @@ import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
 import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.po.MetaColumn;
+import com.centit.product.metadata.po.MetaTable;
+import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.SimpleTableInfo;
+import com.centit.support.database.utils.FieldType;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.file.FileSystemOpt;
 import io.swagger.annotations.Api;
@@ -130,8 +133,33 @@ public class MetaTableController extends BaseController {
         if (listObjects.isEmpty()) {
             String userCode = WebOptUtils.getCurrentUserCode(request);
             mdTable.setRecorder(userCode);
+            mdTable.setTableState("W");
             PendingMetaTable table = new PendingMetaTable();
             table.copyNotNullProperty(mdTable);
+            if("C".equals(table.getTableType())){
+                PendingMetaColumn col = table.findFieldByName(MetaTable.OBJECT_AS_CLOB_ID_PROP);
+                if (col == null) {
+                    col = new PendingMetaColumn(table, MetaTable.OBJECT_AS_CLOB_ID_FIELD);
+                    col.setFieldLabelName("大字段ID");
+                    col.setColumnComment("大字段ID");
+                    col.setFieldType(FieldType.STRING);
+                    col.setMaxLength(64);
+                    col.setPrimaryKey(true);
+                    col.setLastModifyDate(DatetimeOpt.currentUtilDate());
+                    col.setRecorder(userCode);
+                    table.addMdColumn(col);
+                }
+                col = table.findFieldByName(MetaTable.OBJECT_AS_CLOB_PROP);
+                if (col == null) {
+                    col = new PendingMetaColumn(table, MetaTable.OBJECT_AS_CLOB_FIELD);
+                    col.setFieldLabelName("大字段field");
+                    col.setColumnComment("大字段field");
+                    col.setFieldType(FieldType.JSON_OBJECT);
+                    col.setLastModifyDate(DatetimeOpt.currentUtilDate());
+                    col.setRecorder(userCode);
+                    table.addMdColumn(col);
+                }
+            }
             mdTableMag.saveNewPendingMetaTable(table);
             JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
         } else{

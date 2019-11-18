@@ -274,9 +274,7 @@ public class PendingMetaTable implements
     public List<? extends TableReference> getReferences() {
         return null;
     }
-public String getTableType(){
-        return this.tableType=="C"?"C":"T";
-}
+
     public MetaTable mapToMetaTable(){
         MetaTable mt = new MetaTable();
         mt.setTableId(this.getTableId());

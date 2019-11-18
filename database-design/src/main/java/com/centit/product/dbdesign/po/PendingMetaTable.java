@@ -207,7 +207,7 @@ public class PendingMetaTable implements
         if (other.getRecorder() != null)
             this.recorder = other.getRecorder();
         if (other.getTableType() != null)
-            this.recorder = other.getTableType();
+            this.tableType = other.getTableType();
         return this;
     }
 

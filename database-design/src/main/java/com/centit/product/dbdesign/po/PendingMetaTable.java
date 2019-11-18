@@ -206,7 +206,8 @@ public class PendingMetaTable implements
             this.lastModifyDate = other.getLastModifyDate();
         if (other.getRecorder() != null)
             this.recorder = other.getRecorder();
-
+        if (other.getTableType() != null)
+            this.recorder = other.getTableType();
         return this;
     }
 

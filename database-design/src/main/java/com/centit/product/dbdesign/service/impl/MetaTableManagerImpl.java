@@ -373,6 +373,7 @@ public class MetaTableManagerImpl
         if (metaTable!=null) {
             metaTable = metaTableDao.getObjectCascadeById(metaTable.getTableId());
             metaTable.setWorkFlowOptType(ptable.getWorkFlowOptType());
+            metaTable.setUpdateCheckTimeStamp(ptable.getUpdateCheckTimeStamp());
             metaTable.setRecorder(currentUser);
             metaTable.setRecordDate(new Date());
             metaTableDao.mergeObject(metaTable);

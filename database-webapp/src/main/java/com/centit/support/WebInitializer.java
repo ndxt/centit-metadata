@@ -34,7 +34,4 @@ public class WebInitializer implements WebApplicationInitializer {
         WebConfig.registerRequestThreadLocalFilter(servletContext);
         WebConfig.registerSpringSecurityFilter(servletContext, servletUrlPatterns);
     }
-
-
-
 }

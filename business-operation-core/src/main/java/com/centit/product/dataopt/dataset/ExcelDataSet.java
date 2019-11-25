@@ -7,8 +7,10 @@ import com.centit.framework.appclient.AppSession;
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.support.algorithm.CollectionsOpt;
+import com.centit.support.common.ObjectException;
 import com.centit.support.json.JSONOpt;
 import com.centit.support.report.ExcelImportUtil;
+import com.centit.support.report.ExcelTypeEnum;
 import org.springframework.context.annotation.Bean;
 
 import java.io.File;
@@ -33,6 +35,9 @@ public class ExcelDataSet extends FileDataSet {
         try {
             if (!new File(filePath).exists()||new File(filePath).length()==0) {
                 fileClient.downloadFile((String)params.get("FileId"), filePath);
+            }
+            if(ExcelTypeEnum.checkFileExcelType(filePath)==ExcelTypeEnum.NOTEXCEL){
+                throw new ObjectException("不是excel文件");
             }
             SimpleDataSet dataSet = new SimpleDataSet();
             dataSet.setData(ExcelImportUtil.loadMapFromExcelSheet(filePath, 0));

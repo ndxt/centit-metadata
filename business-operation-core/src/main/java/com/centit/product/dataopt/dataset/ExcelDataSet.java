@@ -36,9 +36,6 @@ public class ExcelDataSet extends FileDataSet {
             if (!new File(filePath).exists()||new File(filePath).length()==0) {
                 fileClient.downloadFile((String)params.get("FileId"), filePath);
             }
-            if(ExcelTypeEnum.checkFileExcelType(filePath)==ExcelTypeEnum.NOTEXCEL){
-                throw new ObjectException("不是excel文件");
-            }
             SimpleDataSet dataSet = new SimpleDataSet();
             dataSet.setData(ExcelImportUtil.loadMapFromExcelSheet(filePath, 0));
             return dataSet;

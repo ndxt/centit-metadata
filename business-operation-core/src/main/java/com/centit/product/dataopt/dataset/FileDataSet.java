@@ -12,8 +12,7 @@ import org.springframework.context.annotation.Bean;
 public abstract class FileDataSet implements DataSetReader, DataSetWriter {
 
     protected String filePath;
-    public static DefaultFileClient fileClient;
-    private static AppSession appSession;
+    public final static DefaultFileClient fileClient = new DefaultFileClient();
 
     public String getFilePath() {
         return filePath;
@@ -24,9 +23,6 @@ public abstract class FileDataSet implements DataSetReader, DataSetWriter {
     }
 
     public static void init(String appServerUrl) {
-        appSession = new AppSession(appServerUrl, false, "u0000000", "000000");
-        fileClient = new DefaultFileClient();
-        fileClient.setAppSession(appSession);
-        fileClient.setFileServerExportUrl(appServerUrl);
+        fileClient.init(appServerUrl,appServerUrl,"u0000000", "000000",appServerUrl);
     }
 }

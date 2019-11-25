@@ -31,7 +31,7 @@ public class ExcelDataSet extends FileDataSet {
     @Override
     public SimpleDataSet load(Map<String, Object> params) {
         try {
-            if (!new File(filePath).exists()) {
+            if (!new File(filePath).exists()||new File(filePath).length()==0) {
                 fileClient.downloadFile((String)params.get("FileId"), filePath);
             }
             SimpleDataSet dataSet = new SimpleDataSet();

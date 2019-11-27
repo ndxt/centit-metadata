@@ -3,6 +3,7 @@ package com.centit.product.datapacket.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
+import com.centit.product.dataopt.dataset.ExcelDataSet;
 import com.centit.product.datapacket.dao.DataPacketDao;
 import com.centit.product.datapacket.dao.DataSetDefineDao;
 import com.centit.product.datapacket.po.DataSetDefine;
@@ -87,6 +88,22 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
         return QueryUtils.getSqlTemplateParameters(sql);
     }
 
+    public List<ColumnSchema> generateExcelFields(Map<String, Object> params){
+        String[] columns= new ExcelDataSet().getColumns(params);
+        List<ColumnSchema> columnSchemas = new ArrayList<>(10);
+        if (columns!=null) {
+            for (String s : columns) {
+                ColumnSchema col = new ColumnSchema();
+                col.setColumnCode(s);
+                col.setPropertyName(s);
+                col.setColumnName(col.getPropertyName());
+                col.setDataType(FieldType.STRING);
+                col.setIsStatData("F");
+                columnSchemas.add(col);
+            }
+        }
+        return  columnSchemas;
+    }
     @Override
     public List<ColumnSchema> generateSqlFields(String databaseCode, String sql, Map<String, Object> params){
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);

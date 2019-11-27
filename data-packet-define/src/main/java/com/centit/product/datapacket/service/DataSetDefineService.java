@@ -25,6 +25,7 @@ public interface DataSetDefineService {
     DataSetDefine getDbQuery(String queryId);
 
     List<ColumnSchema> generateSqlFields(String databaseCode, String sql, Map<String, Object> params);
+    List<ColumnSchema> generateExcelFields(Map<String, Object> params);
 
     JSONArray queryViewSqlData(String databaseCode, String sql, Map<String, Object> params);
 

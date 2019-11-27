@@ -11,6 +11,8 @@ import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.core.SimpleBizModel;
 import com.centit.product.dataopt.core.SimpleDataSet;
+import com.centit.product.dataopt.dataset.ExcelDataSet;
+import com.centit.product.dataopt.dataset.FileDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.DataSetDefine;
@@ -54,9 +56,6 @@ public class DataPacketController extends BaseController {
     @WrapUpResponseBody
     public void createDataPacket(DataPacket dataPacket, HttpServletRequest request){
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        if(StringUtils.isBlank(userCode)){
-            throw new ObjectException("未登录");
-        }
         dataPacket.setRecorder(userCode);
         dataPacket.setDataOptDescJson(StringEscapeUtils.unescapeHtml4(dataPacket.getDataOptDescJson()));
         dataPacketService.createDataPacket(dataPacket);
@@ -203,15 +202,25 @@ public class DataPacketController extends BaseController {
         DataSetDefine query = dataSetDefineService.getDbQuery(queryId);
         DataPacket dataPacket = dataPacketService.getDataPacket(query.getPacketId());
         Map<String, Object> modelTag = dataPacket.getPacketParamsValue();
+        switch (query.getSetType()){
+            case "D":
+            SQLDataSetReader sqlDSR = new SQLDataSetReader();
+            sqlDSR.setDataSource(JdbcConnect.mapDataSource(
+                integrationEnvironment.getDatabaseInfo(query.getDatabaseCode())));
+            sqlDSR.setSqlSen(query.getQuerySQL());
+            if (params != null) {
+                modelTag.putAll(params);
+            }
+            return sqlDSR.load(modelTag);
+            case "E":
+                String fileId= query.getQuerySQL();
+                ExcelDataSet excelDataSet=new ExcelDataSet();
+                params.put("FileId",fileId);
+                excelDataSet .setFilePath(System.getProperty("java.io.tmpdir")+fileId+".tmp");
+                return excelDataSet.load(params);
 
-        SQLDataSetReader sqlDSR = new SQLDataSetReader();
-        sqlDSR.setDataSource(JdbcConnect.mapDataSource(
-            integrationEnvironment.getDatabaseInfo(query.getDatabaseCode())));
-        sqlDSR.setSqlSen(query.getQuerySQL());
-        if(params!=null){
-            modelTag.putAll(params);
         }
-        return sqlDSR.load(modelTag);
+        return null;
     }
 
 

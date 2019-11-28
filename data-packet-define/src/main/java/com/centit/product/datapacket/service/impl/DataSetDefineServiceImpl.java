@@ -93,13 +93,15 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
         List<ColumnSchema> columnSchemas = new ArrayList<>(10);
         if (columns!=null) {
             for (String s : columns) {
-                ColumnSchema col = new ColumnSchema();
-                col.setColumnCode(s);
-                col.setPropertyName(s);
-                col.setColumnName(col.getPropertyName());
-                col.setDataType(FieldType.STRING);
-                col.setIsStatData("F");
-                columnSchemas.add(col);
+                if(s!=null && s.length()!=0) {
+                    ColumnSchema col = new ColumnSchema();
+                    col.setColumnCode(s);
+                    col.setPropertyName(s);
+                    col.setColumnName(col.getPropertyName());
+                    col.setDataType(FieldType.STRING);
+                    col.setIsStatData("F");
+                    columnSchemas.add(col);
+                }
             }
         }
         return  columnSchemas;

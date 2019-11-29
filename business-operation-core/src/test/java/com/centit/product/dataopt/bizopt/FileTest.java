@@ -3,11 +3,7 @@ package com.centit.product.dataopt.bizopt;
 import com.centit.product.dataopt.dataset.ExcelDataSet;
 import com.centit.product.dataopt.dataset.FileDataSet;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 

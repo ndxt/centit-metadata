@@ -37,9 +37,6 @@ public class DataSetDefineController extends BaseController {
     @WrapUpResponseBody
     public void createDbQuery(DataSetDefine dataSetDefine, HttpServletRequest request){
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        if(StringUtils.isBlank(userCode)){
-            throw new ObjectException("未登录");
-        }
         dataSetDefine.setRecorder(userCode);
         dataSetDefineService.createDbQuery(dataSetDefine);
     }
@@ -92,8 +89,12 @@ public class DataSetDefineController extends BaseController {
     @ApiImplicitParam(name = "sql", value = "查询SQL", required = true)
     @RequestMapping(value = "/sqlcolumn", method = {RequestMethod.POST})
     @WrapUpResponseBody
-    public List<ColumnSchema> generateSqlcolumn(String databaseCode, String sql, HttpServletRequest request){
+    public List<ColumnSchema> generateSqlcolumn(String databaseCode, String sql,String dataType, HttpServletRequest request){
         Map<String, Object> params = collectRequestParameters(request);
+        if ("E".equals(dataType)||databaseCode==null||databaseCode.equals("")){
+            params.put("FileId",sql);
+            return dataSetDefineService.generateExcelFields(params);
+        }
         return dataSetDefineService.generateSqlFields(databaseCode, sql, params);
     }
 

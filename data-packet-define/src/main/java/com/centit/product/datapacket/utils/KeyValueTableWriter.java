@@ -77,7 +77,7 @@ public class KeyValueTableWriter implements DataSetWriter {
     private Map<String, Object> transToKeyValue(Map<String, Object> data){
 
         String pkValue;
-        List<TableField> pkCols = tableInfo.getPkFields();
+        List<? extends TableField> pkCols = tableInfo.getPkFields();
         if(pkCols != null && pkCols.size()>1){
             pkValue = tableInfo.fetchObjectPkAsId(data);
         }else {

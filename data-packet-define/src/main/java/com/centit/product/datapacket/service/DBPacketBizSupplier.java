@@ -5,6 +5,7 @@ import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.dataopt.core.BizSupplier;
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.core.SimpleBizModel;
+import com.centit.product.dataopt.dataset.ExcelDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.DataSetDefine;
@@ -40,11 +41,16 @@ public class DBPacketBizSupplier implements BizSupplier {
         }
         if (this.dbPacket.getDataSetDefines() !=null && this.dbPacket.getDataSetDefines().size() >0) {
             for (DataSetDefine rdd : this.dbPacket.getDataSetDefines()) {
-                SQLDataSetReader sqlDSR = new SQLDataSetReader();
-                sqlDSR.setDataSource(JdbcConnect.mapDataSource(
-                    integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));
-                sqlDSR.setSqlSen(rdd.getQuerySQL());
-                dataSets.put(rdd.getQueryId(), sqlDSR.load(modelTag));
+                if("D".equals(rdd.getSetType())) {
+                    SQLDataSetReader sqlDSR = new SQLDataSetReader();
+                    sqlDSR.setDataSource(JdbcConnect.mapDataSource(
+                        integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));
+                    sqlDSR.setSqlSen(rdd.getQuerySQL());
+                    dataSets.put(rdd.getQueryId(), sqlDSR.load(modelTag));
+                } else if ("E".equals(rdd.getSetType())){
+                    modelTag.put("FileId",rdd.getQuerySQL());
+                    dataSets.put(rdd.getQueryId(),new ExcelDataSet().load(modelTag));
+                }
             }
         }
         bizModel.setModelTag(modelTag);

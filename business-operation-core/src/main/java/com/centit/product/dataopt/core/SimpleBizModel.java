@@ -1,5 +1,7 @@
 package com.centit.product.dataopt.core;
 
+import com.alibaba.fastjson.JSONObject;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +34,30 @@ public class SimpleBizModel implements BizModel, Serializable {
         if(this.bizData == null){
             this.bizData = new HashMap<>(6);
         }
+    }
+
+    /**
+     * @param singleRowAsObject 如果为true DataSet中只有一行记录的就作为JSONObject；
+     *                          否则为 JSONArray
+     * @return JSONObject
+     */
+    @Override
+    public JSONObject toJSONObject(boolean singleRowAsObject) {
+        JSONObject dataObject = new JSONObject();
+        if(bizData != null) {
+            for (Map.Entry<String, DataSet> datasetEnt : bizData.entrySet()){
+                DataSet dataSet = datasetEnt.getValue();
+                if(dataSet.getRowCount() == 1 && singleRowAsObject){
+                    dataObject.put(datasetEnt.getKey(), dataSet.getFirstRow());
+                } else if(!dataSet.isEmpty()){
+                    dataObject.put(datasetEnt.getKey(), dataSet.getData());
+                }
+            }
+        }
+        if(modelTag != null && !modelTag.isEmpty()){
+            dataObject.put("modelTag", modelTag);
+        }
+        return dataObject;
     }
 
     public String getModelName() {

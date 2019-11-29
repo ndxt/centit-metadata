@@ -47,6 +47,10 @@ public interface DataSet {
         return getData()==null || getData().size()==0;
     }
 
+    default int getRowCount(){
+        return getData()==null? 0 : getData().size();
+    }
+
     default Map<String, Object> getFirstRow() {
         if (!isEmpty()) {
             return getData().get(0);

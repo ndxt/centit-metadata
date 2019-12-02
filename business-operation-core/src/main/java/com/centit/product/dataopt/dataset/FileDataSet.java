@@ -1,10 +1,8 @@
 package com.centit.product.dataopt.dataset;
 
 import com.centit.fileserver.client.DefaultFileClient;
-import com.centit.framework.appclient.AppSession;
 import com.centit.product.dataopt.core.DataSetReader;
 import com.centit.product.dataopt.core.DataSetWriter;
-import org.springframework.context.annotation.Bean;
 
 import java.io.File;
 import java.io.IOException;

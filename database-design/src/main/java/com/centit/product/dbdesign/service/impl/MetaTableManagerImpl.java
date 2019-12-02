@@ -2,10 +2,8 @@ package com.centit.product.dbdesign.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
-import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.dao.PendingMetaColumnDao;

@@ -1,5 +1,6 @@
 package com.centit.product.dataopt.core;
 
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 
 import java.util.Map;
@@ -38,6 +39,13 @@ public interface BizModel {
     }
 
     void checkBizDataSpace();
+
+    /**
+     * @param singleRowAsObject 如果为true DataSet中只有一行记录的就作为JSONObject；
+     *                          否则为 JSONArray
+     * @return JSONObject
+     */
+    JSONObject toJSONObject(boolean singleRowAsObject);
 
     default void putDataSet(String relationPath, DataSet dataSet) {
         checkBizDataSpace();

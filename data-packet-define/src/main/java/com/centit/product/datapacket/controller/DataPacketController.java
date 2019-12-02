@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -213,10 +214,12 @@ public class DataPacketController extends BaseController {
             }
             return sqlDSR.load(modelTag);
             case "E":
-                String fileId= query.getQuerySQL();
                 ExcelDataSet excelDataSet=new ExcelDataSet();
-                params.put("FileId",fileId);
-                excelDataSet .setFilePath(System.getProperty("java.io.tmpdir")+fileId+".tmp");
+                try {
+                    excelDataSet.setFilePath(FileDataSet.downFile(query.getQuerySQL()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 return excelDataSet.load(params);
 
         }

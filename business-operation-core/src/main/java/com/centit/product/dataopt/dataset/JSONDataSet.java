@@ -25,10 +25,10 @@ public class JSONDataSet extends FileDataSet{
         try {
             if(params !=null && BooleanBaseOpt.castObjectToBoolean(
                 params.get("isJSONArray"),false)) {
-                JSONArray json = JSON.parseArray(FileIOOpt.readStringFromFile(this.filePath));
+                JSONArray json = JSON.parseArray(FileIOOpt.readStringFromFile(this.getFilePath()));
                 return SimpleDataSet.fromJsonArray(json);
             }else {
-                return JSON.parseObject(FileIOOpt.readStringFromFile(this.filePath), SimpleDataSet.class);
+                return JSON.parseObject(FileIOOpt.readStringFromFile(this.getFilePath()), SimpleDataSet.class);
             }
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage(),e);
@@ -44,7 +44,7 @@ public class JSONDataSet extends FileDataSet{
     @Override
     public void save(DataSet dataSet) {
         try {
-            FileIOOpt.writeStringToFile(JSON.toJSONString(dataSet), this.filePath);
+            FileIOOpt.writeStringToFile(JSON.toJSONString(dataSet), this.getFilePath());
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage(),e);
         }

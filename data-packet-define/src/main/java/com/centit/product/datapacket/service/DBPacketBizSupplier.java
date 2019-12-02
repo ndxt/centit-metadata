@@ -6,11 +6,13 @@ import com.centit.product.dataopt.core.BizSupplier;
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.core.SimpleBizModel;
 import com.centit.product.dataopt.dataset.ExcelDataSet;
+import com.centit.product.dataopt.dataset.FileDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.DataSetDefine;
 import com.centit.support.database.utils.JdbcConnect;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,7 +50,12 @@ public class DBPacketBizSupplier implements BizSupplier {
                     sqlDSR.setSqlSen(rdd.getQuerySQL());
                     dataSets.put(rdd.getQueryId(), sqlDSR.load(modelTag));
                 } else if ("E".equals(rdd.getSetType())){
-                    modelTag.put("FileId",rdd.getQuerySQL());
+                    ExcelDataSet excelDataSet = new ExcelDataSet();
+                    try {
+                        excelDataSet.setFilePath(FileDataSet.downFile(rdd.getQuerySQL()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     dataSets.put(rdd.getQueryId(),new ExcelDataSet().load(modelTag));
                 }
             }

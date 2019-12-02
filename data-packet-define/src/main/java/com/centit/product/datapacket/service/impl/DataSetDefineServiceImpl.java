@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.dataopt.dataset.ExcelDataSet;
+import com.centit.product.dataopt.dataset.FileDataSet;
 import com.centit.product.datapacket.dao.DataPacketDao;
 import com.centit.product.datapacket.dao.DataSetDefineDao;
 import com.centit.product.datapacket.po.DataSetDefine;
@@ -89,7 +90,13 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
     }
 
     public List<ColumnSchema> generateExcelFields(Map<String, Object> params){
-        String[] columns= new ExcelDataSet().getColumns(params);
+        ExcelDataSet excelDataSet = new ExcelDataSet();
+        try {
+            excelDataSet.setFilePath(FileDataSet.downFile((String)params.get("FileId")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String[] columns= excelDataSet.getColumns();
         List<ColumnSchema> columnSchemas = new ArrayList<>(10);
         if (columns!=null) {
             for (String s : columns) {

@@ -20,7 +20,7 @@ import com.centit.product.datapacket.service.DataPacketService;
 import com.centit.product.datapacket.service.DataSetDefineService;
 import com.centit.product.datapacket.utils.DataPacketUtil;
 import com.centit.product.datapacket.vo.DataPacketSchema;
-import com.centit.support.database.utils.JdbcConnect;
+import com.centit.support.database.utils.DbcpConnectPools;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -205,7 +205,7 @@ public class DataPacketController extends BaseController {
         switch (query.getSetType()){
             case "D":
             SQLDataSetReader sqlDSR = new SQLDataSetReader();
-            sqlDSR.setDataSource(JdbcConnect.mapDataSource(
+            sqlDSR.setDataSource(DbcpConnectPools.mapDataSourceDesc(
                 integrationEnvironment.getDatabaseInfo(query.getDatabaseCode())));
             sqlDSR.setSqlSen(query.getQuerySQL());
             if (params != null) {

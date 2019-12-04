@@ -136,7 +136,7 @@ public class MetaTableController extends BaseController {
             mdTable.setTableState("W");
             PendingMetaTable table = new PendingMetaTable();
             table.copyNotNullProperty(mdTable);
-            if("C".equals(table.getTableType())){
+            /*if("C".equals(table.getTableType())){
                 PendingMetaColumn col = table.findFieldByName(MetaTable.OBJECT_AS_CLOB_ID_PROP);
                 if (col == null) {
                     col = new PendingMetaColumn(table, MetaTable.OBJECT_AS_CLOB_ID_FIELD);
@@ -159,7 +159,7 @@ public class MetaTableController extends BaseController {
                     col.setRecorder(userCode);
                     table.addMdColumn(col);
                 }
-            }
+            }*/
             mdTableMag.saveNewPendingMetaTable(table);
             JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
         } else{

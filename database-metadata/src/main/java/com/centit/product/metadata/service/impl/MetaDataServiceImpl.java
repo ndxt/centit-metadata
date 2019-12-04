@@ -15,7 +15,7 @@ import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.*;
 import com.centit.support.database.utils.DBType;
-import com.centit.support.database.utils.JdbcConnect;
+import com.centit.support.database.utils.DbcpConnectPools;
 import com.centit.support.database.utils.PageDesc;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -82,7 +82,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
         try {
-            jdbcMetadata.setDBConfig(JdbcConnect.getConn(databaseInfo));
+            jdbcMetadata.setDBConfig(DbcpConnectPools.getDbcpConnect(databaseInfo));
             if (databaseInfo.getDatabaseUrl().indexOf("oracle") > -1)
                 jdbcMetadata.setDBSchema(databaseInfo.getUsername().toUpperCase());
         }catch (SQLException e){

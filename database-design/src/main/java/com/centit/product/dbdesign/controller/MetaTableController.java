@@ -340,11 +340,6 @@ public class MetaTableController extends BaseController {
             tables.add(o.toString());
         }
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        if (StringUtils.isBlank(userCode)) {
-            JsonResultUtils.writeErrorMessageJson(ResponseData.ERROR_UNAUTHORIZED,
-                "当前用户没有登录，请先登录。", response);
-            return;
-        }
         Pair<Integer, String> ret = mdTableMag.syncPdm(databaseCode,tempFilePath,tables,userCode);
         JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }

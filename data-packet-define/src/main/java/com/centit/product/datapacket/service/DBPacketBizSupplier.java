@@ -1,10 +1,7 @@
 package com.centit.product.datapacket.service;
 
 import com.centit.framework.ip.service.IntegrationEnvironment;
-import com.centit.product.dataopt.core.BizModel;
-import com.centit.product.dataopt.core.BizSupplier;
-import com.centit.product.dataopt.core.DataSet;
-import com.centit.product.dataopt.core.SimpleBizModel;
+import com.centit.product.dataopt.core.*;
 import com.centit.product.dataopt.dataset.ExcelDataSet;
 import com.centit.product.dataopt.dataset.FileDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
@@ -48,7 +45,9 @@ public class DBPacketBizSupplier implements BizSupplier {
                     sqlDSR.setDataSource(DataSourceDescription.valueOf(
                         integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));
                     sqlDSR.setSqlSen(rdd.getQuerySQL());
-                    dataSets.put(rdd.getQueryId(), sqlDSR.load(modelTag));
+                    SimpleDataSet dataset = sqlDSR.load(modelTag);
+                    dataset.setDataSetName(rdd.getQueryName());
+                    dataSets.put(rdd.getQueryId(), dataset);
                 } else if ("E".equals(rdd.getSetType())){
                     ExcelDataSet excelDataSet = new ExcelDataSet();
                     try {
@@ -56,7 +55,7 @@ public class DBPacketBizSupplier implements BizSupplier {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    dataSets.put(rdd.getQueryId(),new ExcelDataSet().load(modelTag));
+                    dataSets.put(rdd.getQueryId(), new ExcelDataSet().load(modelTag));
                 }
             }
         }

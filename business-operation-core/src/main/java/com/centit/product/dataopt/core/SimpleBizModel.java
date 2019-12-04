@@ -45,12 +45,11 @@ public class SimpleBizModel implements BizModel, Serializable {
     public JSONObject toJSONObject(boolean singleRowAsObject) {
         JSONObject dataObject = new JSONObject();
         if(bizData != null) {
-            for (Map.Entry<String, DataSet> datasetEnt : bizData.entrySet()){
-                DataSet dataSet = datasetEnt.getValue();
+            for (DataSet dataSet: bizData.values()){
                 if(dataSet.getRowCount() == 1 && singleRowAsObject){
-                    dataObject.put(datasetEnt.getKey(), dataSet.getFirstRow());
+                    dataObject.put(dataSet.getDataSetName(), dataSet.getFirstRow());
                 } else if(!dataSet.isEmpty()){
-                    dataObject.put(datasetEnt.getKey(), dataSet.getData());
+                    dataObject.put(dataSet.getDataSetName(), dataSet.getData());
                 }
             }
         }

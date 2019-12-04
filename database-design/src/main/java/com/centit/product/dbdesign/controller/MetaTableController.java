@@ -306,7 +306,7 @@ public class MetaTableController extends BaseController {
                 JSONObject jsonObject = new JSONObject();
                 Map<String, Object> data = new HashMap<>(4);
                 data.put("tempFilePath", token +"_"+size);
-                data.put("tables",fetchPdmTables(tempFilePath));
+                data.put("tables",PdmTableInfoUtils.getTableNameFromPdm(tempFilePath));
                 jsonObject.put("tables",data);
                 JsonResultUtils.writeSingleDataJson(jsonObject,response);
                 //FileSystemOpt.deleteFile(tempFilePath);
@@ -347,11 +347,6 @@ public class MetaTableController extends BaseController {
     public void publishDatabase(@PathVariable String databaseCode,
                                HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        if (StringUtils.isBlank(userCode)) {
-            JsonResultUtils.writeErrorMessageJson(ResponseData.ERROR_UNAUTHORIZED,
-                "当前用户没有登录，请先登录。", response);
-            return;
-        }
         Pair<Integer, String> ret = mdTableMag.publishDatabase(databaseCode, userCode);
         JSONObject json = new JSONObject();
         json.put(ResponseData.RES_CODE_FILED, ret.getLeft());

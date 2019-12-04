@@ -49,6 +49,21 @@ public abstract class PdmTableInfoUtils {
         return metaTable;
     }
 
+    public static List<SimpleTableInfo> getTableNameFromPdm(String pdmFilePath) {
+        PdmReader pdmReader = new PdmReader();
+        if(!pdmReader.loadPdmFile(pdmFilePath))
+            return null;
+        List<SimpleTableInfo> pdmTables = new ArrayList<>();
+        List<Pair<String,String>> tabNames = pdmReader.getAllTableCode();
+        for (Pair<String, String> tabName : tabNames) {
+            SimpleTableInfo pdmTable = new SimpleTableInfo();
+            pdmTable.setTableName(tabName.getKey());
+            pdmTable.setTableLabelName(tabName.getValue());
+            pdmTables.add(pdmTable);
+        }
+        return pdmTables;
+    }
+
     public static List<SimpleTableInfo> importTableFromPdm(String pdmFilePath) {
         PdmReader pdmReader = new PdmReader();
         if(!pdmReader.loadPdmFile(pdmFilePath))

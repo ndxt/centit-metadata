@@ -55,7 +55,9 @@ public class DBPacketBizSupplier implements BizSupplier {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    dataSets.put(rdd.getQueryId(), new ExcelDataSet().load(modelTag));
+                    SimpleDataSet dataset = excelDataSet.load(modelTag);
+                    dataset.setDataSetName(rdd.getQueryName());
+                    dataSets.put(rdd.getQueryId(), dataset);
                 }
             }
         }

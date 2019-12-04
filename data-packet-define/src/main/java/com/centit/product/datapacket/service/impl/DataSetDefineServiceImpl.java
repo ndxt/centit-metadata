@@ -73,7 +73,7 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(QueryUtils.translateQuery(sql, params));
         try{
-            return TransactionHandler.executeQueryInTransaction(JdbcConnect.mapDataSource(databaseInfo),
+            return TransactionHandler.executeQueryInTransaction(DataSourceDescription.valueOf(databaseInfo),
                 (conn) -> DatabaseAccess.findObjectsAsJSON(conn,
                 QueryUtils.buildLimitQuerySQL(qap.getQuery(),0,20,false,
                     DBType.mapDBType(databaseInfo.getDatabaseUrl())),
@@ -120,7 +120,7 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
         String sSql = QueryUtils.buildLimitQuerySQL(qap.getQuery(),0,2,false,
             DBType.mapDBType(databaseInfo.getDatabaseUrl()));
         List<ColumnSchema> columnSchemas = new ArrayList<>(50);
-        try(Connection conn = JdbcConnect.getConn(databaseInfo);
+        try(Connection conn = DbcpConnectPools.getDbcpConnect(databaseInfo);
             PreparedStatement stmt = conn.prepareStatement(sSql)){
 
             DatabaseAccess.setQueryStmtParameters(stmt,qap.getParams());

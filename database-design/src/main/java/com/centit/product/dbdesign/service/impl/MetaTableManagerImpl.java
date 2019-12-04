@@ -252,6 +252,21 @@ public class MetaTableManagerImpl
                 ptable.addMdColumn(col);
             }
         }
+        if("C".equals(ptable.getTableType())){
+            PendingMetaColumn col = ptable.findFieldByName(MetaTable.OBJECT_AS_CLOB_FIELD);
+            if (col == null) {
+                col = new PendingMetaColumn(ptable, MetaTable.OBJECT_AS_CLOB_FIELD);
+                col.setFieldLabelName("流程实例ID");
+                col.setColumnComment("业务对应的工作流程实例ID");
+                col.setFieldType(FieldType.JSON_OBJECT);
+                col.setMaxLength(32);
+                col.setLastModifyDate(DatetimeOpt.currentUtilDate());
+                col.setRecorder(currentUser);
+                ptable.addMdColumn(col);
+            } else { //检查类型 string text FieldType.JSON_OBJECT
+
+            }
+        }
 
         if ("1".equals(ptable.getWorkFlowOptType()) || "2".equals(ptable.getWorkFlowOptType())) {
             PendingMetaColumn col = ptable.findFieldByName(MetaTable.WORKFLOW_INST_ID_PROP);
@@ -575,11 +590,8 @@ public class MetaTableManagerImpl
                     return ret;
                 List<String> error = new ArrayList<>();
                 DatabaseInfo mdb = integrationEnvironment.getDatabaseInfo(metaTable.getDatabaseCode());
-                DataSourceDescription dbc = new DataSourceDescription();
-                dbc.setDatabaseCode(mdb.getDatabaseCode());
-                dbc.setConnUrl(mdb.getDatabaseUrl());
-                dbc.setUsername(mdb.getUsername());
-                dbc.setPassword(mdb.getClearPassword());
+
+                DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
                 Connection conn = DbcpConnectPools.getDbcpConnect(dbc);
                 DBType databaseType = DBType.mapDBType(conn);
                 metaTable.setDatabaseType(databaseType);

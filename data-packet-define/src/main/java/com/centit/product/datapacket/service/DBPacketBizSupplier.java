@@ -10,7 +10,7 @@ import com.centit.product.dataopt.dataset.FileDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.DataSetDefine;
-import com.centit.support.database.utils.DbcpConnectPools;
+import com.centit.support.database.utils.DataSourceDescription;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -45,7 +45,7 @@ public class DBPacketBizSupplier implements BizSupplier {
             for (DataSetDefine rdd : this.dbPacket.getDataSetDefines()) {
                 if("D".equals(rdd.getSetType())) {
                     SQLDataSetReader sqlDSR = new SQLDataSetReader();
-                    sqlDSR.setDataSource(DbcpConnectPools.mapDataSourceDesc(
+                    sqlDSR.setDataSource(DataSourceDescription.valueOf(
                         integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));
                     sqlDSR.setSqlSen(rdd.getQuerySQL());
                     dataSets.put(rdd.getQueryId(), sqlDSR.load(modelTag));

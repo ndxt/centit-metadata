@@ -73,7 +73,7 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(QueryUtils.translateQuery(sql, params));
         try{
-            return TransactionHandler.executeQueryInTransaction(DbcpConnectPools.mapDataSourceDesc(databaseInfo),
+            return TransactionHandler.executeQueryInTransaction(DataSourceDescription.valueOf(databaseInfo),
                 (conn) -> DatabaseAccess.findObjectsAsJSON(conn,
                 QueryUtils.buildLimitQuerySQL(qap.getQuery(),0,20,false,
                     DBType.mapDBType(databaseInfo.getDatabaseUrl())),

@@ -591,7 +591,7 @@ public class MetaTableManagerImpl
                 List<String> error = new ArrayList<>();
                 DatabaseInfo mdb = integrationEnvironment.getDatabaseInfo(metaTable.getDatabaseCode());
 
-                DataSourceDescription dbc = DbcpConnectPools.mapDataSourceDesc(mdb);
+                DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
                 Connection conn = DbcpConnectPools.getDbcpConnect(dbc);
                 DBType databaseType = DBType.mapDBType(conn);
                 metaTable.setDatabaseType(databaseType);

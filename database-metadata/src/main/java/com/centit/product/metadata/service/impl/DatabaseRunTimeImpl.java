@@ -8,7 +8,6 @@ import com.centit.support.common.ObjectException;
 import com.centit.support.database.transaction.ConnectThreadHolder;
 import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.DatabaseAccess;
-import com.centit.support.database.utils.DbcpConnectPools;
 import com.centit.support.database.utils.PersistenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,7 @@ public class DatabaseRunTimeImpl implements DatabaseRunTime {
 
     private DataSourceDescription fetchDataSource(String databaseCode) throws SQLException {
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
-        return DbcpConnectPools.mapDataSourceDesc(databaseInfo);
+        return DataSourceDescription.valueOf(databaseInfo);
     }
     @Override
     public JSONArray query(String databaseId, String sql, Object[] params) {

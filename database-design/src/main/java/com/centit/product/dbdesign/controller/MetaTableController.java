@@ -30,7 +30,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -270,12 +269,10 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "range")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.GET)
     @RequestMapping(value = "/range", method = {RequestMethod.GET})
-    public void checkFileRange(String token, long size,
-                               HttpServletRequest request, HttpServletResponse response)
-        throws IOException {
+    @WrapUpResponseBody
+    public JSONObject checkFileRange(String token, long size) {
         //FileRangeInfo fr = new FileRangeInfo(token,size);
-        Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
-
+        //Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
         //检查临时目录中的文件大小，返回文件的其实点
         String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
         long tempFileSize = SystemTempFileUtils.checkTempFileSize(tempFilePath);
@@ -283,10 +280,10 @@ public class MetaTableController extends BaseController {
         data.put("tempFilePath", token +"_"+size);
         JSONObject jsonObject = UploadDownloadUtils.makeRangeUploadJson(tempFileSize, token, token +"_"+size);
         if (tempFileSize == size) {
-            data.put("tables",fetchPdmTables(tempFilePath));
-            jsonObject.put("tables",data);
+            data.put("tables", fetchPdmTables(tempFilePath));
+            jsonObject.put("tables", data);
         }
-        JsonResultUtils.writeSingleDataJson(jsonObject,response);
+        return jsonObject;
     }
 
     @ApiOperation(value = "导入pdm返回表数据")
@@ -306,8 +303,8 @@ public class MetaTableController extends BaseController {
                 JSONObject jsonObject = new JSONObject();
                 Map<String, Object> data = new HashMap<>(4);
                 data.put("tempFilePath", token +"_"+size);
-                data.put("tables",PdmTableInfoUtils.getTableNameFromPdm(tempFilePath));
-                jsonObject.put("tables",data);
+                data.put("tables", PdmTableInfoUtils.getTableNameFromPdm(tempFilePath));
+                jsonObject.put("tables", data);
                 JsonResultUtils.writeSingleDataJson(jsonObject,response);
                 //FileSystemOpt.deleteFile(tempFilePath);
             }else if(uploadSize>0){

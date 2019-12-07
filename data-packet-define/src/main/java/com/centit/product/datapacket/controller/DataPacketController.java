@@ -15,6 +15,7 @@ import com.centit.product.dataopt.dataset.ExcelDataSet;
 import com.centit.product.dataopt.dataset.FileDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
+import com.centit.product.datapacket.po.DataSetColumnDesc;
 import com.centit.product.datapacket.po.DataSetDefine;
 import com.centit.product.datapacket.service.DataPacketService;
 import com.centit.product.datapacket.service.DataSetDefineService;
@@ -67,6 +68,12 @@ public class DataPacketController extends BaseController {
     public void updateDataPacket(@PathVariable String packetId, @RequestBody DataPacket dataPacket){
         dataPacket.setPacketId(packetId);
         dataPacket.setDataOptDescJson(StringEscapeUtils.unescapeHtml4(dataPacket.getDataOptDescJson()));
+        for(DataSetDefine setDefine:dataPacket.getDataSetDefines()){
+            for(DataSetColumnDesc columnDesc:setDefine.getColumns()){
+                columnDesc.setPacketId(dataPacket.getPacketId());
+                columnDesc.setQueryId(setDefine.getQueryId());
+            }
+        }
         dataPacketService.updateDataPacket(dataPacket);
     }
 

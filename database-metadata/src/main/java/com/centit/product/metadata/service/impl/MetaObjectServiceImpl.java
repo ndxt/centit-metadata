@@ -161,12 +161,14 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         List<MetaRelation> mds = tableInfo.getParents();
         if(mds!=null) {
             for (MetaRelation md : mds) {
-                MetaTable parentTableInfo = metaDataCache.getTableInfo(md.getParentTableId());
-                Map<String, Object> ref = md.fetchParentPk(mainObj);
-                if(ref.size()>0) {
-                    JSONObject ja = GeneralJsonObjectDao.createJsonObjectDao(conn, parentTableInfo)
-                        .getObjectById(ref);
-                    mainObj.put(md.getRelationName(),ja);
+                if (md.getRelationDetails()!=null) {
+                    MetaTable parentTableInfo = metaDataCache.getTableInfo(md.getParentTableId());
+                    Map<String, Object> ref = md.fetchParentPk(mainObj);
+                    if (ref.size() ==parentTableInfo.getPkFields().size()) {
+                        JSONObject ja = GeneralJsonObjectDao.createJsonObjectDao(conn, parentTableInfo)
+                            .getObjectById(ref);
+                        mainObj.put(md.getRelationName(), ja);
+                    }
                 }
             }
         }

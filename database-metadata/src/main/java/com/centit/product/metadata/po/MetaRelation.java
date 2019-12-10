@@ -66,10 +66,10 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     /**
      * 关联类型
      * OTM:1对多，OTO1对1，MTO多对1
-     */
+     *//*
     @ApiModelProperty(value = "关联类型")
     @Column(name = "RELATION_TYPE")
-    private String relationType;
+    private String relationType;*/
     /**
      * 状态
      */

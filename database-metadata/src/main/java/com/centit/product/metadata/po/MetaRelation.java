@@ -63,7 +63,13 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     @NotBlank(message = "字段不能为空")
     @Length(max = 64, message = "字段长度不能大于{max}")
     private String relationName;
-
+    /**
+     * 关联类型
+     * OTM:1对多，OTO1对1，MTO多对1
+     */
+    @ApiModelProperty(value = "关联类型")
+    @Column(name = "RELATION_TYPE")
+    private String relationType;
     /**
      * 状态
      */

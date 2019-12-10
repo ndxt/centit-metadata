@@ -1,13 +1,14 @@
 package com.centit.product.dataopt.core;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SimpleBizModel implements BizModel, Serializable {
-    private static final long serialVersionUID = -2048746719360025014L;
+    private static final long serialVersionUID = 1L;
     /**
      * 模型名称
      */
@@ -47,6 +48,24 @@ public class SimpleBizModel implements BizModel, Serializable {
         if(bizData != null) {
             for (DataSet dataSet: bizData.values()){
                 if(dataSet.getRowCount() == 1 && singleRowAsObject){
+                    dataObject.put(dataSet.getDataSetName(), dataSet.getFirstRow());
+                } else if(!dataSet.isEmpty()){
+                    dataObject.put(dataSet.getDataSetName(), dataSet.getData());
+                }
+            }
+        }
+        if(modelTag != null && !modelTag.isEmpty()){
+            dataObject.put("modelTag", modelTag);
+        }
+        return dataObject;
+    }
+
+    @Override
+    public JSONObject toJSONObject(String [] singleRowDatasets){
+        JSONObject dataObject = new JSONObject();
+        if(bizData != null) {
+            for (DataSet dataSet: bizData.values()){
+                if(StringUtils.equalsAny(dataSet.getDataSetName(), singleRowDatasets)){
                     dataObject.put(dataSet.getDataSetName(), dataSet.getFirstRow());
                 } else if(!dataSet.isEmpty()){
                     dataObject.put(dataSet.getDataSetName(), dataSet.getData());

@@ -47,6 +47,8 @@ public interface BizModel {
      */
     JSONObject toJSONObject(boolean singleRowAsObject);
 
+    JSONObject toJSONObject(String [] singleRowDatasets);
+
     default void putDataSet(String relationPath, DataSet dataSet) {
         checkBizDataSpace();
         getBizData().put(relationPath, dataSet);

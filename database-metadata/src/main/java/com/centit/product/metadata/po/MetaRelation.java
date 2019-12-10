@@ -31,7 +31,7 @@ import java.util.Map;
 @Table(name = "F_MD_RELATION")
 public class MetaRelation implements TableReference, java.io.Serializable {
 
-    private static final long serialVersionUID = -2136097274479560955L;
+    private static final long serialVersionUID = 1L;
     /**
      * 关联代码 关联关系，类似与外键，但不创建外键
      */

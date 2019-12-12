@@ -220,6 +220,14 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     public Map<String, Object> makeNewObject(String tableId, Map<String, Object> extParams){
         MetaTable tableInfo = metaDataCache.getTableInfoWithParents(tableId);
         JSONObject objectMap = new JSONObject();
+        if(extParams!=null && !extParams.isEmpty()){
+            for(MetaColumn col : tableInfo.getColumns()){
+                Object colValue = extParams.get(col.getPropertyName());
+                if(colValue != null){
+                    objectMap.put(col.getPropertyName(), colValue);
+                }
+            }
+        }
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));

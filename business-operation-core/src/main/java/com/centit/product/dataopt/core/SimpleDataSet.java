@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public class SimpleDataSet implements DataSet, DataSetReader, Serializable {
 
-    private static final long serialVersionUID = 5864945592001190336L;
+    private static final long serialVersionUID = 1L;
 
     public SimpleDataSet(){
         dataSetName = DataSet.SINGLE_DATA_SET_DEFALUT_NAME;

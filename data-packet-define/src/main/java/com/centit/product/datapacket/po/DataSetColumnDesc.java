@@ -18,7 +18,7 @@ import java.io.Serializable;
 @ApiModel(value = "数据集字段描述")
 public class DataSetColumnDesc implements Serializable {
 
-    private static final long serialVersionUID = -4897866009902238572L;
+    private static final long serialVersionUID = 1L;
 
     @Id
     @ApiModelProperty(value = "查询ID", hidden = true)

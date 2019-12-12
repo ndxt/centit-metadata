@@ -30,7 +30,7 @@ import java.io.Serializable;
 @ApiModel(value = "数据包参数")
 public class DataPacketParam implements Serializable {
 
-    private static final long serialVersionUID = 7093824507690734538L;
+    private static final long serialVersionUID = 1L;
 
     @Id
     @ApiModelProperty(value = "数据包ID", hidden = true)

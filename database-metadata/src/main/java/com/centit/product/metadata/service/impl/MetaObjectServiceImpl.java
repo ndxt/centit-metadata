@@ -181,18 +181,20 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             for (MetaRelation md : mds) {
                 MetaTable subTableInfo = metaDataCache.getTableInfoWithRelations(md.getChildTableId());
                 Map<String, Object> ref = md.fetchChildFk(mainObj);
-                JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
-                    .listObjectsByProperties(ref);
+                if(ref!=null) {
+                    JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
+                        .listObjectsByProperties(ref);
 
-                if(withChildrenDeep > 1 && ja != null) {
-                    for (Object subObject : ja){
-                        if(subObject instanceof Map) {
-                            fetchObjectRefrences(conn, (Map<String, Object>) subObject,
-                                subTableInfo, withChildrenDeep - 1);
+                    if (withChildrenDeep > 1 && ja != null) {
+                        for (Object subObject : ja) {
+                            if (subObject instanceof Map) {
+                                fetchObjectRefrences(conn, (Map<String, Object>) subObject,
+                                    subTableInfo, withChildrenDeep - 1);
+                            }
                         }
                     }
+                    mainObj.put(md.getRelationName(), ja);
                 }
-                mainObj.put(md.getRelationName(), ja);
             }
         }
     }
@@ -204,7 +206,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
             Map<String, Object> mainObj = innerGetObjectById(conn, tableInfo , pk);
-            if(withChildrenDeep>0) {
+            if(withChildrenDeep>0 && mainObj!=null) {
                 fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
                 fetchObjectParents(conn, mainObj, tableInfo);
             }

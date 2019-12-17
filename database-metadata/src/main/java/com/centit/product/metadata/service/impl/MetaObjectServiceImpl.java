@@ -164,7 +164,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 if (md.getRelationDetails()!=null) {
                     MetaTable parentTableInfo = metaDataCache.getTableInfo(md.getParentTableId());
                     Map<String, Object> ref = md.fetchParentPk(mainObj);
-                    if (ref.size() ==parentTableInfo.getPkFields().size()) {
+                    if (ref!=null && ref.size() ==parentTableInfo.getPkFields().size()) {
                         JSONObject ja = GeneralJsonObjectDao.createJsonObjectDao(conn, parentTableInfo)
                             .getObjectById(ref);
                         mainObj.put(md.getRelationName(), ja);

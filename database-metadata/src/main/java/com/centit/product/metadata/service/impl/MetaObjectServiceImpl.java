@@ -118,9 +118,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             break;
                         case "O":
                             int pkCount = metaTable.countPkColumn();
-                            if(pkCount < 2 || field.isPrimaryKey()){
+                            if(pkCount < 2 || !field.isPrimaryKey()){
                                 throw new ObjectException(PersistenceException.ORM_METADATA_EXCEPTION,
-                                    "主键生成规则SUB_ORDER必须用于符合主键表中，并且只能用于整型字段！");
+                                    "主键生成规则SUB_ORDER必须用于复合主键表中，并且只能用于整型字段！");
                             }
                             StringBuilder sqlBuilder = new StringBuilder("select max(" );
                             sqlBuilder.append(field.getColumnName())

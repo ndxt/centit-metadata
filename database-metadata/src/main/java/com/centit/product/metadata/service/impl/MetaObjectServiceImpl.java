@@ -83,7 +83,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     private static void makeObjectValueByGenerator(Map<String, Object> object, Map<String, Object> extParams, MetaTable metaTable,
-                                                    JsonObjectDao sqlDialect)
+                                                    JsonObjectDao sqlDialect, long pkOrder)
         throws SQLException, IOException {
 
         for(MetaColumn field : metaTable.getMdColumns()) {
@@ -142,8 +142,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             }
                             Long pkSubOrder = NumberBaseOpt.castObjectToLong(
                                 DatabaseAccess.fetchScalarObject(
-                                    sqlDialect.findObjectsBySql(sqlBuilder.toString(), pkValues)) , 0L);
-                            object.put(field.getPropertyName(), pkSubOrder+1);
+                                    sqlDialect.findObjectsBySql(sqlBuilder.toString(), pkValues)) , pkOrder);
+                            object.put(field.getPropertyName(), pkSubOrder + pkOrder);
                             break;
                         default:
                             break;
@@ -262,7 +262,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao);
+            makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l);
             fetchObjectParents(conn, objectMap, tableInfo);
             return objectMap;
         } catch (SQLException | IOException e) {
@@ -282,7 +282,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            makeObjectValueByGenerator(object, extParams, tableInfo, dao);
+            makeObjectValueByGenerator(object, extParams, tableInfo, dao, 1l);
             prepareObjectForSave(object, tableInfo);
             return dao.saveNewObject(object);
         } catch (SQLException | IOException e) {
@@ -367,7 +367,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(mainObj);
             }else {
                 GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao);
+                makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao, 1l);
                 prepareObjectForSave(mainObj, tableInfo);
                 dao.saveNewObject(mainObj);
                 //GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).saveNewObject(mainObj);
@@ -382,9 +382,11 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         List<Map<String, Object>> subTable = (List<Map<String, Object>>)subObjects;
                         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
                         Map<String, Object> ref = md.fetchChildFk(mainObj);
+                        long order = 1l;
                         for(Map<String, Object> subObj : subTable){
                             subObj.putAll(ref);
-                            makeObjectValueByGenerator(subObj, extParams, relTableInfo, dao);
+                            makeObjectValueByGenerator(subObj, extParams, relTableInfo, dao, order);
+                            order ++;
                             prepareObjectForSave(subObj, relTableInfo);
                         }
                         dao.replaceObjectsAsTabulation(subTable, ref);

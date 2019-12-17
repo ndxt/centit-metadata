@@ -187,7 +187,7 @@ public class MetaRelation implements TableReference, java.io.Serializable {
             if(fkValue == null){
                 return null;
             }
-            fk.put(mrd.getChildColumnName(), fkValue);
+            fk.put(FieldType.mapPropName(mrd.getChildColumnName()), fkValue);
         }
         return fk;
     }
@@ -199,7 +199,7 @@ public class MetaRelation implements TableReference, java.io.Serializable {
             if(pkValue==null){
                 return null;
             }
-            pk.put(mrd.getParentColumnName(), pkValue);
+            pk.put(FieldType.mapPropName(mrd.getParentColumnName()), pkValue);
         }
         return pk;
     }

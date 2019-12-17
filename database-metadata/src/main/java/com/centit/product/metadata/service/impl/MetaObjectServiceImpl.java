@@ -383,8 +383,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
                         Map<String, Object> ref = md.fetchChildFk(mainObj);
                         for(Map<String, Object> subObj : subTable){
-                            makeObjectValueByGenerator(subObj, extParams, relTableInfo, dao);
                             subObj.putAll(ref);
+                            makeObjectValueByGenerator(subObj, extParams, relTableInfo, dao);
                             prepareObjectForSave(subObj, relTableInfo);
                         }
                         dao.replaceObjectsAsTabulation(subTable, ref);

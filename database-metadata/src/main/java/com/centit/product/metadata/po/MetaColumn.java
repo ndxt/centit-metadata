@@ -144,7 +144,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
     /**
      * 自动生成规则   C 常量  U uuid S sequence
      */
-    @ApiModelProperty(value = "自动生成规则   C 常量  U uuid S sequence F 函数")
+    @ApiModelProperty(value = "自动生成规则   C 常量  U uuid S sequence F 函数 O order")
     @Column(name = "AUTO_CREATE_RULE")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String autoCreateRule;

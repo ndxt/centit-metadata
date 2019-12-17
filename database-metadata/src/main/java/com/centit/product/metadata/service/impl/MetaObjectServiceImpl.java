@@ -16,6 +16,7 @@ import com.centit.support.common.ObjectException;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
+import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.transaction.ConnectThreadHolder;
@@ -85,35 +86,64 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                                     JsonObjectDao sqlDialect)
         throws SQLException, IOException {
 
-        for(MetaColumn col :  metaTable.getMdColumns()) {
-            if (StringUtils.equalsAny(col.getAutoCreateRule(), "C", "U", "S", "F")) {
+        for(MetaColumn field : metaTable.getMdColumns()) {
+            if (StringUtils.equalsAny(field.getAutoCreateRule(), "C", "U", "S", "F")) {
                 //只有为空时才创建
-                if (object.get(col.getPropertyName()) == null) {
-                    switch (col.getAutoCreateRule()) {
+                if (object.get(field.getPropertyName()) == null) {
+                    switch (field.getAutoCreateRule()) {
                         case "U":
-                            object.put(col.getPropertyName(), UuidOpt.getUuidAsString32());
+                            object.put(field.getPropertyName(), UuidOpt.getUuidAsString32());
                             break;
                         case "S":
                             //GeneratorTime.READ 读取数据时不能用 SEQUENCE 生成值
                             if (sqlDialect != null) {
-                                object.put(col.getPropertyName(),
-                                    sqlDialect.getSequenceNextValue(col.getAutoCreateParam()));
+                                object.put(field.getPropertyName(),
+                                    sqlDialect.getSequenceNextValue(field.getAutoCreateParam()));
                             }
                             break;
                         case "C":
-                            object.put(col.getPropertyName(), col.getAutoCreateParam());
+                            object.put(field.getPropertyName(), field.getAutoCreateParam());
                             break;
                         case "F":
                             if(extParams != null){
                                 Map<String, Object> objectMap = new HashMap<>(extParams.size() + object.size() + 2);
                                 objectMap.putAll(extParams);
                                 objectMap.putAll(object);
-                                object.put(col.getPropertyName(),
-                                    VariableFormula.calculate(col.getAutoCreateParam(),objectMap));
+                                object.put(field.getPropertyName(),
+                                    VariableFormula.calculate(field.getAutoCreateParam(),objectMap));
                             } else {
-                                object.put(col.getPropertyName(),
-                                    VariableFormula.calculate(col.getAutoCreateParam(), object));
+                                object.put(field.getPropertyName(),
+                                    VariableFormula.calculate(field.getAutoCreateParam(), object));
                             }
+                            break;
+                        case "O":
+                            int pkCount = metaTable.countPkColumn();
+                            if(pkCount < 2 || field.isPrimaryKey()){
+                                throw new ObjectException(PersistenceException.ORM_METADATA_EXCEPTION,
+                                    "主键生成规则SUB_ORDER必须用于符合主键表中，并且只能用于整型字段！");
+                            }
+                            StringBuilder sqlBuilder = new StringBuilder("select max(" );
+                            sqlBuilder.append(field.getColumnName())
+                                .append(" ) as maxOrder from ")
+                                .append(metaTable.getTableName())
+                                .append(" where ");
+                            int pki = 0;
+                            Object[] pkValues = new Object[pkCount-1];
+                            for(MetaColumn col : metaTable.getColumns()){
+                                if(col.isPrimaryKey() &&
+                                    ! StringUtils.equals(col.getPropertyName(), field.getPropertyName())){
+                                    if(pki>0){
+                                        sqlBuilder.append(" and ");
+                                    }
+                                    sqlBuilder.append(col.getColumnName()).append(" = ?");
+                                    pkValues[pki] = object.get(col.getPropertyName());
+                                    pki++;
+                                }
+                            }
+                            Long pkSubOrder = NumberBaseOpt.castObjectToLong(
+                                DatabaseAccess.fetchScalarObject(
+                                    sqlDialect.findObjectsBySql(sqlBuilder.toString(), pkValues)) , 0L);
+                            object.put(field.getPropertyName(), pkSubOrder+1);
                             break;
                         default:
                             break;

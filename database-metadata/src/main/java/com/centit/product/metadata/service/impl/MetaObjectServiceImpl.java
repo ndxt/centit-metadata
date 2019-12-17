@@ -142,8 +142,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             }
                             Long pkSubOrder = NumberBaseOpt.castObjectToLong(
                                 DatabaseAccess.fetchScalarObject(
-                                    sqlDialect.findObjectsBySql(sqlBuilder.toString(), pkValues)) , pkOrder);
-                            object.put(field.getPropertyName(), pkSubOrder + pkOrder);
+                                    sqlDialect.findObjectsBySql(sqlBuilder.toString(), pkValues)) );
+                            object.put(field.getPropertyName(), pkSubOrder == null ? pkOrder : pkSubOrder + pkOrder);
                             break;
                         default:
                             break;

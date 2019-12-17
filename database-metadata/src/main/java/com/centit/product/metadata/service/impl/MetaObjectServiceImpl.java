@@ -87,7 +87,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         throws SQLException, IOException {
 
         for(MetaColumn field : metaTable.getMdColumns()) {
-            if (StringUtils.equalsAny(field.getAutoCreateRule(), "C", "U", "S", "F")) {
+            if (StringUtils.equalsAny(field.getAutoCreateRule(), "C", "U", "S", "F","O")) {
                 //只有为空时才创建
                 if (object.get(field.getPropertyName()) == null) {
                     switch (field.getAutoCreateRule()) {

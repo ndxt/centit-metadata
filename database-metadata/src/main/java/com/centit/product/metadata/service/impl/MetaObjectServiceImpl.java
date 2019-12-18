@@ -82,8 +82,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return object;
     }
 
-    private static void makeObjectValueByGenerator(Map<String, Object> object, Map<String, Object> extParams, MetaTable metaTable,
-                                                    JsonObjectDao sqlDialect, long pkOrder,Boolean isNew)
+    private static void makeObjectValueByGenerator(Map<String, Object> object, Map<String, Object> extParams,
+                                                   MetaTable metaTable, JsonObjectDao sqlDialect,
+                                                   long pkOrder, boolean isGetObject)
         throws SQLException, IOException {
 
         for(MetaColumn field : metaTable.getMdColumns()) {
@@ -117,8 +118,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             }
                             break;
                         case "O":
-                            if (isNew)
-                                break;
+                            if (isGetObject) break;
                             int pkCount = metaTable.countPkColumn();
                             if(pkCount < 2 || !field.isPrimaryKey()){
                                 throw new ObjectException(PersistenceException.ORM_METADATA_EXCEPTION,

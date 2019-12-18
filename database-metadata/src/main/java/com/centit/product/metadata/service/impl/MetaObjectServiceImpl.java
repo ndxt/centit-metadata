@@ -262,7 +262,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l);
+//            makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l);
             fetchObjectParents(conn, objectMap, tableInfo);
             return objectMap;
         } catch (SQLException | IOException e) {

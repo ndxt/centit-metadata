@@ -1,16 +1,34 @@
 package com.centit.product.metadata.service;
 
 import com.alibaba.fastjson.JSONArray;
+import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.database.utils.PageDesc;
 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Map;
 
 public interface MetaObjectService {
 
     Map<String, Object> getObjectById(String tableId, Map<String, Object> pk);
-
     Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep);
+
+    /*void fetchObjectParents(Connection conn, Map<String, Object> mainObj,
+                            MetaTable tableInfo) throws SQLException, IOException;
+
+    void fetchObjectParent(Connection conn, Map<String, Object> mainObj,
+                            MetaTable tableInfo, String parentName) throws SQLException, IOException;
+
+    void fetchObjectRefrence(Connection conn, Map<String, Object> mainObj,
+                              MetaTable tableInfo, String childName)  throws SQLException, IOException;
+
+    void fetchObjectRefrences(Connection conn, Map<String, Object> mainObj,
+                              MetaTable tableInfo, int withChildrenDeep)  throws SQLException, IOException;*/
+
+    Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, String [] fields,
+                                              String [] parents, String [] children);
 
     Map<String, Object> makeNewObject(String tableId, Map<String, Object> extParams);
     Map<String, Object> makeNewObject(String tableId);

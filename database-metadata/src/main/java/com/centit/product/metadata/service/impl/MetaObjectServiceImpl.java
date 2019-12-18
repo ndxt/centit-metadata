@@ -157,7 +157,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return integrationEnvironment.getDatabaseInfo(databaseCode);
     }
 
-    private Map<String, Object> innerGetObjectById(final Connection conn, final TableInfo tableInfo,final Map<String, Object> pk)
+    private Map<String, Object> innerGetObjectById(final Connection conn, final MetaTable tableInfo,final Map<String, Object> pk)
         throws IOException, SQLException {
         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
         if (pk.size()==0){
@@ -165,13 +165,44 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
         if(dao.checkHasAllPkColumns(pk)){
             return dao.getObjectById(pk);
-        } else if( pk.containsKey("flowInstId")) {
+        } else if( pk.containsKey(MetaTable.WORKFLOW_INST_ID_PROP)) {
             return dao.getObjectByProperties(pk);
         } else {
             throw new ObjectException("表或者视图 " + tableInfo.getTableName()
                 +" 缺少对应主键:"+ JSON.toJSONString(pk) );
         }
 
+    }
+
+    private Map<String, Object> innerGetObjectPartFieldsById(final Connection conn, final MetaTable tableInfo,
+                                                             final Map<String, Object> pk, String [] fields)
+        throws IOException, SQLException {
+
+        if (pk.size()==0){
+            throw new ObjectException(tableInfo.getTableName()+"没有传入主键");
+        }
+        HashSet<String> fieldSet = collectPartFields(tableInfo, fields);
+        Pair<String, TableField[]> q = GeneralJsonObjectDao.buildPartFieldSqlWithFields(tableInfo, fieldSet, null, false);
+        String filter;
+        if(GeneralJsonObjectDao.checkHasAllPkColumns(tableInfo, pk)){
+            filter = GeneralJsonObjectDao.buildFilterSqlByPk(tableInfo, null);
+        } else if( pk.containsKey(MetaTable.WORKFLOW_INST_ID_PROP)) {
+            filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null,
+                CollectionsOpt.createList(MetaTable.WORKFLOW_INST_ID_PROP,
+                    MetaTable.WORKFLOW_NODE_INST_ID_PROP));
+        } else {
+            throw new ObjectException(tableInfo.getTableName()+"没有传入主键");
+        }
+
+        String querySql = "select " + q.getLeft() +
+              " from " +tableInfo.getTableName() +
+              " where " + filter;
+        JSONArray objs = GeneralJsonObjectDao.findObjectsByNamedSql(conn,
+            querySql, pk, q.getRight());
+        if(objs!=null && objs.size() == 1){
+            return (JSONObject)objs.get(0);
+        }
+        return null;
     }
 
     @Override
@@ -186,21 +217,37 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
+    private void fetchObjectParent(Connection conn, Map<String, Object> mainObj,
+                                     MetaRelation md) throws SQLException, IOException {
+        MetaTable parentTableInfo = metaDataCache.getTableInfo(md.getParentTableId());
+        Map<String, Object> ref = md.fetchParentPk(mainObj);
+        if (ref!=null && ref.size() == parentTableInfo.getPkFields().size()) {
+            JSONObject ja = GeneralJsonObjectDao.createJsonObjectDao(conn, parentTableInfo)
+                .getObjectById(ref);
+            mainObj.put(md.getRelationName(), ja);
+        }
+    }
+
     private void fetchObjectParents(Connection conn, Map<String, Object> mainObj,
                                       MetaTable tableInfo) throws SQLException, IOException {
         List<MetaRelation> mds = tableInfo.getParents();
         if(mds!=null) {
             for (MetaRelation md : mds) {
                 if (md.getRelationDetails()!=null) {
-                    MetaTable parentTableInfo = metaDataCache.getTableInfo(md.getParentTableId());
-                    Map<String, Object> ref = md.fetchParentPk(mainObj);
-                    if (ref!=null && ref.size() ==parentTableInfo.getPkFields().size()) {
-                        JSONObject ja = GeneralJsonObjectDao.createJsonObjectDao(conn, parentTableInfo)
-                            .getObjectById(ref);
-                        mainObj.put(md.getRelationName(), ja);
-                    }
+                    fetchObjectParent(conn, mainObj, md);
                 }
             }
+        }
+    }
+
+    private void fetchObjectRefrence(Connection conn, Map<String, Object> mainObj,
+                                      MetaRelation md) throws SQLException, IOException {
+        MetaTable subTableInfo = metaDataCache.getTableInfoWithRelations(md.getChildTableId());
+        Map<String, Object> ref = md.fetchChildFk(mainObj);
+        if (ref != null) {
+            JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
+                .listObjectsByProperties(ref);
+            mainObj.put(md.getRelationName(), ja);
         }
     }
 
@@ -230,6 +277,40 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
+    public Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, String [] fields,
+                                              String [] parents, String [] children){
+        MetaTable tableInfo = metaDataCache.getTableInfoAll(tableId);
+        DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        try {
+            Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
+            Map<String, Object> mainObj = (fields != null && fields.length>0)?
+                    innerGetObjectPartFieldsById(conn, tableInfo , pk, fields)
+                    :innerGetObjectById(conn, tableInfo , pk);
+            if(parents != null && parents.length>0){
+                List<MetaRelation> mds = tableInfo.getParents();
+                if(mds!=null) {
+                    for (MetaRelation md : mds) {
+                        if (StringUtils.equalsAny(md.getReferenceName(), parents) && md.getRelationDetails()!=null) {
+                            fetchObjectParent(conn, mainObj, md);
+                        }
+                    }
+                }
+            }
+            List<MetaRelation> mds = tableInfo.getMdRelations();
+            if(mds!=null) {
+                for (MetaRelation md : mds) {
+                    if (StringUtils.equalsAny(md.getReferenceName(), children) && md.getRelationDetails()!=null) {
+                        fetchObjectRefrence(conn, mainObj, md);
+                    }
+                }
+            }
+            return mainObj;
+        } catch (SQLException | IOException e) {
+            throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
+
+    @Override
     public Map<String, Object>  getObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep) {
         MetaTable tableInfo = metaDataCache.getTableInfoAll(tableId);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
@@ -238,8 +319,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Map<String, Object> mainObj = innerGetObjectById(conn, tableInfo , pk);
             if(withChildrenDeep>0 && mainObj!=null) {
                 fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
-                fetchObjectParents(conn, mainObj, tableInfo);
             }
+            fetchObjectParents(conn, mainObj, tableInfo);
             return mainObj;
         } catch (SQLException | IOException e) {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
@@ -451,6 +532,22 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
+    private HashSet<String> collectPartFields(MetaTable tableInfo, String [] fields){
+        HashSet<String> fieldSet = new HashSet<>((fields.length + 5) * 3 / 2);
+        for(TableField pkField : tableInfo.getPkFields()) {
+            fieldSet.add(pkField.getPropertyName());
+        }
+        if(!"0".equals(tableInfo.getWorkFlowOptType())){
+            fieldSet.add(MetaTable.WORKFLOW_INST_ID_PROP);
+            fieldSet.add(MetaTable.WORKFLOW_NODE_INST_ID_PROP);
+        }
+        if(BooleanBaseOpt.castObjectToBoolean(tableInfo.getUpdateCheckTimeStamp(),false)){
+            fieldSet.add(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
+        }
+        Collections.addAll(fieldSet, fields);
+        return fieldSet;
+    }
+
     @Override
     public JSONArray pageQueryObjects(String tableId, String extFilter,
                                       Map<String, Object> params, String [] fields,
@@ -463,22 +560,11 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             //GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
             HashSet<String> fieldSet = null ;
             if(fields !=null && fields.length>0) {
-                fieldSet = new HashSet<>((fields.length + 5) * 3 / 2);
-                for(TableField pkField : tableInfo.getPkFields()) {
-                    fieldSet.add(pkField.getPropertyName());
-                }
-                if(!"0".equals(tableInfo.getWorkFlowOptType())){
-                    fieldSet.add(MetaTable.WORKFLOW_INST_ID_PROP);
-                    fieldSet.add(MetaTable.WORKFLOW_NODE_INST_ID_PROP);
-                }
-                if(BooleanBaseOpt.castObjectToBoolean(tableInfo.getUpdateCheckTimeStamp(),false)){
-                    fieldSet.add(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
-                }
-                Collections.addAll(fieldSet, fields);
+                fieldSet = collectPartFields(tableInfo, fields);
             }
             Pair<String, TableField[]> q = (fieldSet == null) ?
                 GeneralJsonObjectDao.buildFieldSqlWithFields(tableInfo, null, true)
-                : GeneralJsonObjectDao.buildPartFieldSqlWithFields(tableInfo, fieldSet, null);
+                : GeneralJsonObjectDao.buildPartFieldSqlWithFields(tableInfo, fieldSet, null, false);
 
             String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null, params.keySet());
             if(StringUtils.isNotBlank(extFilter)){

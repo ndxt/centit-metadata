@@ -83,7 +83,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     private static void makeObjectValueByGenerator(Map<String, Object> object, Map<String, Object> extParams, MetaTable metaTable,
-                                                    JsonObjectDao sqlDialect, long pkOrder)
+                                                    JsonObjectDao sqlDialect, long pkOrder,Boolean isNew)
         throws SQLException, IOException {
 
         for(MetaColumn field : metaTable.getMdColumns()) {
@@ -117,6 +117,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             }
                             break;
                         case "O":
+                            if (isNew)
+                                break;
                             int pkCount = metaTable.countPkColumn();
                             if(pkCount < 2 || !field.isPrimaryKey()){
                                 throw new ObjectException(PersistenceException.ORM_METADATA_EXCEPTION,
@@ -142,8 +144,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             }
                             Long pkSubOrder = NumberBaseOpt.castObjectToLong(
                                 DatabaseAccess.fetchScalarObject(
-                                    sqlDialect.findObjectsBySql(sqlBuilder.toString(), pkValues)) , pkOrder);
-                            object.put(field.getPropertyName(), pkSubOrder + pkOrder);
+                                    sqlDialect.findObjectsBySql(sqlBuilder.toString(), pkValues)) );
+                            object.put(field.getPropertyName(), pkSubOrder == null ? pkOrder : pkSubOrder + pkOrder);
                             break;
                         default:
                             break;
@@ -343,7 +345,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l);
+            makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l,true);
             fetchObjectParents(conn, objectMap, tableInfo);
             return objectMap;
         } catch (SQLException | IOException e) {
@@ -363,7 +365,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            makeObjectValueByGenerator(object, extParams, tableInfo, dao, 1l);
+            makeObjectValueByGenerator(object, extParams, tableInfo, dao, 1l,false);
             prepareObjectForSave(object, tableInfo);
             return dao.saveNewObject(object);
         } catch (SQLException | IOException e) {
@@ -448,7 +450,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(mainObj);
             }else {
                 GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao, 1l);
+                makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao, 1l,false);
                 prepareObjectForSave(mainObj, tableInfo);
                 dao.saveNewObject(mainObj);
                 //GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).saveNewObject(mainObj);
@@ -466,7 +468,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         long order = 1l;
                         for(Map<String, Object> subObj : subTable){
                             subObj.putAll(ref);
-                            makeObjectValueByGenerator(subObj, extParams, relTableInfo, dao, order);
+                            makeObjectValueByGenerator(subObj, extParams, relTableInfo, dao, order,false);
                             order ++;
                             prepareObjectForSave(subObj, relTableInfo);
                         }

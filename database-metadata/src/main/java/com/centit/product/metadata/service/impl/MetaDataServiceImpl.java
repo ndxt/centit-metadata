@@ -289,6 +289,14 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    public MetaRelation getMetaRelationByName(String tableId, String relationName){
+        return metaRelationDao.getObjectByProperties(
+            CollectionsOpt.createHashMap("parentTableId", tableId,
+                "relationName", relationName)
+        );
+    }
+
+    @Override
     public List<MetaColumn> listMetaColumns(String tableId){
         return metaColumnDao.listObjectsByProperty("tableId", tableId);
     }

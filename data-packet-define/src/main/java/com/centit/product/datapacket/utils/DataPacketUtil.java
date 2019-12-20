@@ -201,14 +201,14 @@ public abstract class DataPacketUtil {
         for(ColumnSchema cs : sdss.getColumns()){
             if(! pks.contains(cs.getPropertyName())){
                 ColumnSchema dup = cs.duplicate();
-                dup.setPropertyName(cs.getPropertyName()+":curr");
+                dup.setPropertyName(cs.getPropertyName()+"_left");
                 dss.addColumn(dup);
             }
         }
         for(ColumnSchema cs : sdss2.getColumns()){
             if(! pks.contains(cs.getPropertyName())){
                 ColumnSchema dup = cs.duplicate();
-                dup.setPropertyName(cs.getPropertyName()+":next");
+                dup.setPropertyName(cs.getPropertyName()+"_right");
                 dss.addColumn(dup);
             }
         }
@@ -226,18 +226,18 @@ public abstract class DataPacketUtil {
         DataSetSchema dss = new DataSetSchema(targetDSName);
         dss.setDataSetName(targetDSName);
         dss.setDataSetTitle(sour1DSName+":"+sour2DSName+ prefix);
-        for(ColumnSchema cs : sdss2.getColumns()){
-            ColumnSchema dup = cs.duplicate();
-            dup.setPropertyName(cs.getPropertyName()+":next");
-            dss.addColumn(dup);
-        }
-
         for(ColumnSchema cs : sdss.getColumns()){
             ColumnSchema dup = cs.duplicate();
             dup.setPropertyName(cs.getPropertyName());
             dss.addColumn(dup);
         }
-
+        for(ColumnSchema cs : sdss2.getColumns()){
+            ColumnSchema dup = cs.duplicate();
+            dup.setPropertyName(cs.getPropertyName());
+            if(!dss.existColumn(cs.getPropertyName())) {
+                dss.addColumn(dup);
+            }
+        }
         sourceSchema.putDataSetSchema(dss);
         return sourceSchema;
     }

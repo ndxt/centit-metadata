@@ -223,7 +223,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                      MetaRelation md) throws SQLException, IOException {
         MetaTable parentTableInfo = metaDataCache.getTableInfo(md.getParentTableId());
         Map<String, Object> ref = md.fetchParentPk(mainObj);
-        if (ref!=null && ref.size() == parentTableInfo.getPkFields().size()) {
+        // 检查是否是和父表的主键关联
+        if (ref != null && GeneralJsonObjectDao.checkHasAllPkColumns(parentTableInfo, ref)) {
             JSONObject ja = GeneralJsonObjectDao.createJsonObjectDao(conn, parentTableInfo)
                 .getObjectById(ref);
             mainObj.put(md.getRelationName(), ja);

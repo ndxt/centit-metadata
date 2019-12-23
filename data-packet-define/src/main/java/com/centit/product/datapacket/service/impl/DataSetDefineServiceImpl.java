@@ -3,8 +3,10 @@ package com.centit.product.datapacket.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
+import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.product.dataopt.dataset.ExcelDataSet;
 import com.centit.product.dataopt.dataset.FileDataSet;
+import com.centit.product.dataopt.dataset.JSONDataSet;
 import com.centit.product.datapacket.dao.DataPacketDao;
 import com.centit.product.datapacket.dao.DataSetDefineDao;
 import com.centit.product.datapacket.po.DataSetDefine;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.Date;
 import java.util.*;
@@ -72,13 +75,13 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
     public JSONArray queryViewSqlData(String databaseCode, String sql, Map<String, Object> params) {
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(QueryUtils.translateQuery(sql, params));
-        try{
+        try {
             return TransactionHandler.executeQueryInTransaction(DataSourceDescription.valueOf(databaseInfo),
                 (conn) -> DatabaseAccess.findObjectsAsJSON(conn,
-                QueryUtils.buildLimitQuerySQL(qap.getQuery(),0,20,false,
-                    DBType.mapDBType(databaseInfo.getDatabaseUrl())),
-                qap.getParams()));
-        }catch (SQLException | IOException e){
+                    QueryUtils.buildLimitQuerySQL(qap.getQuery(), 0, 20, false,
+                        DBType.mapDBType(databaseInfo.getDatabaseUrl())),
+                    qap.getParams()));
+        } catch (SQLException | IOException e) {
             logger.error("执行查询出错，SQL：{},Param:{}", qap.getQuery(), qap.getParams());
             throw new ObjectException("执行查询出错!");
         }
@@ -89,18 +92,19 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
         return QueryUtils.getSqlTemplateParameters(sql);
     }
 
-    public List<ColumnSchema> generateExcelFields(Map<String, Object> params){
+    @Override
+    public List<ColumnSchema> generateExcelFields(Map<String, Object> params) {
         ExcelDataSet excelDataSet = new ExcelDataSet();
         try {
-            excelDataSet.setFilePath(FileDataSet.downFile((String)params.get("FileId")));
+            excelDataSet.setFilePath(FileDataSet.downFile((String) params.get("FileId")));
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String[] columns= excelDataSet.getColumns();
+        String[] columns = excelDataSet.getColumns();
         List<ColumnSchema> columnSchemas = new ArrayList<>(10);
-        if (columns!=null) {
+        if (columns != null) {
             for (String s : columns) {
-                if(s!=null && s.length()!=0) {
+                if (s != null && s.length() != 0) {
                     ColumnSchema col = new ColumnSchema();
                     col.setColumnCode(s);
                     col.setPropertyName(s);
@@ -111,23 +115,41 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
                 }
             }
         }
-        return  columnSchemas;
+        return columnSchemas;
     }
+
     @Override
-    public List<ColumnSchema> generateSqlFields(String databaseCode, String sql, Map<String, Object> params){
+    public List<ColumnSchema> generateJsonFields(Map<String, Object> params) {
+        Class c = SimpleDataSet.class;
+        Field[] columns = c.getDeclaredFields();
+        List<ColumnSchema> columnSchemas = new ArrayList<>(10);
+        for (Field s : columns) {
+            ColumnSchema col = new ColumnSchema();
+            col.setColumnCode(s.getName());
+            col.setPropertyName(s.getName());
+            col.setColumnName(col.getPropertyName());
+            col.setDataType(FieldType.STRING);
+            col.setIsStatData("F");
+            columnSchemas.add(col);
+        }
+        return columnSchemas;
+    }
+
+    @Override
+    public List<ColumnSchema> generateSqlFields(String databaseCode, String sql, Map<String, Object> params) {
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(QueryUtils.translateQuery(sql, params));
-        String sSql = QueryUtils.buildLimitQuerySQL(qap.getQuery(),0,2,false,
+        String sSql = QueryUtils.buildLimitQuerySQL(qap.getQuery(), 0, 2, false,
             DBType.mapDBType(databaseInfo.getDatabaseUrl()));
         List<ColumnSchema> columnSchemas = new ArrayList<>(50);
-        try(Connection conn = DbcpConnectPools.getDbcpConnect(databaseInfo);
-            PreparedStatement stmt = conn.prepareStatement(sSql)){
+        try (Connection conn = DbcpConnectPools.getDbcpConnect(databaseInfo);
+             PreparedStatement stmt = conn.prepareStatement(sSql)) {
 
-            DatabaseAccess.setQueryStmtParameters(stmt,qap.getParams());
-            try(ResultSet rs = stmt.executeQuery()) {
+            DatabaseAccess.setQueryStmtParameters(stmt, qap.getParams());
+            try (ResultSet rs = stmt.executeQuery()) {
                 ResultSetMetaData rsd = rs.getMetaData();
-                int nc =rsd.getColumnCount();
-                for(int i=1; i<=nc; i++){
+                int nc = rsd.getColumnCount();
+                for (int i = 1; i <= nc; i++) {
                     ColumnSchema col = new ColumnSchema();
                     col.setColumnCode(rsd.getColumnName(i));
                     col.setPropertyName(FieldType.mapPropName(rsd.getColumnName(i)));
@@ -137,15 +159,15 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
                     columnSchemas.add(col);
                 }
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             logger.error("执行查询出错，SQL：{},Param:{}", sSql, qap.getParams());
             //throw new ObjectException("执行查询出错!");
             List<String> fields = QueryUtils.getSqlFiledNames(sql);
-            if(fields==null){
+            if (fields == null) {
                 throw new ObjectException(sSql, PersistenceException.DATABASE_OPERATE_EXCEPTION,
-                    "执行查询出错，SQL：{},Param:{}"+ sSql);
+                    "执行查询出错，SQL：{},Param:{}" + sSql);
             }
-            for(String s : QueryUtils.getSqlFiledNames(sql)){
+            for (String s : QueryUtils.getSqlFiledNames(sql)) {
                 ColumnSchema col = new ColumnSchema();
                 col.setColumnCode(s);
                 col.setColumnName(s);

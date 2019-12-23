@@ -17,8 +17,9 @@ public class ExcelDataSet extends FileDataSet {
     public SimpleDataSet load(Map<String, Object> params) {
         try {
             SimpleDataSet dataSet = new SimpleDataSet();
-            if (ExcelTypeEnum.checkFileExcelType(getFilePath())!=ExcelTypeEnum.NOTEXCEL)
-               dataSet.setData(ExcelImportUtil.loadMapFromExcelSheet(getFilePath(), 0));
+            if (ExcelTypeEnum.checkFileExcelType(getFilePath())!=ExcelTypeEnum.NOTEXCEL) {
+                dataSet.setData(ExcelImportUtil.loadMapFromExcelSheet(getFilePath(), 0));
+            }
             return dataSet;
         } catch (Exception e) {
             e.printStackTrace();
@@ -32,8 +33,9 @@ public class ExcelDataSet extends FileDataSet {
      */
     public String[] getColumns(){
     try {
-        if (ExcelTypeEnum.checkFileExcelType(getFilePath())!=ExcelTypeEnum.NOTEXCEL)
-            return  ExcelImportUtil.loadColumnsFromExcel(getFilePath(), 0);
+        if (ExcelTypeEnum.checkFileExcelType(getFilePath())!=ExcelTypeEnum.NOTEXCEL) {
+            return ExcelImportUtil.loadColumnsFromExcel(getFilePath(), 0);
+        }
     } catch (Exception e) {
         e.printStackTrace();
     }

@@ -89,11 +89,17 @@ public class DataSetDefineController extends BaseController {
     @WrapUpResponseBody
     public List<ColumnSchema> generateSqlcolumn(String databaseCode, String sql,String dataType, HttpServletRequest request){
         Map<String, Object> params = collectRequestParameters(request);
-        if ("E".equals(dataType)||databaseCode==null||databaseCode.equals("")){
-            params.put("FileId",sql);
-            return dataSetDefineService.generateExcelFields(params);
+        switch (dataType) {
+            case "E":
+                params.put("FileId", sql);
+                return dataSetDefineService.generateExcelFields(params);
+            case "J":
+                return dataSetDefineService.generateJsonFields(params);
+            case "D":
+                return dataSetDefineService.generateSqlFields(databaseCode, sql, params);
+            default:
+                return null;
         }
-        return dataSetDefineService.generateSqlFields(databaseCode, sql, params);
     }
 
 

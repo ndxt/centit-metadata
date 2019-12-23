@@ -157,7 +157,9 @@ public class DataPacketController extends BaseController {
         Map<String, Object> params = BaseController.collectRequestParameters(request);
         BizModel  bizModel = dataPacketService.fetchDataPacketData(packetId, params);
         BizModel dup = getBizModel(datasets, bizModel);
-        if (dup != null) return dup;
+        if (dup != null) {
+            return dup;
+        }
         return bizModel;
     }
 
@@ -177,7 +179,9 @@ public class DataPacketController extends BaseController {
              bizModel = dataPacketService.fetchDataPacketData(packetId, params);
         }
         BizModel dup = getBizModel(datasets, bizModel);
-        if (dup != null) return dup;
+        if (dup != null) {
+            return dup;
+        }
         return bizModel;
     }
 

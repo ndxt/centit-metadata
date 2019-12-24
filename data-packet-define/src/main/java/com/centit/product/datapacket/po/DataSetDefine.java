@@ -1,5 +1,6 @@
 package com.centit.product.datapacket.po;
 
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.support.database.orm.GeneratorCondition;
@@ -46,6 +47,28 @@ public class DataSetDefine implements Serializable {
     @Column(name = "QUERY_DESC")
     private String queryDesc;
 
+    /**
+     * 数据包类别，默认值为D， 其他类别有
+     * D database，
+     * J JSON文件， 数据导入导出的中间自定义格式
+     * A API，
+     * F file ，
+     * P directory 文件夹 ,
+     */
+    @ApiModelProperty(value = "数据集类别，主要有 D database, E excel,C csv,J json, 默认值为D")
+    @Column(name = "SET_TYPE")
+    @NotBlank(message = "字段不能为空")
+    private String setType;
+
+    /**
+     * 数据集参数描述
+     */
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "DATASET_PARAMS_JSON")
+    @ApiModelProperty(value = "数据集参数描述")
+    private JSONObject datasetParamsJson;
+    //{database:"", querySql:""}
+
     @Column(name = "DATABASE_CODE")
     @ApiModelProperty(value = "数据库代码，引用集成平台中定义的数据库")
     private String databaseCode;
@@ -64,13 +87,7 @@ public class DataSetDefine implements Serializable {
     @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")
     @JSONField(serialize = false)
     private Date recordDate;
-    /**
-     * 数据包类别，主要有 D database， F file ， P directory 文件夹 , 默认值为D
-     */
-    @ApiModelProperty(value = "数据集类别，主要有 D database, E excel,C csv,J json, 默认值为D")
-    @Column(name = "SET_TYPE")
-    @NotBlank(message = "字段不能为空")
-    private String setType;
+
     /**
      * 字段名 描述
      */
@@ -84,7 +101,6 @@ public class DataSetDefine implements Serializable {
     @OneToMany(targetEntity = DataSetColumnDesc.class)
     @JoinColumn(name = "queryId", referencedColumnName = "queryId")
     private List<DataSetColumnDesc> columns;
-
 
     public List<DataSetColumnDesc> getColumns() {
         if(columns==null){

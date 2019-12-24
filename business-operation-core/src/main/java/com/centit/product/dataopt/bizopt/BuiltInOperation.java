@@ -198,7 +198,6 @@ public class BuiltInOperation implements BizOperation {
         return bizModel;
     }
 
-
     protected BizModel runFilterExt(BizModel bizModel, JSONObject bizOptJson) {
         String sour1DSName = getJsonFieldString(bizOptJson,"source", null);
         String sour2DSName = getJsonFieldString(bizOptJson,"source2", null);

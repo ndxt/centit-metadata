@@ -3,6 +3,7 @@ package com.centit.product.datapacket.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.centit.fileserver.common.FileStore;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.product.dataopt.bizopt.BuiltInOperation;
@@ -39,6 +40,9 @@ public class DataPacketServiceImpl implements DataPacketService {
 
     @Autowired(required = false)
     private JedisPool jedisPool;
+
+    @Autowired(required = false)
+    private FileStore fileStore;
 
     @Autowired
     private DataPacketDao dataPacketDao;
@@ -114,6 +118,7 @@ public class DataPacketServiceImpl implements DataPacketService {
 
     private BizModel innerFetchDataPacketData(DataPacket dataPacket, Map<String, Object>  params){
         DBPacketBizSupplier bizSupplier = new DBPacketBizSupplier(dataPacket);
+        bizSupplier.setFileStore(fileStore);
         bizSupplier.setIntegrationEnvironment(integrationEnvironment);
         bizSupplier.setQueryParams(params);
         return bizSupplier.get();

@@ -1,9 +1,9 @@
 package com.centit.product.datapacket.service;
 
+import com.centit.fileserver.common.FileStore;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.dataopt.core.*;
 import com.centit.product.dataopt.dataset.ExcelDataSet;
-import com.centit.product.dataopt.dataset.FileDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.DataSetDefine;
@@ -20,6 +20,7 @@ public class DBPacketBizSupplier implements BizSupplier {
     private IntegrationEnvironment integrationEnvironment;
     private Map<String, Object> queryParams;
 
+    private FileStore fileStore;
     public DBPacketBizSupplier(DataPacket dbPacket){
         this.dbPacket = dbPacket;
     }
@@ -51,7 +52,8 @@ public class DBPacketBizSupplier implements BizSupplier {
                 } else if ("E".equals(rdd.getSetType())){
                     ExcelDataSet excelDataSet = new ExcelDataSet();
                     try {
-                        excelDataSet.setFilePath(FileDataSet.downFile(rdd.getQuerySQL()));
+                        excelDataSet.setFilePath(
+                            fileStore.getFile(rdd.getQuerySQL()).getPath());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -78,6 +80,10 @@ public class DBPacketBizSupplier implements BizSupplier {
         this.queryParams = queryParams;
     }
 
+
+    public void setFileStore(FileStore fileStore) {
+        this.fileStore = fileStore;
+    }
     /**
      * 业务数据是否是 批量的
      * 如果是，处理器将反复调用 。知道 get() 返回 null 结束

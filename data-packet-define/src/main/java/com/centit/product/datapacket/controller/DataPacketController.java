@@ -2,6 +2,7 @@ package com.centit.product.datapacket.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.centit.fileserver.common.FileStore;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
@@ -42,6 +43,9 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "packet")
 public class DataPacketController extends BaseController {
+
+    @Autowired(required = false)
+    private FileStore fileStore;
 
     @Autowired
     private DataPacketService dataPacketService;
@@ -226,7 +230,7 @@ public class DataPacketController extends BaseController {
             case "E":
                 ExcelDataSet excelDataSet=new ExcelDataSet();
                 try {
-                    excelDataSet.setFilePath(FileDataSet.downFile(query.getQuerySQL()));
+                    excelDataSet.setFilePath(fileStore.getFile(query.getQuerySQL()).getPath());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

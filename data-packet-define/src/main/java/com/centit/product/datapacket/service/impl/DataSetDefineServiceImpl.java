@@ -1,13 +1,11 @@
 package com.centit.product.datapacket.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
+import com.centit.fileserver.common.FileStore;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.product.dataopt.dataset.ExcelDataSet;
-import com.centit.product.dataopt.dataset.FileDataSet;
-import com.centit.product.dataopt.dataset.JSONDataSet;
-import com.centit.product.datapacket.dao.DataPacketDao;
 import com.centit.product.datapacket.dao.DataSetDefineDao;
 import com.centit.product.datapacket.po.DataSetDefine;
 import com.centit.product.datapacket.service.DataSetDefineService;
@@ -32,8 +30,8 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
 
     private final Logger logger = LoggerFactory.getLogger(DataSetDefineServiceImpl.class);
 
-    @Autowired
-    private DataPacketDao dataPacketDao;
+    @Autowired(required = false)
+    private FileStore fileStore;
 
     @Autowired
     private DataSetDefineDao resourceColumnDao;
@@ -96,7 +94,7 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
     public List<ColumnSchema> generateExcelFields(Map<String, Object> params) {
         ExcelDataSet excelDataSet = new ExcelDataSet();
         try {
-            excelDataSet.setFilePath(FileDataSet.downFile((String) params.get("FileId")));
+            excelDataSet.setFilePath(fileStore.getFile((String) params.get("FileId")).getPath());
         } catch (IOException e) {
             e.printStackTrace();
         }

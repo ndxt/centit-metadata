@@ -1,13 +1,11 @@
 package com.centit.product.dataopt.utils;
 
+import com.alibaba.fastjson.JSON;
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.product.dataopt.datarule.CheckRule;
 import com.centit.product.dataopt.datarule.CheckRuleUtils;
-import com.centit.support.algorithm.BooleanBaseOpt;
-import com.centit.support.algorithm.GeneralAlgorithm;
-import com.centit.support.algorithm.NumberBaseOpt;
-import com.centit.support.algorithm.StringRegularOpt;
+import com.centit.support.algorithm.*;
 import com.centit.support.compiler.Pretreatment;
 import com.centit.support.compiler.VariableFormula;
 import org.apache.commons.collections4.ListUtils;
@@ -27,10 +25,13 @@ public abstract class DataSetOptUtil {
      */
     private static Map<String, Object> mapDateRow(Map<String, Object> inRow,
                                                   Collection<Map.Entry<String, String>> formulaMap) {
+        VariableFormula formula = new VariableFormula();
+        formula.addExtendFunc("toJson", (a) -> JSON.parse(
+            StringBaseOpt.castObjectToString(a[0])));
         Map<String, Object> newRow = new HashMap<>(formulaMap.size());
         for(Map.Entry<String, String> ent : formulaMap){
             newRow.put(ent.getKey(),
-                VariableFormula.calculate(ent.getValue(), inRow));
+                formula.calculate(ent.getValue(), inRow));
         }
         return newRow;
     }

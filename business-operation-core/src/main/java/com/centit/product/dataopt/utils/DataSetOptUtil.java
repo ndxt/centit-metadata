@@ -28,13 +28,13 @@ public abstract class DataSetOptUtil {
     private static Map<String, Object> mapDateRow(Map<String, Object> inRow,
                                                   Collection<Map.Entry<String, String>> formulaMap) {
         VariableFormula formula = new VariableFormula();
-        Map<String, Function<Object[], Object>> extendFuncMap=new HashMap<>();
-        extendFuncMap.put("toJson", (a) -> JSON.parse(
+        formula.addExtendFunc("toJson", (a) -> JSON.parse(
             StringBaseOpt.castObjectToString(a[0])));
+        formula.setTrans(new ObjectTranslate(inRow));
         Map<String, Object> newRow = new HashMap<>(formulaMap.size());
         for(Map.Entry<String, String> ent : formulaMap){
-            newRow.put(ent.getKey(),
-                formula.calculate(ent.getValue(), new ObjectTranslate(inRow),extendFuncMap));
+            formula.setFormula(ent.getValue());
+            newRow.put(ent.getKey(), formula.calcFormula());
         }
         return newRow;
     }

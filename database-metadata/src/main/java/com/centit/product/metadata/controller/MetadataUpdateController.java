@@ -38,7 +38,6 @@ public class MetadataUpdateController extends BaseController {
     @WrapUpResponseBody
     public void syncDb(@PathVariable String databaseCode, HttpServletRequest request){
         String userCode = WebOptUtils.getCurrentUserCode(request);
-
         metaDataService.syncDb(databaseCode, userCode);
     }
 
@@ -53,7 +52,6 @@ public class MetadataUpdateController extends BaseController {
     @WrapUpResponseBody
     public void updateMetaTable(@PathVariable String tableId, @RequestBody MetaTable metaTable,HttpServletRequest request){
         String userCode = WebOptUtils.getCurrentUserCode(request);
-
         metaTable.setTableId(tableId);
         metaTable.setRecorder(userCode);
         metaDataService.updateMetaTable(metaTable);

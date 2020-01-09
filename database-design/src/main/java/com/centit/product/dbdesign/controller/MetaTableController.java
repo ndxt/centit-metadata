@@ -298,7 +298,7 @@ public class MetaTableController extends BaseController {
         String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
         try {
             long uploadSize = UploadDownloadUtils.uploadRange(tempFilePath, fileInfo.getRight(), token, size, request);
-            if(uploadSize==0){
+            if(uploadSize>0){
                 //上传到临时区成功
                 JSONObject jsonObject = new JSONObject();
                 Map<String, Object> data = new HashMap<>(4);
@@ -307,7 +307,7 @@ public class MetaTableController extends BaseController {
                 jsonObject.put("tables", data);
                 JsonResultUtils.writeSingleDataJson(jsonObject,response);
                 //FileSystemOpt.deleteFile(tempFilePath);
-            }else if(uploadSize>0){
+            }else {
                 JsonResultUtils.writeOriginalJson(UploadDownloadUtils.
                     makeRangeUploadJson(uploadSize, token, token +"_"+size).toJSONString(), response);
             }

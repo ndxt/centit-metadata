@@ -27,7 +27,7 @@
 
         <dependency>
             <groupId>com.centit.framework</groupId>
-            <artifactId>centit-ip-app</artifactId>
+            <artifactId>centit-ip-adapter</artifactId>
         </dependency>
 
         <dependency>

@@ -391,21 +391,18 @@ public class MetaTable implements TableInfo, java.io.Serializable {
                 if("3".equals(mc.getReferenceType())){
                     String sqlStr = mc.getReferenceData().trim();
                     String catalogCode = Md5Encoder.encodeBase64(sqlStr, true);
-                    boolean hasDictoinary = CodeRepositoryUtil.hasExtendedDictionary(catalogCode);
-                    if(!hasDictoinary){
+                    if(!CodeRepositoryUtil.hasExtendedDictionary(catalogCode)){
                         CodeRepositoryUtil.registeExtendedCodeRepo(catalogCode,
                             new CachedObject<>(
                                 new SqlDictionaryMapSupplier(
-                                    integrationEnvironment.getDatabaseInfo(this.getDatabaseCode()) , sqlStr),
+                                    integrationEnvironment.getDatabaseInfo(this.getDatabaseCode()),
+                                    sqlStr),
                                 ICachedObject.KEEP_FRESH_PERIOD * 3));
-                        hasDictoinary = true;
                     }
-                    if(hasDictoinary){
-                        dictionaryMapColumns.add(new DictionaryMapColumn(
-                            mc.getPropertyName(),
-                            mc.getPropertyName()+"Desc",
-                            catalogCode));
-                    }
+                    dictionaryMapColumns.add(new DictionaryMapColumn(
+                        mc.getPropertyName(),
+                        mc.getPropertyName()+"Desc",
+                        catalogCode));
             }
         }
         return dictionaryMapColumns;

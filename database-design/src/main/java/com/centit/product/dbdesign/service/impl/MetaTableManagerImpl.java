@@ -171,6 +171,7 @@ public class MetaTableManagerImpl
         return makeAlterTableSqls(ptable);
     }
 
+    @Override
     @Transactional
     public List<String> makeAlterTableSqls(PendingMetaTable ptable) {
         MetaTable stable = metaTableDao.getMetaTable(ptable.getDatabaseCode(),ptable.getTableName());
@@ -308,8 +309,8 @@ public class MetaTableManagerImpl
     public Pair<Integer, String> publishMetaTable(String tableId, String currentUser) {
         //TODO 根据不同的表类别 做不同的重构
         try {
-            PendingMetaTable ptable = pendingMdTableDao.getObjectById(tableId);
-            ptable = pendingMdTableDao.fetchObjectReferences(ptable);
+            final PendingMetaTable ptable = pendingMdTableDao.getObjectById(tableId);
+            pendingMdTableDao.fetchObjectReferences(ptable);
 
             Pair<Integer, String> ret = GeneralDDLOperations.checkTableWellDefined(ptable);
             if (ret.getLeft() != 0)
@@ -325,14 +326,14 @@ public class MetaTableManagerImpl
             dbc.setConnUrl(mdb.getDatabaseUrl());
             dbc.setUsername(mdb.getUsername());
             dbc.setPassword(mdb.getClearPassword());
-            Connection conn = DbcpConnectPools.getDbcpConnect(dbc);
 
-            DBType databaseType = DBType.mapDBType(conn);
+            DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
             ptable.setDatabaseType(databaseType);
-            JsonObjectDao jsonDao = GeneralJsonObjectDao.createJsonObjectDao(conn);
             //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
             checkPendingMetaTable(ptable, currentUser);
-            List<String> sqls=getStringsSql(ptable, errors, conn, jsonDao);
+            List<String> sqls= TransactionHandler.executeInTransaction(dbc,
+                (conn) -> runDDLSql(ptable, errors, conn));
+
             if (sqls.size() > 0) {
                 chgLog.setDatabaseCode(ptable.getDatabaseCode());
                 chgLog.setChangeScript(JSON.toJSONString(sqls));
@@ -363,20 +364,15 @@ public class MetaTableManagerImpl
         }
     }
 
-    private List<String> getStringsSql(PendingMetaTable ptable, List<String> errors, Connection conn, JsonObjectDao jsonDao) throws SQLException {
-        List<String> sqls;
-        try {
-             sqls = makeAlterTableSqls(ptable);
-            for (String sql : sqls) {
-                try {
-                    jsonDao.doExecuteSql(sql);
-                } catch (SQLException se) {
-                    errors.add(se.getMessage());
-                    logger.error("执行sql失败:" + sql, se);
-                }
+    private List<String> runDDLSql(PendingMetaTable ptable, List<String> errors, Connection conn) throws SQLException {
+        List<String> sqls = makeAlterTableSqls(ptable);
+        for (String sql : sqls) {
+            try {
+                DatabaseAccess.doExecuteSql(conn, sql);
+            } catch (SQLException se) {
+                errors.add(se.getMessage());
+                logger.error("执行sql失败:" + sql, se);
             }
-        } finally {
-            conn.close();
         }
         return sqls;
     }
@@ -583,7 +579,7 @@ public class MetaTableManagerImpl
             List<String> success = new ArrayList<>();
             List<String> errors = new ArrayList<>();
             for (PendingMetaTable metaTable : metaTables) {
-                metaTable = pendingMdTableDao.fetchObjectReferences(metaTable);
+                 metaTable = pendingMdTableDao.fetchObjectReferences(metaTable);
 
                 Pair<Integer, String> ret = GeneralDDLOperations.checkTableWellDefined(metaTable);
                 if (ret.getLeft() != 0)
@@ -592,13 +588,15 @@ public class MetaTableManagerImpl
                 DatabaseInfo mdb = integrationEnvironment.getDatabaseInfo(metaTable.getDatabaseCode());
 
                 DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
-                Connection conn = DbcpConnectPools.getDbcpConnect(dbc);
-                DBType databaseType = DBType.mapDBType(conn);
+
+                DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
                 metaTable.setDatabaseType(databaseType);
-                JsonObjectDao jsonDao = GeneralJsonObjectDao.createJsonObjectDao(conn);
                 //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
                 checkPendingMetaTable(metaTable, recorder);
-                List<String> sqls = getStringsSql(metaTable, error, conn, jsonDao);
+                PendingMetaTable finalMetaTable = metaTable;
+                List<String> sqls= TransactionHandler.executeInTransaction(dbc,
+                    (conn) -> runDDLSql(finalMetaTable, errors, conn));
+
                 if (sqls.size() > 0)
                     success.add(sqls.toString());
                 if (error.size() == 0) {

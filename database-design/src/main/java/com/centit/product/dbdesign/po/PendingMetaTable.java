@@ -84,7 +84,7 @@ public class PendingMetaTable implements
     @Pattern(regexp = "[TC]")
     @Length(max = 1, message = "字段长度不能大于{max}")
     @DictionaryMap(fieldName = "tableTypeText", value = "TableType")
-    private String tableType;
+    private String tableType="T";
     /**
      * 描述 null
      */

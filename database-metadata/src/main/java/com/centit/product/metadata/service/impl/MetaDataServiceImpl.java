@@ -34,7 +34,7 @@ import java.util.*;
 @Service
 @Transactional
 public class MetaDataServiceImpl implements MetaDataService {
-    private Logger logger = LoggerFactory.getLogger(MetaDataServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(MetaDataServiceImpl.class);
 
     @Autowired
     private IntegrationEnvironment integrationEnvironment;

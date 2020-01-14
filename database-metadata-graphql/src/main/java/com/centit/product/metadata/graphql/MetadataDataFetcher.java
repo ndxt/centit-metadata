@@ -25,7 +25,7 @@ import java.util.*;
 public class MetadataDataFetcher implements DataFetcher {
 
     private final int queryType;// 0 get 1 list 2 page
-    protected Logger logger = LoggerFactory.getLogger(MetadataDataFetcher.class);
+    protected static final Logger logger = LoggerFactory.getLogger(MetadataDataFetcher.class);
     protected MetaTable entityType;
     private MetaDataService metaDataService;
     private DataSourceDescription dataSourceDesc;

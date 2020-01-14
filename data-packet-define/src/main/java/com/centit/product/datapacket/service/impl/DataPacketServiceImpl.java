@@ -36,7 +36,7 @@ import java.util.Map;
 @Transactional
 public class DataPacketServiceImpl implements DataPacketService {
 
-    private final Logger logger = LoggerFactory.getLogger(DataPacketServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(DataPacketServiceImpl.class);
 
     @Autowired(required = false)
     private JedisPool jedisPool;

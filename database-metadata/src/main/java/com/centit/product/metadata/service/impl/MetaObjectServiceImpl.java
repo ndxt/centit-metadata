@@ -16,9 +16,7 @@ import com.centit.support.common.ObjectException;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
-import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.TableField;
-import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.transaction.ConnectThreadHolder;
 import com.centit.support.database.utils.*;
 import org.apache.commons.lang3.StringUtils;
@@ -529,7 +527,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
             JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).listObjectsByProperties(filter);
-            return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns());
+            return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns(integrationEnvironment));
         } catch (SQLException | IOException e) {
             throw new ObjectException(filter, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -604,7 +602,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 sGetCountSql, params);
             pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
 
-            return DictionaryMapUtils.mapJsonArray(objs, tableInfo.fetchDictionaryMapColumns());
+            return DictionaryMapUtils.mapJsonArray(objs, tableInfo.fetchDictionaryMapColumns(integrationEnvironment));
 
         } catch (SQLException | IOException e) {
             throw new ObjectException(params, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
@@ -638,7 +636,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
             pageDesc.setTotalRows(
                 NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, querySql, params)));
-            return DictionaryMapUtils.mapJsonArray(objs, tableInfo.fetchDictionaryMapColumns());
+            return DictionaryMapUtils.mapJsonArray(objs, tableInfo.fetchDictionaryMapColumns(integrationEnvironment));
         } catch (SQLException | IOException e) {
             throw new ObjectException(params, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }

@@ -1,12 +1,8 @@
 package com.centit.product.metadata.service;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.database.utils.PageDesc;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Map;
 

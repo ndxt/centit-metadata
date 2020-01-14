@@ -22,10 +22,11 @@ public class DatabaseRunTimeImpl implements DatabaseRunTime {
     @Autowired
     private IntegrationEnvironment integrationEnvironment;
 
-    private DataSourceDescription fetchDataSource(String databaseCode) throws SQLException {
+    private DataSourceDescription fetchDataSource(String databaseCode) {
         DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
         return DataSourceDescription.valueOf(databaseInfo);
     }
+
     @Override
     public JSONArray query(String databaseId, String sql, Object[] params) {
         try {

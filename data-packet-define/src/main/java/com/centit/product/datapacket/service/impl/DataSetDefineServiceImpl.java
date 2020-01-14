@@ -28,7 +28,7 @@ import java.util.*;
 @Transactional
 public class DataSetDefineServiceImpl implements DataSetDefineService {
 
-    private final Logger logger = LoggerFactory.getLogger(DataSetDefineServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(DataSetDefineServiceImpl.class);
 
     @Autowired(required = false)
     private FileStore fileStore;

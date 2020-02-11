@@ -262,7 +262,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 if(ref!=null) {
                     JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
                         .listObjectsByProperties(ref);
-
+                    ja=DictionaryMapUtils.mapJsonArray(ja, subTableInfo.fetchDictionaryMapColumns(integrationEnvironment));
                     if (withChildrenDeep > 1 && ja != null) {
                         for (Object subObject : ja) {
                             if (subObject instanceof Map) {

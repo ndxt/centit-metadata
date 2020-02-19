@@ -35,7 +35,11 @@ public class MetaDataCacheImpl implements MetaDataCache {
 
     public MetaTable getTableInfo(String tableId){
         //metaTableCache.setFreshData();
-        return metaTableCache.getCachedValue(tableId).getRight();
+        if (metaTableCache.getCachedValue(tableId)!=null) {
+            return metaTableCache.getCachedValue(tableId).getRight();
+        } else{
+            return null;
+        }
     }
 
     private MetaTable fetchTableRelations(MetaTable metaTable){

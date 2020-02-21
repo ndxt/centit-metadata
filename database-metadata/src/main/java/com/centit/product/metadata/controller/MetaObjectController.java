@@ -60,7 +60,7 @@ public class MetaObjectController extends BaseController {
     }
 
     @ApiOperation(value = "批量修改数据库表数据")
-    @RequestMapping(value = "/batch/{tableId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/{tableId}/batch", method = RequestMethod.PUT)
     @WrapUpResponseBody
     public ResponseData batchUpdateObject(@PathVariable String tableId,
                                      @RequestBody String jsonString, HttpServletRequest request) {

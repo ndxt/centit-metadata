@@ -20,8 +20,6 @@ import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
 import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.database.ddl.*;
-import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
-import com.centit.support.database.jsonmaptable.JsonObjectDao;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableField;
@@ -31,8 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,8 +54,7 @@ public class MetaTableManagerImpl
     extends BaseEntityManagerImpl<MetaTable, String, MetaTableDao>
     implements MetaTableManager {
 
-    public static final Log log = LogFactory.getLog(MetaTableManager.class);
-
+    //public static final Log logger = LogFactory.getLog(MetaTableManager.class);
 
     private MetaTableDao metaTableDao;
 

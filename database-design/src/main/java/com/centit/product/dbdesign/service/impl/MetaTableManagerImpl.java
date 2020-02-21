@@ -617,7 +617,7 @@ public class MetaTableManagerImpl
                 chgLog.setDatabaseCode(databaseCode);
                 chgLog.setChangeScript(JSON.toJSONString(success));
                 chgLog.setChangeComment(JSON.toJSONString(errors));
-                chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
+                //chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
                 chgLog.setChanger(recorder);
                 metaChangLogDao.saveNewObject(chgLog);
             }

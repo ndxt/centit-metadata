@@ -262,7 +262,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 if(ref!=null) {
                     JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
                         .listObjectsByProperties(ref);
-
+                    ja=DictionaryMapUtils.mapJsonArray(ja, subTableInfo.fetchDictionaryMapColumns(integrationEnvironment));
                     if (withChildrenDeep > 1 && ja != null) {
                         for (Object subObject : ja) {
                             if (subObject instanceof Map) {
@@ -459,20 +459,21 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             if(mds!=null) {
                 for (MetaRelation md : mds) {
                     MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
-
-                    Object subObjects = mainObj.get(md.getRelationName());
-                    if (subObjects instanceof List) {
-                        List<Map<String, Object>> subTable = (List<Map<String, Object>>)subObjects;
-                        GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
-                        Map<String, Object> ref = md.fetchChildFk(mainObj);
-                        long order = 1l;
-                        for(Map<String, Object> subObj : subTable){
-                            subObj.putAll(ref);
-                            makeObjectValueByGenerator(subObj, extParams, relTableInfo, dao, order,false);
-                            order ++;
-                            prepareObjectForSave(subObj, relTableInfo);
+                    if ("T".equals(relTableInfo.getTableType())) {
+                        Object subObjects = mainObj.get(md.getRelationName());
+                        if (subObjects instanceof List) {
+                            List<Map<String, Object>> subTable = (List<Map<String, Object>>) subObjects;
+                            GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
+                            Map<String, Object> ref = md.fetchChildFk(mainObj);
+                            long order = 1l;
+                            for (Map<String, Object> subObj : subTable) {
+                                subObj.putAll(ref);
+                                makeObjectValueByGenerator(subObj, extParams, relTableInfo, dao, order, false);
+                                order++;
+                                prepareObjectForSave(subObj, relTableInfo);
+                            }
+                            dao.replaceObjectsAsTabulation(subTable, ref);
                         }
-                        dao.replaceObjectsAsTabulation(subTable, ref);
                     }
                 }
             }
@@ -510,8 +511,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             if(mds!=null) {
                 for (MetaRelation md : mds) {
                     MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
-                    GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
-                        .deleteObjectsByProperties(md.fetchChildFk(mainObj));
+                    if ("T".equals(relTableInfo.getTableType())) {
+                        GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
+                            .deleteObjectsByProperties(md.fetchChildFk(mainObj));
+                    }
                 }
             }
             dao.deleteObjectById(pk);

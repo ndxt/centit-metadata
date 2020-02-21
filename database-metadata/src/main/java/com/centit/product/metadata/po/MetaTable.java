@@ -311,11 +311,8 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         if (mdColumns == null)
             return null;
         for (MetaColumn c : mdColumns) {
-            if (c.getPropertyName().equalsIgnoreCase(name))
-                return c;
-        }
-        for (MetaColumn c : mdColumns) {
-            if (c.getFieldLabelName().equalsIgnoreCase(name))
+            if (c.getPropertyName().equalsIgnoreCase(name)||
+                c.getFieldLabelName().equalsIgnoreCase(name))
                 return c;
         }
         return null;

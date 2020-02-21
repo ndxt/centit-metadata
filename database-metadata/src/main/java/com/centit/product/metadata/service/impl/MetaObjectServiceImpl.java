@@ -421,9 +421,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public int updateObjectsByProperties(String tableId,
-                                         final Map<String, Object> fieldValues,final Map<String, Object> filterProperties) {
-        return updateObjectsByProperties( tableId, fieldValues.keySet(),
-         fieldValues, filterProperties);
+                                         final Map<String, Object> fieldValues,
+                                         final Map<String, Object> filterProperties) {
+        return updateObjectsByProperties(tableId, fieldValues.keySet(),
+                fieldValues, filterProperties);
     }
 
     @Override

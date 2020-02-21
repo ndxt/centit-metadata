@@ -2,6 +2,7 @@ package com.centit.product.metadata.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.common.ResponseData;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
@@ -55,6 +56,17 @@ public class MetaObjectController extends BaseController {
     public ResponseData updateObject(@PathVariable String tableId,
                                      @RequestBody String jsonString) {
         metaObjectService.updateObject(tableId, JSON.parseObject(jsonString));
+        return ResponseData.makeSuccessResponse();
+    }
+
+    @ApiOperation(value = "批量修改数据库表数据")
+    @RequestMapping(value = "/batch/{tableId}", method = RequestMethod.PUT)
+    @WrapUpResponseBody
+    public ResponseData batchUpdateObject(@PathVariable String tableId,
+                                     @RequestBody String jsonString, HttpServletRequest request) {
+        Map<String, Object> params = collectRequestParameters(request);
+        JSONObject object = JSON.parseObject(jsonString);
+        metaObjectService.updateObjectsByProperties(tableId, object, params);
         return ResponseData.makeSuccessResponse();
     }
 

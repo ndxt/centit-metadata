@@ -36,11 +36,14 @@ public interface MetaObjectService {
 
     int updateObjectFields(String tableId, final Collection<String> fields,final Map<String, Object> object);
 
-    int updateObjectsByProperties(String tableId, final Collection<String> fields,
-                                  final Map<String, Object> fieldValues,final Map<String, Object> filterProperties);
+    int updateObjectsByProperties(String tableId,
+                                  final Collection<String> fields,
+                                  final Map<String, Object> fieldValues,
+                                  final Map<String, Object> filterProperties);
 
     int updateObjectsByProperties(String tableId,
-                                  final Map<String, Object> fieldValues,final Map<String, Object> filterProperties);
+                                  final Map<String, Object> fieldValues,
+                                  final Map<String, Object> filterProperties);
 
     void deleteObject(String tableId, Map<String, Object> pk);
 

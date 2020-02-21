@@ -8,6 +8,7 @@ import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.product.metadata.service.MetaObjectService;
+import com.centit.support.database.transaction.JdbcTransaction;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -53,6 +54,7 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "修改数据库表数据")
     @RequestMapping(value = "/{tableId}", method = RequestMethod.PUT)
     @WrapUpResponseBody
+    @JdbcTransaction
     public ResponseData updateObject(@PathVariable String tableId,
                                      @RequestBody String jsonString) {
         metaObjectService.updateObject(tableId, JSON.parseObject(jsonString));
@@ -62,6 +64,7 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "批量修改数据库表数据")
     @RequestMapping(value = "/{tableId}/batch", method = RequestMethod.PUT)
     @WrapUpResponseBody
+    @JdbcTransaction
     public ResponseData batchUpdateObject(@PathVariable String tableId,
                                      @RequestBody String jsonString, HttpServletRequest request) {
         Map<String, Object> params = collectRequestParameters(request);
@@ -73,6 +76,7 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "新增数据库表数据")
     @RequestMapping(value = "/{tableId}", method = RequestMethod.POST)
     @WrapUpResponseBody
+    @JdbcTransaction
     public ResponseData saveObject(@PathVariable String tableId,
                                    @RequestBody String jsonString) {
         metaObjectService.saveObject(tableId, JSON.parseObject(jsonString));
@@ -82,6 +86,7 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "删除数据库表数据")
     @RequestMapping(value = "/{tableId}", method = RequestMethod.DELETE)
     @WrapUpResponseBody
+    @JdbcTransaction
     public ResponseData deleteObject(@PathVariable String tableId,
                                      HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
@@ -101,6 +106,7 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "修改数据库表数据带子表")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.PUT)
     @WrapUpResponseBody
+    @JdbcTransaction
     public ResponseData updateObjectWithChildren(@PathVariable String tableId,
                                                  @RequestBody String jsonString) {
         metaObjectService.updateObjectWithChildren(tableId, JSON.parseObject(jsonString));
@@ -110,6 +116,7 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "新增数据库表数据带子表")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.POST)
     @WrapUpResponseBody
+    @JdbcTransaction
     public ResponseData saveObjectWithChildren(@PathVariable String tableId,
                                                @RequestBody String jsonString) {
         metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString));
@@ -119,6 +126,7 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "删除数据库表数据带子表")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.DELETE)
     @WrapUpResponseBody
+    @JdbcTransaction
     public ResponseData deleteObjectWithChildren(@PathVariable String tableId,
                                                  HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);

@@ -69,8 +69,12 @@ public class MetaObjectController extends BaseController {
                                      @RequestBody String jsonString, HttpServletRequest request) {
         Map<String, Object> params = collectRequestParameters(request);
         JSONObject object = JSON.parseObject(jsonString);
-        metaObjectService.updateObjectsByProperties(tableId, object, params);
-        return ResponseData.makeSuccessResponse();
+        int ireturn = metaObjectService.updateObjectsByProperties(tableId, object, params);
+        if (ireturn==0){
+            return ResponseData.makeErrorMessage("无对应sql生成");
+        } else {
+            return ResponseData.makeSuccessResponse();
+        }
     }
 
     @ApiOperation(value = "新增数据库表数据")

@@ -1,6 +1,7 @@
 package com.centit.product.dataopt.core;
 
 import com.alibaba.fastjson.JSONArray;
+import org.springframework.security.core.Transient;
 
 import java.io.Serializable;
 import java.util.List;
@@ -48,10 +49,17 @@ public class SimpleDataSet implements DataSet, DataSetReader, Serializable {
      * 是一个 对象（Map）列表；可以类比为JSONArray
      */
     protected List<Map<String, Object>> data;
-    /**
-     * @return 是否已按照维度属性排序
-     */
 
+    public Map<String, Object> getParms() {
+        return parms;
+    }
+
+    public void setParms(Map<String, Object> parms) {
+        this.parms = parms;
+    }
+
+
+    private Map<String, Object> parms;
     @Override
     public String getDataSetName() {
         return dataSetName;

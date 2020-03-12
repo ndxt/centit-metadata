@@ -225,7 +225,9 @@ public class DataPacketController extends BaseController {
             if (params != null) {
                 modelTag.putAll(params);
             }
-            return sqlDSR.load(modelTag);
+            SimpleDataSet simpleDataSet =sqlDSR.load(modelTag);
+            simpleDataSet.setDataSetName(query.getQueryName());
+            return simpleDataSet;
             case "E":
                 ExcelDataSet excelDataSet=new ExcelDataSet();
                 try {
@@ -235,8 +237,9 @@ public class DataPacketController extends BaseController {
                 }
                 return excelDataSet.load(params);
 
+            default:
+                throw new IllegalStateException("Unexpected value: " + query.getSetType());
         }
-        return null;
     }
 
 

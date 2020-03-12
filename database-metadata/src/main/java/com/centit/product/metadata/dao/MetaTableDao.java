@@ -20,6 +20,7 @@ public class MetaTableDao extends BaseDaoImpl<MetaTable, String> {
             filterField.put("databaseCode", CodeBook.EQUAL_HQL_ID);
             filterField.put("tableId", CodeBook.EQUAL_HQL_ID);
             filterField.put("tableName", CodeBook.LIKE_HQL_ID);
+            filterField.put("tableLabelName", CodeBook.LIKE_HQL_ID);
         }
         return  filterField;
     }

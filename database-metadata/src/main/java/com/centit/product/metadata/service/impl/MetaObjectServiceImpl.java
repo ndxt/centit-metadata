@@ -225,7 +225,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         if (ref != null && GeneralJsonObjectDao.checkHasAllPkColumns(parentTableInfo, ref)) {
             JSONObject ja = GeneralJsonObjectDao.createJsonObjectDao(conn, parentTableInfo)
                 .getObjectById(ref);
-            mainObj.put(md.getRelationName(), ja);
+            mainObj.put(md.getRelationName(),
+                DictionaryMapUtils.mapJsonObject(ja,
+                    parentTableInfo.fetchDictionaryMapColumns(integrationEnvironment)));
         }
     }
 
@@ -246,8 +248,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable subTableInfo = metaDataCache.getTableInfoWithRelations(md.getChildTableId());
         Map<String, Object> ref = md.fetchChildFk(mainObj);
         if (ref != null) {
-            JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
-                .listObjectsByProperties(ref);
+            JSONArray ja = DictionaryMapUtils.mapJsonArray(
+                GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
+                .listObjectsByProperties(ref), subTableInfo.fetchDictionaryMapColumns(integrationEnvironment));
             mainObj.put(md.getRelationName(), ja);
         }
     }
@@ -287,6 +290,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Map<String, Object> mainObj = (fields != null && fields.length>0)?
                     innerGetObjectPartFieldsById(conn, tableInfo , pk, fields)
                     :innerGetObjectById(conn, tableInfo , pk);
+
+            mainObj = DictionaryMapUtils.mapJsonObject(mainObj, tableInfo.fetchDictionaryMapColumns(integrationEnvironment));
             if(parents != null && parents.length>0){
                 List<MetaRelation> mds = tableInfo.getParents();
                 if(mds!=null) {
@@ -318,6 +323,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
             Map<String, Object> mainObj = innerGetObjectById(conn, tableInfo , pk);
+            mainObj = DictionaryMapUtils.mapJsonObject(mainObj, tableInfo.fetchDictionaryMapColumns(integrationEnvironment));
             if(withChildrenDeep>0 && mainObj!=null) {
                 fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
             }

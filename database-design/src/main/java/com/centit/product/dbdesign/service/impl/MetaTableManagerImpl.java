@@ -402,7 +402,7 @@ public class MetaTableManagerImpl
                 }
             }
             for (MetaColumn m : setMetaColumn) {
-                if (m.getIsCompare()) {
+                if (m.getIsCompare()!=null && m.getIsCompare()) {
                     metaColumnDao.updateObject(m);
                 } else {
                     metaColumnDao.deleteObject(m);

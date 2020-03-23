@@ -212,8 +212,12 @@ public class MetaTableManagerImpl
                         ptable.getTableName(), pcol));
                 } else {
                     if (pcol.getColumnType().equalsIgnoreCase(ocol.getColumnType())) {
-                        if (!pcol.getMaxLength().equals(ocol.getMaxLength()) ||
-                            !pcol.getScale().equals(ocol.getScale())) {
+                        boolean exits=!pcol.getMaxLength().equals(ocol.getMaxLength()) ||
+                            !pcol.getScale().equals(ocol.getScale())
+                            ||!pcol.getMandatory().equals(ocol.getMandatory())
+                            ||(!pcol.getFieldLabelName().equals(ocol.getFieldLabelName())
+                            &&dbType.equals(DBType.MySql));
+                        if (exits) {
                             sqls.add(ddlOpt.makeModifyColumnSql(
                                 ptable.getTableName(), ocol, pcol));
                         }

@@ -6,6 +6,7 @@ import com.centit.support.report.ExcelExportUtil;
 import com.centit.support.report.ExcelImportUtil;
 import com.centit.support.report.ExcelTypeEnum;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,10 +46,10 @@ public class ExcelDataSet extends FileDataSet {
     public void save(DataSet dataSet) {
         List<Object[]> fields = new ArrayList<>();
         for(Map<String, Object> map : dataSet.getData()){
-            fields.add(map.keySet().toArray());
+            fields.add(map.values().toArray());
         }
         try {
-            ExcelExportUtil.appendDataToExcelSheet(this.getFilePath(),0, fields,null);
+            ExcelExportUtil.appendDataToExcelSheet(this.getFilePath()+ File.separator + "sys.csv",0, fields, (String[]) dataSet.getData().get(0).keySet().toArray());
         } catch (IOException e) {
             e.printStackTrace();
         }

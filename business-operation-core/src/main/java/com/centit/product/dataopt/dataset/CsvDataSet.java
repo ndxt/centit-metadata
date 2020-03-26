@@ -2,15 +2,20 @@ package com.centit.product.dataopt.dataset;
 
 import com.alibaba.fastjson.JSONObject;
 import com.centit.product.dataopt.core.DataSet;
+import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.compiler.Pretreatment;
 import com.centit.support.file.FileIOOpt;
+import com.centit.support.report.ExcelImportUtil;
+import com.centit.support.report.ExcelTypeEnum;
+import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +28,46 @@ public class CsvDataSet extends FileDataSet{
      */
     @Override
     public DataSet load(Map<String, Object> params) {
+
+
+        try {
+            List<Map<String,Object>> list = null;
+            InputStream inputStream;
+            File dir = new File(getFilePath());
+            if(dir.isFile()) {
+                inputStream = new FileInputStream(getFilePath());
+                BufferedReader reader =new BufferedReader(new InputStreamReader(inputStream,
+                    Charset.forName("gbk")), 8192);
+                CsvReader csvReader  = null;
+                csvReader = new CsvReader(reader);
+                csvReader.setDelimiter(',');
+                if(csvReader.readRecord()){
+                    String[] splitedHead=csvReader.getValues();
+                        while(csvReader.readRecord()){
+                            Map<String,Object> map=new HashMap<>();
+                            String[] splitedResult=csvReader.getValues();
+                            for (int i=0;i<splitedHead.length;i++) {
+                                map.put(splitedHead[i],splitedResult[i]);
+                            }
+                            list.add(map);
+                    }
+                }
+            }else{
+                File[] files = dir.listFiles();
+                if (null != files) {
+                    for (File subFileNames : files) {
+                        if(!subFileNames.isDirectory()) {
+                            inputStream = new FileInputStream(subFileNames);
+                        }
+                    }
+                }
+            }
+            SimpleDataSet dataSet = new SimpleDataSet();
+            dataSet.setData(list);
+            return dataSet;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return null;
     }
     /**

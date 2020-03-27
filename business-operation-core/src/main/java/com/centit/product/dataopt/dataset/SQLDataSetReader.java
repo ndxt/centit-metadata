@@ -1,12 +1,20 @@
 package com.centit.product.dataopt.dataset;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.centit.framework.common.WebOptUtils;
+import com.centit.framework.core.dao.DataPowerFilter;
+import com.centit.framework.core.service.DataScopePowerManager;
+import com.centit.framework.core.service.impl.DataScopePowerManagerImpl;
+import com.centit.framework.security.model.CentitUserDetails;
 import com.centit.product.dataopt.core.DataSetReader;
 import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -31,6 +39,8 @@ public class SQLDataSetReader implements DataSetReader {
     private String sqlSen;
 
     private Connection connection;
+
+    private DataScopePowerManager queryDataScopeFilter;
     /**
      * 读取 dataSet 数据集
      * @param params 模块的自定义参数
@@ -46,7 +56,17 @@ public class SQLDataSetReader implements DataSetReader {
                 conn = DbcpConnectPools.getDbcpConnect(dataSource);
                 createConnect = true;
             }
-            QueryAndNamedParams qap = QueryUtils.translateQuery(sqlSen, params);
+            QueryAndNamedParams qap;
+            if(params.get("currentUser")!=null) {
+                queryDataScopeFilter=new DataScopePowerManagerImpl();
+                DataPowerFilter dataPowerFilter = queryDataScopeFilter.createUserDataPowerFilter(
+                    (JSONObject) (params.get("currentUser")), params.get("currentUnitCode").toString());
+                dataPowerFilter.addSourceData(params);
+                qap = dataPowerFilter.translateQuery(sqlSen,null);
+            }else {
+                qap = QueryUtils.translateQuery(sqlSen, params);
+            }
+
             Map<String, Object> paramsMap = new HashMap<>(params.size() + 6);
             paramsMap.putAll(params);
             paramsMap.putAll(qap.getParams());

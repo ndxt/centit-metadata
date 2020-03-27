@@ -3,6 +3,7 @@ package com.centit.product.datapacket.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.fileserver.common.FileStore;
+import com.centit.framework.common.ResponseData;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
@@ -21,6 +22,7 @@ import com.centit.product.datapacket.service.DataPacketService;
 import com.centit.product.datapacket.service.DataSetDefineService;
 import com.centit.product.datapacket.utils.DataPacketUtil;
 import com.centit.product.datapacket.vo.DataPacketSchema;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
@@ -212,7 +214,13 @@ public class DataPacketController extends BaseController {
     @GetMapping(value = "/dbquery/{queryId}")
     @WrapUpResponseBody
     public SimpleDataSet fetchDBQueryData(@PathVariable String queryId, HttpServletRequest request){
+        if(WebOptUtils.getCurrentUserInfo(request)==null) {
+            throw new ObjectException(ResponseData.ERROR_USER_NOT_LOGIN,
+                "用户没有登录或者超时，请重新登录！");
+        }
         Map<String, Object> params = collectRequestParameters(request);
+        params.put("currentUser",WebOptUtils.getCurrentUserInfo(request));
+        params.put("currentUnitCode",WebOptUtils.getCurrentUnitCode(request));
         DataSetDefine query = dataSetDefineService.getDbQuery(queryId);
         DataPacket dataPacket = dataPacketService.getDataPacket(query.getPacketId());
         Map<String, Object> modelTag = dataPacket.getPacketParamsValue();

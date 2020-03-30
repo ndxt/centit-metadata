@@ -13,6 +13,7 @@ import com.centit.product.dataopt.core.BizModel;
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.core.SimpleBizModel;
 import com.centit.product.dataopt.core.SimpleDataSet;
+import com.centit.product.dataopt.dataset.CsvDataSet;
 import com.centit.product.dataopt.dataset.ExcelDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
@@ -60,7 +61,7 @@ public class DataPacketController extends BaseController {
     @ApiOperation(value = "新增数据包")
     @PostMapping
     @WrapUpResponseBody
-    public void createDataPacket(DataPacket dataPacket, HttpServletRequest request){
+    public void createDataPacket(DataPacket dataPacket, HttpServletRequest request) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         dataPacket.setRecorder(userCode);
         dataPacket.setDataOptDescJson(StringEscapeUtils.unescapeHtml4(dataPacket.getDataOptDescJson()));
@@ -70,11 +71,11 @@ public class DataPacketController extends BaseController {
     @ApiOperation(value = "编辑数据包")
     @PutMapping(value = "/{packetId}")
     @WrapUpResponseBody
-    public void updateDataPacket(@PathVariable String packetId, @RequestBody DataPacket dataPacket){
+    public void updateDataPacket(@PathVariable String packetId, @RequestBody DataPacket dataPacket) {
         dataPacket.setPacketId(packetId);
         dataPacket.setDataOptDescJson(StringEscapeUtils.unescapeHtml4(dataPacket.getDataOptDescJson()));
-        for(DataSetDefine setDefine:dataPacket.getDataSetDefines()){
-            for(DataSetColumnDesc columnDesc:setDefine.getColumns()){
+        for (DataSetDefine setDefine : dataPacket.getDataSetDefines()) {
+            for (DataSetColumnDesc columnDesc : setDefine.getColumns()) {
                 columnDesc.setPacketId(dataPacket.getPacketId());
                 columnDesc.setQueryId(setDefine.getQueryId());
             }
@@ -85,31 +86,31 @@ public class DataPacketController extends BaseController {
     @ApiOperation(value = "编辑数据包数据处理描述信息")
     @PutMapping(value = "/opt/{packetId}")
     @WrapUpResponseBody
-    public void updateDataPacketOpt(@PathVariable String packetId, @RequestBody String dataOptDescJson){
+    public void updateDataPacketOpt(@PathVariable String packetId, @RequestBody String dataOptDescJson) {
         dataPacketService.updateDataPacketOptJson(packetId, dataOptDescJson);
     }
 
     @ApiOperation(value = "删除数据包")
     @DeleteMapping(value = "/{packetId}")
     @WrapUpResponseBody
-    public void deleteDataPacket(@PathVariable String packetId){
+    public void deleteDataPacket(@PathVariable String packetId) {
         dataPacketService.deleteDataPacket(packetId);
     }
 
     @ApiOperation(value = "获取数据包初始模式（不包括数据预处理）")
     @GetMapping(value = "/originschema/{packetId}")
     @WrapUpResponseBody
-    public DataPacketSchema getDataPacketOriginSchema(@PathVariable String packetId){
+    public DataPacketSchema getDataPacketOriginSchema(@PathVariable String packetId) {
         return DataPacketSchema.valueOf(dataPacketService.getDataPacket(packetId));
     }
 
     @ApiOperation(value = "获取数据包模式")
     @GetMapping(value = "/schema/{packetId}")
     @WrapUpResponseBody
-    public DataPacketSchema getDataPacketSchema(@PathVariable String packetId){
+    public DataPacketSchema getDataPacketSchema(@PathVariable String packetId) {
         DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
         DataPacketSchema schema = DataPacketSchema.valueOf(dataPacket);
-        if(dataPacket!=null) {
+        if (dataPacket != null) {
             JSONObject obj = dataPacket.getDataOptDesc();
             if (obj != null) {
                 return DataPacketUtil.calcDataPacketSchema(schema, obj);
@@ -121,10 +122,10 @@ public class DataPacketController extends BaseController {
     @ApiOperation(value = "根据额外的操作步骤获取数据包模式")
     @PostMapping(value = "/extendschema/{packetId}")
     @WrapUpResponseBody
-    public DataPacketSchema getDataPacketSchemaWithOpt(@PathVariable String packetId,@RequestBody String optsteps){
+    public DataPacketSchema getDataPacketSchemaWithOpt(@PathVariable String packetId, @RequestBody String optsteps) {
         DataPacket dataPacket = dataPacketService.getDataPacket(packetId);
         DataPacketSchema schema = DataPacketSchema.valueOf(dataPacket);
-        if(dataPacket!=null) {
+        if (dataPacket != null) {
             JSONObject obj = JSON.parseObject(optsteps);
             if (obj != null) {
                 return DataPacketUtil.calcDataPacketSchema(schema, obj);
@@ -136,7 +137,7 @@ public class DataPacketController extends BaseController {
     @ApiOperation(value = "查询数据包")
     @GetMapping
     @WrapUpResponseBody
-    public PageQueryResult<DataPacket> listDataPacket(HttpServletRequest request,PageDesc pageDesc){
+    public PageQueryResult<DataPacket> listDataPacket(HttpServletRequest request, PageDesc pageDesc) {
         List<DataPacket> list = dataPacketService.listDataPacket(BaseController.collectRequestParameters(request), pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }
@@ -144,23 +145,23 @@ public class DataPacketController extends BaseController {
     @ApiOperation(value = "查询单个数据包")
     @GetMapping(value = "/{packetId}")
     @WrapUpResponseBody
-    public DataPacket getDataPacket(@PathVariable String packetId){
+    public DataPacket getDataPacket(@PathVariable String packetId) {
         return dataPacketService.getDataPacket(packetId);
     }
 
     @ApiOperation(value = "获取数据包数据")
     @ApiImplicitParams({@ApiImplicitParam(
-        name = "packetId", value="数据包ID",
-        required=true, paramType = "path", dataType ="String"
+        name = "packetId", value = "数据包ID",
+        required = true, paramType = "path", dataType = "String"
     ), @ApiImplicitParam(
-        name = "datasets", value="需要返回的数据集名称，用逗号隔开，如果为空返回全部"
+        name = "datasets", value = "需要返回的数据集名称，用逗号隔开，如果为空返回全部"
     )})
     @GetMapping(value = "/packet/{packetId}")
     @WrapUpResponseBody
     public BizModel fetchDataPacketData(@PathVariable String packetId, String datasets,
-              HttpServletRequest request){
+                                        HttpServletRequest request) {
         Map<String, Object> params = BaseController.collectRequestParameters(request);
-        BizModel  bizModel = dataPacketService.fetchDataPacketData(packetId, params);
+        BizModel bizModel = dataPacketService.fetchDataPacketData(packetId, params);
         BizModel dup = getBizModel(datasets, bizModel);
         if (dup != null) {
             return dup;
@@ -174,14 +175,14 @@ public class DataPacketController extends BaseController {
     public BizModel fetchDataPacketDataWithOpt(@PathVariable String packetId,
                                                @PathVariable String datasets,
                                                @RequestBody String optsteps,
-        HttpServletRequest request){
+                                               HttpServletRequest request) {
         Map<String, Object> params = BaseController.collectRequestParameters(request);
         BizModel bizModel = null;
         //optsteps =StringEscapeUtils.unescapeHtml4(optsteps);
-        if(StringUtils.isNotBlank(optsteps)){
-            bizModel = dataPacketService.fetchDataPacketData(packetId, params,optsteps);
-        } else{
-             bizModel = dataPacketService.fetchDataPacketData(packetId, params);
+        if (StringUtils.isNotBlank(optsteps)) {
+            bizModel = dataPacketService.fetchDataPacketData(packetId, params, optsteps);
+        } else {
+            bizModel = dataPacketService.fetchDataPacketData(packetId, params);
         }
         BizModel dup = getBizModel(datasets, bizModel);
         if (dup != null) {
@@ -191,14 +192,14 @@ public class DataPacketController extends BaseController {
     }
 
     private BizModel getBizModel(String datasets, BizModel bizModel) {
-        if(StringUtils.isNotBlank(datasets)){
+        if (StringUtils.isNotBlank(datasets)) {
             String[] dss = datasets.split(",");
             SimpleBizModel dup = new SimpleBizModel(bizModel.getModelName());
             dup.setModelTag(bizModel.getModelTag());
-            Map<String, DataSet> dataMap = new HashMap<>(dss.length+1);
-            for(String dsn : dss) {
+            Map<String, DataSet> dataMap = new HashMap<>(dss.length + 1);
+            for (String dsn : dss) {
                 DataSet ds = bizModel.fetchDataSetByName(dsn);
-                if(ds!=null){
+                if (ds != null) {
                     dataMap.put(dsn, ds);
                 }
             }
@@ -210,41 +211,50 @@ public class DataPacketController extends BaseController {
 
     @ApiOperation(value = "获取数据库查询数据")
     @ApiImplicitParam(name = "queryId", value = "数据查询ID", required = true,
-        paramType = "path", dataType ="String")
+        paramType = "path", dataType = "String")
     @GetMapping(value = "/dbquery/{queryId}")
     @WrapUpResponseBody
-    public SimpleDataSet fetchDBQueryData(@PathVariable String queryId, HttpServletRequest request){
-        if(WebOptUtils.getCurrentUserInfo(request)==null) {
-            throw new ObjectException(ResponseData.ERROR_USER_NOT_LOGIN,
-                "用户没有登录或者超时，请重新登录！");
-        }
+    public SimpleDataSet fetchDBQueryData(@PathVariable String queryId, HttpServletRequest request) {
+
         Map<String, Object> params = collectRequestParameters(request);
-        params.put("currentUser",WebOptUtils.getCurrentUserInfo(request));
-        params.put("currentUnitCode",WebOptUtils.getCurrentUnitCode(request));
+
         DataSetDefine query = dataSetDefineService.getDbQuery(queryId);
         DataPacket dataPacket = dataPacketService.getDataPacket(query.getPacketId());
         Map<String, Object> modelTag = dataPacket.getPacketParamsValue();
-        switch (query.getSetType()){
+        switch (query.getSetType()) {
             case "D":
-            SQLDataSetReader sqlDSR = new SQLDataSetReader();
-            sqlDSR.setDataSource(DataSourceDescription.valueOf(
-                integrationEnvironment.getDatabaseInfo(query.getDatabaseCode())));
-            sqlDSR.setSqlSen(query.getQuerySQL());
-            if (params != null) {
-                modelTag.putAll(params);
-            }
-            SimpleDataSet simpleDataSet =sqlDSR.load(modelTag);
-            simpleDataSet.setDataSetName(query.getQueryName());
-            return simpleDataSet;
+                if (WebOptUtils.getCurrentUserInfo(request) == null) {
+                    throw new ObjectException(ResponseData.ERROR_USER_NOT_LOGIN,
+                        "用户没有登录或者超时，请重新登录！");
+                }
+                params.put("currentUser", WebOptUtils.getCurrentUserInfo(request));
+                params.put("currentUnitCode", WebOptUtils.getCurrentUnitCode(request));
+                SQLDataSetReader sqlDSR = new SQLDataSetReader();
+                sqlDSR.setDataSource(DataSourceDescription.valueOf(
+                    integrationEnvironment.getDatabaseInfo(query.getDatabaseCode())));
+                sqlDSR.setSqlSen(query.getQuerySQL());
+                if (params != null) {
+                    modelTag.putAll(params);
+                }
+                SimpleDataSet simpleDataSet = sqlDSR.load(modelTag);
+                simpleDataSet.setDataSetName(query.getQueryName());
+                return simpleDataSet;
             case "E":
-                ExcelDataSet excelDataSet=new ExcelDataSet();
+                ExcelDataSet excelDataSet = new ExcelDataSet();
                 try {
                     excelDataSet.setFilePath(fileStore.getFile(query.getQuerySQL()).getPath());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 return excelDataSet.load(params);
-
+            case "C":
+                CsvDataSet csvDataSet = new CsvDataSet();
+                try {
+                    csvDataSet.setFilePath(fileStore.getFile(query.getQuerySQL()).getPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return csvDataSet.load(params);
             default:
                 throw new IllegalStateException("Unexpected value: " + query.getSetType());
         }

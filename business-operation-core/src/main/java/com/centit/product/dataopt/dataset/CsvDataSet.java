@@ -19,45 +19,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CsvDataSet extends FileDataSet{
+public class CsvDataSet extends FileDataSet {
 
     /**
      * 读取 dataSet 数据集
+     *
      * @param params 模块的自定义参数
      * @return dataSet 数据集
      */
     @Override
-    public DataSet load(Map<String, Object> params) {
-
-
+    public SimpleDataSet load(Map<String, Object> params) {
         try {
-            List<Map<String,Object>> list = null;
-            InputStream inputStream;
+            List<Map<String, Object>> list = new ArrayList<>();
             File dir = new File(getFilePath());
-            if(dir.isFile()) {
-                inputStream = new FileInputStream(getFilePath());
-                BufferedReader reader =new BufferedReader(new InputStreamReader(inputStream,
-                    Charset.forName("gbk")), 8192);
-                CsvReader csvReader  = null;
-                csvReader = new CsvReader(reader);
-                csvReader.setDelimiter(',');
-                if(csvReader.readRecord()){
-                    String[] splitedHead=csvReader.getValues();
-                        while(csvReader.readRecord()){
-                            Map<String,Object> map=new HashMap<>();
-                            String[] splitedResult=csvReader.getValues();
-                            for (int i=0;i<splitedHead.length;i++) {
-                                map.put(splitedHead[i],splitedResult[i]);
-                            }
-                            list.add(map);
-                    }
-                }
-            }else{
+            if (dir.isFile()) {
+                readCsvFile(list, getFilePath());
+            } else {
                 File[] files = dir.listFiles();
                 if (null != files) {
                     for (File subFileNames : files) {
-                        if(!subFileNames.isDirectory()) {
-                            inputStream = new FileInputStream(subFileNames);
+                        if (!subFileNames.isDirectory()) {
+                            readCsvFile(list, subFileNames.getPath());
                         }
                     }
                 }
@@ -70,14 +52,36 @@ public class CsvDataSet extends FileDataSet{
         }
         return null;
     }
+
+    private void readCsvFile(List<Map<String, Object>> list, String filePath) throws IOException {
+        InputStream inputStream = new FileInputStream(filePath);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream,
+            Charset.forName("gbk")), 8192);
+        CsvReader csvReader = null;
+        csvReader = new CsvReader(reader);
+        csvReader.setDelimiter(',');
+        if (csvReader.readRecord()) {
+            String[] splitedHead = csvReader.getValues();
+            while (csvReader.readRecord()) {
+                Map<String, Object> map = new HashMap<>();
+                String[] splitedResult = csvReader.getValues();
+                for (int i = 0; i < splitedHead.length; i++) {
+                    map.put(splitedHead[i], splitedResult[i]);
+                }
+                list.add(map);
+            }
+        }
+    }
+
     /**
      * 将 dataSet 数据集 持久化
+     *
      * @param dataSet 数据集
      */
     @Override
     public void save(DataSet dataSet) {
         String fileDate = DatetimeOpt.convertDateToString(DatetimeOpt.currentUtilDate(), "YYYYMMddHHmmss");
-        File file = new File(filePath + File.separator  + fileDate);
+        File file = new File(filePath + File.separator + fileDate);
         if (!file.exists()) {
             file.mkdirs();
         }
@@ -139,6 +143,7 @@ public class CsvDataSet extends FileDataSet{
     /**
      * 默认和 save 等效;
      * 对于文件类持久化方案来说可以差别化处理，比如添加到文件末尾
+     *
      * @param dataSet 数据集
      */
     @Override

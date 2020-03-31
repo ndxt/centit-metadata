@@ -5,6 +5,7 @@ import com.centit.fileserver.common.FileStore;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.dataopt.core.SimpleDataSet;
+import com.centit.product.dataopt.dataset.CsvDataSet;
 import com.centit.product.dataopt.dataset.ExcelDataSet;
 import com.centit.product.datapacket.dao.DataSetDefineDao;
 import com.centit.product.datapacket.po.DataSetDefine;
@@ -99,6 +100,21 @@ public class DataSetDefineServiceImpl implements DataSetDefineService {
             e.printStackTrace();
         }
         String[] columns = excelDataSet.getColumns();
+        return getColumnSchemas(columns);
+    }
+    @Override
+    public List<ColumnSchema> generateCsvFields(Map<String, Object> params){
+        CsvDataSet csvDataSet = new CsvDataSet();
+        try {
+            csvDataSet.setFilePath(fileStore.getFile((String) params.get("FileId")).getPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String[] columns = csvDataSet.getColumns();
+        return getColumnSchemas(columns);
+    }
+
+    private List<ColumnSchema> getColumnSchemas(String[] columns) {
         List<ColumnSchema> columnSchemas = new ArrayList<>(10);
         if (columns != null) {
             for (String s : columns) {

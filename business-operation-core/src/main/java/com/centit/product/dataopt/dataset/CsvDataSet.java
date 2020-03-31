@@ -57,8 +57,7 @@ public class CsvDataSet extends FileDataSet {
         InputStream inputStream = new FileInputStream(filePath);
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream,
             Charset.forName("gbk")), 8192);
-        CsvReader csvReader = null;
-        csvReader = new CsvReader(reader);
+        CsvReader csvReader = new CsvReader(reader);
         csvReader.setDelimiter(',');
         if (csvReader.readRecord()) {
             String[] splitedHead = csvReader.getValues();
@@ -71,6 +70,35 @@ public class CsvDataSet extends FileDataSet {
                 list.add(map);
             }
         }
+    }
+
+    private String[] readCsvHead(String filePath) throws IOException {
+        InputStream inputStream = new FileInputStream(filePath);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream,
+            Charset.forName("gbk")), 8192);
+        CsvReader csvReader = new CsvReader(reader);
+        csvReader.setDelimiter(',');
+        if (csvReader.readRecord()) {
+            return csvReader.getValues();
+        }
+        return null;
+    }
+
+    public String[] getColumns() {
+        try {
+            File dir = new File(getFilePath());
+            if (dir.isFile()) {
+                return readCsvHead(getFilePath());
+            } else {
+                File[] files = dir.listFiles();
+                if (null != files) {
+                    return readCsvHead(files[0].getPath());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**

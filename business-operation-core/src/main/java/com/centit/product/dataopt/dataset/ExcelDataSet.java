@@ -22,7 +22,7 @@ public class ExcelDataSet extends FileDataSet {
     public SimpleDataSet load(Map<String, Object> params) {
         try {
             SimpleDataSet dataSet = new SimpleDataSet();
-            if (ExcelTypeEnum.checkFileExcelType(getFilePath())!=ExcelTypeEnum.NOTEXCEL) {
+            if (ExcelTypeEnum.checkFileExcelType(getFilePath()) != ExcelTypeEnum.NOTEXCEL) {
                 dataSet.setData(ExcelImportUtil.loadMapFromExcelSheet(getFilePath(), 0));
             }
             return dataSet;
@@ -34,29 +34,31 @@ public class ExcelDataSet extends FileDataSet {
 
     /**
      * 获取字段信息
+     *
      * @return
      */
-    public String[] getColumns(){
-    try {
-        if (ExcelTypeEnum.checkFileExcelType(getFilePath())!=ExcelTypeEnum.NOTEXCEL) {
-            return ExcelImportUtil.loadColumnsFromExcel(getFilePath(), 0);
+    public String[] getColumns() {
+        try {
+            if (ExcelTypeEnum.checkFileExcelType(getFilePath()) != ExcelTypeEnum.NOTEXCEL) {
+                return ExcelImportUtil.loadColumnsFromExcel(getFilePath(), 0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
+        return null;
     }
-    return null;
-}
+
     @Override
     public void save(DataSet dataSet) {
         List<Object[]> fields = new ArrayList<>();
-        for(Map<String, Object> map : dataSet.getData()){
+        for (Map<String, Object> map : dataSet.getData()) {
             fields.add(map.values().toArray());
         }
         String path;
-        File file=new File(this.getFilePath());
-        if (file.isFile()){
-            path=this.getFilePath();
-        }else {
+        File file = new File(this.getFilePath());
+        if (file.isFile()) {
+            path = this.getFilePath();
+        } else {
             String fileDate = DatetimeOpt.convertDateToString(DatetimeOpt.currentUtilDate(), "YYYYMMddHHmmss");
             path = this.getFilePath() + File.separator + fileDate;
             File filepath = new File(path);
@@ -66,7 +68,7 @@ public class ExcelDataSet extends FileDataSet {
             path = path + File.separator + "sys.xls";
         }
         try {
-            ExcelExportUtil.appendDataToExcelSheet(path,0, fields, dataSet.getData().get(0).keySet().toArray(new String[0]));
+            ExcelExportUtil.appendDataToExcelSheet(path, 0, fields, dataSet.getData().get(0).keySet().toArray(new String[0]));
         } catch (IOException e) {
             e.printStackTrace();
         }

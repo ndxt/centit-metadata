@@ -93,6 +93,9 @@ public class DataSetDefineController extends BaseController {
             case "E":
                 params.put("FileId", sql);
                 return dataSetDefineService.generateExcelFields(params);
+            case "C":
+                params.put("FileId", sql);
+                return dataSetDefineService.generateCsvFields(params);
             case "J":
                 return dataSetDefineService.generateJsonFields(params);
             case "D":

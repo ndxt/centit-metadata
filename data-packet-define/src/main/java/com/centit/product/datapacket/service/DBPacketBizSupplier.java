@@ -3,6 +3,7 @@ package com.centit.product.datapacket.service;
 import com.centit.fileserver.common.FileStore;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.dataopt.core.*;
+import com.centit.product.dataopt.dataset.CsvDataSet;
 import com.centit.product.dataopt.dataset.ExcelDataSet;
 import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
@@ -58,6 +59,17 @@ public class DBPacketBizSupplier implements BizSupplier {
                         e.printStackTrace();
                     }
                     SimpleDataSet dataset = excelDataSet.load(modelTag);
+                    dataset.setDataSetName(rdd.getQueryName());
+                    dataSets.put(rdd.getQueryId(), dataset);
+                }else if ("C".equals(rdd.getSetType())){
+                    CsvDataSet csvDataSet = new CsvDataSet();
+                    try {
+                        csvDataSet.setFilePath(
+                            fileStore.getFile(rdd.getQuerySQL()).getPath());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    SimpleDataSet dataset = csvDataSet.load(modelTag);
                     dataset.setDataSetName(rdd.getQueryName());
                     dataSets.put(rdd.getQueryId(), dataset);
                 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.support.algorithm.DatetimeOpt;
+import com.centit.support.algorithm.UuidOpt;
 import com.centit.support.compiler.Pretreatment;
 import com.centit.support.file.FileIOOpt;
 import com.centit.support.report.ExcelImportUtil;
@@ -27,6 +28,7 @@ public class CsvDataSet extends FileDataSet {
      * @param params 模块的自定义参数
      * @return dataSet 数据集
      */
+    private Map<String, Object> params;
     @Override
     public SimpleDataSet load(Map<String, Object> params) {
         try {
@@ -147,8 +149,14 @@ public class CsvDataSet extends FileDataSet {
                             if (!fileJSON.exists()) {
                                 fileJSON.mkdirs();
                             }
+                            String fileName;
+                            if(params.get("fileName")!=null) {
+                                fileName=(String) params.get("fileName");
+                            }else{
+                                fileName= UuidOpt.getUuidAsString32();
+                            }
                             FileIOOpt.writeObjectAsJsonToFile(row, file.getPath()
-                                + File.separator + key + File.separator + Pretreatment.mapTemplateString("{modelId}", row));
+                                + File.separator + key + File.separator + Pretreatment.mapTemplateString(fileName, row));
                             splitedRows.add(column.toString());
                         } else {
                             splitedRows.add(column.toString());
@@ -168,15 +176,12 @@ public class CsvDataSet extends FileDataSet {
         IOUtils.closeQuietly(outputStream);
     }
 
-    /**
-     * 默认和 save 等效;
-     * 对于文件类持久化方案来说可以差别化处理，比如添加到文件末尾
-     *
-     * @param dataSet 数据集
-     */
-    @Override
-    public void append(DataSet dataSet) {
 
+    public Map<String, Object> getParams() {
+        return params;
     }
 
+    public void setParams(Map<String, Object> params) {
+        this.params = params;
+    }
 }

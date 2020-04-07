@@ -19,6 +19,7 @@ import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
 import com.centit.support.algorithm.DatetimeOpt;
+import com.centit.support.algorithm.GeneralAlgorithm;
 import com.centit.support.database.ddl.*;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.SimpleTableInfo;
@@ -211,12 +212,12 @@ public class MetaTableManagerImpl
                     sqls.add(ddlOpt.makeAddColumnSql(
                         ptable.getTableName(), pcol));
                 } else {
-                    if (pcol.getColumnType().equalsIgnoreCase(ocol.getColumnType())) {
-                        boolean exits=!pcol.getMaxLength().equals(ocol.getMaxLength()) ||
-                            !pcol.getScale().equals(ocol.getScale())
-                            ||!pcol.getMandatory().equals(ocol.getMandatory())
-                            ||(!pcol.getFieldLabelName().equals(ocol.getFieldLabelName())
-                            &&dbType.equals(DBType.MySql));
+                    if (StringUtils.equalsAnyIgnoreCase(pcol.getColumnType(), ocol.getColumnType())) {
+                        boolean exits= !GeneralAlgorithm.equals(pcol.getMaxLength(), ocol.getMaxLength()) ||
+                            !GeneralAlgorithm.equals(pcol.getScale(), ocol.getScale()) ||
+                            !GeneralAlgorithm.equals(pcol.getMandatory(), ocol.getMandatory()) ||
+                            (!StringUtils.equals(pcol.getFieldLabelName(),ocol.getFieldLabelName())
+                                && dbType.equals(DBType.MySql));
                         if (exits) {
                             sqls.add(ddlOpt.makeModifyColumnSql(
                                 ptable.getTableName(), ocol, pcol));

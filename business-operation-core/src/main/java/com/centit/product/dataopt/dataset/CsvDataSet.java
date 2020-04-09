@@ -110,14 +110,9 @@ public class CsvDataSet extends FileDataSet {
      */
     @Override
     public void save(DataSet dataSet) {
-        String fileDate = DatetimeOpt.convertDateToString(DatetimeOpt.currentUtilDate(), "YYYYMMddHHmmss");
-        File file = new File(filePath + File.separator + fileDate);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
         OutputStream outputStream = null;
         try {
-            outputStream = new FileOutputStream(new File(file.getPath() + File.separator + "sys.csv"));
+            outputStream = new FileOutputStream(new File(filePath));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -143,24 +138,7 @@ public class CsvDataSet extends FileDataSet {
                 for (String key : row.keySet()) {
                     Object column = row.get(key);
                     if (null != column) {
-                        if (column instanceof JSONObject) {
-                            File fileJSON = new File(file.getPath()
-                                + File.separator + key);
-                            if (!fileJSON.exists()) {
-                                fileJSON.mkdirs();
-                            }
-                            String fileName;
-                            if(params.get("fileName")!=null) {
-                                fileName=(String) params.get("fileName");
-                            }else{
-                                fileName= UuidOpt.getUuidAsString32();
-                            }
-                            FileIOOpt.writeObjectAsJsonToFile(row, file.getPath()
-                                + File.separator + key + File.separator + Pretreatment.mapTemplateString(fileName, row));
-                            splitedRows.add(column.toString());
-                        } else {
-                            splitedRows.add(column.toString());
-                        }
+                        splitedRows.add(column.toString());
                     } else {
                         splitedRows.add("");
                     }

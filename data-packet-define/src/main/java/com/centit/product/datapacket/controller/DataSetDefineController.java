@@ -13,6 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -88,6 +89,7 @@ public class DataSetDefineController extends BaseController {
     @RequestMapping(value = "/sqlcolumn", method = {RequestMethod.POST})
     @WrapUpResponseBody
     public List<ColumnSchema> generateSqlcolumn(String databaseCode, String sql,String dataType, HttpServletRequest request){
+        sql= StringEscapeUtils.unescapeHtml4(sql);
         Map<String, Object> params = collectRequestParameters(request);
         switch (dataType) {
             case "E":

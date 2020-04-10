@@ -57,8 +57,8 @@ public class MetadataQueryController extends  BaseController {
     @ApiOperation(value = "数据库列表")
     @GetMapping(value = "/databases")
     @WrapUpResponseBody
-    public List<DatabaseInfo> databases(){
-        return metaDataService.listDatabase();
+    public List<DatabaseInfo> databases(String osId){
+        return metaDataService.listDatabase(osId);
     }
 
     @ApiOperation(value = "数据库中表分页查询")

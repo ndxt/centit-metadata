@@ -12,6 +12,7 @@ import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.vo.MetaTableCascade;
 import com.centit.support.algorithm.CollectionsOpt;
+import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.*;
 import com.centit.support.database.utils.DBType;
@@ -49,8 +50,19 @@ public class MetaDataServiceImpl implements MetaDataService {
     private MetaRelationDao metaRelationDao;
 
     @Override
-    public List<DatabaseInfo> listDatabase() {
-        return integrationEnvironment.listDatabaseInfo();
+    public List<DatabaseInfo> listDatabase(String osId) {
+        List<DatabaseInfo> list= integrationEnvironment.listDatabaseInfo();
+        if(StringUtils.isBlank(osId)){
+            return list;
+        } else{
+            List<DatabaseInfo> listReturn=new ArrayList<>();
+           for (DatabaseInfo databaseInfo:list){
+               if (StringUtils.equals(osId,databaseInfo.getOsId())){
+                  listReturn.add(databaseInfo);
+               }
+           }
+           return listReturn;
+        }
     }
 
     @Override

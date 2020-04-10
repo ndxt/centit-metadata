@@ -20,7 +20,7 @@ public interface MetaDataService {
 
     JSONArray listMetaTables(Map<String, Object> filterMap, PageDesc pageDes);
 
-    List<DatabaseInfo> listDatabase();
+    List<DatabaseInfo> listDatabase(String osId);
 
     List<SimpleTableInfo> listRealTables(String databaseCode);
 

@@ -15,10 +15,7 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CsvDataSet extends FileDataSet {
 
@@ -123,8 +120,10 @@ public class CsvDataSet extends FileDataSet {
         csvWriter.setTextQualifier('"');
         csvWriter.setUseTextQualifier(true);
         csvWriter.setRecordDelimiter(IOUtils.LINE_SEPARATOR.charAt(0));
+        List<Map<String, Object>> list=dataSet.getData();
+        Collections.sort(list, (o1, o2) -> Integer.compare(o2.size(), o1.size()));
         int iHead = 0;
-        for (Map<String, Object> row : dataSet.getData()) {
+        for (Map<String, Object> row : list) {
             if (iHead == 0) {
                 try {
                     csvWriter.writeRecord(row.keySet().toArray(new String[0]));
@@ -135,7 +134,7 @@ public class CsvDataSet extends FileDataSet {
             iHead++;
             try {
                 List<String> splitedRows = new ArrayList<String>();
-                for (String key : row.keySet()) {
+                for (String key : list.get(0).keySet()) {
                     Object column = row.get(key);
                     if (null != column) {
                         splitedRows.add(column.toString());

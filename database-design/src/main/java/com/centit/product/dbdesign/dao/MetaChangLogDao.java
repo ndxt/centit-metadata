@@ -27,33 +27,18 @@ public class MetaChangLogDao extends BaseDaoImpl<MetaChangLog, String>
 
     @Override
     public Map<String, String> getFilterField() {
-        if( filterField == null){
-            filterField = new HashMap<>();
-
-            filterField.put("version" , CodeBook.EQUAL_HQL_ID);
-
-
-            filterField.put("changeId" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("databaseCode" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("changeDate" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("changer" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("changeTableSum" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("changeRelationSum" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("changeScript" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("changeComment" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("auditor" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("auditDate" , CodeBook.EQUAL_HQL_ID);
-
-        }
+        Map<String, String> filterField = new HashMap<>();
+        filterField.put("version" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("changeId" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("databaseCode" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("changeDate" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("changer" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("changeTableSum" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("changeRelationSum" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("changeScript" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("changeComment" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("auditor" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("auditDate" , CodeBook.EQUAL_HQL_ID);
         return filterField;
     }
 

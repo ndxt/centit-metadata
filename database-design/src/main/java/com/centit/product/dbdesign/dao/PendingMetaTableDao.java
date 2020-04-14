@@ -27,31 +27,18 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String>
 
     @Override
     public Map<String, String> getFilterField() {
-        if( filterField == null){
-            filterField = new HashMap<String, String>();
+        Map<String, String> filterField = new HashMap<String, String>();
+        filterField.put("tableId" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("databaseCode" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableName" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableLabelName" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableType" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableState" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableComment" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("isInWorkflow" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("lastModifyDate" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("recorder" , CodeBook.EQUAL_HQL_ID);
 
-            filterField.put("tableId" , CodeBook.EQUAL_HQL_ID);
-
-
-            filterField.put("databaseCode" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("tableName" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("tableLabelName" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("tableType" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("tableState" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("tableComment" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("isInWorkflow" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("lastModifyDate" , CodeBook.EQUAL_HQL_ID);
-
-            filterField.put("recorder" , CodeBook.EQUAL_HQL_ID);
-
-        }
         return filterField;
     }
 

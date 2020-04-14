@@ -13,15 +13,13 @@ import java.util.Map;
 public class MetaTableDao extends BaseDaoImpl<MetaTable, String> {
     @Override
     public Map<String, String> getFilterField() {
-        if( filterField == null) {
-            filterField = new HashMap<>();
-            filterField.put("accessType", CodeBook.IN_HQL_ID);
-            filterField.put("tableType", CodeBook.IN_HQL_ID);
-            filterField.put("databaseCode", CodeBook.EQUAL_HQL_ID);
-            filterField.put("tableId", CodeBook.EQUAL_HQL_ID);
-            filterField.put("tableName", CodeBook.LIKE_HQL_ID);
-            filterField.put("tableLabelName", CodeBook.LIKE_HQL_ID);
-        }
+        Map<String, String> filterField = new HashMap<>();
+        filterField.put("accessType", CodeBook.IN_HQL_ID);
+        filterField.put("tableType", CodeBook.IN_HQL_ID);
+        filterField.put("databaseCode", CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableId", CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableName", CodeBook.LIKE_HQL_ID);
+        filterField.put("tableLabelName", CodeBook.LIKE_HQL_ID);
         return  filterField;
     }
 

@@ -69,6 +69,7 @@ public class CsvDataSet extends FileDataSet {
                 list.add(map);
             }
         }
+        csvReader.close();
     }
 
     private String[] readCsvHead(String filePath) throws IOException {

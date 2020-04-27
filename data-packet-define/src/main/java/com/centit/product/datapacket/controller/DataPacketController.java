@@ -223,10 +223,10 @@ public class DataPacketController extends BaseController {
         Map<String, Object> modelTag = dataPacket.getPacketParamsValue();
         switch (query.getSetType()) {
             case "D":
-                if (WebOptUtils.getCurrentUserInfo(request) == null) {
-                    throw new ObjectException(ResponseData.ERROR_USER_NOT_LOGIN,
-                        "用户没有登录或者超时，请重新登录！");
-                }
+//                if (WebOptUtils.getCurrentUserInfo(request) == null) {
+//                    throw new ObjectException(ResponseData.ERROR_USER_NOT_LOGIN,
+//                        "用户没有登录或者超时，请重新登录！");
+//                }
                 params.put("currentUser", WebOptUtils.getCurrentUserInfo(request));
                 params.put("currentUnitCode", WebOptUtils.getCurrentUnitCode(request));
                 SQLDataSetReader sqlDSR = new SQLDataSetReader();

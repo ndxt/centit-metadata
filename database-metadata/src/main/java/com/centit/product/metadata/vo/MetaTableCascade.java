@@ -68,8 +68,8 @@ public class MetaTableCascade {
         }
         for(MetaRelDetail relDetail : relDetails) {
             RefJoinColumn joinColumn = new RefJoinColumn();
-            joinColumn.setLeftColumn(relDetail.getParentColumnName());
-            joinColumn.setRightColumn(relDetail.getChildColumnName());
+            joinColumn.setLeftColumn(relDetail.getParentColumnCode());
+            joinColumn.setRightColumn(relDetail.getChildColumnCode());
             table.getJoinColumns().add(joinColumn);
         }
         this.relationTable.add(table);

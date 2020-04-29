@@ -58,6 +58,7 @@ public class CsvDataSet extends FileDataSet {
             Charset.forName("gbk")), 8192);
         CsvReader csvReader = new CsvReader(reader);
         csvReader.setDelimiter(',');
+        csvReader.setSafetySwitch(false);
         if (csvReader.readRecord()) {
             String[] splitedHead = csvReader.getValues();
             while (csvReader.readRecord()) {

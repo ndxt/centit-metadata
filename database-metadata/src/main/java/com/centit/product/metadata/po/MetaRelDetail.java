@@ -37,7 +37,7 @@ public class MetaRelDetail implements java.io.Serializable {
     @Column(name = "PARENT_COLUMN_CODE")
     @NotBlank(message = "字段不能为空")
     @ApiModelProperty(value = "父表列名")
-    private String parentColumnName;
+    private String parentColumnCode;
 
     /**
      * C字段代码
@@ -47,26 +47,26 @@ public class MetaRelDetail implements java.io.Serializable {
     @NotBlank(message = "字段不能为空")
     @ApiModelProperty(value = "子表列名")
     @Length(max = 32, message = "字段长度不能大于{max}")
-    private String childColumnName;
+    private String childColumnCode;
 
     public MetaRelDetail copy(MetaRelDetail other) {
-        this.parentColumnName = other.getParentColumnName();
-        this.childColumnName = other.getChildColumnName();
+        this.parentColumnCode = other.getParentColumnCode();
+        this.childColumnCode = other.getChildColumnCode();
         return this;
     }
 
     public MetaRelDetail copyNotNullProperty(MetaRelDetail other) {
-        if (other.getParentColumnName() != null)
-            this.parentColumnName = other.getParentColumnName();
+        if (other.getParentColumnCode() != null)
+            this.parentColumnCode = other.getParentColumnCode();
         if (other.getRelationId() != null)
             this.relationId = other.getRelationId();
-        if (other.getChildColumnName() != null)
-            this.childColumnName = other.getChildColumnName();
+        if (other.getChildColumnCode() != null)
+            this.childColumnCode = other.getChildColumnCode();
         return this;
     }
 
     public MetaRelDetail clearProperties() {
-        this.childColumnName = null;
+        this.childColumnCode = null;
         return this;
     }
 }

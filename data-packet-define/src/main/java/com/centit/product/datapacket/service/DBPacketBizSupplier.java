@@ -9,6 +9,8 @@ import com.centit.product.dataopt.dataset.SQLDataSetReader;
 import com.centit.product.datapacket.po.DataPacket;
 import com.centit.product.datapacket.po.DataSetDefine;
 import com.centit.support.database.utils.DataSourceDescription;
+import com.centit.support.network.HttpExecutor;
+import com.sun.xml.internal.bind.v2.TODO;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -42,36 +44,50 @@ public class DBPacketBizSupplier implements BizSupplier {
         }
         if (this.dbPacket.getDataSetDefines() !=null && this.dbPacket.getDataSetDefines().size() >0) {
             for (DataSetDefine rdd : this.dbPacket.getDataSetDefines()) {
-                if("D".equals(rdd.getSetType())) {
-                    SQLDataSetReader sqlDSR = new SQLDataSetReader();
-                    sqlDSR.setDataSource(DataSourceDescription.valueOf(
-                        integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));
-                    sqlDSR.setSqlSen(rdd.getQuerySQL());
-                    SimpleDataSet dataset = sqlDSR.load(modelTag);
-                    dataset.setDataSetName(rdd.getQueryName());
-                    dataSets.put(rdd.getQueryId(), dataset);
-                } else if ("E".equals(rdd.getSetType())){
-                    ExcelDataSet excelDataSet = new ExcelDataSet();
-                    try {
-                        excelDataSet.setFilePath(
-                            fileStore.getFile(rdd.getQuerySQL()).getPath());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                switch (rdd.getSetType()) {
+                    case "D": {
+                        SQLDataSetReader sqlDSR = new SQLDataSetReader();
+                        sqlDSR.setDataSource(DataSourceDescription.valueOf(
+                            integrationEnvironment.getDatabaseInfo(rdd.getDatabaseCode())));
+                        sqlDSR.setSqlSen(rdd.getQuerySQL());
+                        SimpleDataSet dataset = sqlDSR.load(modelTag);
+                        dataset.setDataSetName(rdd.getQueryName());
+                        dataSets.put(rdd.getQueryId(), dataset);
+                        break;
                     }
-                    SimpleDataSet dataset = excelDataSet.load(modelTag);
-                    dataset.setDataSetName(rdd.getQueryName());
-                    dataSets.put(rdd.getQueryId(), dataset);
-                }else if ("C".equals(rdd.getSetType())){
-                    CsvDataSet csvDataSet = new CsvDataSet();
-                    try {
-                        csvDataSet.setFilePath(
-                            fileStore.getFile(rdd.getQuerySQL()).getPath());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    case "E": {
+                        ExcelDataSet excelDataSet = new ExcelDataSet();
+                        try {
+                            excelDataSet.setFilePath(
+                                fileStore.getFile(rdd.getQuerySQL()).getPath());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        SimpleDataSet dataset = excelDataSet.load(modelTag);
+                        dataset.setDataSetName(rdd.getQueryName());
+                        dataSets.put(rdd.getQueryId(), dataset);
+                        break;
                     }
-                    SimpleDataSet dataset = csvDataSet.load(modelTag);
-                    dataset.setDataSetName(rdd.getQueryName());
-                    dataSets.put(rdd.getQueryId(), dataset);
+                    case "C": {
+                        CsvDataSet csvDataSet = new CsvDataSet();
+                        try {
+                            csvDataSet.setFilePath(
+                                fileStore.getFile(rdd.getQuerySQL()).getPath());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        SimpleDataSet dataset = csvDataSet.load(modelTag);
+                        dataset.setDataSetName(rdd.getQueryName());
+                        dataSets.put(rdd.getQueryId(), dataset);
+                        break;
+                    }
+                    case "H": {
+                        //TODO httpget数据集
+
+                        break;
+                    }
+                    default:
+                        break;
                 }
             }
         }

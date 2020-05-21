@@ -19,6 +19,7 @@ public interface DataSet {
     String getDataSetName();
     /**
      * 返回 DataSet 的类型
+     * 二维表 T(table)、单个数据记录 R(row)、标量数据 S(scalar)
      * @return  DataSet 的类型
      */
     String getDataSetType();

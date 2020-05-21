@@ -82,7 +82,7 @@ public abstract class DataSetOptUtil {
             }
         }
         SimpleDataSet outDataSet = new SimpleDataSet(newData);
-        outDataSet.setDataSetType(inData.getDataSetName());
+        outDataSet.setDataSetName(inData.getDataSetName());
         return outDataSet;
     }
 

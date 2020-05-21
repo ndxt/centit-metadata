@@ -58,6 +58,7 @@ public class CsvDataSet extends FileDataSet {
             Charset.forName("gbk")), 8192);
         CsvReader csvReader = new CsvReader(reader);
         csvReader.setDelimiter(',');
+        csvReader.setSafetySwitch(false);
         if (csvReader.readRecord()) {
             String[] splitedHead = csvReader.getValues();
             while (csvReader.readRecord()) {
@@ -69,6 +70,7 @@ public class CsvDataSet extends FileDataSet {
                 list.add(map);
             }
         }
+        csvReader.close();
     }
 
     private String[] readCsvHead(String filePath) throws IOException {
@@ -113,8 +115,7 @@ public class CsvDataSet extends FileDataSet {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        BufferedWriter writer = null;
-        writer = new BufferedWriter(new OutputStreamWriter(
+        BufferedWriter writer=new BufferedWriter(new OutputStreamWriter(
             outputStream, Charset.forName("gbk")));
         CsvWriter csvWriter = new CsvWriter(writer, ',');
         csvWriter.setTextQualifier('"');

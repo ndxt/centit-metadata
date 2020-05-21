@@ -212,7 +212,7 @@ public class MetaTableManagerImpl
                     sqls.add(ddlOpt.makeAddColumnSql(
                         ptable.getTableName(), pcol));
                 } else {
-                    if (StringUtils.equalsAnyIgnoreCase(pcol.getColumnType(), ocol.getColumnType())) {
+                    if (StringUtils.equalsAnyIgnoreCase(pcol.getFieldType(), ocol.getFieldType())) {
                         boolean exits= !GeneralAlgorithm.equals(pcol.getMaxLength(), ocol.getMaxLength()) ||
                             !GeneralAlgorithm.equals(pcol.getScale(), ocol.getScale()) ||
                             !GeneralAlgorithm.equals(pcol.getMandatory(), ocol.getMandatory()) ||

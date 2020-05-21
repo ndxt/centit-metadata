@@ -151,7 +151,7 @@ public class MetaRelation implements TableReference, java.io.Serializable {
         }
         Map<String, String> colMap = new HashMap<>(relationDetails.size()+1);
         for(MetaRelDetail mrd : relationDetails){
-            colMap.put(mrd.getParentColumnName(), mrd.getChildColumnName());
+            colMap.put(mrd.getParentColumnCode(), mrd.getChildColumnCode());
         }
         return colMap;
     }
@@ -164,7 +164,7 @@ public class MetaRelation implements TableReference, java.io.Serializable {
         }
 
         for(MetaRelDetail mrd : relationDetails){
-            if(StringUtils.equals(sCol, mrd.getChildColumnName())){
+            if(StringUtils.equals(sCol, mrd.getChildColumnCode())){
                 return true;
             }
         }
@@ -183,11 +183,11 @@ public class MetaRelation implements TableReference, java.io.Serializable {
         Map<String, Object> fk = new HashMap<>(8);
         if(relationDetails==null) return null;
         for (MetaRelDetail mrd : relationDetails) {
-            Object fkValue = fetchObjectColumn(parentObject, mrd.getParentColumnName());
+            Object fkValue = fetchObjectColumn(parentObject, mrd.getParentColumnCode());
             if(fkValue == null){
                 return null;
             }
-            fk.put(FieldType.mapPropName(mrd.getChildColumnName()), fkValue);
+            fk.put(FieldType.mapPropName(mrd.getChildColumnCode()), fkValue);
         }
         return fk;
     }
@@ -195,11 +195,11 @@ public class MetaRelation implements TableReference, java.io.Serializable {
     public Map<String, Object> fetchParentPk(Map<String, Object> childObject){
         Map<String, Object> pk = new HashMap<>(8);
         for (MetaRelDetail mrd : relationDetails) {
-            Object pkValue = fetchObjectColumn(childObject, mrd.getChildColumnName());
+            Object pkValue = fetchObjectColumn(childObject, mrd.getChildColumnCode());
             if(pkValue==null){
                 return null;
             }
-            pk.put(FieldType.mapPropName(mrd.getParentColumnName()), pkValue);
+            pk.put(FieldType.mapPropName(mrd.getParentColumnCode()), pkValue);
         }
         return pk;
     }

@@ -46,8 +46,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 switch (col.getFieldType()){
                     case FieldType.DATE:
                     case FieldType.DATETIME:
-                        object.put(col.getPropertyName(), DatetimeOpt.castObjectToSqlDate(fieldValue));
-                        break;
                     case FieldType.TIMESTAMP:
                         object.put(col.getPropertyName(), DatetimeOpt.castObjectToSqlTimestamp(fieldValue));
                         break;

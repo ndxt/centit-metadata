@@ -1,6 +1,7 @@
 package com.centit.product.metadata.po;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.dao.DictionaryMap;
@@ -8,6 +9,7 @@ import com.centit.framework.core.dao.DictionaryMapColumn;
 import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.product.metadata.service.impl.SqlDictionaryMapSupplier;
 import com.centit.support.algorithm.CollectionsOpt;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.CachedObject;
 import com.centit.support.common.ICachedObject;
 import com.centit.support.database.metadata.SimpleTableInfo;
@@ -357,15 +359,27 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         }
         List<DictionaryMapColumn> dictionaryMapColumns = new ArrayList<>(4);
         for(MetaColumn mc : mdColumns){
-            //dictionary
+            //dictionary; 解析 mc.getReferenceData() json
             if("1".equals(mc.getReferenceType())){
-                dictionaryMapColumns.add(new DictionaryMapColumn(
-                    mc.getPropertyName(),
-                    mc.getPropertyName()+"Desc",
-                    mc.getReferenceData()
-                ));
+                if(mc.getReferenceData().startsWith("{")){
+                    Object jsonObject = JSON.parse(mc.getReferenceData());
+                    if(jsonObject instanceof JSONObject){
+                        for(Map.Entry<String, Object> ent: ((JSONObject)jsonObject).entrySet()){
+                            dictionaryMapColumns.add(new DictionaryMapColumn(
+                                mc.getPropertyName(),
+                                ent.getKey(),
+                                StringBaseOpt.castObjectToString(ent.getValue())
+                            ));
+                        }
+                    }
+                } else {
+                    dictionaryMapColumns.add(new DictionaryMapColumn(
+                        mc.getPropertyName(),
+                        mc.getPropertyName() + "Desc",
+                        mc.getReferenceData()
+                    ));
+                }
             } else // JSON
-
                 if("2".equals(mc.getReferenceType())){
                     String jsonStr = mc.getReferenceData().trim();
                     String catalogCode = Md5Encoder.encodeBase64(jsonStr, true);

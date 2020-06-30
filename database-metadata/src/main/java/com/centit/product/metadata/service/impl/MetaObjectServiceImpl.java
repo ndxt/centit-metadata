@@ -282,16 +282,29 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, String [] fields,
-                                              String [] parents, String [] children){
+                                              String [] parents, String [] children) {
         MetaTable tableInfo = metaDataCache.getTableInfoAll(tableId);
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
-            Map<String, Object> mainObj = (fields != null && fields.length>0)?
-                    innerGetObjectPartFieldsById(conn, tableInfo , pk, fields)
-                    :innerGetObjectById(conn, tableInfo , pk);
+            Map<String, Object> mainObj = (fields != null && fields.length > 0) ?
+                innerGetObjectPartFieldsById(conn, tableInfo, pk, fields)
+                : innerGetObjectById(conn, tableInfo, pk);
 
             mainObj = DictionaryMapUtils.mapJsonObject(mainObj, tableInfo.fetchDictionaryMapColumns(integrationEnvironment));
+            return fetchObjectParentAndChildren(tableInfo, mainObj, parents, children);
+        }catch (SQLException | IOException e) {
+            throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+
+    }
+
+    @Override
+    public Map<String, Object> fetchObjectParentAndChildren(MetaTable tableInfo, Map<String, Object> mainObj,
+                                                     String [] parents, String [] children){
+        DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        try {
+            Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
             if(parents != null && parents.length>0){
                 List<MetaRelation> mds = tableInfo.getParents();
                 if(mds!=null) {
@@ -312,7 +325,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             }
             return mainObj;
         } catch (SQLException | IOException e) {
-            throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(mainObj, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 

@@ -34,6 +34,7 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "分页查询数据库表数据列表")
     @RequestMapping(value = "/{tableId}/list", method = RequestMethod.GET)
     @WrapUpResponseBody
+    @JdbcTransaction
     public PageQueryResult<Object> listObjects(@PathVariable String tableId, PageDesc pageDesc,
                                                String [] fields,HttpServletRequest request) {
         Map<String, Object> params = collectRequestParameters(request);//convertSearchColumn(request);
@@ -45,6 +46,7 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "获取一个数据，主键作为参数以key-value形式提交")
     @RequestMapping(value = "/{tableId}", method = RequestMethod.GET)
     @WrapUpResponseBody
+    @JdbcTransaction
     public Map<String, Object> getObject(@PathVariable String tableId,
                                          HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
@@ -101,6 +103,7 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "获取一个数据带子表，主键作为参数以key-value形式提交")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.GET)
     @WrapUpResponseBody
+    @JdbcTransaction
     public Map<String, Object> getObjectWithChildren(@PathVariable String tableId,
                                                      HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);

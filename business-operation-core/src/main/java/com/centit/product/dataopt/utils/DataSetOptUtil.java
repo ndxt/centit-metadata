@@ -32,8 +32,8 @@ public abstract class DataSetOptUtil {
         formula.setTrans(new ObjectTranslate(inRow));
         Map<String, Object> newRow = new HashMap<>(formulaMap.size());
         for(Map.Entry<String, String> ent : formulaMap){
-            formula.setFormula(ent.getKey());
-            newRow.put(ent.getValue(), formula.calcFormula());
+            formula.setFormula(ent.getValue());
+            newRow.put(ent.getKey(), formula.calcFormula());
         }
         return newRow;
     }

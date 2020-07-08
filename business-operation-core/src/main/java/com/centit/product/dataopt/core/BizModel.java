@@ -63,6 +63,15 @@ public interface BizModel {
         if(dss == null) {
             return null;
         }
-        return dss.get(relationPath);
+        if (dss.containsKey(relationPath)) {
+            return dss.get(relationPath);
+        }
+        for(DataSet ds:dss.values())
+        {
+            if (ds.getDataSetName().equals(relationPath)){
+                return ds;
+            }
+        }
+        return null;
     }
 }

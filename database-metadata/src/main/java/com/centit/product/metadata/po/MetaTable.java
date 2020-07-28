@@ -174,10 +174,12 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     @OneToMany(targetEntity = MetaRelation.class)
     @JoinColumn(name = "tableId", referencedColumnName = "parentTableId")
+    //@JSONField(deserialize = false, serialize = false)
     private List<MetaRelation> mdRelations;
 
     @OneToMany(targetEntity = MetaRelation.class)
     @JoinColumn(name = "tableId", referencedColumnName = "childTableId")
+    //@JSONField(deserialize = false, serialize = false)
     private List<MetaRelation> parents;
 
     @Transient
@@ -343,6 +345,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     @Override
     @ApiModelProperty(hidden = true)
+    @JSONField(serialize = false)
     public List<? extends TableReference> getReferences() {
         return this.mdRelations;
     }

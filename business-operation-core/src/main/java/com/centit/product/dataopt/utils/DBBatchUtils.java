@@ -1,12 +1,14 @@
 package com.centit.product.dataopt.utils;
 
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.LeftRightPair;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.DatabaseAccess;
 import com.centit.support.database.utils.QueryLogUtils;
 import com.centit.support.database.utils.QueryUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,8 +87,12 @@ public abstract class DBBatchUtils {
         List<String> fields = achieveAllFields( objects);
         String sql = GeneralJsonObjectDao.buildInsertSql(tableInfo, fields);
         LeftRightPair<String,List<String>> insertSqlPair = QueryUtils.transNamedParamSqlToParamSql(sql);
-        sql = GeneralJsonObjectDao.buildUpdateSql(tableInfo, fields) +
-            " where " +  GeneralJsonObjectDao.buildFilterSqlByPk(tableInfo,null);
+        sql = GeneralJsonObjectDao.buildUpdateSql(tableInfo, fields);
+        if(null!=sql) {
+             sql+=" where " + GeneralJsonObjectDao.buildFilterSqlByPk(tableInfo, null);
+        }else{
+            sql="";
+        }
         LeftRightPair<String,List<String>> updateSqlPair = QueryUtils.transNamedParamSqlToParamSql(sql);
         sql = "select count(*) as checkExists from " + tableInfo.getTableName()
             + " where " +  GeneralJsonObjectDao.buildFilterSqlByPk(tableInfo,null);
@@ -112,7 +118,9 @@ public abstract class DBBatchUtils {
                 }
                 if(exists){
                     DatabaseAccess.setQueryStmtParameters(updateStmt, updateSqlPair.getRight(), object);
-                    n += updateStmt.executeUpdate();
+                    if(StringUtils.isNotBlank(updateSqlPair.getLeft())) {
+                        n += updateStmt.executeUpdate();
+                    }
                 }else{
                     DatabaseAccess.setQueryStmtParameters(insertStmt, insertSqlPair.getRight(), object);
                     n += insertStmt.executeUpdate();

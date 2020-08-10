@@ -8,14 +8,24 @@ import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.product.metadata.service.MetaObjectService;
+import com.centit.search.service.Impl.ESSearcher;
+import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.algorithm.StringBaseOpt;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.transaction.JdbcTransaction;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,6 +40,8 @@ public class MetaObjectController extends BaseController {
 
     @Autowired
     private MetaObjectService metaObjectService;
+    @Autowired(required = false)
+    private ESSearcher esObjectSearcher;
 
     @ApiOperation(value = "分页查询数据库表数据列表")
     @RequestMapping(value = "/{tableId}/list", method = RequestMethod.GET)
@@ -139,5 +151,40 @@ public class MetaObjectController extends BaseController {
         Map<String, Object> parameters = collectRequestParameters(request);
         metaObjectService.deleteObjectWithChildren(tableId, parameters);
         return ResponseData.makeSuccessResponse();
+    }
+    @ApiOperation(value = "全文检索")
+    @ApiImplicitParams({@ApiImplicitParam(
+        name = "tableId", value = "表单模块id",
+        required = true, paramType = "path", dataType = "String"
+    ), @ApiImplicitParam(
+        name = "query", value = "检索关键字",
+        required = true, paramType = "query", dataType = "String"
+    )})
+    @RequestMapping(value = "/{tableId}/search", method = RequestMethod.GET)
+    @WrapUpResponseBody
+    @JdbcTransaction
+    public PageQueryResult<Map<String, Object>> searchObject(@PathVariable String tableId,
+                                                             HttpServletRequest request, PageDesc pageDesc) {
+        if(esObjectSearcher==null){
+            throw new ObjectException(ObjectException.SYSTEM_CONFIG_ERROR, "没有正确配置Elastic Search");
+        }
+        Map<String, Object> queryParam = collectRequestParameters(request);
+        Map<String, Object> searchQuery = new HashMap<>(10);
+        String queryWord = StringBaseOpt.castObjectToString(queryParam.get("query"));
+        searchQuery.put("optId", tableId);
+        Object user = queryParam.get("userCode");
+        if (user != null) {
+            searchQuery.put("userCode", StringBaseOpt.castObjectToString(user));
+        }
+        Object units = queryParam.get("unitCode");
+        if (units != null) {
+            searchQuery.put("unitCode", StringBaseOpt.objectToStringArray(units));
+        }
+
+        Pair<Long, List<Map<String, Object>>> res =
+            esObjectSearcher.search(searchQuery, queryWord, pageDesc.getPageNo(), pageDesc.getPageSize());
+        if (res == null) throw new ObjectException("ELK异常");
+        pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(res.getLeft()));
+        return PageQueryResult.createResult(res.getRight(), pageDesc);
     }
 }

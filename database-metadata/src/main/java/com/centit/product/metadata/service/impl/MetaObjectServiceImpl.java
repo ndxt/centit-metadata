@@ -3,6 +3,7 @@ package com.centit.product.metadata.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.ip.service.IntegrationEnvironment;
@@ -11,8 +12,11 @@ import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
+import com.centit.search.document.ObjectDocument;
+import com.centit.search.service.Impl.ESIndexer;
 import com.centit.support.algorithm.*;
 import com.centit.support.common.ObjectException;
+import com.centit.support.compiler.Pretreatment;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
@@ -24,6 +28,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -38,6 +43,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Autowired
     private MetaDataCache metaDataCache;
+    @Autowired(required = false)
+    private ESIndexer esObjectIndexer;
 
     private static Map<String, Object> prepareObjectForSave(Map<String, Object> object, MetaTable metaTable){
         for(MetaColumn col :  metaTable.getMdColumns()) {
@@ -116,7 +123,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             }
                             break;
                         case "O":
-                            if (isGetObject) break;
+                            if (isGetObject) {
+                                break;
+                            }
                             int pkCount = metaTable.countPkColumn();
                             if(pkCount < 2 || !field.isPrimaryKey()){
                                 throw new ObjectException(PersistenceException.ORM_METADATA_EXCEPTION,
@@ -445,7 +454,20 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return updateObjectsByProperties(tableId, fieldValues.keySet(),
                 fieldValues, filterProperties);
     }
-
+    private void deleteFulltextIndex(Map<String, Object> obj, String tableId) {
+        MetaTable metaTable = metaDataCache.getTableInfo(tableId);
+        if (esObjectIndexer!=null && metaTable != null &&
+            ("T".equals(metaTable.getFulltextSearch())
+                // 用json格式保存在大字段中的内容不能用sql检索，必须用全文检索
+                || "C".equals(metaTable.getTableType()))) {
+            try {
+                esObjectIndexer.deleteDocument(
+                    mapObjectToDocument(obj, metaTable));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
     @Override
     public void deleteObject(String tableId, Map<String, Object> pk) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
@@ -454,13 +476,80 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
             GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).deleteObjectById(pk);
+            deleteFulltextIndex(pk,tableId);
         } catch (SQLException e) {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
+    private void checkUpdateTimeStamp(Map<String, Object> dbObject, Map<String, Object> object) {
+        Object oldDate = dbObject.get(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
+        Object newDate = object.get(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
+        if (newDate==null || oldDate==null) {
+            return;
+        }
+        if (!DatetimeOpt.equalOnSecond(DatetimeOpt.castObjectToDate(oldDate), DatetimeOpt.castObjectToDate(newDate))) {
+            throw new ObjectException(CollectionsOpt.createHashMap(
+                "yourTimeStamp", newDate, "databaseTimeStamp", oldDate),
+                PersistenceException.DATABASE_OUT_SYNC_EXCEPTION, "更新数据对象时，数据版本不同步。");
+        }
 
+        object.put(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP, DatetimeOpt.currentSqlDate());
+    }
+    private ObjectDocument mapObjectToDocument(Map<String, Object> object, MetaTable metaTable) {
+        ObjectDocument doc = new ObjectDocument();
+        doc.setOsId(metaTable.getDatabaseCode());
+        doc.setOptId(metaTable.getTableId());
+        //Map<String, Object> pkMap = metaTable.fetchObjectPkAsId(object);
+        doc.setOptTag(metaTable.fetchObjectPkAsId(object));
+        doc.contentObject(object);//.setContent(JSON.toJSONString(object));
+        doc.setTitle(Pretreatment.mapTemplateString(metaTable.getObjectTitle(), object));
+        doc.setUserCode((String) object.get("userCode"));
+        doc.setUnitCode((String) object.get("unitCode"));
+        return doc;
+    }
+    private void saveFulltextIndex(Map<String, Object> obj, MetaTable metaTable) {
+        //MetaTable metaTable = metaDataCache.getTableInfo(tableId);
+        if (esObjectIndexer!=null && metaTable != null &&
+            ("T".equals(metaTable.getFulltextSearch())
+                // 用json格式保存在大字段中的内容不能用sql检索，必须用全文检索
+                || "C".equals(metaTable.getTableType()))) {
+            try {
+                esObjectIndexer.saveNewDocument(
+                    mapObjectToDocument(obj, metaTable));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    private void updataFulltextIndex(Map<String, Object> obj, MetaTable metaTable) {
+        //MetaTable metaTable = metaDataCache.getTableInfo(tableId);
+        if (esObjectIndexer!=null && metaTable != null &&
+            ("T".equals(metaTable.getFulltextSearch())
+                // 用json格式保存在大字段中的内容不能用sql检索，必须用全文检索
+                || "C".equals(metaTable.getTableType()))) {
+            try {
+                Map<String, Object> dbObject =
+                    getObjectWithChildren(metaTable.getTableId(), obj, 1);
+                esObjectIndexer.mergeDocument(
+                    mapObjectToDocument(dbObject, metaTable));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
     public int innerSaveObject(String tableId, Map<String, Object> mainObj,Map<String, Object> extParams, boolean isUpdate) {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
+        if ("C".equals(tableInfo.getTableType())) {
+            mainObj = mapDtoToPo(mainObj);
+        }
+        if (tableInfo.isUpdateCheckTimeStamp()) {
+            if (isUpdate){
+                Map<String, Object> dbObject=getObjectWithChildren(tableId, mainObj, 1);
+                checkUpdateTimeStamp(dbObject, mainObj);
+            }else {
+                mainObj.put(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP, DatetimeOpt.currentSqlDate());
+            }
+        }
         DatabaseInfo databaseInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect( DataSourceDescription.valueOf(databaseInfo));
@@ -495,6 +584,12 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         }
                     }
                 }
+            }
+            if(isUpdate){
+                updataFulltextIndex(mainObj,tableInfo);
+            }
+            else{
+                saveFulltextIndex(mainObj, tableInfo);
             }
             return 1;
         } catch (SQLException | IOException e) {
@@ -571,7 +666,42 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         Collections.addAll(fieldSet, fields);
         return fieldSet;
     }
+    private Map<String, Object> mapPoToDto(Map<String, Object> po) {
+        Object obj = po.get(MetaTable.OBJECT_AS_CLOB_PROP);
+        if (/*obj!=null && */obj instanceof Map) {
+            Map<String, Object> dto = (Map<String, Object>) obj;
+            for (Map.Entry<String, Object> ent : po.entrySet()) {
+                if (!MetaTable.OBJECT_AS_CLOB_PROP.equals(ent.getKey()) && ent.getValue() != null) {
+                    dto.put(ent.getKey(), ent.getValue());
+                }
+            }
+            return dto;
+        }
+        return po;
+    }
+    private JSONArray mapListPoToDto(JSONArray ja ) {
+        if(ja == null){
+            return null;
+        }
 
+        JSONArray jsonArray = new JSONArray(ja.size());
+        for (Object json : ja) {
+            if(json instanceof Map) {
+                jsonArray.add(mapPoToDto((Map<String, Object>) json));
+            } else {
+                jsonArray.add(json);
+            }
+        }
+        return jsonArray;
+    }
+    private Map<String, Object> mapDtoToPo(Map<String, Object> dto) {
+        Map<String, Object> po = new HashMap<>(dto);
+        //Map<String, Object> po = dto;
+        po.remove(MetaTable.OBJECT_AS_CLOB_PROP);
+        String jsonString = JSON.toJSONString(po);
+        po.put(MetaTable.OBJECT_AS_CLOB_PROP, jsonString);
+        return po;
+    }
     @Override
     public JSONArray pageQueryObjects(String tableId, String extFilter,
                                       Map<String, Object> params, String [] fields,
@@ -618,14 +748,19 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 querySql, params, q.getRight());//, pageDesc.getPageNo(), pageDesc.getPageSize());
 
             String sGetCountSql = "select count(1) as totalRows from " + tableInfo.getTableName();
-            if(StringUtils.isNotBlank(filter))
+            if(StringUtils.isNotBlank(filter)) {
                 sGetCountSql = sGetCountSql + " where " + filter;
+            }
 
             Object obj = DatabaseAccess.getScalarObjectQuery(conn,
                 sGetCountSql, params);
             pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
 
-            return DictionaryMapUtils.mapJsonArray(objs, tableInfo.fetchDictionaryMapColumns(integrationEnvironment));
+            JSONArray ja = DictionaryMapUtils.mapJsonArray(objs, tableInfo.fetchDictionaryMapColumns(integrationEnvironment));
+            if ("C".equals(tableInfo.getTableType())) {
+                ja=mapListPoToDto(ja);
+            }
+            return ja;
 
         } catch (SQLException | IOException e) {
             throw new ObjectException(params, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);

@@ -21,7 +21,7 @@ public class JSONDataSet extends FileDataSet{
      * @return dataSet 数据集
      */
     @Override
-    public DataSet load(Map<String, Object> params) {
+    public SimpleDataSet load(Map<String, Object> params) {
         try {
             if(params !=null && BooleanBaseOpt.castObjectToBoolean(
                 params.get("isJSONArray"),false)) {

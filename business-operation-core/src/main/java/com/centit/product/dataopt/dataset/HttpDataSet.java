@@ -1,32 +1,33 @@
 package com.centit.product.dataopt.dataset;
 
-import com.alibaba.fastjson.JSONObject;
+import com.centit.framework.appclient.AppSession;
+import com.centit.framework.appclient.HttpReceiveJSON;
+import com.centit.framework.appclient.RestfulHttpRequest;
 import com.centit.product.dataopt.core.DataSetReader;
 import com.centit.product.dataopt.core.SimpleDataSet;
-import com.centit.support.network.HttpExecutor;
-import com.centit.support.network.HttpExecutorContext;
 import lombok.Data;
-import org.apache.http.impl.client.CloseableHttpClient;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
 /**
  * @author zhf
  */
 @Data
 public class HttpDataSet implements DataSetReader {
     private String sUrl;
+
+    public HttpDataSet(String sUrl) {
+        this.sUrl = sUrl;
+    }
+
     @Override
+    @SuppressWarnings("unchecked")
     public SimpleDataSet load(Map<String, Object> params) {
-        String sResult = "";
-        try (CloseableHttpClient httpClient = HttpExecutor.createHttpClient()) {
-            sResult=HttpExecutor.simpleGet(HttpExecutorContext.create(httpClient),sUrl,params);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        HttpReceiveJSON receiveJson = RestfulHttpRequest.getResponseData(new AppSession(),
+            sUrl, params);
         SimpleDataSet dataSet = new SimpleDataSet();
-        dataSet.setData((List) JSONObject.parseObject(sResult).getJSONObject("data").getJSONArray("objList"));
+        dataSet.setData((List)receiveJson.getJSONArray("objList"));
         return dataSet;
     }
 }

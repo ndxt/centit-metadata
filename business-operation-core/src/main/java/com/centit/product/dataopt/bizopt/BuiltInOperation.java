@@ -12,6 +12,7 @@ import com.centit.product.dataopt.utils.BizOptUtils;
 import com.centit.product.dataopt.utils.DataSetOptUtil;
 import com.centit.product.metadata.service.DatabaseRunTime;
 import com.centit.support.algorithm.StringBaseOpt;
+import com.centit.support.database.transaction.JdbcTransaction;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -20,6 +21,7 @@ import java.util.Map;
 
 /**
  * 数据持久化操作
+ *
  * @author zhf
  */
 public class BuiltInOperation implements BizOperation {
@@ -37,15 +39,15 @@ public class BuiltInOperation implements BizOperation {
      */
     protected JSONObject bizOptJson;
 
-    public JSMateObjectEventRuntime getJsMateObjectEvent() {
+    public JsMateObjectEventRuntime getJsMateObjectEvent() {
         return jsMateObjectEvent;
     }
 
-    public void setJsMateObjectEvent(JSMateObjectEventRuntime jsMateObjectEvent) {
+    public void setJsMateObjectEvent(JsMateObjectEventRuntime jsMateObjectEvent) {
         this.jsMateObjectEvent = jsMateObjectEvent;
     }
 
-    private JSMateObjectEventRuntime jsMateObjectEvent;
+    private JsMateObjectEventRuntime jsMateObjectEvent;
     @Autowired(required = false)
     private DatabaseRunTime databaseRunTime;
 
@@ -298,7 +300,7 @@ public class BuiltInOperation implements BizOperation {
         String httpMethod = getJsonFieldString(bizOptJson, "httpMethod", "post");
         String httpUrl = getJsonFieldString(bizOptJson, "httpUrl", "");
         DataSet dataSet = bizModel.fetchDataSetByName(sourDsName);
-        AppSession appSession=new AppSession();
+        AppSession appSession = new AppSession();
         RestfulHttpRequest restfulHttpRequest = new RestfulHttpRequest();
         dataSet.getData().forEach(data -> {
             switch (httpMethod.toLowerCase()) {
@@ -325,6 +327,7 @@ public class BuiltInOperation implements BizOperation {
     }
 
     @Override
+    @JdbcTransaction
     public BizModel apply(BizModel bizModel) {
         JSONArray optSteps = bizOptJson.getJSONArray("steps");
         if (optSteps == null || optSteps.isEmpty()) {

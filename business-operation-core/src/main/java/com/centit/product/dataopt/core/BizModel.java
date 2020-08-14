@@ -5,6 +5,9 @@ import com.alibaba.fastjson.annotation.JSONField;
 
 import java.util.Map;
 
+/**
+ * @author zhf
+ */
 public interface BizModel {
     SimpleBizModel EMPTY_BIZ_MODEL
         = new SimpleBizModel("EMPTY_BIZ_MODEL");

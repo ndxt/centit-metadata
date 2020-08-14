@@ -31,6 +31,7 @@ public class SimpleBizModel implements BizModel, Serializable {
         this.modelName = modelName;
     }
 
+    @Override
     public void checkBizDataSpace(){
         if(this.bizData == null){
             this.bizData = new HashMap<>(6);
@@ -78,6 +79,7 @@ public class SimpleBizModel implements BizModel, Serializable {
         return dataObject;
     }
 
+    @Override
     public String getModelName() {
         return modelName;
     }
@@ -86,6 +88,7 @@ public class SimpleBizModel implements BizModel, Serializable {
         this.modelName = modelName;
     }
 
+    @Override
     public Map<String, Object> getModelTag() {
         return modelTag;
     }
@@ -94,6 +97,7 @@ public class SimpleBizModel implements BizModel, Serializable {
         this.modelTag = modelTag;
     }
 
+    @Override
     public Map<String, DataSet> getBizData() {
         return bizData;
     }

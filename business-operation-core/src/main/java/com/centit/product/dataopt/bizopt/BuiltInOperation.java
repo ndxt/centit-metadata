@@ -10,8 +10,10 @@ import com.centit.product.dataopt.core.DataSet;
 import com.centit.product.dataopt.datarule.CheckRule;
 import com.centit.product.dataopt.utils.BizOptUtils;
 import com.centit.product.dataopt.utils.DataSetOptUtil;
+import com.centit.product.metadata.service.DatabaseRunTime;
 import com.centit.support.algorithm.StringBaseOpt;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,17 @@ public class BuiltInOperation implements BizOperation {
      */
     protected JSONObject bizOptJson;
 
+    public JSMateObjectEventRuntime getJsMateObjectEvent() {
+        return jsMateObjectEvent;
+    }
+
+    public void setJsMateObjectEvent(JSMateObjectEventRuntime jsMateObjectEvent) {
+        this.jsMateObjectEvent = jsMateObjectEvent;
+    }
+
+    private JSMateObjectEventRuntime jsMateObjectEvent;
+    @Autowired(required = false)
+    private DatabaseRunTime databaseRunTime;
 
     public static String getJsonFieldString(JSONObject bizOptJson, String fieldName, String defaultValue) {
         String targetDsName = bizOptJson.getString(fieldName);
@@ -306,9 +319,9 @@ public class BuiltInOperation implements BizOperation {
 
     protected BizModel runJsData(BizModel bizModel, JSONObject bizOptJson) {
         String js = getJsonFieldString(bizOptJson, "value", "");
-        JSBizOperation jsBizOperation = new JSBizOperation();
-        jsBizOperation.setJavaScript(js);
-        return jsBizOperation.apply(bizModel);
+        jsMateObjectEvent.setJavaScript(js);
+        jsMateObjectEvent.setBizModel(bizModel);
+        return jsMateObjectEvent.runEvent();
     }
 
     @Override
@@ -317,14 +330,13 @@ public class BuiltInOperation implements BizOperation {
         if (optSteps == null || optSteps.isEmpty()) {
             return bizModel;
         }
-        BizModel result = bizModel;
         for (Object step : optSteps) {
             if (step instanceof JSONObject) {
                 /*result =*/
-                runOneStep(result, (JSONObject) step);
+                runOneStep(bizModel, (JSONObject) step);
             }
         }
-        return result;
+        return bizModel;
     }
 
     public void setBizOptJson(JSONObject bizOptJson) {

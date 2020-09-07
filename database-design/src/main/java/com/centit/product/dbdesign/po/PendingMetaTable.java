@@ -132,15 +132,16 @@ public class PendingMetaTable implements
 
     @OneToMany(mappedBy="mdTable",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "TABLE_ID", referencedColumnName = "TABLE_ID")
+    private List<PendingMetaColumn> mdColumns;
+    @Transient
     private List<PendingMetaColumn> columns;
-
     @Transient
     private DBType databaseType;
 
     public void setDatabaseType(DBType databaseType) {
         this.databaseType = databaseType;
-        if (this.columns != null) {
-            for (PendingMetaColumn col : this.columns) {
+        if (this.mdColumns != null) {
+            for (PendingMetaColumn col : this.mdColumns) {
                 col.setDatabaseType(databaseType);
             }
         }
@@ -160,15 +161,15 @@ public class PendingMetaTable implements
         if (mdColumn == null)
             return;
         mdColumn.setTableId(this.tableId);
-        if(this.columns ==null){
-            this.columns = new ArrayList<>(20);
+        if(this.mdColumns ==null){
+            this.mdColumns = new ArrayList<>(20);
         }
-        this.columns.add(mdColumn);
+        this.mdColumns.add(mdColumn);
     }
 
 
     public PendingMetaTable copy(PendingMetaTable other) {
-        this.setColumns(other.getColumns());
+        this.setMdColumns(other.getMdColumns());
         this.setTableId(other.getTableId());
         this.setDatabaseCode(other.getDatabaseCode());
         this.tableName = other.getTableName();
@@ -186,8 +187,8 @@ public class PendingMetaTable implements
 
         if (other.getTableId() != null)
             this.setTableId(other.getTableId());
-        if (other.getColumns() != null)
-            this.setColumns(other.getColumns());
+        if (other.getMdColumns() != null)
+            this.setMdColumns(other.getMdColumns());
         if (other.getDatabaseCode() != null)
             this.databaseCode = other.getDatabaseCode();
         if (other.getTableName() != null)
@@ -212,7 +213,7 @@ public class PendingMetaTable implements
     }
 
     public PendingMetaTable clearProperties() {
-        this.columns = null;
+        this.mdColumns = null;
         this.databaseCode = null;
         this.tableName = null;
         this.tableLabelName = null;
@@ -245,9 +246,9 @@ public class PendingMetaTable implements
 
     @Override
     public PendingMetaColumn findFieldByName(String name) {
-        if (columns == null)
+        if (mdColumns == null)
             return null;
-        for (PendingMetaColumn c : columns) {
+        for (PendingMetaColumn c : mdColumns) {
             if (c.getPropertyName().equalsIgnoreCase(name))
                 return c;
         }
@@ -256,9 +257,9 @@ public class PendingMetaTable implements
 
     @Override
     public PendingMetaColumn findFieldByColumn(String name) {
-        if (columns == null)
+        if (mdColumns == null)
             return null;
-        for (PendingMetaColumn c : columns) {
+        for (PendingMetaColumn c : mdColumns) {
             if (c.getColumnName().equalsIgnoreCase(name))
                 return c;
         }
@@ -267,7 +268,7 @@ public class PendingMetaTable implements
 
     @Override
     public List<PendingMetaColumn> getColumns() {
-        return columns;
+        return mdColumns;
     }
 
     @Override
@@ -289,8 +290,8 @@ public class PendingMetaTable implements
         mt.setRecorder(this.getRecorder());
         mt.setDatabaseType(this.getDatabaseType());
         List<MetaColumn> columns = new ArrayList<>();
-        if (this.getColumns() != null && this.getColumns().size() > 0) {
-            for (PendingMetaColumn pc : this.getColumns()) {
+        if (this.getMdColumns() != null && this.getMdColumns().size() > 0) {
+            for (PendingMetaColumn pc : this.getMdColumns()) {
                 columns.add(pc.mapToMetaColumn());
             }
         }

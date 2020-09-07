@@ -206,7 +206,7 @@ public class MetaTableManagerImpl
             sqls.add(ddlOpt.makeCreateTableSql(ptable));
         } else {
             stable.setDatabaseType(dbType);
-            for (PendingMetaColumn pcol : ptable.getColumns()) {
+            for (PendingMetaColumn pcol : ptable.getMdColumns()) {
                 MetaColumn ocol = stable.findFieldByColumn(pcol.getColumnName());
                 if (ocol == null) {
                     sqls.add(ddlOpt.makeAddColumnSql(
@@ -389,7 +389,7 @@ public class MetaTableManagerImpl
             Set<MetaColumn> setMetaColumn = new HashSet<>();
             setMetaColumn.addAll(metaTable.getMdColumns());
             Set<PendingMetaColumn> setPendingMetaColumn = new HashSet<>();
-            setPendingMetaColumn.addAll(ptable.getColumns());
+            setPendingMetaColumn.addAll(ptable.getMdColumns());
             for (MetaColumn m : setMetaColumn) {
                 for (PendingMetaColumn p : setPendingMetaColumn) {
                     if (m.getColumnName().equalsIgnoreCase(p.getColumnName())) {
@@ -422,7 +422,7 @@ public class MetaTableManagerImpl
             }
         } else{
             metaTableDao.saveNewObject(ptable.mapToMetaTable());
-            for(PendingMetaColumn p:ptable.getColumns()){
+            for(PendingMetaColumn p:ptable.getMdColumns()){
                 metaColumnDao.saveNewObject(p.mapToMetaColumn());
             }
         }
@@ -532,7 +532,7 @@ public class MetaTableManagerImpl
                     pendingMdTableDao.updateObject(oldTable.convertFromPdmTable(newTable));
                     //列
                     oldTable = pendingMdTableDao.fetchObjectReferences(oldTable);
-                    List<PendingMetaColumn> oldColumns = oldTable.getColumns();
+                    List<PendingMetaColumn> oldColumns = oldTable.getMdColumns();
                     List<SimpleTableField> newColumns = newTable.getColumns();
                     Comparator<TableField> columnComparator = (o1, o2) -> StringUtils.compare(o1.getColumnName().toUpperCase(), o2.getColumnName().toUpperCase());
                     Triple<List<SimpleTableField>, List<Pair<PendingMetaColumn, SimpleTableField>>, List<PendingMetaColumn>> columnCompared =

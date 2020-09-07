@@ -206,7 +206,7 @@ public class MetaTableManagerImpl
             sqls.add(ddlOpt.makeCreateTableSql(ptable));
         } else {
             stable.setDatabaseType(dbType);
-            for (PendingMetaColumn pcol : ptable.getMdColumns()) {
+            for (PendingMetaColumn pcol : ptable.getColumns()) {
                 MetaColumn ocol = stable.findFieldByColumn(pcol.getColumnName());
                 if (ocol == null) {
                     sqls.add(ddlOpt.makeAddColumnSql(
@@ -389,7 +389,7 @@ public class MetaTableManagerImpl
             Set<MetaColumn> setMetaColumn = new HashSet<>();
             setMetaColumn.addAll(metaTable.getMdColumns());
             Set<PendingMetaColumn> setPendingMetaColumn = new HashSet<>();
-            setPendingMetaColumn.addAll(ptable.getMdColumns());
+            setPendingMetaColumn.addAll(ptable.getColumns());
             for (MetaColumn m : setMetaColumn) {
                 for (PendingMetaColumn p : setPendingMetaColumn) {
                     if (m.getColumnName().equalsIgnoreCase(p.getColumnName())) {
@@ -422,7 +422,7 @@ public class MetaTableManagerImpl
             }
         } else{
             metaTableDao.saveNewObject(ptable.mapToMetaTable());
-            for(PendingMetaColumn p:ptable.getMdColumns()){
+            for(PendingMetaColumn p:ptable.getColumns()){
                 metaColumnDao.saveNewObject(p.mapToMetaColumn());
             }
         }

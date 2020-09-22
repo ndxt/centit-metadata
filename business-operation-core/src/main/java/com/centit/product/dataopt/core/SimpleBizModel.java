@@ -23,17 +23,17 @@ public class SimpleBizModel implements BizModel, Serializable {
      */
     protected Map<String, DataSet> bizData;
 
-    public SimpleBizModel(){
+    public SimpleBizModel() {
         modelName = BizModel.DEFAULT_MODEL_NAME;
     }
 
-    public SimpleBizModel(String modelName){
+    public SimpleBizModel(String modelName) {
         this.modelName = modelName;
     }
 
     @Override
-    public void checkBizDataSpace(){
-        if(this.bizData == null){
+    public void checkBizDataSpace() {
+        if (this.bizData == null) {
             this.bizData = new HashMap<>(6);
         }
     }
@@ -46,34 +46,34 @@ public class SimpleBizModel implements BizModel, Serializable {
     @Override
     public JSONObject toJSONObject(boolean singleRowAsObject) {
         JSONObject dataObject = new JSONObject();
-        if(bizData != null) {
-            for (DataSet dataSet: bizData.values()){
-                if(dataSet.getRowCount() == 1 && singleRowAsObject){
+        if (bizData != null) {
+            for (DataSet dataSet : bizData.values()) {
+                if (dataSet.getRowCount() == 1 && singleRowAsObject) {
                     dataObject.put(dataSet.getDataSetName(), dataSet.getFirstRow());
-                } else if(!dataSet.isEmpty()){
+                } else if (!dataSet.isEmpty()) {
                     dataObject.put(dataSet.getDataSetName(), dataSet.getData());
                 }
             }
         }
-        if(modelTag != null && !modelTag.isEmpty()){
+        if (modelTag != null && !modelTag.isEmpty()) {
             dataObject.put("modelTag", modelTag);
         }
         return dataObject;
     }
 
     @Override
-    public JSONObject toJSONObject(String [] singleRowDatasets){
+    public JSONObject toJSONObject(String[] singleRowDatasets) {
         JSONObject dataObject = new JSONObject();
-        if(bizData != null) {
-            for (DataSet dataSet: bizData.values()){
-                if(StringUtils.equalsAny(dataSet.getDataSetName(), singleRowDatasets)){
+        if (bizData != null) {
+            for (DataSet dataSet : bizData.values()) {
+                if (StringUtils.equalsAny(dataSet.getDataSetName(), singleRowDatasets)) {
                     dataObject.put(dataSet.getDataSetName(), dataSet.getFirstRow());
-                } else if(!dataSet.isEmpty()){
+                } else if (!dataSet.isEmpty()) {
                     dataObject.put(dataSet.getDataSetName(), dataSet.getData());
                 }
             }
         }
-        if(modelTag != null && !modelTag.isEmpty()){
+        if (modelTag != null && !modelTag.isEmpty()) {
             dataObject.put("modelTag", modelTag);
         }
         return dataObject;
@@ -104,5 +104,16 @@ public class SimpleBizModel implements BizModel, Serializable {
 
     public void setBizData(Map<String, DataSet> bizData) {
         this.bizData = bizData;
+    }
+
+    public static SimpleBizModel createSingleDataSetModel(String modelName, DataSet dataSet) {
+        SimpleBizModel model = new SimpleBizModel(modelName);
+        model.bizData = new HashMap<>(1);
+        model.putDataSet(modelName, dataSet);
+        return model;
+    }
+
+    public static SimpleBizModel createSingleDataSetModel(DataSet dataSet) {
+        return createSingleDataSetModel(BizModel.DEFAULT_MODEL_NAME, dataSet);
     }
 }

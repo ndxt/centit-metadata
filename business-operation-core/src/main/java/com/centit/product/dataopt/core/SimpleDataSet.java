@@ -1,7 +1,7 @@
 package com.centit.product.dataopt.core;
 
 import com.alibaba.fastjson.JSONArray;
-import org.springframework.security.core.Transient;
+import com.centit.support.algorithm.CollectionsOpt;
 
 import java.io.Serializable;
 import java.util.List;
@@ -33,10 +33,7 @@ public class SimpleDataSet implements DataSet, DataSetReader, Serializable {
      * 返回 DataSet 的名称
      */
     protected String dataSetName;
-    /**
-     * 返回 DataSet 的类型
-     */
-    protected String dataSetType;
+
 
     protected boolean sorted;
 
@@ -69,15 +66,25 @@ public class SimpleDataSet implements DataSet, DataSetReader, Serializable {
         this.dataSetName = dataSetName;
     }
 
+    /**
+     * 返回 DataSet 的类型
+     * 二维表 T(table)、单个数据记录 R(row)、
+     * 标量数据 S(scalar)、 E 空的(empty)
+     * @return  DataSet 的类型
+     */
     @Override
     public String getDataSetType() {
-        return dataSetType;
+        if(this.data ==null || this.data.size() == 0){
+            return "E";//empty
+        }
+        if(this.data.size() > 1){
+            return "T";//二维表 T(table)
+        }
+        if(this.data.get(0) != null && this.data.get(0).size() == 1){
+            return "S"; // 标量数据 S(scalar)
+        }
+        return "R"; //单个数据记录 R(row)
     }
-
-    public void setDataSetType(String dataSetType) {
-        this.dataSetType = dataSetType;
-    }
-
 
     @Override
     public List<Map<String, Object>> getData() {
@@ -121,5 +128,18 @@ public class SimpleDataSet implements DataSet, DataSetReader, Serializable {
     @Override
     public DataSet load(Map<String, Object> params) {
         return this;
+    }
+
+    public static SimpleDataSet createSingleRowSet(Map<String, Object> rowData) {
+        SimpleDataSet dataSet = new SimpleDataSet();
+        dataSet.data = CollectionsOpt.createList(rowData);
+        return dataSet;
+    }
+
+    public static SimpleDataSet createSingleObjectSet(Object data) {
+        SimpleDataSet dataSet = new SimpleDataSet();
+        dataSet.data = CollectionsOpt.createList(
+            CollectionsOpt.createHashMap(DataSet.SINGLE_DATA_FIELD_NAME, data));
+        return dataSet;
     }
 }

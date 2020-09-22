@@ -12,6 +12,7 @@ import java.util.Map;
  */
 public interface DataSet {
     String SINGLE_DATA_SET_DEFALUT_NAME = "default";
+    String SINGLE_DATA_FIELD_NAME = "data";
     /**
      * 返回 DataSet 的名称
      * @return  DataSet 的名称

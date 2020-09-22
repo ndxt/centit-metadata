@@ -2,7 +2,10 @@ package com.centit.product.dataopt.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.centit.product.dataopt.core.*;
+import com.centit.product.dataopt.core.BizModel;
+import com.centit.product.dataopt.core.DataSet;
+import com.centit.product.dataopt.core.SimpleBizModel;
+import com.centit.product.dataopt.core.SimpleDataSet;
 import com.centit.support.algorithm.CollectionsOpt;
 
 import java.util.ArrayList;
@@ -28,7 +31,7 @@ public abstract class BizOptUtils {
             }
         }
         DataSet dataSet = castObjectToDataSet(obj);
-        return new SingleDataSetModel(dataSet);
+        return SimpleBizModel.createSingleDataSetModel(dataSet);
     }
 
     @SuppressWarnings("unchecked")
@@ -46,7 +49,7 @@ public abstract class BizOptUtils {
                 JSONObject jobj = (JSONObject)JSON.toJSON(obj);
                 return JSON.toJavaObject(jobj, SimpleDataSet.class);
             } else {
-                return new SingleRowDataSet(objectMap);
+                return SimpleDataSet.createSingleRowSet(objectMap);
             }
         } else if(obj instanceof Collection){
             Collection<Object> objs = (Collection<Object>)obj;
@@ -56,14 +59,14 @@ public abstract class BizOptUtils {
                     data.add((Map<String, Object>)object);
                 } else {
                     data.add(CollectionsOpt.createHashMap(
-                        SingleObjectDataSet.SINGLE_DATA_FIELD_NAME,object));
+                        DataSet.SINGLE_DATA_FIELD_NAME,object));
                 }
             }
             SimpleDataSet dataSet = new SimpleDataSet();
             dataSet.setData(data);
             return dataSet;
         } else {
-            return new SingleObjectDataSet(obj);
+            return SimpleDataSet.createSingleObjectSet(obj);
         }
     }
 }

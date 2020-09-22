@@ -59,6 +59,7 @@ public class SimpleBizModel implements BizModel, Serializable {
         if (modelTag != null && !modelTag.isEmpty()) {
             dataObject.put("modelTag", modelTag);
         }
+        dataObject.put("modelName", this.getModelName());
         return dataObject;
     }
 
@@ -74,6 +75,7 @@ public class SimpleBizModel implements BizModel, Serializable {
                 }
             }
         }
+        dataObject.put("modelName", this.getModelName());
         if (modelTag != null && !modelTag.isEmpty()) {
             dataObject.put("modelTag", modelTag);
         }

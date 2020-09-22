@@ -27,6 +27,20 @@ public interface BizModel {
      */
     Map<String, DataSet> getBizData();
 
+    /**
+     * @param singleRowAsObject 如果为true DataSet中只有一行记录的就作为JSONObject；
+     *                          否则为 JSONArray
+     * @return JSONObject
+     */
+    JSONObject toJSONObject(boolean singleRowAsObject);
+
+    JSONObject toJSONObject(String [] singleRowDatasets);
+
+    void putDataSet(String relationPath, DataSet dataSet);
+
+    default void putMainDataSet(DataSet dataSet) {
+        putDataSet(this.getModelName(), dataSet);
+    }
 
     default boolean isEmpty(){
         return getBizData() == null ||
@@ -41,26 +55,6 @@ public interface BizModel {
         return null;
     }
 
-    void checkBizDataSpace();
-
-    /**
-     * @param singleRowAsObject 如果为true DataSet中只有一行记录的就作为JSONObject；
-     *                          否则为 JSONArray
-     * @return JSONObject
-     */
-    JSONObject toJSONObject(boolean singleRowAsObject);
-
-    JSONObject toJSONObject(String [] singleRowDatasets);
-
-    default void putDataSet(String relationPath, DataSet dataSet) {
-        checkBizDataSpace();
-        getBizData().put(relationPath, dataSet);
-    }
-
-    default void putMainDataSet(DataSet dataSet) {
-        putDataSet(this.getModelName(), dataSet);
-    }
-
     default DataSet fetchDataSetByName(String relationPath){
         Map<String, DataSet> dss = getBizData();
         if(dss == null) {
@@ -69,6 +63,9 @@ public interface BizModel {
         if (dss.containsKey(relationPath)) {
             return dss.get(relationPath);
         }
-        return dss.values().stream().filter(ds -> ds.getDataSetName().equals(relationPath)).findFirst().orElse(null);
+        return dss.values().stream().filter(
+            ds -> ds.getDataSetName()
+                .equals(relationPath)).findFirst()
+                .orElse(null);
     }
 }

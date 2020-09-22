@@ -32,10 +32,11 @@ public class SimpleBizModel implements BizModel, Serializable {
     }
 
     @Override
-    public void checkBizDataSpace() {
+    public void putDataSet(String relationPath, DataSet dataSet) {
         if (this.bizData == null) {
             this.bizData = new HashMap<>(6);
         }
+        getBizData().put(relationPath, dataSet);
     }
 
     /**

@@ -28,6 +28,7 @@ public class JsMateObjectEventRuntime {
     private BizModel bizModel;
     private Map<String, Object> parms;
     private String javaScript;
+    private String targetDSName;
 
 
     public JsMateObjectEventRuntime(MetaObjectService metaObjectService,
@@ -49,7 +50,8 @@ public class JsMateObjectEventRuntime {
         }
         try {
             Object retObj = jsRuntimeContext.callJsFunc("runOpt", this, parms);
-            return BizOptUtils.castObjectToBizModel(retObj);
+            bizModel.putDataSet(targetDSName,BizOptUtils.castObjectToDataSet(retObj));
+            return bizModel;
         } catch (ScriptException e) {
             throw new ObjectException(ObjectException.UNKNOWN_EXCEPTION,
                 e.getMessage());

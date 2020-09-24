@@ -324,8 +324,10 @@ public class BuiltInOperation implements BizOperation {
 
     protected BizModel runJsData(BizModel bizModel, JSONObject bizOptJson) {
         String js = getJsonFieldString(bizOptJson, "value", "");
+        String targetDSName = getJsonFieldString(bizOptJson, "target", "js");
         jsMateObjectEvent.setJavaScript(js);
         jsMateObjectEvent.setBizModel(bizModel);
+        jsMateObjectEvent.setTargetDSName(targetDSName);
         return jsMateObjectEvent.runEvent();
     }
 

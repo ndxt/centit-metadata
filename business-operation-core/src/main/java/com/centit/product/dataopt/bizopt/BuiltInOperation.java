@@ -12,10 +12,13 @@ import com.centit.product.dataopt.utils.BizOptUtils;
 import com.centit.product.dataopt.utils.DataSetOptUtil;
 import com.centit.product.metadata.service.DatabaseRunTime;
 import com.centit.support.algorithm.StringBaseOpt;
+import com.centit.support.database.transaction.ConnectThreadHolder;
 import com.centit.support.database.transaction.JdbcTransaction;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -326,18 +329,24 @@ public class BuiltInOperation implements BizOperation {
         return jsMateObjectEvent.runEvent();
     }
 
+    @SneakyThrows
     @Override
-    @JdbcTransaction
     public BizModel apply(BizModel bizModel) {
         JSONArray optSteps = bizOptJson.getJSONArray("steps");
         if (optSteps == null || optSteps.isEmpty()) {
             return bizModel;
         }
-        for (Object step : optSteps) {
-            if (step instanceof JSONObject) {
-                /*result =*/
-                runOneStep(bizModel, (JSONObject) step);
+        try {
+            for (Object step : optSteps) {
+                if (step instanceof JSONObject) {
+                    /*result =*/
+                    runOneStep(bizModel, (JSONObject) step);
+                }
             }
+            ConnectThreadHolder.commitAndRelease();
+        }catch (SQLException e){
+            ConnectThreadHolder.rollbackAndRelease();
+            throw e;
         }
         return bizModel;
     }

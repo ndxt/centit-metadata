@@ -31,7 +31,7 @@ public class BizOptFlow {
         int n = 0;
         do{
             BizModel tempBM = supplier.get();
-            if(tempBM == null || 0==((SimpleDataSet)tempBM.getBizData().values().toArray()[0]).getData().size()){
+            if(tempBM == null){
                 break;
             }
             lastResult = tempBM;

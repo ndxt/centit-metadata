@@ -24,11 +24,12 @@ public abstract class DataSetOptUtil {
      * @param formulaMap 字段映射关系
      * @return 新的数据集
      */
-    private static Map<String, Object> mapDateRow(Map<String, Object> inRow,
+    private static Map<String, Object> mapDataRow(Map<String, Object> inRow,
                                                   Collection<Map.Entry<String, String>> formulaMap) {
         VariableFormula formula = new VariableFormula();
         formula.addExtendFunc("toJson", (a) -> JSON.parse(
             StringBaseOpt.castObjectToString(a[0])));
+        formula.addExtendFunc("uuid", (a)->UuidOpt.getUuidAsString32());
         formula.setTrans(new ObjectTranslate(inRow));
         Map<String, Object> newRow = new HashMap<>(formulaMap.size());
         for(Map.Entry<String, String> ent : formulaMap){
@@ -48,7 +49,7 @@ public abstract class DataSetOptUtil {
         List<Map<String, Object>> data = inData.getData();
         List<Map<String, Object>> newData = new ArrayList<>(data.size());
         for(Map<String, Object> obj : data ){
-            newData.add(mapDateRow(obj,formulaMap));
+            newData.add(mapDataRow(obj,formulaMap));
         }
         return new SimpleDataSet(newData);
     }
@@ -62,7 +63,7 @@ public abstract class DataSetOptUtil {
     public static DataSet appendDeriveField(DataSet inData,Collection<Map.Entry<String, String>> formulaMap) {
         List<Map<String, Object>> data = inData.getData();
         for(Map<String, Object> obj : data ){
-            obj.putAll(mapDateRow(obj,formulaMap));
+            obj.putAll(mapDataRow(obj,formulaMap));
         }
         return inData;
     }
@@ -402,20 +403,20 @@ public abstract class DataSetOptUtil {
                 appendData(newRow, lastData.get(j), primaryFields,"_right",true);
                 j++;
             }
-            newData.add(mapDateRow(newRow,formulaMap));
+            newData.add(mapDataRow(newRow,formulaMap));
         }
 
         while(i < currData.size()){
             Map<String, Object> newRow = new LinkedHashMap<>();
             appendData(newRow, currData.get(i), primaryFields,"_left",true);
-            newData.add(mapDateRow(newRow,formulaMap));
+            newData.add(mapDataRow(newRow,formulaMap));
             i++;
         }
 
         while(j< lastData.size()){
             Map<String, Object> newRow = new LinkedHashMap<>();
             appendData(newRow, lastData.get(j), primaryFields,"_right",true);
-            newData.add(mapDateRow(newRow,formulaMap));
+            newData.add(mapDataRow(newRow,formulaMap));
             j++;
         }
         return new SimpleDataSet(newData);

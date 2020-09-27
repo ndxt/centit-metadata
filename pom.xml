@@ -23,7 +23,6 @@
     </licenses>
 
     <modules>
-        <module>business-operation-core</module>
         <module>database-metadata</module>
         <!--<module>database-webapp</module>-->
         <module>database-metadata-graphql</module>

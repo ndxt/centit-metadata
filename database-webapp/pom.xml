@@ -20,10 +20,10 @@
             <artifactId>centit-ip-app-config</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.centit.framework</groupId>
-            <artifactId>framework-session</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.centit.framework</groupId>-->
+<!--            <artifactId>framework-session</artifactId>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>com.centit.framework</groupId>

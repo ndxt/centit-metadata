@@ -249,7 +249,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     private void fetchMetaTableRelations(MetaTable metaTable){
         metaTableDao.fetchObjectReference(metaTable, "mdColumns");//mdRelations
         metaTableDao.fetchObjectReference(metaTable, "mdRelations");
-        if (metaTable.getMdRelations() != null) {
+        if (metaTable!=null && metaTable.getMdRelations() != null) {
             for (MetaRelation mr : metaTable.getMdRelations()) {
                 metaRelationDao.fetchObjectReference(mr, "relationDetails");
             }

@@ -314,9 +314,14 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     public MetaColumn findFieldByName(String name) {
         if (mdColumns == null)
             return null;
+
         for (MetaColumn c : mdColumns) {
-            if (c.getPropertyName().equalsIgnoreCase(name)||
-                c.getFieldLabelName().equalsIgnoreCase(name))
+            if (c.getPropertyName().equals(name))
+                return c;
+        }
+
+        for (MetaColumn c : mdColumns) {
+            if (c.getFieldLabelName().equalsIgnoreCase(name))
                 return c;
         }
         return null;
@@ -330,8 +335,9 @@ public class MetaTable implements TableInfo, java.io.Serializable {
             if (c.getColumnName().equalsIgnoreCase(name))
                 return c;
         }
+
         for (MetaColumn c : mdColumns) {
-            if (c.getPropertyName().equalsIgnoreCase(name))
+            if (c.getPropertyName().equals(name))
                 return c;
         }
         return null;

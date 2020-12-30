@@ -99,7 +99,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                 jdbcMetadata.setDBSchema(databaseInfo.getUsername().toUpperCase());
         }catch (SQLException e){
             logger.error("连接数据库【{}】出错",databaseInfo.getDatabaseName());
-            throw new ObjectException("连接数据库出错");
+            throw new ObjectException("连接数据库出错"+e.getMessage());
         }
         return jdbcMetadata.listAllTable();
     }

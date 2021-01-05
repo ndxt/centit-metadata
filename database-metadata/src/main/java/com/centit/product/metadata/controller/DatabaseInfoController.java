@@ -31,7 +31,7 @@ import javax.validation.Valid;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/sys/database")
+@RequestMapping("/database")
 @Api(tags = "数据库维护接口", value = "数据库维护接口")
 public class DatabaseInfoController extends BaseController {
 

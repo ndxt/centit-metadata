@@ -27,7 +27,8 @@ import java.util.Date;
 @ApiModel(value="数据库信息对象",description="数据库信息对象 DatabaseInfo")
 public class DatabaseInfo implements IDatabaseInfo, Serializable {
     private static final long serialVersionUID = 1L;
-    public static final String DESKEY="0123456789abcdefghijklmnopqrstuvwxyzABCDEF";
+                                       //"0123456789abcdefghijklmnopqrstuvwxyzABCDEF"
+    public static final String DESKEY = AESSecurityUtils.AES_DEFAULT_KEY;
 
     // 数据库名
     @Id

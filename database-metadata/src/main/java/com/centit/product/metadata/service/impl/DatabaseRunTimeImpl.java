@@ -1,8 +1,8 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.framework.ip.po.DatabaseInfo;
-import com.centit.framework.ip.service.IntegrationEnvironment;
+import com.centit.product.metadata.dao.DatabaseInfoDao;
+import com.centit.product.metadata.po.DatabaseInfo;
 import com.centit.product.metadata.service.DatabaseRunTime;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.transaction.ConnectThreadHolder;
@@ -20,10 +20,10 @@ import java.sql.SQLException;
 public class DatabaseRunTimeImpl implements DatabaseRunTime {
 
     @Autowired
-    private IntegrationEnvironment integrationEnvironment;
+    private DatabaseInfoDao databaseInfoDao;
 
     private DataSourceDescription fetchDataSource(String databaseCode) {
-        DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
+        DatabaseInfo databaseInfo = databaseInfoDao.getDatabaseInfoById(databaseCode);
         return DataSourceDescription.valueOf(databaseInfo);
     }
 

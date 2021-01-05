@@ -2,9 +2,9 @@ package com.centit.product.metadata.dao;
 
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
-import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.framework.jdbc.dao.JdbcTemplateUtils;
+import com.centit.product.metadata.po.DatabaseInfo;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.PageDesc;
@@ -48,8 +48,7 @@ public class DatabaseInfoDao extends BaseDaoImpl<DatabaseInfo, String> {
     }
 
     public DatabaseInfo getDatabaseInfoById(String databaseCode) {
-        DatabaseInfo dbi = this.getObjectById(databaseCode);
-        return dbi;
+        return this.getObjectById(databaseCode);
     }
 
     //jdbc

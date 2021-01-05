@@ -2,9 +2,9 @@ package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 
-import com.centit.framework.ip.po.DatabaseInfo;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.metadata.dao.DatabaseInfoDao;
+import com.centit.product.metadata.po.DatabaseInfo;
 import com.centit.product.metadata.service.DatabaseInfoManager;
 import com.centit.support.database.utils.PageDesc;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Service("databaseInfoManager")
 @Transactional
-public class DatabaseInfoManagerImpl extends BaseEntityManagerImpl<DatabaseInfo,String,DatabaseInfoDao>
+public class DatabaseInfoManagerImpl extends BaseEntityManagerImpl<DatabaseInfo, String, DatabaseInfoDao>
         implements DatabaseInfoManager {
 
     //private static final SysOptLog sysOptLog = SysOptLogFactoryImpl.getSysOptLog();

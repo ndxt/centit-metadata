@@ -1,6 +1,6 @@
 package com.centit.product.metadata.service.impl;
 
-import com.centit.framework.ip.po.DatabaseInfo;
+import com.centit.product.metadata.po.DatabaseInfo;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.transaction.ConnectThreadHolder;
 import com.centit.support.database.utils.DataSourceDescription;

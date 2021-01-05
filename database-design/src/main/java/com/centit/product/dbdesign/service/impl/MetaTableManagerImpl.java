@@ -2,8 +2,6 @@ package com.centit.product.dbdesign.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.centit.framework.ip.po.DatabaseInfo;
-import com.centit.framework.ip.service.IntegrationEnvironment;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
@@ -13,8 +11,10 @@ import com.centit.product.dbdesign.po.MetaChangLog;
 import com.centit.product.dbdesign.po.PendingMetaColumn;
 import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.dbdesign.service.MetaTableManager;
+import com.centit.product.metadata.dao.DatabaseInfoDao;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaTableDao;
+import com.centit.product.metadata.po.DatabaseInfo;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +57,8 @@ public class MetaTableManagerImpl
     implements MetaTableManager {
 
     //public static final Log logger = LogFactory.getLog(MetaTableManager.class);
+    @Autowired
+    private DatabaseInfoDao databaseInfoDao;
 
     private MetaTableDao metaTableDao;
 
@@ -77,9 +80,6 @@ public class MetaTableManagerImpl
 
     @Resource
     private PendingMetaColumnDao pendingMetaColumnDao;
-
-    @Resource
-    protected IntegrationEnvironment integrationEnvironment;
 
     /*
          @PostConstruct
@@ -174,7 +174,7 @@ public class MetaTableManagerImpl
         if(stable!=null)
           stable = metaTableDao.fetchObjectReferences(stable);
 
-        DatabaseInfo mdb = integrationEnvironment.getDatabaseInfo(ptable.getDatabaseCode());
+        DatabaseInfo mdb = databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
         //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
 
         DBType dbType = DBType.mapDBType(mdb.getDatabaseUrl());
@@ -318,7 +318,7 @@ public class MetaTableManagerImpl
             MetaChangLog chgLog = new MetaChangLog();
             List<String> errors = new ArrayList<>();
 
-            DatabaseInfo mdb = integrationEnvironment.getDatabaseInfo(ptable.getDatabaseCode());
+            DatabaseInfo mdb = databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
             //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
 
             DataSourceDescription dbc = new DataSourceDescription();
@@ -585,7 +585,7 @@ public class MetaTableManagerImpl
                 if (ret.getLeft() != 0)
                     return ret;
                 List<String> error = new ArrayList<>();
-                DatabaseInfo mdb = integrationEnvironment.getDatabaseInfo(metaTable.getDatabaseCode());
+                DatabaseInfo mdb = databaseInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
 
                 DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
 

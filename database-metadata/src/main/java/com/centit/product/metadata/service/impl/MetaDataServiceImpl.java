@@ -1,18 +1,17 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.framework.ip.po.DatabaseInfo;
-import com.centit.framework.ip.service.IntegrationEnvironment;
+import com.centit.product.metadata.dao.DatabaseInfoDao;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
+import com.centit.product.metadata.po.DatabaseInfo;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.vo.MetaTableCascade;
 import com.centit.support.algorithm.CollectionsOpt;
-import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.*;
 import com.centit.support.database.utils.DBType;
@@ -38,7 +37,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     private static final Logger logger = LoggerFactory.getLogger(MetaDataServiceImpl.class);
 
     @Autowired
-    private IntegrationEnvironment integrationEnvironment;
+    private DatabaseInfoDao databaseInfoDao;
 
     @Autowired
     private MetaTableDao metaTableDao;
@@ -49,25 +48,21 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Autowired
     private MetaRelationDao metaRelationDao;
 
+
     @Override
     public List<DatabaseInfo> listDatabase(String osId) {
-        List<DatabaseInfo> list= integrationEnvironment.listDatabaseInfo();
-        if(StringUtils.isBlank(osId)){
-            return list;
-        } else{
-            List<DatabaseInfo> listReturn=new ArrayList<>();
-           for (DatabaseInfo databaseInfo:list){
-               if (StringUtils.equals(osId,databaseInfo.getOsId())){
-                  listReturn.add(databaseInfo);
-               }
-           }
-           return listReturn;
-        }
+        return databaseInfoDao.listObjectsByProperties(
+            CollectionsOpt.createHashMap("osId", osId));
     }
 
     @Override
     public JSONArray listMetaTables(Map<String, Object> filterMap, PageDesc pageDesc) {
         return metaTableDao.listObjectsAsJson(filterMap, pageDesc);
+    }
+
+    @Override
+    public DatabaseInfo getDatabaseInfo(String databaseCode) {
+        return databaseInfoDao.getDatabaseInfoById(databaseCode);
     }
 
     @Override
@@ -91,7 +86,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public List<SimpleTableInfo> listRealTables(String databaseCode) {
-        DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(databaseCode);
+        DatabaseInfo databaseInfo = databaseInfoDao.getDatabaseInfoById(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
         try {
             jdbcMetadata.setDBConfig(DbcpConnectPools.getDbcpConnect(databaseInfo));
@@ -405,7 +400,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         tableCascade.setTableInfo(metaTable);
         String tableToken = StringUtils.isBlank(token)?"T":token;
 
-        DatabaseInfo dbInfo = integrationEnvironment.getDatabaseInfo(metaTable.getDatabaseCode());
+        DatabaseInfo dbInfo = databaseInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
         DBType dbType = DBType.mapDBType(dbInfo.getDatabaseUrl());
         tableCascade.setDatabaseType(dbType.toString());
         tableCascade.setTableAlias(tableToken);

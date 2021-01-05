@@ -109,7 +109,7 @@ public class DatabaseInfo implements IDatabaseInfo, Serializable {
             this.password = password;
         }else {
             this.password = "cipher:" + AESSecurityUtils.encryptAndBase64(
-                password, com.centit.framework.ip.po.DatabaseInfo.DESKEY);
+                password, DatabaseInfo.DESKEY);
         }
     }
 
@@ -117,7 +117,7 @@ public class DatabaseInfo implements IDatabaseInfo, Serializable {
     @JSONField(serialize = false)
     public String getClearPassword(){
         return AESSecurityUtils.decryptBase64String(
-            getPassword().substring(7), com.centit.framework.ip.po.DatabaseInfo.DESKEY);
+            getPassword().substring(7), DatabaseInfo.DESKEY);
     }
 
 }

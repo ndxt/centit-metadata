@@ -7,8 +7,7 @@ import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
-import com.centit.framework.ip.po.DatabaseInfo;
-import com.centit.framework.ip.service.IntegrationEnvironment;
+import com.centit.product.metadata.po.DatabaseInfo;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
@@ -50,9 +49,6 @@ public class MetadataQueryController extends  BaseController {
 
     @Autowired
     private MetaDataCache metaDataCache;
-
-    @Autowired
-    private IntegrationEnvironment integrationEnvironment;
 
     @ApiOperation(value = "数据库列表")
     @GetMapping(value = "/databases")
@@ -159,7 +155,7 @@ public class MetadataQueryController extends  BaseController {
             case "3":
                 Map<String, Object> searchColumn = collectRequestParameters(request);
                 MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
-                DatabaseInfo databaseInfo = integrationEnvironment.getDatabaseInfo(tableInfo.getDatabaseCode());
+                DatabaseInfo databaseInfo = metaDataService.getDatabaseInfo(tableInfo.getDatabaseCode());
                 try {
                     Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
                     QueryAndNamedParams qAp = QueryUtils.translateQuery(col.getReferenceData(), searchColumn);

@@ -15,6 +15,7 @@ import com.centit.search.document.ObjectDocument;
 import com.centit.search.service.Impl.ESIndexer;
 import com.centit.support.algorithm.*;
 import com.centit.support.common.ObjectException;
+import com.centit.support.compiler.ObjectTranslate;
 import com.centit.support.compiler.Pretreatment;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
@@ -110,15 +111,29 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             object.put(field.getPropertyName(), field.getAutoCreateParam());
                             break;
                         case "F":
+                            VariableFormula formula = new VariableFormula();
+                            formula.addExtendFunc("getSequence", (a) -> {
+                                try {
+                                    sqlDialect.getSequenceNextValue((String) a[0]);
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                return null;
+                            });
+                            formula.setFormula(field.getAutoCreateParam());
                             if(extParams != null){
                                 Map<String, Object> objectMap = new HashMap<>(extParams.size() + object.size() + 2);
                                 objectMap.putAll(extParams);
                                 objectMap.putAll(object);
+                                formula.setTrans(new ObjectTranslate(objectMap));
                                 object.put(field.getPropertyName(),
-                                    VariableFormula.calculate(field.getAutoCreateParam(),objectMap));
+                                    formula.calcFormula());
                             } else {
+                                formula.setTrans(new ObjectTranslate(object));
                                 object.put(field.getPropertyName(),
-                                    VariableFormula.calculate(field.getAutoCreateParam(), object));
+                                    formula.calcFormula());
                             }
                             break;
                         case "O":

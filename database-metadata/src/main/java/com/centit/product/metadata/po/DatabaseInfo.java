@@ -14,17 +14,14 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
 @Entity
 @Table(name = "F_DATABASE_INFO")
-@ApiModel(value="数据库信息对象",description="数据库信息对象 DatabaseInfo")
+@ApiModel(value="资源库信息对象",description="资源库信息对象 DatabaseInfo")
 public class DatabaseInfo implements IDatabaseInfo, Serializable {
     private static final long serialVersionUID = 1L;
                                        //"0123456789abcdefghijklmnopqrstuvwxyzABCDEF"
@@ -65,23 +62,29 @@ public class DatabaseInfo implements IDatabaseInfo, Serializable {
     @ApiModelProperty(value = "数据库描述信息",name = "databaseDesc")
     private String databaseDesc;
 
+    @ApiModelProperty(value = "修改时间",name = "lastModifyDate")
     @ValueGenerator( strategy= GeneratorType.FUNCTION, value = "today()", condition = GeneratorCondition.ALWAYS, occasion = GeneratorTime.ALWAYS )
     @Column(name = "LAST_MODIFY_DATE")
     private Date lastModifyDate;
 
+    @ApiModelProperty(value = "创建人",name = "CREATED")
     @Column(name = "CREATED")
     @DictionaryMap(fieldName = "createUserName", value = "userCode")
     private String created;
 
+    @ApiModelProperty(value = "创建时间",name = "CREATE_TIME")
     @ValueGenerator( strategy= GeneratorType.FUNCTION, value = "today()")
     @Column(name = "CREATE_TIME")
     private Date createTime;
 
     @ApiModelProperty(value = "扩展属性，json格式，clob字段")
-    //@Column(name = "EXT_PROPS")
-    //@Basic(fetch = FetchType.LAZY)
+    @Column(name = "EXT_PROPS")
+    @Basic(fetch = FetchType.LAZY)
     private JSONObject extProps;
 
+    @ApiModelProperty(value = "资源类型,D:关系数据库 N:非关系数据库",name = "SOURCE_TYPE")
+    @Column(name = "SOURCE_TYPE")
+    private String sourceType;
     // Constructors
     /**
      * default constructor

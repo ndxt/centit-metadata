@@ -18,27 +18,31 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ * @author zhf
+ */
 @Data
 @Entity
 @Table(name = "F_DATABASE_INFO")
-@ApiModel(value="资源库信息对象",description="资源库信息对象 DatabaseInfo")
+@ApiModel(value="集成数据库信息对象",description="集成数据库信息对象 DatabaseInfo")
 public class DatabaseInfo implements IDatabaseInfo, Serializable {
     private static final long serialVersionUID = 1L;
-                                       //"0123456789abcdefghijklmnopqrstuvwxyzABCDEF"
+
     public static final String DESKEY = AESSecurityUtils.AES_DEFAULT_KEY;
 
-    // 数据库名
+
     @Id
     @Column(name = "DATABASE_CODE")
+    @ApiModelProperty(value = "数据库代码",name = "databaseCode")
     @ValueGenerator(strategy = GeneratorType.UUID22)
     private String databaseCode;
 
     @Column(name = "OS_ID")
     @ApiModelProperty(value = "系统代码",name = "osId")
-    @DictionaryMap(value="osInfo",fieldName = "osName",isExpression = false)
     private String osId;
 
     @Column(name = "DATABASE_NAME")
+    @Length(max = 100, message = "字段长度不能大于{max}")
     @ApiModelProperty(value = "数据库名",name = "databaseName")
     private String databaseName;
 
@@ -58,7 +62,7 @@ public class DatabaseInfo implements IDatabaseInfo, Serializable {
     private String password;
 
     @Column(name = "DATABASE_DESC")
-    @Length(max = 100, message = "字段长度不能大于{max}")
+    @Length(max = 500, message = "字段长度不能大于{max}")
     @ApiModelProperty(value = "数据库描述信息",name = "databaseDesc")
     private String databaseDesc;
 
@@ -69,6 +73,7 @@ public class DatabaseInfo implements IDatabaseInfo, Serializable {
 
     @ApiModelProperty(value = "创建人",name = "CREATED")
     @Column(name = "CREATED")
+    @Length(max = 32, message = "字段长度不能大于{max}")
     @DictionaryMap(fieldName = "createUserName", value = "userCode")
     private String created;
 
@@ -82,7 +87,7 @@ public class DatabaseInfo implements IDatabaseInfo, Serializable {
     @Basic(fetch = FetchType.LAZY)
     private JSONObject extProps;
 
-    @ApiModelProperty(value = "资源类型,D:关系数据库 N:非关系数据库",name = "SOURCE_TYPE")
+    @ApiModelProperty(value = "资源类型,D:关系数据库 N:非关系数据库 K:key-value数据库 M:消息中间件",name = "SOURCE_TYPE")
     @Column(name = "SOURCE_TYPE")
     private String sourceType;
     // Constructors

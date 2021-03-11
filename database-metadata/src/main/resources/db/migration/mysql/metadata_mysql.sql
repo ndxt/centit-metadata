@@ -68,4 +68,19 @@ create table F_MD_TABLE
 );
 
 alter table F_MD_TABLE comment '状态分为 系统/查询/更新 系统，不可以做任何操作 查询，仅用于通用查询模块，不可以更新';
-
+create table F_DATABASE_INFO
+(
+   DATABASE_CODE               varchar(32) not null,
+   DATABASE_NAME       varchar(100),
+   OS_ID          varchar(64),
+   DATABASE_URL             varchar(1000),
+   USERNAME             varchar(100),
+   PASSWORD            varchar(100),
+   DATABASE_DESC          varchar(500),
+   LAST_MODIFY_DATE      datetime,
+   CREATE_TIME            datetime,
+   CREATED               varchar(32),
+   SOURCE_TYPE char(1),
+   EXT_PROPS text,
+   primary key (DATABASE_CODE)
+);

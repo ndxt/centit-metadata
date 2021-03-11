@@ -5,6 +5,7 @@ import com.centit.framework.common.JsonResultUtils;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
+import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.model.basedata.OperationLog;
@@ -30,6 +31,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.Map;
 
+/**
+ * @author zhf
+ */
 @Controller
 @RequestMapping("/database")
 @Api(tags = "数据库维护接口", value = "数据库维护接口")
@@ -53,7 +57,7 @@ public class DatabaseInfoController extends BaseController {
         name = "pageDesc", value = "json格式，分页对象信息",
         paramType = "body", dataTypeClass = PageDesc.class)
     @RequestMapping(method = RequestMethod.GET)
-    @WrapUpResponseBody
+    @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public PageQueryResult<Object> list(PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = BaseController.collectRequestParameters(request);
 

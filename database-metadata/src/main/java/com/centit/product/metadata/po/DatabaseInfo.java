@@ -24,7 +24,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name = "F_DATABASE_INFO")
-@ApiModel(value="集成数据库信息对象",description="集成数据库信息对象 DatabaseInfo")
+@ApiModel(value="集成资源库信息对象",description="集成资源库信息对象 DatabaseInfo")
 public class DatabaseInfo implements IDatabaseInfo, Serializable {
     private static final long serialVersionUID = 1L;
 

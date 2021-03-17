@@ -4,8 +4,8 @@ import com.alibaba.fastjson.JSONArray;
 
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.metadata.dao.DatabaseInfoDao;
-import com.centit.product.metadata.po.DatabaseInfo;
-import com.centit.product.metadata.service.DatabaseInfoManager;
+import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.support.database.utils.PageDesc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +17,8 @@ import java.util.Map;
 
 @Service("databaseInfoManager")
 @Transactional
-public class DatabaseInfoManagerImpl extends BaseEntityManagerImpl<DatabaseInfo, String, DatabaseInfoDao>
-        implements DatabaseInfoManager {
+public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, String, DatabaseInfoDao>
+        implements SourceInfoManager {
 
     //private static final SysOptLog sysOptLog = SysOptLogFactoryImpl.getSysOptLog();
 
@@ -29,19 +29,19 @@ public class DatabaseInfoManagerImpl extends BaseEntityManagerImpl<DatabaseInfo,
     }
 
     @Override
-    public boolean connectionTest(DatabaseInfo databaseInfo) {
-        return baseDao.connectionTest(databaseInfo);
+    public boolean connectionTest(SourceInfo sourceInfo) {
+        return baseDao.connectionTest(sourceInfo);
     }
 
     @Override
-    public List<DatabaseInfo> listDatabase() {
-        List<DatabaseInfo> database = baseDao.listDatabase();
+    public List<SourceInfo> listDatabase() {
+        List<SourceInfo> database = baseDao.listDatabase();
         return database;
     }
 
     @Override
-    public void saveNewObject(DatabaseInfo databaseInfo) {
-        baseDao.saveNewObject(databaseInfo);
+    public void saveNewObject(SourceInfo sourceInfo) {
+        baseDao.saveNewObject(sourceInfo);
     }
 
     @Override
@@ -50,18 +50,18 @@ public class DatabaseInfoManagerImpl extends BaseEntityManagerImpl<DatabaseInfo,
     }
 
     @Override
-    public void mergeObject(DatabaseInfo databaseInfo){
+    public void mergeObject(SourceInfo sourceInfo){
 
-        baseDao.mergeObject(databaseInfo);
+        baseDao.mergeObject(sourceInfo);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Map<String, DatabaseInfo> listDatabaseToDBRepo() {
-        List<DatabaseInfo> dbList=baseDao.listObjects();
-        Map<String, DatabaseInfo> dbmap = new HashMap<>();
+    public Map<String, SourceInfo> listDatabaseToDBRepo() {
+        List<SourceInfo> dbList=baseDao.listObjects();
+        Map<String, SourceInfo> dbmap = new HashMap<>();
         if(dbList != null){
-            for(DatabaseInfo db : dbList){
+            for(SourceInfo db : dbList){
                 dbmap.put(db.getDatabaseCode(),db);
             }
         }
@@ -69,7 +69,7 @@ public class DatabaseInfoManagerImpl extends BaseEntityManagerImpl<DatabaseInfo,
     }
 
     @Override
-    public List<DatabaseInfo> listObjects(Map<String, Object> map){
+    public List<SourceInfo> listObjects(Map<String, Object> map){
         return baseDao.listObjects(map);
     }
 
@@ -85,7 +85,7 @@ public class DatabaseInfoManagerImpl extends BaseEntityManagerImpl<DatabaseInfo,
 
     @Override
     @Transactional
-    public List<DatabaseInfo> listDatabaseByOsId(String osId) {
+    public List<SourceInfo> listDatabaseByOsId(String osId) {
         return baseDao.listObjectsByProperty("osId",osId);
     }
 }

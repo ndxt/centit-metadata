@@ -5,7 +5,7 @@ import com.centit.product.metadata.dao.DatabaseInfoDao;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
-import com.centit.product.metadata.po.DatabaseInfo;
+import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
@@ -50,7 +50,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
 
     @Override
-    public List<DatabaseInfo> listDatabase(String osId) {
+    public List<SourceInfo> listDatabase(String osId) {
         return databaseInfoDao.listObjectsByProperties(
             CollectionsOpt.createHashMap("osId", osId));
     }
@@ -61,7 +61,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public DatabaseInfo getDatabaseInfo(String databaseCode) {
+    public SourceInfo getDatabaseInfo(String databaseCode) {
         return databaseInfoDao.getDatabaseInfoById(databaseCode);
     }
 
@@ -86,14 +86,14 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public List<SimpleTableInfo> listRealTables(String databaseCode) {
-        DatabaseInfo databaseInfo = databaseInfoDao.getDatabaseInfoById(databaseCode);
+        SourceInfo sourceInfo = databaseInfoDao.getDatabaseInfoById(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
         try {
-            jdbcMetadata.setDBConfig(DbcpConnectPools.getDbcpConnect(databaseInfo));
-            if (databaseInfo.getDatabaseUrl().indexOf("oracle") > -1)
-                jdbcMetadata.setDBSchema(databaseInfo.getUsername().toUpperCase());
+            jdbcMetadata.setDBConfig(DbcpConnectPools.getDbcpConnect(sourceInfo));
+            if (sourceInfo.getDatabaseUrl().indexOf("oracle") > -1)
+                jdbcMetadata.setDBSchema(sourceInfo.getUsername().toUpperCase());
         }catch (SQLException e){
-            logger.error("连接数据库【{}】出错",databaseInfo.getDatabaseName());
+            logger.error("连接数据库【{}】出错", sourceInfo.getDatabaseName());
             throw new ObjectException("连接数据库出错"+e.getMessage());
         }
         return jdbcMetadata.listAllTable();
@@ -400,7 +400,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         tableCascade.setTableInfo(metaTable);
         String tableToken = StringUtils.isBlank(token)?"T":token;
 
-        DatabaseInfo dbInfo = databaseInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
+        SourceInfo dbInfo = databaseInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
         DBType dbType = DBType.mapDBType(dbInfo.getDatabaseUrl());
         tableCascade.setDatabaseType(dbType.toString());
         tableCascade.setTableAlias(tableToken);

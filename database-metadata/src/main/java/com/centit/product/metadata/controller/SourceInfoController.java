@@ -9,8 +9,8 @@ import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.model.basedata.OperationLog;
-import com.centit.product.metadata.po.DatabaseInfo;
-import com.centit.product.metadata.service.DatabaseInfoManager;
+import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.json.JsonPropertyUtils;
@@ -37,10 +37,10 @@ import java.util.Map;
 @Controller
 @RequestMapping("/database")
 @Api(tags = "数据库维护接口", value = "数据库维护接口")
-public class DatabaseInfoController extends BaseController {
+public class SourceInfoController extends BaseController {
 
     @Autowired
-    private DatabaseInfoManager databaseInfoMag;
+    private SourceInfoManager databaseInfoMag;
 
     private String optId = "DATABASE";
 
@@ -65,7 +65,7 @@ public class DatabaseInfoController extends BaseController {
 //                StringBaseOpt.objectToString(searchColumn.get("databaseName")), pageDesc);
         JSONArray listObjects = databaseInfoMag.listObjectsAsJson(searchColumn, pageDesc);
 
-        return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, DatabaseInfo.class);
+        return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, SourceInfo.class);
     }
 
     /**
@@ -78,9 +78,9 @@ public class DatabaseInfoController extends BaseController {
     @ApiOperation(value = "新增数据库信息", notes = "新增数据库信息。")
     @ApiImplicitParam(
         name = "databaseinfo", value = "json格式，数据库对象信息", required = true,
-        paramType = "body", dataTypeClass = DatabaseInfo.class)
+        paramType = "body", dataTypeClass = SourceInfo.class)
     @RequestMapping(method = {RequestMethod.POST})
-    public void saveDatabaseInfo(@Valid DatabaseInfo databaseinfo,
+    public void saveDatabaseInfo(@Valid SourceInfo databaseinfo,
                                  HttpServletRequest request, HttpServletResponse response) {
 
         databaseinfo.setDatabaseUrl(HtmlFormUtils.htmlString(databaseinfo.getDatabaseUrl()));
@@ -100,21 +100,21 @@ public class DatabaseInfoController extends BaseController {
     /**
      * 连接测试
      *
-     * @param databaseInfo 数据库信息
-     * @param response     返回
+     * @param sourceInfo 数据库信息
+     * @param response   返回
      */
     @ApiOperation(value = "数据库连接测试", notes = "数据库连接测试。")
     @ApiImplicitParam(
         name = "databaseinfo", value = "json格式，数据库对象信息", required = true,
-        paramType = "body", dataTypeClass = DatabaseInfo.class)
+        paramType = "body", dataTypeClass = SourceInfo.class)
     @RequestMapping(value = "/testConnect", method = {RequestMethod.POST})
-    public void testConnect(@Valid DatabaseInfo databaseInfo, HttpServletResponse response) {
+    public void testConnect(@Valid SourceInfo sourceInfo, HttpServletResponse response) {
 
 
         boolean result = DataSourceDescription.testConntect(new DataSourceDescription(
-            databaseInfo.getDatabaseUrl(),
-            databaseInfo.getUsername(),
-            databaseInfo.getClearPassword()));
+            sourceInfo.getDatabaseUrl(),
+            sourceInfo.getUsername(),
+            sourceInfo.getClearPassword()));
 
         if (result) {
             JsonResultUtils.writeSingleDataJson("连接测试成功", response);
@@ -139,18 +139,18 @@ public class DatabaseInfoController extends BaseController {
             required = true, paramType = "path", dataType = "String"),
         @ApiImplicitParam(
             name = "databaseinfo", value = "json格式，数据库对象信息", required = true,
-            paramType = "body", dataTypeClass = DatabaseInfo.class)
+            paramType = "body", dataTypeClass = SourceInfo.class)
     })
     @RequestMapping(value = "/{databaseCode}", method = {RequestMethod.PUT})
-    public void updateDatabaseInfo(@PathVariable String databaseCode, @Valid DatabaseInfo databaseinfo,
+    public void updateDatabaseInfo(@PathVariable String databaseCode, @Valid SourceInfo databaseinfo,
                                    HttpServletRequest request, HttpServletResponse response) {
         databaseinfo.setDatabaseUrl(HtmlFormUtils.htmlString((databaseinfo.getDatabaseUrl())));
-        DatabaseInfo temp = databaseInfoMag.getObjectById(databaseCode);
+        SourceInfo temp = databaseInfoMag.getObjectById(databaseCode);
         if (!databaseinfo.getPassword().equals(temp.getPassword())) {
             databaseinfo.setPassword(databaseinfo.getPassword());
         }
 
-        DatabaseInfo oldValue = new DatabaseInfo();
+        SourceInfo oldValue = new SourceInfo();
         BeanUtils.copyProperties(temp, oldValue);
         databaseInfoMag.mergeObject(databaseinfo);
 
@@ -174,10 +174,10 @@ public class DatabaseInfoController extends BaseController {
         required = true, paramType = "path", dataType = "String")
     @RequestMapping(value = "/{databaseCode}", method = {RequestMethod.GET})
     public void getDatabaseInhfo(@PathVariable String databaseCode, HttpServletResponse response) {
-        DatabaseInfo databaseInfo = databaseInfoMag.getObjectById(databaseCode);
+        SourceInfo sourceInfo = databaseInfoMag.getObjectById(databaseCode);
 
-        JsonResultUtils.writeSingleDataJson(databaseInfo, response,
-            JsonPropertyUtils.getExcludePropPreFilter(DatabaseInfo.class, "databaseInfo"));
+        JsonResultUtils.writeSingleDataJson(sourceInfo, response,
+            JsonPropertyUtils.getExcludePropPreFilter(SourceInfo.class, "databaseInfo"));
     }
 
     /**
@@ -194,14 +194,14 @@ public class DatabaseInfoController extends BaseController {
     @RequestMapping(value = "/{databaseCode}", method = {RequestMethod.DELETE})
     public void deleteDatabase(@PathVariable String databaseCode,
                                HttpServletRequest request, HttpServletResponse response) {
-        DatabaseInfo databaseInfo = databaseInfoMag.getObjectById(databaseCode);
+        SourceInfo sourceInfo = databaseInfoMag.getObjectById(databaseCode);
         databaseInfoMag.deleteObjectById(databaseCode);
 
         JsonResultUtils.writeBlankJson(response);
 
         /******************************log********************************/
         OperationLogCenter.logDeleteObject(request, optId, databaseCode, OperationLog.P_OPT_LOG_METHOD_D,
-            "删除数据库", databaseInfo);
+            "删除数据库", sourceInfo);
         /******************************log********************************/
     }
 

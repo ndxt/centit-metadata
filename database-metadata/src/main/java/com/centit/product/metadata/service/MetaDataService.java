@@ -1,7 +1,7 @@
 package com.centit.product.metadata.service;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.metadata.po.DatabaseInfo;
+import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
@@ -20,9 +20,9 @@ public interface MetaDataService {
 
     JSONArray listMetaTables(Map<String, Object> filterMap, PageDesc pageDes);
 
-    DatabaseInfo getDatabaseInfo(String databaseCode);
+    SourceInfo getDatabaseInfo(String databaseCode);
 
-    List<DatabaseInfo> listDatabase(String osId);
+    List<SourceInfo> listDatabase(String osId);
 
     List<SimpleTableInfo> listRealTables(String databaseCode);
 

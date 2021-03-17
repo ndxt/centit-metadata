@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.framework.jdbc.dao.JdbcTemplateUtils;
-import com.centit.product.metadata.po.DatabaseInfo;
+import com.centit.product.metadata.po.SourceInfo;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.PageDesc;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class DatabaseInfoDao extends BaseDaoImpl<DatabaseInfo, String> {
+public class DatabaseInfoDao extends BaseDaoImpl<SourceInfo, String> {
 
     @Override
     public Map<String, String> getFilterField() {
@@ -36,18 +36,18 @@ public class DatabaseInfoDao extends BaseDaoImpl<DatabaseInfo, String> {
         return filterField;
     }
 
-    public boolean connectionTest(DatabaseInfo databaseInfo) {
+    public boolean connectionTest(SourceInfo sourceInfo) {
         return DataSourceDescription.testConntect(new DataSourceDescription(
-            databaseInfo.getDatabaseUrl(),
-            databaseInfo.getUsername(),
-            databaseInfo.getPassword()));
+            sourceInfo.getDatabaseUrl(),
+            sourceInfo.getUsername(),
+            sourceInfo.getPassword()));
     }
 
-    public List<DatabaseInfo> listDatabase() {
+    public List<SourceInfo> listDatabase() {
         return this.listObjects();
     }
 
-    public DatabaseInfo getDatabaseInfoById(String databaseCode) {
+    public SourceInfo getDatabaseInfoById(String databaseCode) {
         return this.getObjectById(databaseCode);
     }
 

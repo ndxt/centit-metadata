@@ -3,7 +3,7 @@ package com.centit.product.metadata.po;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
-import com.centit.support.database.metadata.IDatabaseInfo;
+import com.centit.product.metadata.vo.ISourceInfo;
 import com.centit.support.database.orm.GeneratorCondition;
 import com.centit.support.database.orm.GeneratorTime;
 import com.centit.support.database.orm.GeneratorType;
@@ -25,7 +25,7 @@ import java.util.Date;
 @Entity
 @Table(name = "F_DATABASE_INFO")
 @ApiModel(value="集成资源库信息对象",description="集成资源库信息对象 DatabaseInfo")
-public class DatabaseInfo implements IDatabaseInfo, Serializable {
+public class SourceInfo implements ISourceInfo,Serializable {
     private static final long serialVersionUID = 1L;
 
     public static final String DESKEY = AESSecurityUtils.AES_DEFAULT_KEY;
@@ -94,16 +94,16 @@ public class DatabaseInfo implements IDatabaseInfo, Serializable {
     /**
      * default constructor
      */
-    public DatabaseInfo() {
+    public SourceInfo() {
     }
 
-    public DatabaseInfo(String databaseCode, String databaseName) {
+    public SourceInfo(String databaseCode, String databaseName) {
         this.databaseCode = databaseCode;
         this.databaseName = databaseName;
     }
 
-    public DatabaseInfo(String databaseCode, String databaseName, String databaseUrl,
-                        String username, String password, String dataDesc) {
+    public SourceInfo(String databaseCode, String databaseName, String databaseUrl,
+                      String username, String password, String dataDesc) {
         this.databaseCode = databaseCode;
         this.databaseName = databaseName;
         this.databaseUrl = databaseUrl;
@@ -117,7 +117,7 @@ public class DatabaseInfo implements IDatabaseInfo, Serializable {
             this.password = password;
         }else {
             this.password = "cipher:" + AESSecurityUtils.encryptAndBase64(
-                password, DatabaseInfo.DESKEY);
+                password, SourceInfo.DESKEY);
         }
     }
 
@@ -125,7 +125,7 @@ public class DatabaseInfo implements IDatabaseInfo, Serializable {
     @JSONField(serialize = false)
     public String getClearPassword(){
         return AESSecurityUtils.decryptBase64String(
-            getPassword().substring(7), DatabaseInfo.DESKEY);
+            getPassword().substring(7), SourceInfo.DESKEY);
     }
 
 }

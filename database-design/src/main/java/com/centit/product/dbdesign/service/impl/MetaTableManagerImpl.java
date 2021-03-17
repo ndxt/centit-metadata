@@ -14,7 +14,7 @@ import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.dao.DatabaseInfoDao;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaTableDao;
-import com.centit.product.metadata.po.DatabaseInfo;
+import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
@@ -174,7 +174,7 @@ public class MetaTableManagerImpl
         if(stable!=null)
           stable = metaTableDao.fetchObjectReferences(stable);
 
-        DatabaseInfo mdb = databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
+        SourceInfo mdb = databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
         //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
 
         DBType dbType = DBType.mapDBType(mdb.getDatabaseUrl());
@@ -318,7 +318,7 @@ public class MetaTableManagerImpl
             MetaChangLog chgLog = new MetaChangLog();
             List<String> errors = new ArrayList<>();
 
-            DatabaseInfo mdb = databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
+            SourceInfo mdb = databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
             //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
 
             DataSourceDescription dbc = new DataSourceDescription();
@@ -585,7 +585,7 @@ public class MetaTableManagerImpl
                 if (ret.getLeft() != 0)
                     return ret;
                 List<String> error = new ArrayList<>();
-                DatabaseInfo mdb = databaseInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
+                SourceInfo mdb = databaseInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
 
                 DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
 

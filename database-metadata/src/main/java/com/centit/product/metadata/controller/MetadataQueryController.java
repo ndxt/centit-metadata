@@ -7,10 +7,10 @@ import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
-import com.centit.product.metadata.po.DatabaseInfo;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.vo.MetaTableCascade;
@@ -42,7 +42,7 @@ import java.util.Map;
 @Api(value = "数据库元数据查询", tags = "元数据查询")
 @RestController
 @RequestMapping(value = "query")
-public class MetadataQueryController extends  BaseController {
+public class MetadataQueryController extends BaseController {
 
     @Autowired
     private MetaDataService metaDataService;
@@ -53,7 +53,7 @@ public class MetadataQueryController extends  BaseController {
     @ApiOperation(value = "数据库列表")
     @GetMapping(value = "/databases")
     @WrapUpResponseBody
-    public List<DatabaseInfo> databases(String osId){
+    public List<SourceInfo> databases(String osId) {
         return metaDataService.listDatabase(osId);
     }
 
@@ -61,17 +61,17 @@ public class MetadataQueryController extends  BaseController {
     @ApiImplicitParam(name = "databaseCode", value = "数据库代码")
     @GetMapping(value = "/{databaseCode}/tables")
     @WrapUpResponseBody
-    public PageQueryResult<Object> metaTables(@PathVariable String databaseCode, PageDesc pageDesc, HttpServletRequest request){
+    public PageQueryResult<Object> metaTables(@PathVariable String databaseCode, PageDesc pageDesc, HttpServletRequest request) {
         Map<String, Object> searchColumn = collectRequestParameters(request);
-        searchColumn.put("databaseCode",databaseCode);
+        searchColumn.put("databaseCode", databaseCode);
         JSONArray list = metaDataService.listMetaTables(searchColumn, pageDesc);
-        return PageQueryResult.createJSONArrayResult(list,pageDesc,MetaTable.class);
+        return PageQueryResult.createJSONArrayResult(list, pageDesc, MetaTable.class);
     }
 
     @ApiOperation(value = "数据库中的表（JDBC元数据）前段应该不需要访问这个接口")
     @ApiImplicitParam(name = "databaseCode", value = "数据库ID")
     @GetMapping(value = "/{databaseCode}/dbtables")
-    public List<SimpleTableInfo> databaseTables(@PathVariable String databaseCode){
+    public List<SimpleTableInfo> databaseTables(@PathVariable String databaseCode) {
         return metaDataService.listRealTables(databaseCode);
     }
 
@@ -80,7 +80,7 @@ public class MetadataQueryController extends  BaseController {
     @ApiImplicitParam(name = "tableId", value = "表ID")
     @GetMapping(value = "/table/{tableId}")
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
-    public MetaTable getMetaTable(@PathVariable String tableId){
+    public MetaTable getMetaTable(@PathVariable String tableId) {
         return metaDataService.getMetaTable(tableId);
     }
 
@@ -88,7 +88,7 @@ public class MetadataQueryController extends  BaseController {
     @ApiImplicitParam(name = "tableId", value = "表ID")
     @GetMapping(value = "/table/{tableId}/all")
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
-    public MetaTable getMetaTableWithRelations(@PathVariable String tableId){
+    public MetaTable getMetaTableWithRelations(@PathVariable String tableId) {
         return metaDataService.getMetaTableWithRelations(tableId);
     }
 
@@ -98,7 +98,7 @@ public class MetadataQueryController extends  BaseController {
     })
     @GetMapping(value = "/{tableId}/columns")
     @WrapUpResponseBody
-    public PageQueryResult<MetaColumn> listColumns(@PathVariable String tableId, PageDesc pageDesc){
+    public PageQueryResult<MetaColumn> listColumns(@PathVariable String tableId, PageDesc pageDesc) {
         List<MetaColumn> list = metaDataService.listMetaColumns(tableId, pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }
@@ -110,16 +110,16 @@ public class MetadataQueryController extends  BaseController {
     })
     @GetMapping(value = "/{tableId}/column/{columnName}")
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
-    public MetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName){
+    public MetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName) {
         return metaDataService.getMetaColumn(tableId, columnName);
     }
 
     @ApiOperation(value = "查询关联关系元数据")
     @GetMapping(value = "/{tableId}/relations")
     @WrapUpResponseBody
-    public PageQueryResult<MetaRelation> metaRelation(@PathVariable String tableId,HttpServletRequest request, PageDesc pageDesc){
-        Map<String,Object> condition = BaseController.collectRequestParameters(request);
-        condition.put("parentTableId",tableId);
+    public PageQueryResult<MetaRelation> metaRelation(@PathVariable String tableId, HttpServletRequest request, PageDesc pageDesc) {
+        Map<String, Object> condition = BaseController.collectRequestParameters(request);
+        condition.put("parentTableId", tableId);
         List<MetaRelation> list = metaDataService.listMetaRelation(condition, pageDesc);
         return PageQueryResult.createResultMapDict(list, pageDesc);
     }
@@ -127,7 +127,7 @@ public class MetadataQueryController extends  BaseController {
     @ApiOperation(value = "元数据级联字段，只查询一层")
     @GetMapping(value = "/tablecascade/{tableId}/{tableAlias}")
     @WrapUpResponseBody
-    public MetaTableCascade getMetaTableCascade(@PathVariable String tableId, @PathVariable String tableAlias){
+    public MetaTableCascade getMetaTableCascade(@PathVariable String tableId, @PathVariable String tableAlias) {
         return metaDataService.getMetaTableCascade(tableId, tableAlias);
     }
 
@@ -140,14 +140,14 @@ public class MetadataQueryController extends  BaseController {
     @WrapUpResponseBody
     public Map<String, String> getColumnReferenceData(
         @PathVariable String tableId, @PathVariable String columnName,
-        HttpServletRequest request){
+        HttpServletRequest request) {
         MetaColumn col = metaDataService.getMetaColumn(tableId, columnName);
-        if(col==null || StringUtils.isBlank(col.getReferenceType()) || "0".equals(col.getReferenceType())) {
+        if (col == null || StringUtils.isBlank(col.getReferenceType()) || "0".equals(col.getReferenceType())) {
             return null;
         }
         //1： 数据字典 2：JSON表达式 3：sql语句  Y：年份 M：月份
-        switch (col.getReferenceType()){
-            case "1": //
+        switch (col.getReferenceType()) {
+            case "1":
                 return CodeRepositoryUtil.getLabelValueMap(col.getReferenceData());
             case "2":
                 return CollectionsOpt.objectMapToStringMap(CollectionsOpt.objectToMap(
@@ -155,15 +155,15 @@ public class MetadataQueryController extends  BaseController {
             case "3":
                 Map<String, Object> searchColumn = collectRequestParameters(request);
                 MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
-                DatabaseInfo databaseInfo = metaDataService.getDatabaseInfo(tableInfo.getDatabaseCode());
+                SourceInfo sourceInfo = metaDataService.getDatabaseInfo(tableInfo.getDatabaseCode());
                 try {
-                    Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(databaseInfo));
+                    Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
                     QueryAndNamedParams qAp = QueryUtils.translateQuery(col.getReferenceData(), searchColumn);
-                    List<Object[]> objects= DatabaseAccess.findObjectsBySql(conn, qAp.getQuery(), qAp.getParams());
-                    if(objects!=null) {
+                    List<Object[]> objects = DatabaseAccess.findObjectsBySql(conn, qAp.getQuery(), qAp.getParams());
+                    if (objects != null) {
                         Map<String, String> stringMap = new HashMap<>(objects.size() * 3 / 2 + 1);
-                        for(Object[] objs : objects){
-                            if(objs !=null && objs.length>=2){
+                        for (Object[] objs : objects) {
+                            if (objs != null && objs.length >= 2) {
                                 stringMap.put(StringBaseOpt.objectToString(objs[0]),
                                     StringBaseOpt.objectToString(objs[1]));
                             }
@@ -176,19 +176,20 @@ public class MetadataQueryController extends  BaseController {
                 return null;
             case "Y": {
                 Map<String, String> stringMap = new HashMap<>(120);
-                for(int i=1; i<100; i++){
-                    stringMap.put(String.valueOf(1950+i),String.valueOf(1950+i));
+                for (int i = 1; i < 100; i++) {
+                    stringMap.put(String.valueOf(1950 + i), String.valueOf(1950 + i));
                 }
                 return stringMap;
             }
             case "M": {
                 Map<String, String> stringMap = new HashMap<>(100);
-                for(int i=1; i<13; i++){
-                    stringMap.put(String.valueOf(i),String.valueOf(i));
+                for (int i = 1; i < 13; i++) {
+                    stringMap.put(String.valueOf(i), String.valueOf(i));
                 }
                 return stringMap;
             }
+            default:
+                return null;
         }
-        return null;
     }
 }

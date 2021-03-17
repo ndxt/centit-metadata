@@ -8,6 +8,7 @@ import com.centit.support.database.orm.GeneratorCondition;
 import com.centit.support.database.orm.GeneratorTime;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
+import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.security.AESSecurityUtils;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -29,7 +30,6 @@ public class SourceInfo implements ISourceInfo,Serializable {
     private static final long serialVersionUID = 1L;
 
     public static final String DESKEY = AESSecurityUtils.AES_DEFAULT_KEY;
-
 
     @Id
     @Column(name = "DATABASE_CODE")
@@ -128,4 +128,29 @@ public class SourceInfo implements ISourceInfo,Serializable {
             getPassword().substring(7), SourceInfo.DESKEY);
     }
 
+    @Override
+    public boolean equals(Object dbco) {
+        if (this == dbco)
+            return true;
+
+        if (dbco instanceof DataSourceDescription) {
+            DataSourceDescription dbc = (DataSourceDescription) dbco;
+            return databaseUrl != null && databaseUrl.equals(dbc.getConnUrl())
+                && username != null && username.equals(dbc.getUsername());
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 37 * result +
+            (this.databaseUrl == null ? 0 : this.databaseUrl.hashCode());
+
+        result = 37 * result +
+            (this.username == null ? 0 : this.username.hashCode());
+
+        return result;
+    }
 }

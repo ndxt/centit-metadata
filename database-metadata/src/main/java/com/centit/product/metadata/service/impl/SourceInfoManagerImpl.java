@@ -3,7 +3,7 @@ package com.centit.product.metadata.service.impl;
 import com.alibaba.fastjson.JSONArray;
 
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
-import com.centit.product.metadata.dao.DatabaseInfoDao;
+import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.support.database.utils.PageDesc;
@@ -17,14 +17,14 @@ import java.util.Map;
 
 @Service("databaseInfoManager")
 @Transactional
-public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, String, DatabaseInfoDao>
+public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, String, SourceInfoDao>
         implements SourceInfoManager {
 
     //private static final SysOptLog sysOptLog = SysOptLogFactoryImpl.getSysOptLog();
 
     @Override
     @Autowired
-    public void setBaseDao(DatabaseInfoDao baseDao) {
+    public void setBaseDao(SourceInfoDao baseDao) {
         super.baseDao = baseDao;
     }
 

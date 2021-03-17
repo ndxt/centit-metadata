@@ -1,7 +1,7 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.metadata.dao.DatabaseInfoDao;
+import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.DatabaseRunTime;
 import com.centit.support.common.ObjectException;
@@ -23,10 +23,10 @@ import java.sql.SQLException;
 public class DatabaseRunTimeImpl implements DatabaseRunTime {
 
     @Autowired
-    private DatabaseInfoDao databaseInfoDao;
+    private SourceInfoDao sourceInfoDao;
 
     private DataSourceDescription fetchDataSource(String databaseCode) {
-        SourceInfo sourceInfo = databaseInfoDao.getDatabaseInfoById(databaseCode);
+        SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
         return DataSourceDescription.valueOf(sourceInfo);
     }
 

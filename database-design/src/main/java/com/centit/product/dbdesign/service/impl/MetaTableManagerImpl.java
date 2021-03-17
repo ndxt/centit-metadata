@@ -11,7 +11,7 @@ import com.centit.product.dbdesign.po.MetaChangLog;
 import com.centit.product.dbdesign.po.PendingMetaColumn;
 import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.dbdesign.service.MetaTableManager;
-import com.centit.product.metadata.dao.DatabaseInfoDao;
+import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.po.SourceInfo;
@@ -58,7 +58,7 @@ public class MetaTableManagerImpl
 
     //public static final Log logger = LogFactory.getLog(MetaTableManager.class);
     @Autowired
-    private DatabaseInfoDao databaseInfoDao;
+    private SourceInfoDao sourceInfoDao;
 
     private MetaTableDao metaTableDao;
 
@@ -174,7 +174,7 @@ public class MetaTableManagerImpl
         if(stable!=null)
           stable = metaTableDao.fetchObjectReferences(stable);
 
-        SourceInfo mdb = databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
+        SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
         //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
 
         DBType dbType = DBType.mapDBType(mdb.getDatabaseUrl());
@@ -318,7 +318,7 @@ public class MetaTableManagerImpl
             MetaChangLog chgLog = new MetaChangLog();
             List<String> errors = new ArrayList<>();
 
-            SourceInfo mdb = databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
+            SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
             //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
 
             DataSourceDescription dbc = new DataSourceDescription();
@@ -585,7 +585,7 @@ public class MetaTableManagerImpl
                 if (ret.getLeft() != 0)
                     return ret;
                 List<String> error = new ArrayList<>();
-                SourceInfo mdb = databaseInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
+                SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
 
                 DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
 

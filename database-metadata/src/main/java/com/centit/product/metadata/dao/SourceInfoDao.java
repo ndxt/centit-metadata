@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class DatabaseInfoDao extends BaseDaoImpl<SourceInfo, String> {
+public class SourceInfoDao extends BaseDaoImpl<SourceInfo, String> {
 
     @Override
     public Map<String, String> getFilterField() {

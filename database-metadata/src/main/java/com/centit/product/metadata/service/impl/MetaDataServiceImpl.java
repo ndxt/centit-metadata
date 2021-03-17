@@ -1,7 +1,7 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.metadata.dao.DatabaseInfoDao;
+import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
@@ -37,7 +37,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     private static final Logger logger = LoggerFactory.getLogger(MetaDataServiceImpl.class);
 
     @Autowired
-    private DatabaseInfoDao databaseInfoDao;
+    private SourceInfoDao sourceInfoDao;
 
     @Autowired
     private MetaTableDao metaTableDao;
@@ -51,7 +51,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public List<SourceInfo> listDatabase(String osId) {
-        return databaseInfoDao.listObjectsByProperties(
+        return sourceInfoDao.listObjectsByProperties(
             CollectionsOpt.createHashMap("osId", osId));
     }
 
@@ -62,7 +62,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public SourceInfo getDatabaseInfo(String databaseCode) {
-        return databaseInfoDao.getDatabaseInfoById(databaseCode);
+        return sourceInfoDao.getDatabaseInfoById(databaseCode);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public List<SimpleTableInfo> listRealTables(String databaseCode) {
-        SourceInfo sourceInfo = databaseInfoDao.getDatabaseInfoById(databaseCode);
+        SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
         try {
             jdbcMetadata.setDBConfig(DbcpConnectPools.getDbcpConnect(sourceInfo));
@@ -400,7 +400,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         tableCascade.setTableInfo(metaTable);
         String tableToken = StringUtils.isBlank(token)?"T":token;
 
-        SourceInfo dbInfo = databaseInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
+        SourceInfo dbInfo = sourceInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
         DBType dbType = DBType.mapDBType(dbInfo.getDatabaseUrl());
         tableCascade.setDatabaseType(dbType.toString());
         tableCascade.setTableAlias(tableToken);

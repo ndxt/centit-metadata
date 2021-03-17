@@ -6,7 +6,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.framework.core.dao.DictionaryMapColumn;
-import com.centit.product.metadata.dao.DatabaseInfoDao;
+import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.service.impl.SqlDictionaryMapSupplier;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.StringBaseOpt;
@@ -362,7 +362,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         return this.tableLabelName;
     }
 
-    public List<DictionaryMapColumn> fetchDictionaryMapColumns(DatabaseInfoDao databaseInfoDao){
+    public List<DictionaryMapColumn> fetchDictionaryMapColumns(SourceInfoDao sourceInfoDao){
         if(mdColumns == null || mdColumns.size()==0){
             return null;
         }
@@ -415,7 +415,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
                         CodeRepositoryUtil.registeExtendedCodeRepo(catalogCode,
                             new CachedObject<>(
                                 new SqlDictionaryMapSupplier(
-                                    databaseInfoDao.getDatabaseInfoById(this.getDatabaseCode()),
+                                    sourceInfoDao.getDatabaseInfoById(this.getDatabaseCode()),
                                     sqlStr),
                                 ICachedObject.KEEP_FRESH_PERIOD * 3));
                     }

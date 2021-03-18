@@ -12,7 +12,7 @@ public interface ISourceInfo extends IDatabaseInfo {
     String ELS="E";
     String KAFKA="K";
     String RABBIT_MQ="B";
-
+    String HTTP="H";
     String getSourceType();
 }
 

@@ -87,7 +87,7 @@ public class SourceInfo implements ISourceInfo,Serializable {
     @Basic(fetch = FetchType.LAZY)
     private JSONObject extProps;
 
-    @ApiModelProperty(value = "资源类型,D:关系数据库 M:MongoDb R:redis E:elssearch K:kafka B:rabbitmq",name = "SOURCE_TYPE")
+    @ApiModelProperty(value = "资源类型,D:关系数据库 M:MongoDb R:redis E:elssearch K:kafka B:rabbitmq,H http服务",name = "SOURCE_TYPE")
     @Column(name = "SOURCE_TYPE")
     private String sourceType;
     // Constructors

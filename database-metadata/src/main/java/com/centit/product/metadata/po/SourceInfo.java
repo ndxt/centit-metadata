@@ -133,9 +133,9 @@ public class SourceInfo implements ISourceInfo,Serializable {
         if (this == dbco)
             return true;
 
-        if (dbco instanceof DataSourceDescription) {
-            DataSourceDescription dbc = (DataSourceDescription) dbco;
-            return databaseUrl != null && databaseUrl.equals(dbc.getConnUrl())
+        if (dbco instanceof ISourceInfo) {
+            ISourceInfo dbc = (ISourceInfo) dbco;
+            return databaseUrl != null && databaseUrl.equals(dbc.getDatabaseUrl())
                 && username != null && username.equals(dbc.getUsername());
         } else {
             return false;

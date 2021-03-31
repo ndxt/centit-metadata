@@ -23,6 +23,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -80,7 +81,7 @@ public class SourceInfoController extends BaseController {
         name = "databaseinfo", value = "json格式，数据库对象信息", required = true,
         paramType = "body", dataTypeClass = SourceInfo.class)
     @RequestMapping(method = {RequestMethod.POST})
-    public void saveDatabaseInfo(@Valid SourceInfo databaseinfo,
+    public void saveDatabaseInfo(@RequestBody SourceInfo databaseinfo,
                                  HttpServletRequest request, HttpServletResponse response) {
 
         databaseinfo.setDatabaseUrl(HtmlFormUtils.htmlString(databaseinfo.getDatabaseUrl()));

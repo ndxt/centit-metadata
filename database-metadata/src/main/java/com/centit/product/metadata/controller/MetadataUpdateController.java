@@ -1,10 +1,12 @@
 package com.centit.product.metadata.controller;
 
+import com.centit.framework.common.ResponseData;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.support.database.utils.FieldType;
 import io.swagger.annotations.Api;
@@ -36,9 +38,15 @@ public class MetadataUpdateController extends BaseController {
     @ApiImplicitParam(name = "databaseCode", value = "数据库ID")
     @GetMapping(value = "/sync/{databaseCode}")
     @WrapUpResponseBody
-    public void syncDb(@PathVariable String databaseCode, HttpServletRequest request){
+    public ResponseData syncDb(@PathVariable String databaseCode, HttpServletRequest request){
+        SourceInfo databaseInfo = metaDataService.getDatabaseInfo(databaseCode);
+        //先写死，后面在表中加个字段或者放配置文件中，不然后面每加一个就需要更改
+        if (databaseInfo!=null&&("H".equals(databaseInfo.getSourceType()) || "R".equals(databaseInfo.getSourceType()))){
+            return ResponseData.makeErrorMessage("选择的资源不支持反向工程！");
+        }
         String userCode = WebOptUtils.getCurrentUserCode(request);
         metaDataService.syncDb(databaseCode, userCode);
+        return ResponseData.makeSuccessResponse();
     }
 
 

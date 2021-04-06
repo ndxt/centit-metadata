@@ -33,6 +33,7 @@ public class SourceInfoDao extends BaseDaoImpl<SourceInfo, String> {
         filterField.put("dataDesc", CodeBook.LIKE_HQL_ID);
         filterField.put("createTime", CodeBook.LIKE_HQL_ID);
         filterField.put("created", CodeBook.LIKE_HQL_ID);
+        filterField.put("sourceType", CodeBook.EQUAL_HQL_ID);
         return filterField;
     }
 

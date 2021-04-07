@@ -13,6 +13,7 @@ import com.centit.support.security.AESSecurityUtils;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
@@ -113,11 +114,13 @@ public class SourceInfo implements ISourceInfo,Serializable {
     }
 
     public void setPassword(String password) {
-        if(password.startsWith("cipher:")) {
-            this.password = password;
-        }else {
-            this.password = "cipher:" + AESSecurityUtils.encryptAndBase64(
-                password, SourceInfo.DESKEY);
+        if (StringUtils.isNotBlank(password)) {
+            if(  password.startsWith("cipher:")) {
+                this.password = password;
+            }else {
+                this.password = "cipher:" + AESSecurityUtils.encryptAndBase64(
+                    password, SourceInfo.DESKEY);
+            }
         }
     }
 

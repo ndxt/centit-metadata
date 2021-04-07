@@ -19,6 +19,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -86,7 +87,9 @@ public class SourceInfoController extends BaseController {
 
         databaseinfo.setDatabaseUrl(HtmlFormUtils.htmlString(databaseinfo.getDatabaseUrl()));
         //加密
-        databaseinfo.setPassword(databaseinfo.getPassword());
+        if (StringUtils.isNotBlank(databaseinfo.getPassword())){
+            databaseinfo.setPassword(databaseinfo.getPassword());
+        }
         databaseinfo.setCreated(WebOptUtils.getCurrentUserCode(request));
         databaseInfoMag.saveNewObject(databaseinfo);
 
@@ -147,9 +150,11 @@ public class SourceInfoController extends BaseController {
                                    HttpServletRequest request, HttpServletResponse response) {
         databaseinfo.setDatabaseUrl(HtmlFormUtils.htmlString((databaseinfo.getDatabaseUrl())));
         SourceInfo temp = databaseInfoMag.getObjectById(databaseCode);
-        if (!databaseinfo.getPassword().equals(temp.getPassword())) {
-            databaseinfo.setPassword(databaseinfo.getPassword());
-        }
+        if (StringUtils.isNotBlank(databaseinfo.getPassword())){
+           if (!databaseinfo.getPassword().equals(temp.getPassword())) {
+               databaseinfo.setPassword(databaseinfo.getPassword());
+           }
+       }
 
         SourceInfo oldValue = new SourceInfo();
         BeanUtils.copyProperties(temp, oldValue);

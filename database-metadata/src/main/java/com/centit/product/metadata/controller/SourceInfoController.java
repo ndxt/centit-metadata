@@ -143,7 +143,7 @@ public class SourceInfoController extends BaseController {
             paramType = "body", dataTypeClass = SourceInfo.class)
     })
     @RequestMapping(value = "/{databaseCode}", method = {RequestMethod.PUT})
-    public void updateDatabaseInfo(@PathVariable String databaseCode, @Valid SourceInfo databaseinfo,
+    public void updateDatabaseInfo(@PathVariable String databaseCode, @RequestBody SourceInfo databaseinfo,
                                    HttpServletRequest request, HttpServletResponse response) {
         databaseinfo.setDatabaseUrl(HtmlFormUtils.htmlString((databaseinfo.getDatabaseUrl())));
         SourceInfo temp = databaseInfoMag.getObjectById(databaseCode);

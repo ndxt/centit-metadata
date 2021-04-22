@@ -139,7 +139,7 @@ public class SourceInfo implements ISourceInfo,Serializable {
         if (dbco instanceof ISourceInfo) {
             ISourceInfo dbc = (ISourceInfo) dbco;
             return databaseUrl != null && databaseUrl.equals(dbc.getDatabaseUrl())
-                && username != null && username.equals(dbc.getUsername());
+                && databaseCode != null && databaseCode.equals(dbc.getDatabaseCode());
         } else {
             return false;
         }
@@ -152,7 +152,7 @@ public class SourceInfo implements ISourceInfo,Serializable {
             (this.databaseUrl == null ? 0 : this.databaseUrl.hashCode());
 
         result = 37 * result +
-            (this.username == null ? 0 : this.username.hashCode());
+            (this.databaseCode == null ? 0 : this.databaseCode.hashCode());
 
         return result;
     }

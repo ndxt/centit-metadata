@@ -51,11 +51,9 @@
             <artifactId>database-design</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>com.centit.product</groupId>
-            <artifactId>data-packet-define</artifactId>
-            <version>${project.version}</version>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
         </dependency>
 
         <dependency>

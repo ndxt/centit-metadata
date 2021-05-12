@@ -432,17 +432,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    @Override
-    public int mergeObject(String tableId, Map<String, Object> object) {
-        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
-        Map<String, Object> dbObjectPk = tableInfo.fetchObjectPk(object);
-        Map<String, Object> dbObject = dbObjectPk == null ? null :
-            getObjectById(tableId, dbObjectPk);
-        if (dbObject == null) {
-            return saveObject(tableId, object);
-        }
-        return updateObject(tableId, object);
-    }
+
 
     @Override
     public int updateObjectFields(String tableId, final Collection<String> fields, final Map<String, Object> object) {
@@ -668,7 +658,17 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
-
+    @Override
+    public int mergeObjectWithChildren(String tableId, Map<String, Object> object) {
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
+        Map<String, Object> dbObjectPk = tableInfo.fetchObjectPk(object);
+        Map<String, Object> dbObject = dbObjectPk == null ? null :
+            getObjectById(tableId, dbObjectPk);
+        if (dbObject == null) {
+            return saveObjectWithChildren(tableId, object);
+        }
+        return updateObjectWithChildren(tableId, object);
+    }
 
     @Override
     public JSONArray listObjectsByProperties(String tableId, Map<String, Object> filter) {

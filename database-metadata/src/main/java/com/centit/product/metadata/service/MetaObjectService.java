@@ -37,7 +37,7 @@ public interface MetaObjectService {
     int saveObject(String tableId, Map<String, Object> object, Map<String, Object> extParams);
 
     int updateObject(String tableId, Map<String, Object> object);
-    int mergeObject(String tableId, Map<String, Object> object);
+
 
     int updateObjectFields(String tableId, final Collection<String> fields,final Map<String, Object> object);
 
@@ -58,7 +58,7 @@ public interface MetaObjectService {
     int updateObjectWithChildren(String tableId, Map<String, Object> object);
 
     void deleteObjectWithChildren(String tableId, Map<String, Object> pk);
-
+    int mergeObjectWithChildren(String tableId, Map<String, Object> object);
     JSONArray listObjectsByProperties(String tableId, Map<String, Object> filter);
 
     JSONArray pageQueryObjects(String tableId, Map<String, Object> params, PageDesc pageDesc);

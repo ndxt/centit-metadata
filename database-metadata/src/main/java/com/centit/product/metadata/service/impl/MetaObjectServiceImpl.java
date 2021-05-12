@@ -46,11 +46,11 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Autowired(required = false)
     private ESIndexer esObjectIndexer;
 
-    private static Map<String, Object> prepareObjectForSave(Map<String, Object> object, MetaTable metaTable){
-        for(MetaColumn col :  metaTable.getMdColumns()) {
+    private static Map<String, Object> prepareObjectForSave(Map<String, Object> object, MetaTable metaTable) {
+        for (MetaColumn col : metaTable.getMdColumns()) {
             Object fieldValue = object.get(col.getPropertyName());
-            if(fieldValue != null) {
-                switch (col.getFieldType()){
+            if (fieldValue != null) {
+                switch (col.getFieldType()) {
                     case FieldType.DATE:
                         /*object.put(col.getPropertyName(), DatetimeOpt.castObjectToSqlDate(fieldValue));
                         break;*/
@@ -75,8 +75,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         break;
                     case FieldType.BOOLEAN:
                         object.put(col.getPropertyName(),
-                            BooleanBaseOpt.castObjectToBoolean(fieldValue,false)?
-                                BooleanBaseOpt.ONE_CHAR_TRUE: BooleanBaseOpt.ONE_CHAR_FALSE);
+                            BooleanBaseOpt.castObjectToBoolean(fieldValue, false) ?
+                                BooleanBaseOpt.ONE_CHAR_TRUE : BooleanBaseOpt.ONE_CHAR_FALSE);
                         break;
                     default:
                         break;
@@ -92,8 +92,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                                    long pkOrder, boolean isGetObject)
         throws SQLException, IOException {
 
-        for(MetaColumn field : metaTable.getMdColumns()) {
-            if (StringUtils.equalsAny(field.getAutoCreateRule(), "C", "U", "S", "F","O")) {
+        for (MetaColumn field : metaTable.getMdColumns()) {
+            if (StringUtils.equalsAny(field.getAutoCreateRule(), "C", "U", "S", "F", "O")) {
                 //只有为空时才创建
                 if (object.get(field.getPropertyName()) == null) {
                     switch (field.getAutoCreateRule()) {
@@ -123,7 +123,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                 return null;
                             });
                             formula.setFormula(field.getAutoCreateParam());
-                            if(extParams != null){
+                            if (extParams != null) {
                                 Map<String, Object> objectMap = new HashMap<>(extParams.size() + object.size() + 2);
                                 objectMap.putAll(extParams);
                                 objectMap.putAll(object);
@@ -141,21 +141,21 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                 break;
                             }
                             int pkCount = metaTable.countPkColumn();
-                            if(pkCount < 2 || !field.isPrimaryKey()){
+                            if (pkCount < 2 || !field.isPrimaryKey()) {
                                 throw new ObjectException(PersistenceException.ORM_METADATA_EXCEPTION,
                                     "主键生成规则SUB_ORDER必须用于复合主键表中，并且只能用于整型字段！");
                             }
-                            StringBuilder sqlBuilder = new StringBuilder("select max(" );
+                            StringBuilder sqlBuilder = new StringBuilder("select max(");
                             sqlBuilder.append(field.getColumnName())
                                 .append(" ) as maxOrder from ")
                                 .append(metaTable.getTableName())
                                 .append(" where ");
                             int pki = 0;
-                            Object[] pkValues = new Object[pkCount-1];
-                            for(MetaColumn col : metaTable.getColumns()){
-                                if(col.isPrimaryKey() &&
-                                    ! StringUtils.equals(col.getPropertyName(), field.getPropertyName())){
-                                    if(pki>0){
+                            Object[] pkValues = new Object[pkCount - 1];
+                            for (MetaColumn col : metaTable.getColumns()) {
+                                if (col.isPrimaryKey() &&
+                                    !StringUtils.equals(col.getPropertyName(), field.getPropertyName())) {
+                                    if (pki > 0) {
                                         sqlBuilder.append(" and ");
                                     }
                                     sqlBuilder.append(col.getColumnName()).append(" = ?");
@@ -165,7 +165,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             }
                             Long pkSubOrder = NumberBaseOpt.castObjectToLong(
                                 DatabaseAccess.fetchScalarObject(
-                                    sqlDialect.findObjectsBySql(sqlBuilder.toString(), pkValues)) );
+                                    sqlDialect.findObjectsBySql(sqlBuilder.toString(), pkValues)));
                             object.put(field.getPropertyName(), pkSubOrder == null ? pkOrder : pkSubOrder + pkOrder);
                             break;
                         default:
@@ -176,54 +176,54 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    private SourceInfo fetchDatabaseInfo(String databaseCode){
+    private SourceInfo fetchDatabaseInfo(String databaseCode) {
         return sourceInfoDao.getDatabaseInfoById(databaseCode);
     }
 
-    private Map<String, Object> innerGetObjectById(final Connection conn, final MetaTable tableInfo,final Map<String, Object> pk)
+    private Map<String, Object> innerGetObjectById(final Connection conn, final MetaTable tableInfo, final Map<String, Object> pk)
         throws IOException, SQLException {
         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-        if (pk.size()==0){
-            throw new ObjectException(tableInfo.getTableName()+"没有传入主键");
+        if (pk.size() == 0) {
+            throw new ObjectException(tableInfo.getTableName() + "没有传入主键");
         }
-        if(dao.checkHasAllPkColumns(pk)){
+        if (dao.checkHasAllPkColumns(pk)) {
             return dao.getObjectById(pk);
-        } else if( pk.containsKey(MetaTable.WORKFLOW_INST_ID_PROP)) {
+        } else if (pk.containsKey(MetaTable.WORKFLOW_INST_ID_PROP)) {
             return dao.getObjectByProperties(pk);
         } else {
             throw new ObjectException("表或者视图 " + tableInfo.getTableName()
-                +" 缺少对应主键:"+ JSON.toJSONString(pk) );
+                + " 缺少对应主键:" + JSON.toJSONString(pk));
         }
 
     }
 
     private Map<String, Object> innerGetObjectPartFieldsById(final Connection conn, final MetaTable tableInfo,
-                                                             final Map<String, Object> pk, String [] fields)
+                                                             final Map<String, Object> pk, String[] fields)
         throws IOException, SQLException {
 
-        if (pk.size()==0){
-            throw new ObjectException(tableInfo.getTableName()+"没有传入主键");
+        if (pk.size() == 0) {
+            throw new ObjectException(tableInfo.getTableName() + "没有传入主键");
         }
         HashSet<String> fieldSet = collectPartFields(tableInfo, fields);
         Pair<String, TableField[]> q = GeneralJsonObjectDao.buildPartFieldSqlWithFields(tableInfo, fieldSet, null, false);
         String filter;
-        if(GeneralJsonObjectDao.checkHasAllPkColumns(tableInfo, pk)){
+        if (GeneralJsonObjectDao.checkHasAllPkColumns(tableInfo, pk)) {
             filter = GeneralJsonObjectDao.buildFilterSqlByPk(tableInfo, null);
-        } else if( pk.containsKey(MetaTable.WORKFLOW_INST_ID_PROP)) {
-            filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null,
+        } else if (pk.containsKey(MetaTable.WORKFLOW_INST_ID_PROP)) {
+            filter = GeneralJsonObjectDao.buildFilterSql(tableInfo, null,
                 CollectionsOpt.createList(MetaTable.WORKFLOW_INST_ID_PROP,
                     MetaTable.WORKFLOW_NODE_INST_ID_PROP));
         } else {
-            throw new ObjectException(tableInfo.getTableName()+"没有传入主键");
+            throw new ObjectException(tableInfo.getTableName() + "没有传入主键");
         }
 
         String querySql = "select " + q.getLeft() +
-              " from " +tableInfo.getTableName() +
-              " where " + filter;
+            " from " + tableInfo.getTableName() +
+            " where " + filter;
         JSONArray objs = GeneralJsonObjectDao.findObjectsByNamedSql(conn,
             querySql, pk, q.getRight());
-        if(objs!=null && objs.size() == 1){
-            return (JSONObject)objs.get(0);
+        if (objs != null && objs.size() == 1) {
+            return (JSONObject) objs.get(0);
         }
         return null;
     }
@@ -241,7 +241,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     private void fetchObjectParent(Connection conn, Map<String, Object> mainObj,
-                                     MetaRelation md) throws SQLException, IOException {
+                                   MetaRelation md) throws SQLException, IOException {
         MetaTable parentTableInfo = metaDataCache.getTableInfo(md.getParentTableId());
         Map<String, Object> ref = md.fetchParentPk(mainObj);
         // 检查是否是和父表的主键关联
@@ -255,11 +255,11 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     private void fetchObjectParents(Connection conn, Map<String, Object> mainObj,
-                                      MetaTable tableInfo) throws SQLException, IOException {
+                                    MetaTable tableInfo) throws SQLException, IOException {
         List<MetaRelation> mds = tableInfo.getParents();
-        if(mds!=null) {
+        if (mds != null) {
             for (MetaRelation md : mds) {
-                if (md.getRelationDetails()!=null) {
+                if (md.getRelationDetails() != null) {
                     fetchObjectParent(conn, mainObj, md);
                 }
             }
@@ -267,13 +267,13 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     private void fetchObjectRefrence(Connection conn, Map<String, Object> mainObj,
-                                      MetaRelation md) throws SQLException, IOException {
+                                     MetaRelation md) throws SQLException, IOException {
         MetaTable subTableInfo = metaDataCache.getTableInfoWithRelations(md.getChildTableId());
         Map<String, Object> ref = md.fetchChildFk(mainObj);
         if (ref != null) {
             JSONArray ja = DictionaryMapUtils.mapJsonArray(
                 GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
-                .listObjectsByProperties(ref), subTableInfo.fetchDictionaryMapColumns(sourceInfoDao));
+                    .listObjectsByProperties(ref), subTableInfo.fetchDictionaryMapColumns(sourceInfoDao));
             mainObj.put(md.getRelationName(), ja);
         }
     }
@@ -281,14 +281,14 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     private void fetchObjectRefrences(Connection conn, Map<String, Object> mainObj,
                                       MetaTable tableInfo, int withChildrenDeep) throws SQLException, IOException {
         List<MetaRelation> mds = tableInfo.getMdRelations();
-        if(mds!=null) {
+        if (mds != null) {
             for (MetaRelation md : mds) {
                 MetaTable subTableInfo = metaDataCache.getTableInfoWithRelations(md.getChildTableId());
                 Map<String, Object> ref = md.fetchChildFk(mainObj);
-                if(ref!=null) {
+                if (ref != null) {
                     JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
                         .listObjectsByProperties(ref);
-                    ja=DictionaryMapUtils.mapJsonArray(ja, subTableInfo.fetchDictionaryMapColumns(sourceInfoDao));
+                    ja = DictionaryMapUtils.mapJsonArray(ja, subTableInfo.fetchDictionaryMapColumns(sourceInfoDao));
                     if (withChildrenDeep > 1 && ja != null) {
                         for (Object subObject : ja) {
                             if (subObject instanceof Map) {
@@ -304,8 +304,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, String [] fields,
-                                              String [] parents, String [] children) {
+    public Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, String[] fields,
+                                                     String[] parents, String[] children) {
         MetaTable tableInfo = metaDataCache.getTableInfoAll(tableId);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -316,7 +316,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
             mainObj = DictionaryMapUtils.mapJsonObject(mainObj, tableInfo.fetchDictionaryMapColumns(sourceInfoDao));
             return fetchObjectParentAndChildren(tableInfo, mainObj, parents, children);
-        }catch (SQLException | IOException e) {
+        } catch (SQLException | IOException e) {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
 
@@ -324,24 +324,24 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public Map<String, Object> fetchObjectParentAndChildren(MetaTable tableInfo, Map<String, Object> mainObj,
-                                                     String [] parents, String [] children){
+                                                            String[] parents, String[] children) {
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
-            if(parents != null && parents.length>0){
+            if (parents != null && parents.length > 0) {
                 List<MetaRelation> mds = tableInfo.getParents();
-                if(mds!=null) {
+                if (mds != null) {
                     for (MetaRelation md : mds) {
-                        if (StringUtils.equalsAny(md.getReferenceName(), parents) && md.getRelationDetails()!=null) {
+                        if (StringUtils.equalsAny(md.getReferenceName(), parents) && md.getRelationDetails() != null) {
                             fetchObjectParent(conn, mainObj, md);
                         }
                     }
                 }
             }
             List<MetaRelation> mds = tableInfo.getMdRelations();
-            if(mds!=null) {
+            if (mds != null) {
                 for (MetaRelation md : mds) {
-                    if (StringUtils.equalsAny(md.getReferenceName(), children) && md.getRelationDetails()!=null) {
+                    if (StringUtils.equalsAny(md.getReferenceName(), children) && md.getRelationDetails() != null) {
                         fetchObjectRefrence(conn, mainObj, md);
                     }
                 }
@@ -353,14 +353,14 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public Map<String, Object>  getObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep) {
+    public Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep) {
         MetaTable tableInfo = metaDataCache.getTableInfoAll(tableId);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
-            Map<String, Object> mainObj = innerGetObjectById(conn, tableInfo , pk);
+            Map<String, Object> mainObj = innerGetObjectById(conn, tableInfo, pk);
             mainObj = DictionaryMapUtils.mapJsonObject(mainObj, tableInfo.fetchDictionaryMapColumns(sourceInfoDao));
-            if(withChildrenDeep>0 && mainObj!=null) {
+            if (withChildrenDeep > 0 && mainObj != null) {
                 fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
             }
             fetchObjectParents(conn, mainObj, tableInfo);
@@ -371,13 +371,13 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public Map<String, Object> makeNewObject(String tableId, Map<String, Object> extParams){
+    public Map<String, Object> makeNewObject(String tableId, Map<String, Object> extParams) {
         MetaTable tableInfo = metaDataCache.getTableInfoWithParents(tableId);
         JSONObject objectMap = new JSONObject();
-        if(extParams!=null && !extParams.isEmpty()){
-            for(MetaColumn col : tableInfo.getColumns()){
+        if (extParams != null && !extParams.isEmpty()) {
+            for (MetaColumn col : tableInfo.getColumns()) {
                 Object colValue = extParams.get(col.getPropertyName());
-                if(colValue != null){
+                if (colValue != null) {
                     objectMap.put(col.getPropertyName(), colValue);
                 }
             }
@@ -386,7 +386,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l,true);
+            makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l, true);
             fetchObjectParents(conn, objectMap, tableInfo);
             return objectMap;
         } catch (SQLException | IOException e) {
@@ -395,8 +395,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public Map<String, Object> makeNewObject(String tableId){
-        return makeNewObject(tableId,null);
+    public Map<String, Object> makeNewObject(String tableId) {
+        return makeNewObject(tableId, null);
     }
 
     @Override
@@ -406,7 +406,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            makeObjectValueByGenerator(object, extParams, tableInfo, dao, 1l,false);
+            makeObjectValueByGenerator(object, extParams, tableInfo, dao, 1l, false);
             prepareObjectForSave(object, tableInfo);
             return dao.saveNewObject(object);
         } catch (SQLException | IOException e) {
@@ -416,7 +416,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public int saveObject(String tableId, Map<String, Object> object) {
-        return saveObject(tableId,object, null);
+        return saveObject(tableId, object, null);
     }
 
     @Override
@@ -433,7 +433,19 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public int updateObjectFields(String tableId, final Collection<String> fields, final Map<String, Object> object){
+    public int mergeObject(String tableId, Map<String, Object> object) {
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
+        Map<String, Object> dbObjectPk = tableInfo.fetchObjectPk(object);
+        Map<String, Object> dbObject = dbObjectPk == null ? null :
+            getObjectById(tableId, dbObjectPk);
+        if (dbObject == null) {
+            return saveObject(tableId, object);
+        }
+        return updateObject(tableId, object);
+    }
+
+    @Override
+    public int updateObjectFields(String tableId, final Collection<String> fields, final Map<String, Object> object) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         prepareObjectForSave(object, tableInfo);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
@@ -448,14 +460,14 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public int updateObjectsByProperties(String tableId, final Collection<String> fields,
-                                  final Map<String, Object> fieldValues,final Map<String, Object> filterProperties){
+                                         final Map<String, Object> fieldValues, final Map<String, Object> filterProperties) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         prepareObjectForSave(fieldValues, tableInfo);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
             return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
-                    .updateObjectsByProperties(fields, fieldValues, filterProperties);
+                .updateObjectsByProperties(fields, fieldValues, filterProperties);
         } catch (SQLException e) {
             throw new ObjectException(fieldValues, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -466,11 +478,12 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                          final Map<String, Object> fieldValues,
                                          final Map<String, Object> filterProperties) {
         return updateObjectsByProperties(tableId, fieldValues.keySet(),
-                fieldValues, filterProperties);
+            fieldValues, filterProperties);
     }
+
     private void deleteFulltextIndex(Map<String, Object> obj, String tableId) {
         MetaTable metaTable = metaDataCache.getTableInfo(tableId);
-        if (esObjectIndexer!=null && metaTable != null &&
+        if (esObjectIndexer != null && metaTable != null &&
             ("T".equals(metaTable.getFulltextSearch())
                 // 用json格式保存在大字段中的内容不能用sql检索，必须用全文检索
                 || "C".equals(metaTable.getTableType()))) {
@@ -482,6 +495,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             }
         }
     }
+
     @Override
     public void deleteObject(String tableId, Map<String, Object> pk) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
@@ -490,15 +504,16 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
             GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).deleteObjectById(pk);
-            deleteFulltextIndex(pk,tableId);
+            deleteFulltextIndex(pk, tableId);
         } catch (SQLException e) {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
+
     private void checkUpdateTimeStamp(Map<String, Object> dbObject, Map<String, Object> object) {
         Object oldDate = dbObject.get(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
         Object newDate = object.get(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
-        if (newDate==null || oldDate==null) {
+        if (newDate == null || oldDate == null) {
             return;
         }
         if (!DatetimeOpt.equalOnSecond(DatetimeOpt.castObjectToDate(oldDate), DatetimeOpt.castObjectToDate(newDate))) {
@@ -509,6 +524,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
         object.put(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP, DatetimeOpt.currentSqlDate());
     }
+
     private ObjectDocument mapObjectToDocument(Map<String, Object> object, MetaTable metaTable) {
         ObjectDocument doc = new ObjectDocument();
         doc.setOsId(metaTable.getDatabaseCode());
@@ -521,9 +537,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         doc.setUnitCode((String) object.get("unitCode"));
         return doc;
     }
+
     private void saveFulltextIndex(Map<String, Object> obj, MetaTable metaTable) {
         //MetaTable metaTable = metaDataCache.getTableInfo(tableId);
-        if (esObjectIndexer!=null && metaTable != null &&
+        if (esObjectIndexer != null && metaTable != null &&
             ("T".equals(metaTable.getFulltextSearch())
                 // 用json格式保存在大字段中的内容不能用sql检索，必须用全文检索
                 || "C".equals(metaTable.getTableType()))) {
@@ -535,9 +552,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             }
         }
     }
+
     private void updataFulltextIndex(Map<String, Object> obj, MetaTable metaTable) {
         //MetaTable metaTable = metaDataCache.getTableInfo(tableId);
-        if (esObjectIndexer!=null && metaTable != null &&
+        if (esObjectIndexer != null && metaTable != null &&
             ("T".equals(metaTable.getFulltextSearch())
                 // 用json格式保存在大字段中的内容不能用sql检索，必须用全文检索
                 || "C".equals(metaTable.getTableType()))) {
@@ -551,34 +569,35 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             }
         }
     }
-    public int innerSaveObject(String tableId, Map<String, Object> mainObj,Map<String, Object> extParams, boolean isUpdate) {
+
+    public int innerSaveObject(String tableId, Map<String, Object> mainObj, Map<String, Object> extParams, boolean isUpdate) {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
         if ("C".equals(tableInfo.getTableType())) {
             mainObj = mapDtoToPo(mainObj);
         }
         if (tableInfo.isUpdateCheckTimeStamp()) {
-            if (isUpdate){
-                Map<String, Object> dbObject=getObjectWithChildren(tableId, mainObj, 1);
+            if (isUpdate) {
+                Map<String, Object> dbObject = getObjectWithChildren(tableId, mainObj, 1);
                 checkUpdateTimeStamp(dbObject, mainObj);
-            }else {
+            } else {
                 mainObj.put(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP, DatetimeOpt.currentSqlDate());
             }
         }
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            Connection conn = ConnectThreadHolder.fetchConnect( DataSourceDescription.valueOf(sourceInfo));
-            if(isUpdate) {
+            Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
+            if (isUpdate) {
                 prepareObjectForSave(mainObj, tableInfo);
                 GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(mainObj);
-            }else {
+            } else {
                 GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao, 1l,false);
+                makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao, 1l, false);
                 prepareObjectForSave(mainObj, tableInfo);
                 dao.saveNewObject(mainObj);
                 //GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).saveNewObject(mainObj);
             }
             List<MetaRelation> mds = tableInfo.getMdRelations();
-            if(mds!=null) {
+            if (mds != null) {
                 for (MetaRelation md : mds) {
                     MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
                     if ("T".equals(relTableInfo.getTableType())) {
@@ -599,10 +618,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     }
                 }
             }
-            if(isUpdate){
-                updataFulltextIndex(mainObj,tableInfo);
-            }
-            else{
+            if (isUpdate) {
+                updataFulltextIndex(mainObj, tableInfo);
+            } else {
                 saveFulltextIndex(mainObj, tableInfo);
             }
             return 1;
@@ -618,12 +636,12 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Override
     public int saveObjectWithChildren(String tableId, Map<String, Object> object) {
-        return innerSaveObject(tableId, object, null,false);
+        return innerSaveObject(tableId, object, null, false);
     }
 
     @Override
     public int updateObjectWithChildren(String tableId, Map<String, Object> object) {
-        return innerSaveObject(tableId, object, null,true);
+        return innerSaveObject(tableId, object, null, true);
     }
 
     @Override
@@ -636,7 +654,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Map<String, Object> mainObj = dao.getObjectById(pk);
 
             List<MetaRelation> mds = tableInfo.getMdRelations();
-            if(mds!=null) {
+            if (mds != null) {
                 for (MetaRelation md : mds) {
                     MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
                     if ("T".equals(relTableInfo.getTableType())) {
@@ -665,21 +683,22 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    private HashSet<String> collectPartFields(MetaTable tableInfo, String [] fields){
+    private HashSet<String> collectPartFields(MetaTable tableInfo, String[] fields) {
         HashSet<String> fieldSet = new HashSet<>((fields.length + 5) * 3 / 2);
-        for(TableField pkField : tableInfo.getPkFields()) {
+        for (TableField pkField : tableInfo.getPkFields()) {
             fieldSet.add(pkField.getPropertyName());
         }
-        if(!"0".equals(tableInfo.getWorkFlowOptType())){
+        if (!"0".equals(tableInfo.getWorkFlowOptType())) {
             fieldSet.add(MetaTable.WORKFLOW_INST_ID_PROP);
             fieldSet.add(MetaTable.WORKFLOW_NODE_INST_ID_PROP);
         }
-        if(BooleanBaseOpt.castObjectToBoolean(tableInfo.getUpdateCheckTimeStamp(),false)){
+        if (BooleanBaseOpt.castObjectToBoolean(tableInfo.getUpdateCheckTimeStamp(), false)) {
             fieldSet.add(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
         }
         Collections.addAll(fieldSet, fields);
         return fieldSet;
     }
+
     private Map<String, Object> mapPoToDto(Map<String, Object> po) {
         Object obj = po.get(MetaTable.OBJECT_AS_CLOB_PROP);
         if (/*obj!=null && */obj instanceof Map) {
@@ -693,14 +712,15 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
         return po;
     }
-    private JSONArray mapListPoToDto(JSONArray ja ) {
-        if(ja == null){
+
+    private JSONArray mapListPoToDto(JSONArray ja) {
+        if (ja == null) {
             return null;
         }
 
         JSONArray jsonArray = new JSONArray(ja.size());
         for (Object json : ja) {
-            if(json instanceof Map) {
+            if (json instanceof Map) {
                 jsonArray.add(mapPoToDto((Map<String, Object>) json));
             } else {
                 jsonArray.add(json);
@@ -708,6 +728,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
         return jsonArray;
     }
+
     private Map<String, Object> mapDtoToPo(Map<String, Object> dto) {
         Map<String, Object> po = new HashMap<>(dto);
         //Map<String, Object> po = dto;
@@ -716,9 +737,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         po.put(MetaTable.OBJECT_AS_CLOB_PROP, jsonString);
         return po;
     }
+
     @Override
     public JSONArray pageQueryObjects(String tableId, String extFilter,
-                                      Map<String, Object> params, String [] fields,
+                                      Map<String, Object> params, String[] fields,
                                       PageDesc pageDesc) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
 
@@ -726,43 +748,43 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
             //GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            HashSet<String> fieldSet = null ;
-            if(fields !=null && fields.length>0) {
+            HashSet<String> fieldSet = null;
+            if (fields != null && fields.length > 0) {
                 fieldSet = collectPartFields(tableInfo, fields);
             }
             Pair<String, TableField[]> q = (fieldSet == null) ?
                 GeneralJsonObjectDao.buildFieldSqlWithFields(tableInfo, null, true)
                 : GeneralJsonObjectDao.buildPartFieldSqlWithFields(tableInfo, fieldSet, null, false);
 
-            String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo,null, params.keySet());
-            if(StringUtils.isNotBlank(extFilter)){
-                if(StringUtils.isNotBlank(filter)) {
+            String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo, null, params.keySet());
+            if (StringUtils.isNotBlank(extFilter)) {
+                if (StringUtils.isNotBlank(filter)) {
                     filter = extFilter + " and " + filter;
                 } else {
                     filter = extFilter;
                 }
             }
 
-            String sql = "select " + q.getLeft() +" from " +tableInfo.getTableName();
-            if(StringUtils.isNotBlank(filter)) {
+            String sql = "select " + q.getLeft() + " from " + tableInfo.getTableName();
+            if (StringUtils.isNotBlank(filter)) {
                 sql = sql + " where " + filter;
             }
 
             String orderBy = GeneralJsonObjectDao.fetchSelfOrderSql(sql, params);
-            if(StringUtils.isNotBlank(orderBy)){
+            if (StringUtils.isNotBlank(orderBy)) {
                 sql = sql + " order by "
                     + QueryUtils.cleanSqlStatement(orderBy);
             }
 
             String querySql = QueryUtils.buildLimitQuerySQL(sql,
-                pageDesc.getRowStart(), pageDesc.getPageSize(),false,
+                pageDesc.getRowStart(), pageDesc.getPageSize(), false,
                 sourceInfo.getDBType());
 
             JSONArray objs = GeneralJsonObjectDao.findObjectsByNamedSql(conn,
                 querySql, params, q.getRight());//, pageDesc.getPageNo(), pageDesc.getPageSize());
 
             String sGetCountSql = "select count(1) as totalRows from " + tableInfo.getTableName();
-            if(StringUtils.isNotBlank(filter)) {
+            if (StringUtils.isNotBlank(filter)) {
                 sGetCountSql = sGetCountSql + " where " + filter;
             }
 
@@ -772,7 +794,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
             JSONArray ja = DictionaryMapUtils.mapJsonArray(objs, tableInfo.fetchDictionaryMapColumns(sourceInfoDao));
             if ("C".equals(tableInfo.getTableType())) {
-                ja=mapListPoToDto(ja);
+                ja = mapListPoToDto(ja);
             }
             return ja;
 
@@ -782,13 +804,13 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public JSONArray pageQueryObjects(String tableId, Map<String, Object> params, String [] fields,PageDesc pageDesc) {
-        return pageQueryObjects(tableId, null,  params, fields, pageDesc);
+    public JSONArray pageQueryObjects(String tableId, Map<String, Object> params, String[] fields, PageDesc pageDesc) {
+        return pageQueryObjects(tableId, null, params, fields, pageDesc);
     }
 
     @Override
     public JSONArray pageQueryObjects(String tableId, Map<String, Object> params, PageDesc pageDesc) {
-        return pageQueryObjects(tableId,null,  params, null, pageDesc);
+        return pageQueryObjects(tableId, null, params, null, pageDesc);
     }
 
     @Override
@@ -798,7 +820,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         String orderBy = GeneralJsonObjectDao.fetchSelfOrderSql(namedSql, params);
         final String querySql = StringUtils.isBlank(orderBy) ? namedSql
             : QueryUtils.removeOrderBy(namedSql) + " order by "
-                + QueryUtils.cleanSqlStatement(orderBy);
+            + QueryUtils.cleanSqlStatement(orderBy);
         try {
             Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);

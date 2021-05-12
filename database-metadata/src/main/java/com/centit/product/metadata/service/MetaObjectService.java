@@ -37,6 +37,7 @@ public interface MetaObjectService {
     int saveObject(String tableId, Map<String, Object> object, Map<String, Object> extParams);
 
     int updateObject(String tableId, Map<String, Object> object);
+    int mergeObject(String tableId, Map<String, Object> object);
 
     int updateObjectFields(String tableId, final Collection<String> fields,final Map<String, Object> object);
 

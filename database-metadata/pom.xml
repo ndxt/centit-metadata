@@ -24,8 +24,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.centit.support</groupId>
-            <artifactId>centit-database-transaction</artifactId>
+            <groupId>com.centit.product</groupId>
+            <artifactId>centit-dde-transaction</artifactId>
+            <version>5.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>

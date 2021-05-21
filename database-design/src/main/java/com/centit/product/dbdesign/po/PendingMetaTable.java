@@ -27,8 +27,6 @@ import java.util.List;
 
 /**
  * create by scaffold 2016-06-01
- * <p>
- * <p>
  * 未落实表元数据表null
  */
 @ApiModel

@@ -66,11 +66,11 @@ public class MetaChangLog implements java.io.Serializable {
     @Transient
     private String changerName;
     // Constructors
-    /** default constructor */
+    /* default constructor */
     public MetaChangLog() {
         this.changeDate= DatetimeOpt.currentUtilDate();
     }
-    /** minimal constructor */
+    /* minimal constructor */
     public MetaChangLog(
         String tableID, String databaseCode
         ,Date  changeDate,String  changer) {
@@ -81,7 +81,7 @@ public class MetaChangLog implements java.io.Serializable {
         this.changer= changer;
     }
 
-/** full constructor */
+/* full constructor */
     public MetaChangLog(
      String tableID, String databaseCode
     ,String  changeId,Date  changeDate,String  changer,String  changeScript,String  changeComment) {

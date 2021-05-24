@@ -574,7 +574,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            Connection conn = (Connection) AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             if (isUpdate) {
                 prepareObjectForSave(mainObj, tableInfo);
                 GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(mainObj);

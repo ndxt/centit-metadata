@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.sql.SQLException;
 
+/**
+ * @author zhf
+ */
 @Aspect
 @Component
 public class MetadataJdbcTransactionAspect {
@@ -20,7 +23,7 @@ public class MetadataJdbcTransactionAspect {
     /**
      * 注册 注入点
      */
-    @Pointcut("@annotation(com.centit.support.database.transaction.JdbcTransaction)")
+    @Pointcut("@annotation(com.centit.product.metadata.transaction.MetadataJdbcTransaction)")
     public void transactionAspect() {
     }
 

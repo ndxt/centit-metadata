@@ -1,9 +1,8 @@
 package com.centit.product.metadata.service.impl;
 
 import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
 import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.database.transaction.ConnectThreadHolder;
-import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.DatabaseAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +30,7 @@ public class SqlDictionaryMapSupplier implements Supplier<Map<String, String>> {
     @Override
     public Map<String, String> get() {
         try {
-            Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             List<Object[]> datas = DatabaseAccess.findObjectsBySql(conn, sqlSen);
             if(datas!=null){
                 Map<String, String> dictionary = new HashMap<>(datas.size()*5/4+1);

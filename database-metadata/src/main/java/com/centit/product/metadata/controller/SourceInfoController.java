@@ -11,7 +11,7 @@ import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.model.basedata.OperationLog;
 import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
-import com.centit.support.database.utils.DataSourceDescription;
+import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.json.JsonPropertyUtils;
 import com.centit.support.network.HtmlFormUtils;
@@ -113,13 +113,7 @@ public class SourceInfoController extends BaseController {
         paramType = "body", dataTypeClass = SourceInfo.class)
     @RequestMapping(value = "/testConnect", method = {RequestMethod.POST})
     public void testConnect(@Valid SourceInfo sourceInfo, HttpServletResponse response) {
-
-
-        boolean result = DataSourceDescription.testConntect(new DataSourceDescription(
-            sourceInfo.getDatabaseUrl(),
-            sourceInfo.getUsername(),
-            sourceInfo.getClearPassword()));
-
+        boolean result = AbstractDruidConnectPools.testConntect(sourceInfo);
         if (result) {
             JsonResultUtils.writeSingleDataJson("连接测试成功", response);
         } else {

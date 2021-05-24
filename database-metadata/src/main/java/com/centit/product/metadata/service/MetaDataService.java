@@ -1,10 +1,10 @@
 package com.centit.product.metadata.service;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.vo.MetaTableCascade;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;

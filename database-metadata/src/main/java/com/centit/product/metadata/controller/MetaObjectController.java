@@ -12,13 +12,11 @@ import com.centit.search.service.Impl.ESSearcher;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
-import com.centit.support.database.transaction.JdbcTransaction;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -46,7 +44,6 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "分页查询数据库表数据列表")
     @RequestMapping(value = "/{tableId}/list", method = RequestMethod.GET)
     @WrapUpResponseBody
-    @JdbcTransaction
     public PageQueryResult<Object> listObjects(@PathVariable String tableId, PageDesc pageDesc,
                                                String [] fields,HttpServletRequest request) {
         Map<String, Object> params = collectRequestParameters(request);//convertSearchColumn(request);
@@ -58,7 +55,6 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "获取一个数据，主键作为参数以key-value形式提交")
     @RequestMapping(value = "/{tableId}", method = RequestMethod.GET)
     @WrapUpResponseBody
-    @JdbcTransaction
     public Map<String, Object> getObject(@PathVariable String tableId,
                                          HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
@@ -68,7 +64,6 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "修改数据库表数据")
     @RequestMapping(value = "/{tableId}", method = RequestMethod.PUT)
     @WrapUpResponseBody
-    @JdbcTransaction
     public ResponseData updateObject(@PathVariable String tableId,
                                      @RequestBody String jsonString) {
         metaObjectService.updateObject(tableId, JSON.parseObject(jsonString));
@@ -78,7 +73,6 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "批量修改数据库表数据")
     @RequestMapping(value = "/{tableId}/batch", method = RequestMethod.PUT)
     @WrapUpResponseBody
-    @JdbcTransaction
     public ResponseData batchUpdateObject(@PathVariable String tableId,
                                      @RequestBody String jsonString, HttpServletRequest request) {
         Map<String, Object> params = collectRequestParameters(request);
@@ -94,7 +88,6 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "新增数据库表数据")
     @RequestMapping(value = "/{tableId}", method = RequestMethod.POST)
     @WrapUpResponseBody
-    @JdbcTransaction
     public ResponseData saveObject(@PathVariable String tableId,
                                    @RequestBody String jsonString) {
         metaObjectService.saveObject(tableId, JSON.parseObject(jsonString));
@@ -104,7 +97,6 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "删除数据库表数据")
     @RequestMapping(value = "/{tableId}", method = RequestMethod.DELETE)
     @WrapUpResponseBody
-    @JdbcTransaction
     public ResponseData deleteObject(@PathVariable String tableId,
                                      HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
@@ -115,7 +107,6 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "获取一个数据带子表，主键作为参数以key-value形式提交")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.GET)
     @WrapUpResponseBody
-    @JdbcTransaction
     public Map<String, Object> getObjectWithChildren(@PathVariable String tableId,
                                                      HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
@@ -125,7 +116,6 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "修改数据库表数据带子表")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.PUT)
     @WrapUpResponseBody
-    @JdbcTransaction
     public ResponseData updateObjectWithChildren(@PathVariable String tableId,
                                                  @RequestBody String jsonString) {
         metaObjectService.updateObjectWithChildren(tableId, JSON.parseObject(jsonString));
@@ -135,7 +125,6 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "新增数据库表数据带子表")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.POST)
     @WrapUpResponseBody
-    @JdbcTransaction
     public ResponseData saveObjectWithChildren(@PathVariable String tableId,
                                                @RequestBody String jsonString) {
         metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString));
@@ -145,7 +134,6 @@ public class MetaObjectController extends BaseController {
     @ApiOperation(value = "删除数据库表数据带子表")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.DELETE)
     @WrapUpResponseBody
-    @JdbcTransaction
     public ResponseData deleteObjectWithChildren(@PathVariable String tableId,
                                                  HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
@@ -162,7 +150,6 @@ public class MetaObjectController extends BaseController {
     )})
     @RequestMapping(value = "/{tableId}/search", method = RequestMethod.GET)
     @WrapUpResponseBody
-    @JdbcTransaction
     public PageQueryResult<Map<String, Object>> searchObject(@PathVariable String tableId,
                                                              HttpServletRequest request, PageDesc pageDesc) {
         if(esObjectSearcher==null){

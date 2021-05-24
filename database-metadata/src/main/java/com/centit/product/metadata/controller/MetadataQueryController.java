@@ -13,12 +13,12 @@ import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
 import com.centit.product.metadata.vo.MetaTableCascade;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.SimpleTableInfo;
-import com.centit.support.database.transaction.ConnectThreadHolder;
 import com.centit.support.database.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -157,7 +157,7 @@ public class MetadataQueryController extends BaseController {
                 MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
                 SourceInfo sourceInfo = metaDataService.getDatabaseInfo(tableInfo.getDatabaseCode());
                 try {
-                    Connection conn = ConnectThreadHolder.fetchConnect(DataSourceDescription.valueOf(sourceInfo));
+                    Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
                     QueryAndNamedParams qAp = QueryUtils.translateQuery(col.getReferenceData(), searchColumn);
                     List<Object[]> objects = DatabaseAccess.findObjectsBySql(conn, qAp.getQuery(), qAp.getParams());
                     if (objects != null) {

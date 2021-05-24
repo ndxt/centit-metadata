@@ -1,21 +1,21 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
-import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
 import com.centit.product.metadata.vo.MetaTableCascade;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.*;
 import com.centit.support.database.utils.DBType;
-import com.centit.support.database.utils.DbcpConnectPools;
 import com.centit.support.database.utils.PageDesc;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -89,7 +89,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
         try {
-            jdbcMetadata.setDBConfig(DbcpConnectPools.getDbcpConnect(sourceInfo));
+            jdbcMetadata.setDBConfig(AbstractDruidConnectPools.getDbcpConnect(sourceInfo));
             if (sourceInfo.getDatabaseUrl().indexOf("oracle") > -1)
                 jdbcMetadata.setDBSchema(sourceInfo.getUsername().toUpperCase());
         }catch (SQLException e){

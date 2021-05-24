@@ -5,8 +5,8 @@ import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.framework.jdbc.dao.JdbcTemplateUtils;
 import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
 import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,10 +38,7 @@ public class SourceInfoDao extends BaseDaoImpl<SourceInfo, String> {
     }
 
     public boolean connectionTest(SourceInfo sourceInfo) {
-        return DataSourceDescription.testConntect(new DataSourceDescription(
-            sourceInfo.getDatabaseUrl(),
-            sourceInfo.getUsername(),
-            sourceInfo.getPassword()));
+       return AbstractDruidConnectPools.testConntect(sourceInfo);
     }
 
     public List<SourceInfo> listDatabase() {

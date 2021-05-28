@@ -124,7 +124,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                     if (column.getFieldLabelName() ==null || "".equals(column.getFieldLabelName())) {
                         column.setFieldLabelName(column.getColumnName());
                     }
-                    metaColumnDao.saveNewObject(column);
+                    metaColumnDao.mergeObject(column);
                 }
             }
         }
@@ -158,7 +158,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                         if (metaColumn.getFieldLabelName() ==null || "".equals(metaColumn.getFieldLabelName())) {
                             metaColumn.setFieldLabelName(metaColumn.getColumnName());
                         }
-                        metaColumnDao.saveNewObject(metaColumn);
+                        metaColumnDao.mergeObject(metaColumn);
                     }
                 }
                 if(columnCompared.getRight() != null && columnCompared.getRight().size() > 0){

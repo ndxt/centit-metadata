@@ -52,13 +52,13 @@ public interface MetaObjectService {
 
     void deleteObject(String tableId, Map<String, Object> pk);
 
-    int saveObjectWithChildren(String tableId, Map<String, Object> object);
-    int saveObjectWithChildren(String tableId, Map<String, Object> object, Map<String, Object> extParams);
+    int saveObjectWithChildren(String tableId, Map<String, Object> object,int withChildrenDeep);
+    int saveObjectWithChildren(String tableId, Map<String, Object> object, Map<String, Object> extParams,int withChildrenDeep);
 
-    int updateObjectWithChildren(String tableId, Map<String, Object> object);
+    int updateObjectWithChildren(String tableId, Map<String, Object> object,int withChildrenDeep);
 
-    void deleteObjectWithChildren(String tableId, Map<String, Object> pk);
-    int mergeObjectWithChildren(String tableId, Map<String, Object> object);
+    void deleteObjectWithChildren(String tableId, Map<String, Object> pk,int withChildrenDeep);
+    int mergeObjectWithChildren(String tableId, Map<String, Object> object,int withChildrenDeep);
     JSONArray listObjectsByProperties(String tableId, Map<String, Object> filter);
 
     JSONArray pageQueryObjects(String tableId, Map<String, Object> params, PageDesc pageDesc);

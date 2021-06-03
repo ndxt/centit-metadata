@@ -115,19 +115,19 @@ public class MetaObjectController extends BaseController {
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.GET)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public Map<String, Object> getObjectWithChildren(@PathVariable String tableId,
+    public Map<String, Object> getObjectWithChildren(@PathVariable String tableId,Integer withChildrenDeep,
                                                      HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
-        return metaObjectService.getObjectWithChildren(tableId, parameters, 1);
+        return metaObjectService.getObjectWithChildren(tableId, parameters, withChildrenDeep==null?1:withChildrenDeep);
     }
 
     @ApiOperation(value = "修改数据库表数据带子表")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.PUT)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public ResponseData updateObjectWithChildren(@PathVariable String tableId,
+    public ResponseData updateObjectWithChildren(@PathVariable String tableId,Integer withChildrenDeep,
                                                  @RequestBody String jsonString) {
-        metaObjectService.updateObjectWithChildren(tableId, JSON.parseObject(jsonString));
+        metaObjectService.updateObjectWithChildren(tableId, JSON.parseObject(jsonString),withChildrenDeep==null?1:withChildrenDeep);
         return ResponseData.makeSuccessResponse();
     }
 
@@ -135,9 +135,9 @@ public class MetaObjectController extends BaseController {
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.POST)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public ResponseData saveObjectWithChildren(@PathVariable String tableId,
+    public ResponseData saveObjectWithChildren(@PathVariable String tableId,Integer withChildrenDeep,
                                                @RequestBody String jsonString) {
-        metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString));
+        metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString),withChildrenDeep==null?1:withChildrenDeep);
         return ResponseData.makeSuccessResponse();
     }
 
@@ -145,10 +145,10 @@ public class MetaObjectController extends BaseController {
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.DELETE)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public ResponseData deleteObjectWithChildren(@PathVariable String tableId,
+    public ResponseData deleteObjectWithChildren(@PathVariable String tableId,Integer withChildrenDeep,
                                                  HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
-        metaObjectService.deleteObjectWithChildren(tableId, parameters);
+        metaObjectService.deleteObjectWithChildren(tableId, parameters,withChildrenDeep==null?1:withChildrenDeep);
         return ResponseData.makeSuccessResponse();
     }
     @ApiOperation(value = "全文检索")

@@ -233,7 +233,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            Connection conn = (Connection) AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return innerGetObjectById(conn, tableInfo, pk);
         } catch (Exception e) {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);

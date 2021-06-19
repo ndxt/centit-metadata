@@ -369,6 +369,9 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         List<DictionaryMapColumn> dictionaryMapColumns = new ArrayList<>(4);
         for(MetaColumn mc : mdColumns){
             //dictionary; 解析 mc.getReferenceData() json
+            if (StringBaseOpt.isNvl(mc.getReferenceData())){
+                continue;
+            }
             if("1".equals(mc.getReferenceType())){
                 if(mc.getReferenceData().startsWith("{")){
                     Object jsonObject = JSON.parse(mc.getReferenceData());
@@ -388,8 +391,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
                         mc.getReferenceData()
                     ));
                 }
-            } else // JSON
-                if("2".equals(mc.getReferenceType())){
+            } else if("2".equals(mc.getReferenceType())){
                     String jsonStr = mc.getReferenceData().trim();
                     String catalogCode = Md5Encoder.encodeBase64(jsonStr, true);
                     boolean hasDictoinary = CodeRepositoryUtil.hasExtendedDictionary(catalogCode);
@@ -407,8 +409,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
                             mc.getPropertyName()+"Desc",
                             catalogCode));
                     }
-            } else // sql语句
-                if("3".equals(mc.getReferenceType())){
+            } else if("3".equals(mc.getReferenceType())){
                     String sqlStr = mc.getReferenceData().trim();
                     String catalogCode = Md5Encoder.encodeBase64(sqlStr, true);
                     if(!CodeRepositoryUtil.hasExtendedDictionary(catalogCode)){

@@ -4,9 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.common.ResponseData;
+import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
+import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.product.metadata.transaction.MetadataJdbcTransaction;
 import com.centit.search.service.Impl.ESSearcher;
@@ -23,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +43,8 @@ public class MetaObjectController extends BaseController {
 
     @Autowired
     private MetaObjectService metaObjectService;
+    @Autowired
+    private MetaDataCache metaDataCache;
     @Autowired(required = false)
     private ESSearcher esObjectSearcher;
 
@@ -110,7 +116,33 @@ public class MetaObjectController extends BaseController {
         metaObjectService.deleteObject(tableId, parameters);
         return ResponseData.makeSuccessResponse();
     }
-
+    @ApiOperation(value = "批量merge数据带子表")
+    @RequestMapping(value = "/{tableId}/batchMerge", method = RequestMethod.POST)
+    @WrapUpResponseBody
+    @MetadataJdbcTransaction
+    public List<Map<String, Object>> batchMergeObjectWithChildren(@PathVariable String tableId,
+                                                                  @RequestBody String jsonString,
+                                                                  Integer  withChildrenDeep) {
+        JSONArray jsonArray = JSON.parseArray(jsonString);
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
+        List<Map<String, Object>> list = new ArrayList<>();
+        jsonArray.forEach(object -> {
+            innerMergeObject(tableId, tableInfo, (JSONObject) object,withChildrenDeep==null?1:withChildrenDeep);
+            Map<String, Object> primaryKey = tableInfo.fetchObjectPk((JSONObject) object);
+            list.add(primaryKey);
+        });
+        return list;
+    }
+    private void innerMergeObject(String tableId, MetaTable tableInfo, JSONObject object, Integer withChildrenDeep) {
+        Map<String, Object> dbObjectPk = tableInfo.fetchObjectPk(object);
+        Map<String, Object> dbObject = dbObjectPk == null ? null :
+            metaObjectService.getObjectById(tableId, dbObjectPk);
+        if (dbObject == null) {
+            metaObjectService.saveObjectWithChildren(tableId, object, withChildrenDeep);
+        } else {
+            metaObjectService.updateObjectWithChildren(tableId, object,withChildrenDeep);
+        }
+    }
     @ApiOperation(value = "获取一个数据带子表，主键作为参数以key-value形式提交")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.GET)
     @WrapUpResponseBody

@@ -196,20 +196,23 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     }
 
     public List<MetaColumn> getMdColumns() {
-        if (this.mdColumns == null)
+        if (this.mdColumns == null) {
             this.mdColumns = new ArrayList<>();
+        }
         return this.mdColumns;
     }
 
     public void addMdColumn(MetaColumn mdColumn) {
-        if (this.mdColumns == null)
+        if (this.mdColumns == null) {
             this.mdColumns = new ArrayList<>();
+        }
         this.mdColumns.add(mdColumn);
     }
 
     public void removeMdColumn(MetaColumn mdColumn) {
-        if (this.mdColumns == null)
+        if (this.mdColumns == null) {
             return;
+        }
         this.mdColumns.remove(mdColumn);
     }
 
@@ -222,8 +225,9 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     }
 
     public List<MetaRelation> getParents() {
-        if (this.parents == null)
+        if (this.parents == null) {
             this.parents = new ArrayList<>(4);
+        }
         return this.parents;
     }
 
@@ -232,14 +236,16 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     }
 
     public void removeParent(MetaRelation parent) {
-        if (this.parents == null)
+        if (this.parents == null) {
             return;
+        }
         this.parents.remove(parent);
     }
 
     public List<MetaRelation> getMdRelations() {
-        if (this.mdRelations == null)
+        if (this.mdRelations == null) {
             this.mdRelations = new ArrayList<>(4);
+        }
         return this.mdRelations;
     }
 
@@ -249,8 +255,9 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     }
 
     public void removeMdRelation(MetaRelation mdRelation) {
-        if (this.mdRelations == null)
+        if (this.mdRelations == null) {
             return;
+        }
         this.mdRelations.remove(mdRelation);
     }
 
@@ -312,33 +319,39 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     @Override
     public MetaColumn findFieldByName(String name) {
-        if (mdColumns == null)
+        if (mdColumns == null) {
             return null;
-
-        for (MetaColumn c : mdColumns) {
-            if (c.getPropertyName().equals(name))
-                return c;
         }
 
         for (MetaColumn c : mdColumns) {
-            if (c.getFieldLabelName().equalsIgnoreCase(name))
+            if (c.getPropertyName().equals(name)) {
                 return c;
+            }
+        }
+
+        for (MetaColumn c : mdColumns) {
+            if (c.getFieldLabelName().equalsIgnoreCase(name)) {
+                return c;
+            }
         }
         return null;
     }
 
     @Override
     public MetaColumn findFieldByColumn(String name) {
-        if (mdColumns == null)
+        if (mdColumns == null) {
             return null;
+        }
         for (MetaColumn c : mdColumns) {
-            if (c.getColumnName().equalsIgnoreCase(name))
+            if (c.getColumnName().equalsIgnoreCase(name)) {
                 return c;
+            }
         }
 
         for (MetaColumn c : mdColumns) {
-            if (c.getPropertyName().equals(name))
+            if (c.getPropertyName().equals(name)) {
                 return c;
+            }
         }
         return null;
     }
@@ -370,26 +383,8 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         for(MetaColumn mc : mdColumns){
             //dictionary; 解析 mc.getReferenceData() json
             if("1".equals(mc.getReferenceType())){
-                if(mc.getReferenceData().startsWith("{")){
-                    Object jsonObject = JSON.parse(mc.getReferenceData());
-                    if(jsonObject instanceof JSONObject){
-                        for(Map.Entry<String, Object> ent: ((JSONObject)jsonObject).entrySet()){
-                            dictionaryMapColumns.add(new DictionaryMapColumn(
-                                mc.getPropertyName(),
-                                ent.getKey(),
-                                StringBaseOpt.castObjectToString(ent.getValue())
-                            ));
-                        }
-                    }
-                } else {
-                    dictionaryMapColumns.add(new DictionaryMapColumn(
-                        mc.getPropertyName(),
-                        mc.getPropertyName() + "Desc",
-                        mc.getReferenceData()
-                    ));
-                }
-            } else // JSON
-                if("2".equals(mc.getReferenceType())){
+                setDictionaryColumns(dictionaryMapColumns, mc,false);
+            } else if("2".equals(mc.getReferenceType())){
                     String jsonStr = mc.getReferenceData().trim();
                     String catalogCode = Md5Encoder.encodeBase64(jsonStr, true);
                     boolean hasDictoinary = CodeRepositoryUtil.hasExtendedDictionary(catalogCode);
@@ -407,8 +402,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
                             mc.getPropertyName()+"Desc",
                             catalogCode));
                     }
-            } else // sql语句
-                if("3".equals(mc.getReferenceType())){
+            } else if("3".equals(mc.getReferenceType())){
                     String sqlStr = mc.getReferenceData().trim();
                     String catalogCode = Md5Encoder.encodeBase64(sqlStr, true);
                     if(!CodeRepositoryUtil.hasExtendedDictionary(catalogCode)){
@@ -423,9 +417,36 @@ public class MetaTable implements TableInfo, java.io.Serializable {
                         mc.getPropertyName(),
                         mc.getPropertyName()+"Desc",
                         catalogCode));
+            }else if("4".equals(mc.getReferenceType())){
+                setDictionaryColumns(dictionaryMapColumns, mc,true);
             }
         }
         return dictionaryMapColumns;
+    }
+
+    private void setDictionaryColumns(List<DictionaryMapColumn> dictionaryMapColumns, MetaColumn mc,boolean isExpression) {
+        if(mc.getReferenceData().startsWith("{")){
+            Object jsonObject = JSON.parse(mc.getReferenceData());
+            if(jsonObject instanceof JSONObject){
+                for(Map.Entry<String, Object> ent: ((JSONObject)jsonObject).entrySet()){
+                    DictionaryMapColumn dictionaryMapColumn=new DictionaryMapColumn(
+                        mc.getPropertyName(),
+                        ent.getKey(),
+                        StringBaseOpt.castObjectToString(ent.getValue())
+                    );
+                    dictionaryMapColumn.setExpression(isExpression);
+                    dictionaryMapColumns.add(dictionaryMapColumn);
+                }
+            }
+        } else {
+            DictionaryMapColumn dictionaryMapColumn=new DictionaryMapColumn(
+                mc.getPropertyName(),
+                mc.getPropertyName() + "Desc",
+                mc.getReferenceData()
+            );
+            dictionaryMapColumn.setExpression(isExpression);
+            dictionaryMapColumns.add(dictionaryMapColumn);
+        }
     }
 
 }

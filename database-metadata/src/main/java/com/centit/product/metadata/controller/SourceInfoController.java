@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.sql.SQLException;
 import java.util.Map;
 
 /**
@@ -87,7 +88,7 @@ public class SourceInfoController extends BaseController {
 
         databaseinfo.setDatabaseUrl(HtmlFormUtils.htmlString(databaseinfo.getDatabaseUrl()));
         //加密
-        if (StringUtils.isNotBlank(databaseinfo.getPassword())){
+        if (StringUtils.isNotBlank(databaseinfo.getPassword())) {
             databaseinfo.setPassword(databaseinfo.getPassword());
         }
         databaseinfo.setCreated(WebOptUtils.getCurrentUserCode(request));
@@ -113,15 +114,17 @@ public class SourceInfoController extends BaseController {
         paramType = "body", dataTypeClass = SourceInfo.class)
     @RequestMapping(value = "/testConnect", method = {RequestMethod.POST})
     public void testConnect(@Valid SourceInfo sourceInfo, HttpServletResponse response) {
-        if(sourceInfo.getDatabaseCode()!=null) {
+        if (sourceInfo.getDatabaseCode() != null) {
             SourceInfo dataBaseSourceInfo = databaseInfoMag.getObjectById(sourceInfo.getDatabaseCode());
-            sourceInfo.setExtProps(dataBaseSourceInfo.getExtProps());
+            if (dataBaseSourceInfo != null) {
+                sourceInfo.setExtProps(dataBaseSourceInfo.getExtProps());
+            }
         }
-        boolean result = AbstractDruidConnectPools.testConntect(sourceInfo);
-        if (result) {
+        try {
+            AbstractDruidConnectPools.testConnect(sourceInfo);
             JsonResultUtils.writeSingleDataJson("连接测试成功", response);
-        } else {
-            JsonResultUtils.writeErrorMessageJson("数据库连接测试失败！", response);
+        } catch (SQLException e) {
+            JsonResultUtils.writeErrorMessageJson(e.getMessage(), response);
         }
 
     }
@@ -148,11 +151,11 @@ public class SourceInfoController extends BaseController {
                                    HttpServletRequest request, HttpServletResponse response) {
         databaseinfo.setDatabaseUrl(HtmlFormUtils.htmlString((databaseinfo.getDatabaseUrl())));
         SourceInfo temp = databaseInfoMag.getObjectById(databaseCode);
-        if (StringUtils.isNotBlank(databaseinfo.getPassword())){
-           if (!databaseinfo.getPassword().equals(temp.getPassword())) {
-               databaseinfo.setPassword(databaseinfo.getPassword());
-           }
-       }
+        if (StringUtils.isNotBlank(databaseinfo.getPassword())) {
+            if (!databaseinfo.getPassword().equals(temp.getPassword())) {
+                databaseinfo.setPassword(databaseinfo.getPassword());
+            }
+        }
 
         SourceInfo oldValue = new SourceInfo();
         BeanUtils.copyProperties(temp, oldValue);

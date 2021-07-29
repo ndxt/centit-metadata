@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface SourceInfoManager extends BaseEntityManager<SourceInfo,String> {
-    boolean connectionTest(SourceInfo sourceInfo);
 
     List<SourceInfo> listDatabase();
 

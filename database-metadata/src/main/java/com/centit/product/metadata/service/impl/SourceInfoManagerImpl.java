@@ -27,10 +27,6 @@ public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, Str
         super.baseDao = baseDao;
     }
 
-    @Override
-    public boolean connectionTest(SourceInfo sourceInfo) {
-        return baseDao.connectionTest(sourceInfo);
-    }
 
     @Override
     public List<SourceInfo> listDatabase() {

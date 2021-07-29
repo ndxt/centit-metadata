@@ -30,6 +30,7 @@ public abstract class AbstractDruidConnectPools {
 
     private static DruidDataSource mapDataSource(ISourceInfo dsDesc) {
         DruidDataSource ds = new DruidDataSource();
+        ds.setBreakAfterAcquireFailure(true);
         ds.setDriverClassName(DBType.getDbDriver(DBType.mapDBType(dsDesc.getDatabaseUrl())));
         ds.setUsername(dsDesc.getUsername());
         ds.setPassword(dsDesc.getClearPassword());
@@ -47,7 +48,7 @@ public abstract class AbstractDruidConnectPools {
         ds.setTestWhileIdle(BooleanBaseOpt.castObjectToBoolean(
             dsDesc.getExtProp("testWhileIdle"), true));
         ds.setValidationQueryTimeout(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("validationQueryTimeout"), 1000*10));
+            dsDesc.getExtProp("validationQueryTimeout"), 1000 * 10));
         ds.setKeepAlive(BooleanBaseOpt.castObjectToBoolean(
             dsDesc.getExtProp("keepAlive"), true));
         ds.setTimeBetweenEvictionRunsMillis(NumberBaseOpt.castObjectToInteger(
@@ -84,16 +85,9 @@ public abstract class AbstractDruidConnectPools {
         }
     }
 
-    public static boolean testConntect(SourceInfo sourceInfo) {
-        boolean connOk = false;
-        try {
-            Connection conn = AbstractDruidConnectPools.getDbcpConnect(sourceInfo);
-            connOk = true;
-            conn.close();
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
-        }
-        return connOk;
+    public static void testConnect(SourceInfo sourceInfo) throws SQLException {
+        Connection conn = getDbcpConnect(sourceInfo);
+        conn.close();
     }
 
 }

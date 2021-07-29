@@ -12,6 +12,7 @@ import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,9 +38,6 @@ public class SourceInfoDao extends BaseDaoImpl<SourceInfo, String> {
         return filterField;
     }
 
-    public boolean connectionTest(SourceInfo sourceInfo) {
-       return AbstractDruidConnectPools.testConntect(sourceInfo);
-    }
 
     public List<SourceInfo> listDatabase() {
         return this.listObjects();

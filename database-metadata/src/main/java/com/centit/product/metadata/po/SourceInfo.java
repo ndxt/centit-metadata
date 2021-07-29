@@ -140,7 +140,10 @@ public class SourceInfo implements ISourceInfo, Serializable {
         if (dbco instanceof ISourceInfo) {
             ISourceInfo dbc = (ISourceInfo) dbco;
             return databaseUrl != null && databaseUrl.equals(dbc.getDatabaseUrl())
-                && databaseCode != null && databaseCode.equals(dbc.getDatabaseCode());
+                && databaseCode != null && databaseCode.equals(dbc.getDatabaseCode())
+                && username != null && username.equals(dbc.getUsername())
+                && password != null && password.equals(dbc.getPassword())
+                && extProps != null && extProps.equals(dbc.getExtProps());
         } else {
             return false;
         }
@@ -151,10 +154,14 @@ public class SourceInfo implements ISourceInfo, Serializable {
         int result = 17;
         result = 37 * result +
             (this.databaseUrl == null ? 0 : this.databaseUrl.hashCode());
-
         result = 37 * result +
             (this.databaseCode == null ? 0 : this.databaseCode.hashCode());
-
+        result = 37 * result +
+            (this.username == null ? 0 : this.getUsername().hashCode());
+        result = 37 * result +
+            (this.password == null ? 0 : this.password.hashCode());
+        result = 37 * result +
+            (this.extProps == null ? 0 : this.extProps.hashCode());
         return result;
     }
 }

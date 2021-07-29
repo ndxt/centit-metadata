@@ -113,6 +113,10 @@ public class SourceInfoController extends BaseController {
         paramType = "body", dataTypeClass = SourceInfo.class)
     @RequestMapping(value = "/testConnect", method = {RequestMethod.POST})
     public void testConnect(@Valid SourceInfo sourceInfo, HttpServletResponse response) {
+        if(sourceInfo.getDatabaseCode()!=null) {
+            SourceInfo dataBaseSourceInfo = databaseInfoMag.getObjectById(sourceInfo.getDatabaseCode());
+            sourceInfo.setExtProps(dataBaseSourceInfo.getExtProps());
+        }
         boolean result = AbstractDruidConnectPools.testConntect(sourceInfo);
         if (result) {
             JsonResultUtils.writeSingleDataJson("连接测试成功", response);

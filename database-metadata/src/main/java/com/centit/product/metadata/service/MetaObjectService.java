@@ -49,6 +49,8 @@ public interface MetaObjectService {
     int updateObjectsByProperties(String tableId,
                                   final Map<String, Object> fieldValues,
                                   final Map<String, Object> filterProperties);
+    int deleteObjectsByProperties(String tableId,
+                                  final Map<String, Object> filterProperties);
 
     void deleteObject(String tableId, Map<String, Object> pk);
 

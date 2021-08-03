@@ -446,7 +446,19 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             throw new ObjectException(object, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
-
+    @Override
+    public int deleteObjectsByProperties(String tableId,
+                                  final Map<String, Object> filterProperties){
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
+        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        try {
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
+                .deleteObjectsByProperties(filterProperties);
+        } catch (Exception e) {
+            throw new ObjectException(filterProperties, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
     @Override
     public int updateObjectsByProperties(String tableId, final Collection<String> fields,
                                          final Map<String, Object> fieldValues, final Map<String, Object> filterProperties) {

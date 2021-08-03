@@ -80,7 +80,7 @@ public class MetaObjectController extends BaseController {
         return ResponseData.makeSuccessResponse();
     }
 
-    @ApiOperation(value = "批量修改数据库表数据")
+    @ApiOperation(value = "根据属性修改数据库表数据")
     @RequestMapping(value = "/{tableId}/batch", method = RequestMethod.PUT)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
@@ -88,11 +88,25 @@ public class MetaObjectController extends BaseController {
                                      @RequestBody String jsonString, HttpServletRequest request) {
         Map<String, Object> params = collectRequestParameters(request);
         JSONObject object = JSON.parseObject(jsonString);
-        int ireturn = metaObjectService.updateObjectsByProperties(tableId, object, params);
-        if (ireturn==0){
+        int iReturn = metaObjectService.updateObjectsByProperties(tableId, object, params);
+        if (iReturn==0){
             return ResponseData.makeErrorMessage("无对应sql生成");
         } else {
-            return ResponseData.makeSuccessResponse();
+            return ResponseData.makeSuccessResponse("成功更新"+iReturn+"条");
+        }
+    }
+    @ApiOperation(value = "根据属性删除数据库表数据")
+    @RequestMapping(value = "/{tableId}/batch", method = RequestMethod.DELETE)
+    @WrapUpResponseBody
+    @MetadataJdbcTransaction
+    public ResponseData batchDeleteObject(@PathVariable String tableId,
+                                           HttpServletRequest request) {
+        Map<String, Object> params = collectRequestParameters(request);
+        int iReturn = metaObjectService.deleteObjectsByProperties(tableId, params);
+        if (iReturn==0){
+            return ResponseData.makeErrorMessage("无对应sql生成");
+        } else {
+            return ResponseData.makeSuccessResponse("成功删除"+iReturn+"条");
         }
     }
 

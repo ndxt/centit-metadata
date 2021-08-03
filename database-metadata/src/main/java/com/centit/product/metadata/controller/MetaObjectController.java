@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.common.ResponseData;
-import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
@@ -13,6 +12,7 @@ import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.product.metadata.transaction.MetadataJdbcTransaction;
 import com.centit.search.service.Impl.ESSearcher;
+import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
@@ -33,7 +33,7 @@ import java.util.Map;
 
 /**
  * 对数据库进行简单的增删改查，这个接口不能对外公开
- *
+ * <p>
  * 对外公开的应该式自定义数据库表对应的额接口
  */
 @RestController
@@ -53,8 +53,8 @@ public class MetaObjectController extends BaseController {
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public PageQueryResult<Object> listObjects(@PathVariable String tableId, PageDesc pageDesc,
-                                               String [] fields,HttpServletRequest request) {
-        Map<String, Object> params = collectRequestParameters(request);//convertSearchColumn(request);
+                                               String[] fields, HttpServletRequest request) {
+        Map<String, Object> params = collectRequestParameters(request);
         JSONArray ja = metaObjectService.pageQueryObjects(
             tableId, params, pageDesc);
         return PageQueryResult.createJSONArrayResult(ja, pageDesc, fields);
@@ -85,29 +85,26 @@ public class MetaObjectController extends BaseController {
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public ResponseData batchUpdateObject(@PathVariable String tableId,
-                                     @RequestBody String jsonString, HttpServletRequest request) {
+                                          @RequestBody String fieldsObject, HttpServletRequest request) {
         Map<String, Object> params = collectRequestParameters(request);
-        JSONObject object = JSON.parseObject(jsonString);
+        JSONObject object = JSON.parseObject(fieldsObject);
         int iReturn = metaObjectService.updateObjectsByProperties(tableId, object, params);
-        if (iReturn==0){
+        if (iReturn == 0) {
             return ResponseData.makeErrorMessage("无对应sql生成");
         } else {
-            return ResponseData.makeSuccessResponse("成功更新"+iReturn+"条");
+            return ResponseData.makeSuccessResponse("成功更新" + iReturn + "条");
         }
     }
-    @ApiOperation(value = "根据属性删除数据库表数据")
+
+    @ApiOperation(value = "批量删除数据库表数据")
     @RequestMapping(value = "/{tableId}/batch", method = RequestMethod.DELETE)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public ResponseData batchDeleteObject(@PathVariable String tableId,
-                                           HttpServletRequest request) {
-        Map<String, Object> params = collectRequestParameters(request);
-        int iReturn = metaObjectService.deleteObjectsByProperties(tableId, params);
-        if (iReturn==0){
-            return ResponseData.makeErrorMessage("无对应sql生成");
-        } else {
-            return ResponseData.makeSuccessResponse("成功删除"+iReturn+"条");
-        }
+    public ResponseData batchDeleteObject(@PathVariable String tableId, @RequestBody String primaryArray, Integer withChildrenDeep) {
+        JSONArray tempJsonArray = JSON.parseArray(primaryArray);
+        tempJsonArray.forEach(object ->
+            metaObjectService.deleteObjectWithChildren(tableId, CollectionsOpt.objectToMap(object), withChildrenDeep == null ? 1 : withChildrenDeep));
+        return ResponseData.makeSuccessResponse("成功删除"+tempJsonArray.size()+"条");
     }
 
     @ApiOperation(value = "新增数据库表数据")
@@ -130,23 +127,25 @@ public class MetaObjectController extends BaseController {
         metaObjectService.deleteObject(tableId, parameters);
         return ResponseData.makeSuccessResponse();
     }
+
     @ApiOperation(value = "批量merge数据带子表")
     @RequestMapping(value = "/{tableId}/batchMerge", method = RequestMethod.POST)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public List<Map<String, Object>> batchMergeObjectWithChildren(@PathVariable String tableId,
-                                                                  @RequestBody String jsonString,
-                                                                  Integer  withChildrenDeep) {
-        JSONArray jsonArray = JSON.parseArray(jsonString);
+                                                                  @RequestBody String mergeArray,
+                                                                  Integer withChildrenDeep) {
+        JSONArray jsonArray = JSON.parseArray(mergeArray);
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         List<Map<String, Object>> list = new ArrayList<>();
         jsonArray.forEach(object -> {
-            innerMergeObject(tableId, tableInfo, (JSONObject) object,withChildrenDeep==null?1:withChildrenDeep);
+            innerMergeObject(tableId, tableInfo, (JSONObject) object, withChildrenDeep == null ? 1 : withChildrenDeep);
             Map<String, Object> primaryKey = tableInfo.fetchObjectPk((JSONObject) object);
             list.add(primaryKey);
         });
         return list;
     }
+
     private void innerMergeObject(String tableId, MetaTable tableInfo, JSONObject object, Integer withChildrenDeep) {
         Map<String, Object> dbObjectPk = tableInfo.fetchObjectPk(object);
         Map<String, Object> dbObject = dbObjectPk == null ? null :
@@ -154,26 +153,27 @@ public class MetaObjectController extends BaseController {
         if (dbObject == null) {
             metaObjectService.saveObjectWithChildren(tableId, object, withChildrenDeep);
         } else {
-            metaObjectService.updateObjectWithChildren(tableId, object,withChildrenDeep);
+            metaObjectService.updateObjectWithChildren(tableId, object, withChildrenDeep);
         }
     }
+
     @ApiOperation(value = "获取一个数据带子表，主键作为参数以key-value形式提交")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.GET)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public Map<String, Object> getObjectWithChildren(@PathVariable String tableId,Integer withChildrenDeep,
+    public Map<String, Object> getObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                      HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
-        return metaObjectService.getObjectWithChildren(tableId, parameters, withChildrenDeep==null?1:withChildrenDeep);
+        return metaObjectService.getObjectWithChildren(tableId, parameters, withChildrenDeep == null ? 1 : withChildrenDeep);
     }
 
     @ApiOperation(value = "修改数据库表数据带子表")
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.PUT)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public ResponseData updateObjectWithChildren(@PathVariable String tableId,Integer withChildrenDeep,
+    public ResponseData updateObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                  @RequestBody String jsonString) {
-        metaObjectService.updateObjectWithChildren(tableId, JSON.parseObject(jsonString),withChildrenDeep==null?1:withChildrenDeep);
+        metaObjectService.updateObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
         return ResponseData.makeSuccessResponse();
     }
 
@@ -181,9 +181,9 @@ public class MetaObjectController extends BaseController {
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.POST)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public ResponseData saveObjectWithChildren(@PathVariable String tableId,Integer withChildrenDeep,
+    public ResponseData saveObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                @RequestBody String jsonString) {
-        metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString),withChildrenDeep==null?1:withChildrenDeep);
+        metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
         return ResponseData.makeSuccessResponse();
     }
 
@@ -191,12 +191,13 @@ public class MetaObjectController extends BaseController {
     @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.DELETE)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public ResponseData deleteObjectWithChildren(@PathVariable String tableId,Integer withChildrenDeep,
+    public ResponseData deleteObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                  HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
-        metaObjectService.deleteObjectWithChildren(tableId, parameters,withChildrenDeep==null?1:withChildrenDeep);
+        metaObjectService.deleteObjectWithChildren(tableId, parameters, withChildrenDeep == null ? 1 : withChildrenDeep);
         return ResponseData.makeSuccessResponse();
     }
+
     @ApiOperation(value = "全文检索")
     @ApiImplicitParams({@ApiImplicitParam(
         name = "tableId", value = "表单模块id",
@@ -210,7 +211,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public PageQueryResult<Map<String, Object>> searchObject(@PathVariable String tableId,
                                                              HttpServletRequest request, PageDesc pageDesc) {
-        if(esObjectSearcher==null){
+        if (esObjectSearcher == null) {
             throw new ObjectException(ObjectException.SYSTEM_CONFIG_ERROR, "没有正确配置Elastic Search");
         }
         Map<String, Object> queryParam = collectRequestParameters(request);
@@ -228,7 +229,9 @@ public class MetaObjectController extends BaseController {
 
         Pair<Long, List<Map<String, Object>>> res =
             esObjectSearcher.search(searchQuery, queryWord, pageDesc.getPageNo(), pageDesc.getPageSize());
-        if (res == null) throw new ObjectException("ELK异常");
+        if (res == null) {
+            throw new ObjectException("ELK异常");
+        }
         pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(res.getLeft()));
         return PageQueryResult.createResult(res.getRight(), pageDesc);
     }

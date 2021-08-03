@@ -97,7 +97,7 @@ public class MetaObjectController extends BaseController {
     }
 
     @ApiOperation(value = "批量删除数据库表数据")
-    @RequestMapping(value = "/{tableId}/batch", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{tableId}/batchDelete", method = RequestMethod.PUT)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public ResponseData batchDeleteObject(@PathVariable String tableId, @RequestBody String primaryArray, Integer withChildrenDeep) {

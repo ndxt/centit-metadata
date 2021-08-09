@@ -33,13 +33,17 @@ public abstract class AbstractHttpConnectPools {
         HttpClientContext context = HttpClientContext.create();
         BasicCookieStore cookieStore = new BasicCookieStore();
         CloseableHttpClient httpClient = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
-        if (dsDesc.getDatabaseUrl() != null) {
-            HttpExecutor.formPost(HttpExecutorContext.create(httpClient).context(context),
-                dsDesc.getDatabaseUrl(),
-                dsDesc.getExtProps(), false);
-        }
+        loginOpt(dsDesc, context, httpClient);
         context.setCookieStore(cookieStore);
         return HttpExecutorContext.create(httpClient).context(context);
+    }
+
+    private static void loginOpt(ISourceInfo dsDesc, HttpClientContext context, CloseableHttpClient httpClient) throws IOException {
+        if (dsDesc.getExtProps() != null && dsDesc.getExtProps().get("loginUrl")!=null) {
+            HttpExecutor.formPost(HttpExecutorContext.create(httpClient).context(context),
+                (String) dsDesc.getExtProps().get("loginUrl"),
+                dsDesc.getExtProps(), false);
+        }
     }
 
     static synchronized HttpExecutorContext getHttpConnect(ISourceInfo dsDesc) throws IOException {
@@ -52,6 +56,6 @@ public abstract class AbstractHttpConnectPools {
     }
 
     static void releaseHttp(ISourceInfo dsDesc) {
-        HTTP_DATA_SOURCE_POOLS.remove(dsDesc);
+//        HTTP_DATA_SOURCE_POOLS.remove(dsDesc);
     }
 }

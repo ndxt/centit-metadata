@@ -141,9 +141,12 @@ public class SourceInfo implements ISourceInfo, Serializable {
             ISourceInfo dbc = (ISourceInfo) dbco;
             return databaseUrl != null && databaseUrl.equals(dbc.getDatabaseUrl())
                 && databaseCode != null && databaseCode.equals(dbc.getDatabaseCode())
-                && username != null && username.equals(dbc.getUsername())
-                && password != null && password.equals(dbc.getPassword())
-                && extProps != null && extProps.equals(dbc.getExtProps());
+                && ((username==null && dbc.getUsername()==null)
+                  || (username != null && username.equals(dbc.getUsername())))
+                && ((password==null && dbc.getPassword()==null)
+                || (password != null && password.equals(dbc.getPassword())))
+                && ((extProps==null && dbc.getExtProps()==null)
+                || (extProps != null && extProps.equals(dbc.getExtProps())));
         } else {
             return false;
         }

@@ -92,7 +92,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @NotBlank(message = "字段不能为空")
     @Pattern(regexp = "[HRCN]")
     @Length(max = 1, message = "字段长度不能大于{max}")
-    private String  accessType;
+    private String accessType;
 
     /**
      * 表代码/表名
@@ -140,7 +140,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @ApiModelProperty(value = "对象标题模板，用于全文检索时的标题显示")
     @Column(name = "OBJECT_TITLE")
     @Length(max = 500, message = "字段长度不能大于{max}")
-    private String  objectTitle;
+    private String objectTitle;
 
     @Column(name = "WRITE_OPT_LOG")
     @NotBlank(message = "字段不能为空[T/F]")
@@ -261,33 +261,34 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         this.mdRelations.remove(mdRelation);
     }
 
-    public MetaTable(){
+    public MetaTable() {
         this.accessType = "N";
         this.workFlowOptType = "0";
-        this.fulltextSearch =  false;
+        this.fulltextSearch = false;
         this.writeOptLog = false;
         this.updateCheckTimeStamp = false;
     }
 
-    public boolean isWriteOptLog(){
+    public boolean isWriteOptLog() {
         return writeOptLog != null && writeOptLog;
     }
 
-    public boolean isUpdateCheckTimeStamp(){
+    public boolean isUpdateCheckTimeStamp() {
         return updateCheckTimeStamp != null && updateCheckTimeStamp;
     }
-    public boolean isFulltextSearch(){
+
+    public boolean isFulltextSearch() {
         return fulltextSearch != null && fulltextSearch;
     }
 
     //将数据库表同步到元数据表
-    public MetaTable convertFromDbTable(SimpleTableInfo tableInfo){
+    public MetaTable convertFromDbTable(SimpleTableInfo tableInfo) {
 
         this.tableName = tableInfo.getTableName();
-        if(StringUtils.isNotBlank(tableInfo.getTableLabelName())) {
+        if (StringUtils.isNotBlank(tableInfo.getTableLabelName())) {
             this.tableLabelName = tableInfo.getTableLabelName();
         }
-        if(StringUtils.isNotBlank(tableInfo.getTableComment())){
+        if (StringUtils.isNotBlank(tableInfo.getTableComment())) {
             this.tableComment = tableInfo.getTableComment();
         }
         this.tableType = tableInfo.getTableType();
@@ -375,61 +376,63 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         return this.tableLabelName;
     }
 
-    public List<DictionaryMapColumn> fetchDictionaryMapColumns(SourceInfoDao sourceInfoDao){
-        if(mdColumns == null || mdColumns.size()==0){
+    public List<DictionaryMapColumn> fetchDictionaryMapColumns(SourceInfoDao sourceInfoDao) {
+        if (mdColumns == null || mdColumns.size() == 0) {
             return null;
         }
         List<DictionaryMapColumn> dictionaryMapColumns = new ArrayList<>(4);
-        for(MetaColumn mc : mdColumns){
+        for (MetaColumn mc : mdColumns) {
             //dictionary; 解析 mc.getReferenceData() json
-            if("1".equals(mc.getReferenceType())){
-                setDictionaryColumns(dictionaryMapColumns, mc,false);
-            } else if("2".equals(mc.getReferenceType())){
-                    String jsonStr = mc.getReferenceData().trim();
-                    String catalogCode = Md5Encoder.encodeBase64(jsonStr, true);
-                    boolean hasDictoinary = CodeRepositoryUtil.hasExtendedDictionary(catalogCode);
-                    if(!hasDictoinary){
-                        Object jsonObject = JSON.parse(jsonStr);
-                        if(jsonObject instanceof Map) {
-                            CodeRepositoryUtil.registeExtendedCodeRepo(catalogCode,
-                                CollectionsOpt.objectMapToStringMap((Map)jsonObject));
-                            hasDictoinary = true;
-                        }
-                    }
-                    if(hasDictoinary){
-                        dictionaryMapColumns.add(new DictionaryMapColumn(
-                            mc.getPropertyName(),
-                            mc.getPropertyName()+"Desc",
-                            catalogCode));
-                    }
-            } else if("3".equals(mc.getReferenceType())){
-                    String sqlStr = mc.getReferenceData().trim();
-                    String catalogCode = Md5Encoder.encodeBase64(sqlStr, true);
-                    if(!CodeRepositoryUtil.hasExtendedDictionary(catalogCode)){
+            if ("1".equals(mc.getReferenceType())) {
+                setDictionaryColumns(dictionaryMapColumns, mc, false);
+            } else if ("2".equals(mc.getReferenceType())) {
+                String jsonStr = mc.getReferenceData().trim();
+                String catalogCode = Md5Encoder.encodeBase64(jsonStr, true);
+                boolean hasDictoinary = CodeRepositoryUtil.hasExtendedDictionary(catalogCode);
+                if (!hasDictoinary) {
+                    Object jsonObject = JSON.parse(jsonStr);
+                    if (jsonObject instanceof Map) {
                         CodeRepositoryUtil.registeExtendedCodeRepo(catalogCode,
-                            new CachedObject<>(
-                                new SqlDictionaryMapSupplier(
-                                    sourceInfoDao.getDatabaseInfoById(this.getDatabaseCode()),
-                                    sqlStr),
-                                ICachedObject.KEEP_FRESH_PERIOD * 3));
+                            CollectionsOpt.objectMapToStringMap((Map) jsonObject));
+                        hasDictoinary = true;
                     }
+                }
+                if (hasDictoinary) {
                     dictionaryMapColumns.add(new DictionaryMapColumn(
                         mc.getPropertyName(),
-                        mc.getPropertyName()+"Desc",
+                        mc.getPropertyName() + "Desc",
                         catalogCode));
-            }else if("4".equals(mc.getReferenceType())){
-                setDictionaryColumns(dictionaryMapColumns, mc,true);
+                }
+            } else if ("3".equals(mc.getReferenceType())) {
+                String sqlStr = mc.getReferenceData().trim();
+                String catalogCode = Md5Encoder.encodeBase64(sqlStr, true);
+                if (!CodeRepositoryUtil.hasExtendedDictionary(catalogCode)) {
+                    CodeRepositoryUtil.registeExtendedCodeRepo(catalogCode,
+                        new CachedObject<>(
+                            new SqlDictionaryMapSupplier(
+                                sourceInfoDao.getDatabaseInfoById(this.getDatabaseCode()),
+                                sqlStr),
+                            ICachedObject.KEEP_FRESH_PERIOD * 3));
+                }
+                DictionaryMapColumn dictionaryMapColumn = new DictionaryMapColumn(
+                    mc.getPropertyName(),
+                    mc.getPropertyName() + "Desc",
+                    catalogCode);
+                dictionaryMapColumn.setExpression(true);
+                dictionaryMapColumns.add(dictionaryMapColumn);
+            } else if ("4".equals(mc.getReferenceType())) {
+                setDictionaryColumns(dictionaryMapColumns, mc, true);
             }
         }
         return dictionaryMapColumns;
     }
 
-    private void setDictionaryColumns(List<DictionaryMapColumn> dictionaryMapColumns, MetaColumn mc,boolean isExpression) {
-        if(mc.getReferenceData().startsWith("{")){
+    private void setDictionaryColumns(List<DictionaryMapColumn> dictionaryMapColumns, MetaColumn mc, boolean isExpression) {
+        if (mc.getReferenceData().startsWith("{")) {
             Object jsonObject = JSON.parse(mc.getReferenceData());
-            if(jsonObject instanceof JSONObject){
-                for(Map.Entry<String, Object> ent: ((JSONObject)jsonObject).entrySet()){
-                    DictionaryMapColumn dictionaryMapColumn=new DictionaryMapColumn(
+            if (jsonObject instanceof JSONObject) {
+                for (Map.Entry<String, Object> ent : ((JSONObject) jsonObject).entrySet()) {
+                    DictionaryMapColumn dictionaryMapColumn = new DictionaryMapColumn(
                         mc.getPropertyName(),
                         ent.getKey(),
                         StringBaseOpt.castObjectToString(ent.getValue())
@@ -439,7 +442,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
                 }
             }
         } else {
-            DictionaryMapColumn dictionaryMapColumn=new DictionaryMapColumn(
+            DictionaryMapColumn dictionaryMapColumn = new DictionaryMapColumn(
                 mc.getPropertyName(),
                 mc.getPropertyName() + "Desc",
                 mc.getReferenceData()

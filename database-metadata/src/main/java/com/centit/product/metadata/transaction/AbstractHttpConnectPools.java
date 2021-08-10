@@ -35,7 +35,7 @@ public abstract class AbstractHttpConnectPools {
         CloseableHttpClient httpClient = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
         loginOpt(dsDesc, context, httpClient);
         context.setCookieStore(cookieStore);
-        return HttpExecutorContext.create(httpClient).context(context);
+        return HttpExecutorContext.create(httpClient).context(context).header("Connection", "close").timout(5000);
     }
 
     private static void loginOpt(ISourceInfo dsDesc, HttpClientContext context, CloseableHttpClient httpClient) throws IOException {

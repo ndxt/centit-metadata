@@ -56,6 +56,6 @@ public abstract class AbstractHttpConnectPools {
     }
 
     static void releaseHttp(ISourceInfo dsDesc) {
-//        HTTP_DATA_SOURCE_POOLS.remove(dsDesc);
+        HTTP_DATA_SOURCE_POOLS.remove(dsDesc);
     }
 }

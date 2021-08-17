@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.common.ResponseData;
+import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
@@ -172,8 +173,9 @@ public class MetaObjectController extends BaseController {
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public ResponseData updateObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
-                                                 @RequestBody String jsonString) {
+                                                 @RequestBody String jsonString,HttpServletRequest request) {
         metaObjectService.updateObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
+        saveOperationLog(request,jsonString,tableId,"update");
         return ResponseData.makeSuccessResponse();
     }
 
@@ -182,8 +184,9 @@ public class MetaObjectController extends BaseController {
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public ResponseData saveObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
-                                               @RequestBody String jsonString) {
+                                               @RequestBody String jsonString,HttpServletRequest request) {
         metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
+        saveOperationLog(request,jsonString,tableId,"save");
         return ResponseData.makeSuccessResponse();
     }
 
@@ -195,9 +198,16 @@ public class MetaObjectController extends BaseController {
                                                  HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
         metaObjectService.deleteObjectWithChildren(tableId, parameters, withChildrenDeep == null ? 1 : withChildrenDeep);
+        saveOperationLog(request,parameters,tableId,"delete");
         return ResponseData.makeSuccessResponse();
     }
-
+    private void saveOperationLog(HttpServletRequest request,Object newValue, String optTag, String optMethod){
+        MetaTable tableInfo = metaDataCache.getTableInfo(optTag);
+        if (tableInfo !=null && tableInfo.isWriteOptLog()) {
+            OperationLogCenter.log(request,"0",
+                optTag, "metaData",optMethod, "元数据", newValue,null);
+        }
+    }
     @ApiOperation(value = "全文检索")
     @ApiImplicitParams({@ApiImplicitParam(
         name = "tableId", value = "表单模块id",

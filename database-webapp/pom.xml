@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.centit.product</groupId>
         <artifactId>centit-metadata</artifactId>
-        <version>5.1-SNAPSHOT</version>
+        <version>5.2-SNAPSHOT</version>
     </parent>
 
     <groupId>com.centit.support</groupId>
@@ -66,7 +66,11 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.shentong</groupId>
+            <artifactId>shentongjdbc</artifactId>
+            <version>4.0</version>
+        </dependency>
         <dependency>
             <groupId>com.centit.framework</groupId>
             <artifactId>framework-config</artifactId>

@@ -41,6 +41,11 @@ public class SourceInfo implements ISourceInfo, Serializable {
     @ApiModelProperty(value = "系统代码", name = "osId")
     private String osId;
 
+    @Column(name = "top_unit")
+    @ApiModelProperty(value = "所属租户", name = "topUnit")
+    private String topUnit;
+
+
     @Column(name = "DATABASE_NAME")
     @Length(max = 100, message = "字段长度不能大于{max}")
     @ApiModelProperty(value = "数据库名", name = "databaseName")

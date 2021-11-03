@@ -24,6 +24,13 @@ public interface MetaDataService {
 
     List<SourceInfo> listDatabase(String osId);
 
+    /**
+     * 根据传入的过滤条件获取资源库信息
+     * @param map
+     * @return
+     */
+    List<SourceInfo> listDatabase(Map<String,Object>  map);
+
     List<SimpleTableInfo> listRealTables(String databaseCode);
 
     void syncDb(String databaseCode, String recorder,String tableName);

@@ -18,6 +18,7 @@ import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
+import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.algorithm.GeneralAlgorithm;
 import com.centit.support.database.ddl.*;
@@ -26,6 +27,8 @@ import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -41,6 +44,7 @@ import javax.validation.constraints.NotNull;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * MdTable  Service.
@@ -643,6 +647,202 @@ public class MetaTableManagerImpl
     public void updateMetaColumn(PendingMetaColumn metaColumn) {
         pendingMetaColumnDao.updateObject(metaColumn);
 
+    }
+
+    @Override
+    public List listCombineColumns(Map<String, Object> filerMap, PageDesc pageDesc) {
+
+        JSONArray mdColumJsonArray = metaColumnDao.listObjectsAsJson(filerMap, new PageDesc(0, 999));
+        JSONArray pmdJsonArray = pendingMetaColumnDao.listObjectsAsJson(filerMap, new PageDesc(0, 9999));
+        if (CollectionUtils.sizeIsEmpty(mdColumJsonArray) && CollectionUtils.sizeIsEmpty(pmdJsonArray)) {
+            pageDesc.setTotalRows(0);
+            return Collections.EMPTY_LIST;
+        }
+
+        List<Map<String, Object>> resultMaps = mergeColumnDataList(mdColumJsonArray.toJavaList(Map.class), pmdJsonArray.toJavaList(Map.class));
+        Comparator<Map<String, Object>> comparing = Comparator.comparing(map -> MapUtils.getString(map, "lastModifyDate"));
+        pageDesc.setTotalRows(resultMaps.size());
+        return pagination(sortByKey(resultMaps, comparing, false), pageDesc.getPageNo(), pageDesc.getPageSize());
+
+    }
+
+    @Override
+    public List listCombineTables(Map<String, Object> filerMap, PageDesc pageDesc) {
+        JSONArray mdTableJsonArray = metaTableDao.listObjectsAsJson(filerMap, new PageDesc(0, 999));
+        JSONArray pmdTableJsonArray = pendingMdTableDao.listObjectsAsJson(filerMap, new PageDesc(0, 9999));
+        if (CollectionUtils.sizeIsEmpty(mdTableJsonArray) && CollectionUtils.sizeIsEmpty(pmdTableJsonArray)) {
+            pageDesc.setTotalRows(0);
+            return Collections.EMPTY_LIST;
+        }
+
+        List<Map<String, Object>> resultMaps = mergeTableDataList(mdTableJsonArray.toJavaList(Map.class), pmdTableJsonArray.toJavaList(Map.class));
+        pageDesc.setTotalRows(resultMaps.size());
+        Comparator<Map<String, Object>> comparing = Comparator.comparing(map -> MapUtils.getString(map, "tableId"));
+        return pagination(sortByKey(resultMaps, comparing, false), pageDesc.getPageNo(), pageDesc.getPageSize());
+    }
+
+
+    @Override
+    public MetaTable getMetaTableWithReferences(String tableId) {
+        return metaTableDao.getObjectWithReferences(tableId);
+    }
+
+    private List<Map<String, Object>> mergeColumnDataList(List<Map> mcMaps, List<Map> pmcMaps) {
+        Comparator<Map> comparator = (o1, o2) -> StringUtils.compare(MapUtils.getString(o1, "columnName").toLowerCase(),
+            MapUtils.getString(o2, "columnName").toLowerCase());
+
+        Triple<List<Map>, List<Pair<Map, Map>>, List<Map>> listTriple = CollectionsOpt.compareTwoList(mcMaps, pmcMaps, comparator);
+        //mcMaps不存在pmcMaps存在  column_state NEW
+        List<Map> left = listTriple.getLeft();
+        //mcMaps,pmcMaps都存在  根据字段名，长度，精度等条件判断是否未修改 如果修改为UPDATE 未修改为UNCHANGED
+        List<Pair<Map, Map>> middle = listTriple.getMiddle();
+        //mcMaps存在pmcMaps不存在 column_state未 DELETE
+        List<Map> right = listTriple.getRight();
+        List<Map<String, Object>> resultMaps = new ArrayList<>();
+        if (!CollectionUtils.sizeIsEmpty(left)) {
+            for (Map map : left) {
+                map.put("state", "NEW");
+                resultMaps.add(map);
+            }
+        }
+        if (!CollectionUtils.sizeIsEmpty(right)) {
+            for (Map map : right) {
+                map.put("state", "DELETE");
+                resultMaps.add(map);
+            }
+        }
+        if (!CollectionUtils.sizeIsEmpty(middle)) {
+            for (Pair<Map, Map> pair : middle) {
+                //mcMaps的子集
+                Map leftPair = pair.getLeft();
+                //pmcMaps的子集
+                Map rightPair = pair.getRight();
+                //如果不相等以pmcMaps未准，添加到updateMaps中
+                if ( getColumnId(pair.getLeft()).equals(getColumnId(pair.getRight()))) {
+                    leftPair.put("state", "UNCHANGED");
+                    resultMaps.add(leftPair);
+                } else {
+                    rightPair.put("state", "UPDATE");
+                    resultMaps.add(rightPair);
+                }
+            }
+        }
+        return resultMaps;
+    }
+
+
+    /**
+     * state	编辑		重构		发布  f_md_table  f_pending_meta_table
+     * NEW		 ×			√			√       ×             √
+     * UPDATE	 √      	√			√       √             √(state:W)
+     * RELEASED √ 			√ 			×       √              √(state:S)
+     * UNCHANGED √			√			×        √             ×
+     * @param mcMaps
+     * @param pmcMaps
+     * @return
+     */
+    private List<Map<String, Object>> mergeTableDataList(List<Map> mcMaps, List<Map> pmcMaps) {
+        Comparator<Map> comparator = (o1, o2) -> StringUtils.compare(MapUtils.getString(o1, "tableName").toLowerCase(),
+            MapUtils.getString(o2, "tableName").toLowerCase());
+        Triple<List<Map>, List<Pair<Map, Map>>, List<Map>> listTriple = CollectionsOpt.compareTwoList(mcMaps, pmcMaps, comparator);
+        //mcMaps不存在pmcMaps存在  state NEW  新建状态 不展示编辑按钮，展示重构，发布按钮
+        List<Map> left = listTriple.getLeft();
+        //mcMaps,pmcMaps都存在  state为UPDATE,RELEASED   更新状态展示编辑，重构，发布按钮
+        List<Pair<Map, Map>> middle = listTriple.getMiddle();
+        //mcMaps存在pmcMaps不存在 state为 UNCHANGED 展示编辑。重构,发布按钮不展示
+        List<Map> right = listTriple.getRight();
+
+        List<Map<String, Object>> resultMaps = new ArrayList<>();
+        if (!CollectionUtils.sizeIsEmpty(left)) {
+            for (Map map : left) {
+                map.put("state", "NEW");
+                resultMaps.add(map);
+            }
+        }
+        if (!CollectionUtils.sizeIsEmpty(right)) {
+            for (Map map : right) {
+                map.put("state", "UNCHANGED");
+                resultMaps.add(map);
+            }
+        }
+        if (!CollectionUtils.sizeIsEmpty(middle)) {
+            for (Pair<Map, Map> pair : middle) {
+                //mcMaps的子集
+                Map leftPair = pair.getLeft();
+                //pmcMaps的子集
+                Map rightPair = pair.getRight();
+                //如果不相等以pmcMaps未准，添加到updateMaps中
+                if ("S".equals(MapUtils.getString(rightPair,"tableState"))){
+                    rightPair.put("state", "RELEASED");
+                    resultMaps.add(rightPair);
+                }else {
+                    leftPair.put("state","UPDATE");
+                }
+            }
+        }
+        return resultMaps;
+    }
+
+
+    private List<Map<String, Object>> sortByKey(List<Map<String, Object>> dataList, Comparator<Map<String, Object>> comparing, boolean desc) {
+        if (desc) {
+            comparing.reversed();
+        }
+        return dataList.stream().sorted(comparing).collect(Collectors.toList());
+    }
+
+    private String getColumnId(Map<String, Object> map) {
+        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder append = stringBuilder.append(MapUtils.getString(map, "fieldType"))
+            .append(MapUtils.getString(map, "scale")).append(Optional.ofNullable(MapUtils.getString(map, "mandatory")).orElse("F"))
+            .append(MapUtils.getString(map, "columnComment"));
+        if (StringUtils.isBlank(MapUtils.getString(map, "maxLength"))) {
+            append.append(MapUtils.getString(map, "columnLength"));
+        } else {
+            append.append(MapUtils.getString(map, "maxLength"));
+        }
+        return append.toString();
+    }
+
+
+    /**
+     * <p>Description: 内存分页 </p>
+     *
+     * @param records  待分页的数据
+     * @param pageNum  当前页码
+     * @param pageSize 每页显示的条数
+     * @return 分页之后的数据
+     */
+    private <T> List<T> pagination(List<T> records, int pageNum, int pageSize) {
+        if (CollectionUtils.isEmpty(records)) {
+            return Collections.emptyList();
+        }
+        if (0 == pageNum) {
+            pageNum = 1;
+        }
+        if (pageNum < 0 || pageSize < 0) {
+            return Collections.emptyList();
+        }
+        int totalCount = records.size();
+        int pageCount;
+        int remainder = totalCount % pageSize;
+        if (remainder > 0) {
+            pageCount = totalCount / pageSize + 1;
+        } else {
+            pageCount = totalCount / pageSize;
+        }
+        if (remainder == 0) {
+            records = records.stream().skip((pageNum - 1) * pageSize).limit(pageSize * pageNum).collect(Collectors.toList());
+            return records;
+        } else {
+            if (pageNum == pageCount) {
+                records = records.stream().skip((pageNum - 1) * pageSize).limit(totalCount).collect(Collectors.toList());
+                return records;
+            } else {
+                records = records.stream().skip((pageNum - 1) * pageSize).limit(pageSize * pageNum).collect(Collectors.toList());
+                return records;
+            }
+        }
     }
 }
 

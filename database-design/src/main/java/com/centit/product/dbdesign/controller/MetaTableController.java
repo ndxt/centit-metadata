@@ -21,6 +21,7 @@ import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
 import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.po.MetaColumn;
+import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;
@@ -31,6 +32,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -112,8 +114,26 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "查询单个表重构字段")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.GET})
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
-    public PendingMetaTable getMdTableDraft(@PathVariable String tableId) {
+    public PendingMetaTable getMdTableDraft(@PathVariable String tableId,HttpServletRequest request) {
         PendingMetaTable mdTable = mdTableMag.getPendingMetaTable(tableId);
+        if (null !=mdTable){
+            return mdTable;
+        }
+        //如果mdTable数据为空，重新用MetaTable数据初始化
+        MetaTable metaTable = mdTableMag.getMetaTableWithReferences(tableId);
+        BeanUtils.copyProperties(metaTable,mdTable);
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        mdTable.setRecorder(userCode);
+        mdTable.setTableState("W");
+        List<PendingMetaColumn> mdColumns = new ArrayList<>();
+        List<MetaColumn> metaColumns = metaTable.getColumns();
+        for (MetaColumn metaColumn : metaColumns) {
+            PendingMetaColumn pendingMetaColumn = new PendingMetaColumn();
+            BeanUtils.copyProperties(metaColumn,pendingMetaColumn);
+            mdColumns.add(pendingMetaColumn);
+        }
+        mdTable.setMdColumns(mdColumns);
+        mdTableMag.saveNewPendingMetaTable(mdTable);
         return mdTable;
     }
 
@@ -377,5 +397,31 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public PendingMetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName){
         return mdTableMag.getMetaColumn(tableId, columnName);
+    }
+
+    @ApiOperation(value = "查询表元数据,pending表与md表数据的组合")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "tableId", value = "表ID")
+    })
+    @GetMapping(value = "/{tableId}/listCombineColumns")
+    @WrapUpResponseBody
+    public PageQueryResult listCombineColumns(@PathVariable String tableId, PageDesc pageDesc ,HttpServletRequest request) {
+        Map<String, Object> parameters = collectRequestParameters(request);
+        parameters.put("tableId", tableId);
+        List list = mdTableMag.listCombineColumns(parameters, pageDesc);
+        return PageQueryResult.createResult(list, pageDesc);
+    }
+
+    @ApiOperation(value = "查询列元数据,pending表与md表数据的组合")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "tableId", value = "表ID")
+    })
+    @GetMapping(value = "/{databaseCode}/listCombineTables")
+    @WrapUpResponseBody
+    public PageQueryResult listCombineTables(@PathVariable String databaseCode, PageDesc pageDesc ,HttpServletRequest request) {
+        Map<String, Object> parameters = collectRequestParameters(request);
+        parameters.put("databaseCode", databaseCode);
+        List list = mdTableMag.listCombineTables(parameters, pageDesc);
+        return PageQueryResult.createResult(list, pageDesc);
     }
 }

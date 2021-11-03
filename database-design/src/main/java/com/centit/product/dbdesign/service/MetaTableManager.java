@@ -63,4 +63,10 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
     void updateMetaTable(PendingMetaTable metaTable);
 
     void updateMetaColumn(PendingMetaColumn metaColumn);
+
+    List listCombineColumns(Map<String,Object> paramMap, PageDesc pageDesc);
+
+    List listCombineTables(Map<String, Object> parameters, PageDesc pageDesc);
+
+    MetaTable getMetaTableWithReferences(String tableId);
 }

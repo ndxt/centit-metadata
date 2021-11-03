@@ -1,14 +1,8 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.metadata.dao.MetaColumnDao;
-import com.centit.product.metadata.dao.MetaRelationDao;
-import com.centit.product.metadata.dao.MetaTableDao;
-import com.centit.product.metadata.dao.SourceInfoDao;
-import com.centit.product.metadata.po.MetaColumn;
-import com.centit.product.metadata.po.MetaRelation;
-import com.centit.product.metadata.po.MetaTable;
-import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.metadata.dao.*;
+import com.centit.product.metadata.po.*;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
 import com.centit.product.metadata.vo.MetaTableCascade;
@@ -29,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author zhf
@@ -59,6 +50,11 @@ public class MetaDataServiceImpl implements MetaDataService {
     public List<SourceInfo> listDatabase(String osId) {
         return sourceInfoDao.listObjectsByProperties(
             CollectionsOpt.createHashMap("osId", osId));
+    }
+
+    @Override
+    public List<SourceInfo> listDatabase(Map<String,Object>  map) {
+        return sourceInfoDao.listObjectsByProperties(map);
     }
 
     @Override

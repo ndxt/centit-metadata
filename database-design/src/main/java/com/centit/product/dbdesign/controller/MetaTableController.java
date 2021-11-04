@@ -117,10 +117,17 @@ public class MetaTableController extends BaseController {
     public PendingMetaTable getMdTableDraft(@PathVariable String tableId,HttpServletRequest request) {
         PendingMetaTable mdTable = mdTableMag.getPendingMetaTable(tableId);
         if (null !=mdTable){
+            if (null ==mdTable.getColumns()){
+                mdTable.setMdColumns(new ArrayList<>());
+            }
             return mdTable;
         }
         //如果mdTable数据为空，重新用MetaTable数据初始化
         MetaTable metaTable = mdTableMag.getMetaTableWithReferences(tableId);
+        if (null == metaTable){
+            throw new ObjectException("tableId有误!");
+        }
+        mdTable = new PendingMetaTable();
         BeanUtils.copyProperties(metaTable,mdTable);
         String userCode = WebOptUtils.getCurrentUserCode(request);
         mdTable.setRecorder(userCode);
@@ -399,18 +406,6 @@ public class MetaTableController extends BaseController {
         return mdTableMag.getMetaColumn(tableId, columnName);
     }
 
-    @ApiOperation(value = "查询表元数据,pending表与md表数据的组合")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "tableId", value = "表ID")
-    })
-    @GetMapping(value = "/{tableId}/listCombineColumns")
-    @WrapUpResponseBody
-    public PageQueryResult listCombineColumns(@PathVariable String tableId, PageDesc pageDesc ,HttpServletRequest request) {
-        Map<String, Object> parameters = collectRequestParameters(request);
-        parameters.put("tableId", tableId);
-        List list = mdTableMag.listCombineColumns(parameters, pageDesc);
-        return PageQueryResult.createResult(list, pageDesc);
-    }
 
     @ApiOperation(value = "查询列元数据,pending表与md表数据的组合")
     @ApiImplicitParams(value = {

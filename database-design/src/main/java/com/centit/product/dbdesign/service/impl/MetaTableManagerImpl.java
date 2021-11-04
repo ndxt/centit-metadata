@@ -174,9 +174,9 @@ public class MetaTableManagerImpl
     @Override
     @Transactional
     public List<String> makeAlterTableSqls(PendingMetaTable ptable) {
-        MetaTable stable = metaTableDao.getMetaTable(ptable.getDatabaseCode(),ptable.getTableName());
-        if(stable!=null)
-          stable = metaTableDao.fetchObjectReferences(stable);
+        MetaTable stable = metaTableDao.getMetaTable(ptable.getDatabaseCode(), ptable.getTableName());
+        if (stable != null)
+            stable = metaTableDao.fetchObjectReferences(stable);
 
         SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
         //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
@@ -217,10 +217,10 @@ public class MetaTableManagerImpl
                         ptable.getTableName(), pcol));
                 } else {
                     if (StringUtils.equalsAnyIgnoreCase(pcol.getFieldType(), ocol.getFieldType())) {
-                        boolean exits= !GeneralAlgorithm.equals(pcol.getMaxLength(), ocol.getMaxLength()) ||
+                        boolean exits = !GeneralAlgorithm.equals(pcol.getMaxLength(), ocol.getMaxLength()) ||
                             !GeneralAlgorithm.equals(pcol.getScale(), ocol.getScale()) ||
                             !GeneralAlgorithm.equals(pcol.getMandatory(), ocol.getMandatory()) ||
-                            (!StringUtils.equals(pcol.getFieldLabelName(),ocol.getFieldLabelName())
+                            (!StringUtils.equals(pcol.getFieldLabelName(), ocol.getFieldLabelName())
                                 && dbType.equals(DBType.MySql));
                         if (exits) {
                             sqls.add(ddlOpt.makeModifyColumnSql(
@@ -257,7 +257,7 @@ public class MetaTableManagerImpl
                 ptable.addMdColumn(col);
             }
         }
-        if("C".equals(ptable.getTableType())){
+        if ("C".equals(ptable.getTableType())) {
             PendingMetaColumn col = ptable.findFieldByName(MetaTable.OBJECT_AS_CLOB_FIELD);
             if (col == null) {
                 col = new PendingMetaColumn(ptable, MetaTable.OBJECT_AS_CLOB_FIELD);
@@ -335,7 +335,7 @@ public class MetaTableManagerImpl
             ptable.setDatabaseType(databaseType);
             //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
             checkPendingMetaTable(ptable, currentUser);
-            List<String> sqls= TransactionHandler.executeInTransaction(dbc,
+            List<String> sqls = TransactionHandler.executeInTransaction(dbc,
                 (conn) -> runDDLSql(ptable, errors, conn));
 
             if (sqls.size() > 0) {
@@ -382,8 +382,8 @@ public class MetaTableManagerImpl
     }
 
     private void pendingToMeta(String currentUser, PendingMetaTable ptable) {
-        MetaTable metaTable = metaTableDao.getMetaTable(ptable.getDatabaseCode(),ptable.getTableName());
-        if (metaTable!=null) {
+        MetaTable metaTable = metaTableDao.getMetaTable(ptable.getDatabaseCode(), ptable.getTableName());
+        if (metaTable != null) {
             metaTable = metaTableDao.getObjectCascadeById(metaTable.getTableId());
             metaTable.setWorkFlowOptType(ptable.getWorkFlowOptType());
             metaTable.setUpdateCheckTimeStamp(ptable.getUpdateCheckTimeStamp());
@@ -411,7 +411,7 @@ public class MetaTableManagerImpl
                 }
             }
             for (MetaColumn m : setMetaColumn) {
-                if (m.getIsCompare()!=null && m.getIsCompare()) {
+                if (m.getIsCompare() != null && m.getIsCompare()) {
                     metaColumnDao.updateObject(m);
                 } else {
                     metaColumnDao.deleteObject(m);
@@ -424,9 +424,9 @@ public class MetaTableManagerImpl
                     metaColumnDao.saveNewObject(tmp);
                 }
             }
-        } else{
+        } else {
             metaTableDao.saveNewObject(ptable.mapToMetaTable());
-            for(PendingMetaColumn p:ptable.getMdColumns()){
+            for (PendingMetaColumn p : ptable.getMdColumns()) {
                 metaColumnDao.saveNewObject(p.mapToMetaColumn());
             }
         }
@@ -483,7 +483,7 @@ public class MetaTableManagerImpl
         Map<String, Object> filterMap = new HashMap<String, Object>();
         filterMap.put("tableId", tableId);
 
-        return pendingMetaColumnDao.listObjectsByProperties(filterMap,pageDesc);
+        return pendingMetaColumnDao.listObjectsByProperties(filterMap, pageDesc);
     }
 
     @Override
@@ -495,12 +495,12 @@ public class MetaTableManagerImpl
     @Transactional
     public Pair<Integer, String> syncPdm(String databaseCode, String pdmFilePath, List<String> tables, String recorder) {
         try {
-            List<SimpleTableInfo> pdmTables = PdmTableInfoUtils.importTableFromPdm(pdmFilePath,tables);
+            List<SimpleTableInfo> pdmTables = PdmTableInfoUtils.importTableFromPdm(pdmFilePath, tables);
             if (pdmTables == null)
                 return new ImmutablePair<>(-1, "读取文件失败,导入失败！");
             List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
             Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
-            Triple<List<SimpleTableInfo>, List<Pair<PendingMetaTable, SimpleTableInfo>>, List<PendingMetaTable>> triple = MetaDataServiceImpl.compareMetaBetweenDbTables(pendingMetaTables,pdmTables,comparator);
+            Triple<List<SimpleTableInfo>, List<Pair<PendingMetaTable, SimpleTableInfo>>, List<PendingMetaTable>> triple = MetaDataServiceImpl.compareMetaBetweenDbTables(pendingMetaTables, pdmTables, comparator);
             if (triple.getLeft() != null && triple.getLeft().size() > 0) {
                 //新增
                 for (SimpleTableInfo pdmtable : triple.getLeft()) {
@@ -577,13 +577,13 @@ public class MetaTableManagerImpl
 
     @Override
     @Transactional
-    public Pair<Integer, String> publishDatabase(String databaseCode, String recorder){
+    public Pair<Integer, String> publishDatabase(String databaseCode, String recorder) {
         try {
             List<PendingMetaTable> metaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ? and table_state='W'", new Object[]{databaseCode});
             List<String> success = new ArrayList<>();
             List<String> errors = new ArrayList<>();
             for (PendingMetaTable metaTable : metaTables) {
-                 metaTable = pendingMdTableDao.fetchObjectReferences(metaTable);
+                metaTable = pendingMdTableDao.fetchObjectReferences(metaTable);
 
                 Pair<Integer, String> ret = GeneralDDLOperations.checkTableWellDefined(metaTable);
                 if (ret.getLeft() != 0)
@@ -598,7 +598,7 @@ public class MetaTableManagerImpl
                 //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
                 checkPendingMetaTable(metaTable, recorder);
                 PendingMetaTable finalMetaTable = metaTable;
-                List<String> sqls= TransactionHandler.executeInTransaction(dbc,
+                List<String> sqls = TransactionHandler.executeInTransaction(dbc,
                     (conn) -> runDDLSql(finalMetaTable, errors, conn));
 
                 if (sqls.size() > 0)
@@ -610,7 +610,7 @@ public class MetaTableManagerImpl
                     pendingMdTableDao.mergeObject(metaTable);
                     pendingMdTableDao.saveObjectReferences(metaTable);
                     if (sqls.size() > 0) {
-                        pendingToMeta(recorder,metaTable);
+                        pendingToMeta(recorder, metaTable);
                     }
                 } else {
                     errors.add(error.toString());
@@ -650,84 +650,30 @@ public class MetaTableManagerImpl
     }
 
     @Override
-    public List listCombineColumns(Map<String, Object> filerMap, PageDesc pageDesc) {
-
-        JSONArray mdColumJsonArray = metaColumnDao.listObjectsAsJson(filerMap, new PageDesc(0, 999));
-        JSONArray pmdJsonArray = pendingMetaColumnDao.listObjectsAsJson(filerMap, new PageDesc(0, 9999));
-        if (CollectionUtils.sizeIsEmpty(mdColumJsonArray) && CollectionUtils.sizeIsEmpty(pmdJsonArray)) {
-            pageDesc.setTotalRows(0);
-            return Collections.EMPTY_LIST;
-        }
-
-        List<Map<String, Object>> resultMaps = mergeColumnDataList(mdColumJsonArray.toJavaList(Map.class), pmdJsonArray.toJavaList(Map.class));
-        Comparator<Map<String, Object>> comparing = Comparator.comparing(map -> MapUtils.getString(map, "lastModifyDate"));
-        pageDesc.setTotalRows(resultMaps.size());
-        return pagination(sortByKey(resultMaps, comparing, false), pageDesc.getPageNo(), pageDesc.getPageSize());
-
-    }
-
-    @Override
     public List listCombineTables(Map<String, Object> filerMap, PageDesc pageDesc) {
-        JSONArray mdTableJsonArray = metaTableDao.listObjectsAsJson(filerMap, new PageDesc(0, 999));
-        JSONArray pmdTableJsonArray = pendingMdTableDao.listObjectsAsJson(filerMap, new PageDesc(0, 9999));
-        if (CollectionUtils.sizeIsEmpty(mdTableJsonArray) && CollectionUtils.sizeIsEmpty(pmdTableJsonArray)) {
+        List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(filerMap);
+        List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByProperties(filerMap);
+        List<Map> metaTablesMaps = JSONArray.parseArray(JSON.toJSONString(metaTables), Map.class);
+        List<Map> pendingMetaTablesMaps = JSONArray.parseArray(JSON.toJSONString(pendingMetaTables), Map.class);
+        if (CollectionUtils.sizeIsEmpty(metaTables) && CollectionUtils.sizeIsEmpty(pendingMetaTables)) {
             pageDesc.setTotalRows(0);
             return Collections.EMPTY_LIST;
         }
-
-        List<Map<String, Object>> resultMaps = mergeTableDataList(mdTableJsonArray.toJavaList(Map.class), pmdTableJsonArray.toJavaList(Map.class));
+        List<Map<String, Object>> resultMaps = mergeTableDataList(metaTablesMaps, pendingMetaTablesMaps);
         pageDesc.setTotalRows(resultMaps.size());
-        Comparator<Map<String, Object>> comparing = Comparator.comparing(map -> MapUtils.getString(map, "tableId"));
-        return pagination(sortByKey(resultMaps, comparing, false), pageDesc.getPageNo(), pageDesc.getPageSize());
+        String sortKey = null == MapUtils.getString(filerMap, "sort") ? "lastModifyDate" : MapUtils.getString(filerMap, "sort");
+        Comparator<Map> comparator = (a, b) -> GeneralAlgorithm.compareTwoObject(a.get(sortKey), b.get(sortKey));
+        if ("desc".equals(MapUtils.getString(filerMap,"order"))){
+            comparator = comparator.reversed();
+        }
+        resultMaps.sort(comparator);
+        return pagination(resultMaps, pageDesc.getPageNo(), pageDesc.getPageSize());
     }
 
 
     @Override
     public MetaTable getMetaTableWithReferences(String tableId) {
         return metaTableDao.getObjectWithReferences(tableId);
-    }
-
-    private List<Map<String, Object>> mergeColumnDataList(List<Map> mcMaps, List<Map> pmcMaps) {
-        Comparator<Map> comparator = (o1, o2) -> StringUtils.compare(MapUtils.getString(o1, "columnName").toLowerCase(),
-            MapUtils.getString(o2, "columnName").toLowerCase());
-
-        Triple<List<Map>, List<Pair<Map, Map>>, List<Map>> listTriple = CollectionsOpt.compareTwoList(mcMaps, pmcMaps, comparator);
-        //mcMaps不存在pmcMaps存在  column_state NEW
-        List<Map> left = listTriple.getLeft();
-        //mcMaps,pmcMaps都存在  根据字段名，长度，精度等条件判断是否未修改 如果修改为UPDATE 未修改为UNCHANGED
-        List<Pair<Map, Map>> middle = listTriple.getMiddle();
-        //mcMaps存在pmcMaps不存在 column_state未 DELETE
-        List<Map> right = listTriple.getRight();
-        List<Map<String, Object>> resultMaps = new ArrayList<>();
-        if (!CollectionUtils.sizeIsEmpty(left)) {
-            for (Map map : left) {
-                map.put("state", "NEW");
-                resultMaps.add(map);
-            }
-        }
-        if (!CollectionUtils.sizeIsEmpty(right)) {
-            for (Map map : right) {
-                map.put("state", "DELETE");
-                resultMaps.add(map);
-            }
-        }
-        if (!CollectionUtils.sizeIsEmpty(middle)) {
-            for (Pair<Map, Map> pair : middle) {
-                //mcMaps的子集
-                Map leftPair = pair.getLeft();
-                //pmcMaps的子集
-                Map rightPair = pair.getRight();
-                //如果不相等以pmcMaps未准，添加到updateMaps中
-                if ( getColumnId(pair.getLeft()).equals(getColumnId(pair.getRight()))) {
-                    leftPair.put("state", "UNCHANGED");
-                    resultMaps.add(leftPair);
-                } else {
-                    rightPair.put("state", "UPDATE");
-                    resultMaps.add(rightPair);
-                }
-            }
-        }
-        return resultMaps;
     }
 
 
@@ -737,6 +683,7 @@ public class MetaTableManagerImpl
      * UPDATE	 √      	√			√       √             √(state:W)
      * RELEASED √ 			√ 			×       √              √(state:S)
      * UNCHANGED √			√			×        √             ×
+     *
      * @param mcMaps
      * @param pmcMaps
      * @return
@@ -772,36 +719,15 @@ public class MetaTableManagerImpl
                 //pmcMaps的子集
                 Map rightPair = pair.getRight();
                 //如果不相等以pmcMaps未准，添加到updateMaps中
-                if ("S".equals(MapUtils.getString(rightPair,"tableState"))){
+                if ("S".equals(MapUtils.getString(rightPair, "tableState"))) {
                     rightPair.put("state", "RELEASED");
                     resultMaps.add(rightPair);
-                }else {
-                    leftPair.put("state","UPDATE");
+                } else {
+                    leftPair.put("state", "UPDATE");
                 }
             }
         }
         return resultMaps;
-    }
-
-
-    private List<Map<String, Object>> sortByKey(List<Map<String, Object>> dataList, Comparator<Map<String, Object>> comparing, boolean desc) {
-        if (desc) {
-            comparing.reversed();
-        }
-        return dataList.stream().sorted(comparing).collect(Collectors.toList());
-    }
-
-    private String getColumnId(Map<String, Object> map) {
-        StringBuilder stringBuilder = new StringBuilder();
-        StringBuilder append = stringBuilder.append(MapUtils.getString(map, "fieldType"))
-            .append(MapUtils.getString(map, "scale")).append(Optional.ofNullable(MapUtils.getString(map, "mandatory")).orElse("F"))
-            .append(MapUtils.getString(map, "columnComment"));
-        if (StringUtils.isBlank(MapUtils.getString(map, "maxLength"))) {
-            append.append(MapUtils.getString(map, "columnLength"));
-        } else {
-            append.append(MapUtils.getString(map, "maxLength"));
-        }
-        return append.toString();
     }
 
 

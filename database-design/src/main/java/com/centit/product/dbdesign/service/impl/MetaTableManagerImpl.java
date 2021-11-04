@@ -2,6 +2,7 @@ package com.centit.product.dbdesign.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.centit.framework.common.ResponseData;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
@@ -147,9 +148,11 @@ public class MetaTableManagerImpl
      */
     @Override
     @Transactional
-    public List<String> makeAlterTableSqls(String tableId) {
+    public ResponseData makeAlterTableSqls(String tableId) {
         PendingMetaTable ptable = getPendingMetaTable(tableId);
-
+        if (null == ptable || null == ptable.getColumns()){
+            return ResponseData.makeErrorMessage(601,"表字段不能为空");
+        }
         /*PendingMetaTable ptable = pendingMdTableDao.getObjectById(tableId);
 
         Set<PendingMetaColumn> pColumn =
@@ -168,7 +171,7 @@ public class MetaTableManagerImpl
         ptable.setMdColumns(pColumn);
         ptable.setMdRelations(pRelation);*/
 
-        return makeAlterTableSqls(ptable);
+        return ResponseData.makeResponseData(makeAlterTableSqls(ptable));
     }
 
     @Override

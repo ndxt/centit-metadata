@@ -1,6 +1,7 @@
 package com.centit.product.dbdesign.service;
 
 import com.alibaba.fastjson.JSONArray;
+import com.centit.framework.common.ResponseData;
 import com.centit.framework.jdbc.service.BaseEntityManager;
 import com.centit.product.dbdesign.po.MetaChangLog;
 import com.centit.product.dbdesign.po.PendingMetaColumn;
@@ -38,7 +39,7 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
 
     void savePendingMetaTable(PendingMetaTable pmt);
 
-    List<String> makeAlterTableSqls(String tableId);
+    ResponseData makeAlterTableSqls(String tableId);
     List<String> makeAlterTableSqls(PendingMetaTable ptable);
     Pair<Integer, String> publishMetaTable(String tableId, String currentUser);
 

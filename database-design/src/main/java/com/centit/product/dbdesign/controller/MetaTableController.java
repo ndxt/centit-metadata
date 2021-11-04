@@ -230,12 +230,10 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "查看发布重构表sql")
     @RequestMapping(value = "/beforePublish/{ptableId}", method = {RequestMethod.POST})
-    public void alertSqlBeforePublish(@PathVariable String ptableId,
+    @WrapUpResponseBody
+    public ResponseData alertSqlBeforePublish(@PathVariable String ptableId,
                                       HttpServletRequest request, HttpServletResponse response) {
-        List<String> sqls = mdTableMag.makeAlterTableSqls(ptableId);
-        ResponseMapData resData = new ResponseMapData();
-        resData.addResponseData(OBJLIST, sqls);
-        JsonResultUtils.writeResponseDataAsJson(resData, response);
+        return mdTableMag.makeAlterTableSqls(ptableId);
     }
 
     @ApiOperation(value = "发布重构表")

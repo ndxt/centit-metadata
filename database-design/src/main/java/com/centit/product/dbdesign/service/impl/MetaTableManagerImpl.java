@@ -12,9 +12,11 @@ import com.centit.product.dbdesign.po.MetaChangLog;
 import com.centit.product.dbdesign.po.PendingMetaColumn;
 import com.centit.product.dbdesign.po.PendingMetaTable;
 import com.centit.product.dbdesign.service.MetaTableManager;
+import com.centit.product.metadata.dao.MetaOptRelationDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaTableDao;
+import com.centit.product.metadata.po.MetaOptRelation;
 import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
@@ -67,6 +69,8 @@ public class MetaTableManagerImpl
 
     private MetaTableDao metaTableDao;
 
+    @Autowired
+    private MetaOptRelationDao metaOptRelationDao;
     @Resource(name = "metaTableDao")
     @NotNull
     public void setMetaTableDao(MetaTableDao baseDao) {
@@ -653,24 +657,35 @@ public class MetaTableManagerImpl
     }
 
     @Override
-    public List listCombineTables(Map<String, Object> filerMap, PageDesc pageDesc) {
-        List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(filerMap);
-        List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByProperties(filerMap);
-        List<Map> metaTablesMaps = JSONArray.parseArray(JSON.toJSONString(metaTables), Map.class);
-        List<Map> pendingMetaTablesMaps = JSONArray.parseArray(JSON.toJSONString(pendingMetaTables), Map.class);
-        if (CollectionUtils.sizeIsEmpty(metaTables) && CollectionUtils.sizeIsEmpty(pendingMetaTables)) {
+    public List listCombineTables(Map<String, Object> filterMap, PageDesc pageDesc) {
+        if (!transformFilterMap(filterMap)){
             pageDesc.setTotalRows(0);
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
-        List<Map<String, Object>> resultMaps = mergeTableDataList(metaTablesMaps, pendingMetaTablesMaps);
+        List<Map<String, Object>> resultMaps = listCombineTables(filterMap);
         pageDesc.setTotalRows(resultMaps.size());
-        String sortKey = null == MapUtils.getString(filerMap, "sort") ? "lastModifyDate" : MapUtils.getString(filerMap, "sort");
+        if (resultMaps.size()==0){
+            return Collections.emptyList();
+        }
+        resultMaps.forEach(map->{
+            if (null != map.get("recordDate")){
+            Date recordDate = new Date(MapUtils.getLong(map, "recordDate"));
+            map.put("lastModifyDate",recordDate);
+            map.put("recordDate",recordDate);
+        }else {
+            Date recordDate = new Date(MapUtils.getLong(map, "lastModifyDate"));
+            map.put("lastModifyDate",recordDate);
+            map.put("recordDate",recordDate);
+        }});
+        String sortKey = null == MapUtils.getString(filterMap, "sort") ? "lastModifyDate" : MapUtils.getString(filterMap, "sort");
         Comparator<Map> comparator = (a, b) -> GeneralAlgorithm.compareTwoObject(a.get(sortKey), b.get(sortKey));
-        if ("desc".equals(MapUtils.getString(filerMap,"order"))){
+        if ("desc".equals(MapUtils.getString(filterMap,"order"))){
             comparator = comparator.reversed();
         }
         resultMaps.sort(comparator);
-        return pagination(resultMaps, pageDesc.getPageNo(), pageDesc.getPageSize());
+        List<Map<String, Object>> pagination = pagination(resultMaps, pageDesc.getPageNo(), pageDesc.getPageSize());
+        addDataBaseName(pagination);
+        return pagination;
     }
 
 
@@ -692,8 +707,8 @@ public class MetaTableManagerImpl
      * @return
      */
     private List<Map<String, Object>> mergeTableDataList(List<Map> mcMaps, List<Map> pmcMaps) {
-        Comparator<Map> comparator = (o1, o2) -> StringUtils.compare(MapUtils.getString(o1, "tableName").toLowerCase(),
-            MapUtils.getString(o2, "tableName").toLowerCase());
+        Comparator<Map> comparator = (o1, o2) -> StringUtils.compare((MapUtils.getString(o1, "tableName")+MapUtils.getString(o1,"databaseCode")).toLowerCase(),
+            (MapUtils.getString(o2, "tableName")+MapUtils.getString(o2,"databaseCode")).toLowerCase());
         Triple<List<Map>, List<Pair<Map, Map>>, List<Map>> listTriple = CollectionsOpt.compareTwoList(mcMaps, pmcMaps, comparator);
         //mcMaps不存在pmcMaps存在  state NEW  新建状态 不展示编辑按钮，展示重构，发布按钮
         List<Map> left = listTriple.getLeft();
@@ -772,6 +787,67 @@ public class MetaTableManagerImpl
                 return records;
             }
         }
+    }
+
+    /**
+     * 转换过滤参数
+     * @param filerMap
+     * @return 是否继续下一步操作  true 是 false 否
+     */
+    private boolean transformFilterMap(Map<String,Object> filerMap) {
+        boolean b = false;
+        if (StringUtils.isNotBlank(MapUtils.getString(filerMap,"databaseCode"))){
+            b = true;
+        }
+        //查找应用范围内的多个数据表
+        if (StringUtils.isBlank(MapUtils.getString(filerMap,"databaseCode"))&& null !=filerMap.get("osId")){
+            List<SourceInfo> sourceInfos = sourceInfoDao.listObjectsByProperties(CollectionsOpt.createHashMap("osId_in", filerMap.get("osId")));
+            if (!CollectionUtils.sizeIsEmpty(sourceInfos)){
+                b= true;
+            }
+            List<String> databaseCode = sourceInfos.stream().map(SourceInfo::getDatabaseCode).collect(Collectors.toList());
+            filerMap.put("databaseCode_in",CollectionsOpt.listToArray(databaseCode));
+        }
+        //查找关联f_table_opt_relation表中的tableId
+        if (StringUtils.isBlank(MapUtils.getString(filerMap,"databaseCode"))&& null !=filerMap.get("optId")){
+            List<MetaOptRelation> metaOptRelations = metaOptRelationDao.listObjectsByProperties(CollectionsOpt.createHashMap("optId", filerMap.get("optId")));
+            if (!CollectionUtils.sizeIsEmpty(metaOptRelations)){
+                b= true;
+                Set<String> tableIds = metaOptRelations.stream().map(MetaOptRelation::getTableId).collect(Collectors.toSet());
+                filerMap.put("tableId_in",CollectionsOpt.listToArray(tableIds));
+            }
+        }
+        return b;
+    }
+
+    /**
+     * 补充databaseName字段
+     * @param pagination
+     */
+    private void addDataBaseName(List<Map<String, Object>> pagination) {
+        Set<String> databaseCodes = pagination.stream().map(map -> MapUtils.getString(map, "databaseCode")).collect(Collectors.toSet());
+        List<SourceInfo> sourceInfos = sourceInfoDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode_in", CollectionsOpt.listToArray(databaseCodes)));
+        for (Map<String, Object> map : pagination) {
+            String databaseCode = MapUtils.getString(map, "databaseCode");
+            String databaseName = sourceInfos.stream().filter(sourceInfo -> sourceInfo.getDatabaseCode().equals(databaseCode)).findFirst().map(SourceInfo::getDatabaseName).orElseGet(()->"");
+            map.put("databaseName",databaseName);
+        }
+    }
+
+    /**
+     * 获取MetaTable和PendingMetaTable组合后的数据
+     * @param filerMap
+     * @return
+     */
+    private List<Map<String, Object>> listCombineTables(Map<String, Object> filerMap) {
+        List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(filerMap);
+        List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByProperties(filerMap);
+        if (CollectionUtils.sizeIsEmpty(metaTables) && CollectionUtils.sizeIsEmpty(pendingMetaTables)) {
+            return Collections.EMPTY_LIST;
+        }
+        List<Map> metaTablesMaps = JSONArray.parseArray(JSON.toJSONString(metaTables), Map.class);
+        List<Map> pendingMetaTablesMaps = JSONArray.parseArray(JSON.toJSONString(pendingMetaTables), Map.class);
+        return mergeTableDataList(metaTablesMaps, pendingMetaTablesMaps);
     }
 }
 

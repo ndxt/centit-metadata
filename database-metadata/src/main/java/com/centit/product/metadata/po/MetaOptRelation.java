@@ -23,10 +23,15 @@ import java.io.Serializable;
 public class MetaOptRelation  implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty(value = "表ID", hidden = true)
+    @ApiModelProperty(value = "主键id")
     @Id
-    @Column(name = "table_id")
+    @Column(name = "id")
     @ValueGenerator(strategy = GeneratorType.UUID)
+    private String id;
+
+
+    @ApiModelProperty(value = "表ID", hidden = true)
+    @Column(name = "table_id")
     private String tableId;
 
 

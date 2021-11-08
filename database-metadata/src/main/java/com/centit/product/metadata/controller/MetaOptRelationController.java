@@ -29,6 +29,12 @@ public class MetaOptRelationController {
         metaOptRelationService.createMetaOptRelation(relation);
     }
 
+    @ApiOperation(value = "批量新增版本信息")
+    @PostMapping("/batchAddOptRelation")
+    @WrapUpResponseBody
+    public void batchAddOptRelation(@RequestBody List<MetaOptRelation> relations) {
+        metaOptRelationService.batchAddOptRelation(relations);
+    }
     @ApiOperation(value = "编辑版本信息")
     @PutMapping(value = "/updateOptRelation")
     @WrapUpResponseBody

@@ -16,4 +16,6 @@ public interface MetaOptRelationService {
     List<MetaOptRelation> listMetaOptRelation(Map<String, Object> params, PageDesc pageDesc);
 
     MetaOptRelation getMetaOptRelation(String tableId);
+
+    void batchAddOptRelation(List<MetaOptRelation> relations);
 }

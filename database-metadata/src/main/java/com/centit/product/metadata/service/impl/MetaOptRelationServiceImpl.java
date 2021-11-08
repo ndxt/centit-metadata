@@ -3,6 +3,7 @@ package com.centit.product.metadata.service.impl;
 import com.centit.product.metadata.dao.MetaOptRelationDao;
 import com.centit.product.metadata.po.MetaOptRelation;
 import com.centit.product.metadata.service.MetaOptRelationService;
+import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.database.utils.PageDesc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,5 +42,20 @@ public class MetaOptRelationServiceImpl implements MetaOptRelationService {
     @Override
     public MetaOptRelation getMetaOptRelation(String tableId) {
         return relationDao.getObjectById(tableId);
+    }
+
+    @Override
+    @Transactional
+    public void batchAddOptRelation(List<MetaOptRelation> relations) {
+        for (MetaOptRelation relation : relations) {
+            MetaOptRelation metaOptRelation = relationDao.getObjectByProperties(CollectionsOpt.createHashMap("optId", relation.getOptId(),
+                "tableId", relation.getTableId()));
+            if (null != metaOptRelation){
+                relation.setId(metaOptRelation.getId());
+                relationDao.mergeObject(metaOptRelation);
+            }else {
+                relationDao.saveNewObject(relation);
+            }
+        }
     }
 }

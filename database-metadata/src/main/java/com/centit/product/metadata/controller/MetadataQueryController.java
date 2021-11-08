@@ -57,6 +57,9 @@ public class MetadataQueryController extends BaseController {
     public List<SourceInfo> databases(String osId,HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
         String topUnit = WebOptUtils.getCurrentTopUnit(request);
+        if (StringUtils.isBlank(topUnit)){
+            throw new ObjectException("用户未登录，请重新登录!");
+        }
         parameters.put("topUnit",topUnit);
         return metaDataService.listDatabase(parameters);
     }

@@ -25,6 +25,7 @@ import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;
+import com.centit.support.file.FileIOOpt;
 import com.centit.support.file.FileSystemOpt;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -39,6 +40,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -322,7 +325,10 @@ public class MetaTableController extends BaseController {
         FileSystemOpt.createDirect(SystemTempFileUtils.getTempDirectory());
         String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
         try {
-            long uploadSize = UploadDownloadUtils.uploadRange(tempFilePath, fileInfo.getRight(), token, size, request);
+            long uploadSize;
+            try (FileOutputStream out = new FileOutputStream(new File(tempFilePath))) {
+                 uploadSize = FileIOOpt.writeInputStreamToOutputStream( fileInfo.getRight(), out);
+            }
             if(uploadSize>0){
                 //上传到临时区成功
                 JSONObject jsonObject = new JSONObject();

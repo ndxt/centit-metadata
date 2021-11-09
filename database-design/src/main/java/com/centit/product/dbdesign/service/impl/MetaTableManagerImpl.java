@@ -526,13 +526,14 @@ public class MetaTableManagerImpl
                     }
                 }
             }
-            if (triple.getRight() != null && triple.getRight().size() > 0) {
+            //通过手动删除的方式，删除pendingMd数据，不进行比较删除
+            /*if (triple.getRight() != null && triple.getRight().size() > 0) {
                 //删除
                 for (PendingMetaTable table : triple.getRight()) {
                     pendingMdTableDao.deleteObjectReferences(table);
                     pendingMdTableDao.deleteObject(table);
                 }
-            }
+            }*/
             if (triple.getMiddle() != null && triple.getMiddle().size() > 0) {
                 //更新
                 for (Pair<PendingMetaTable, SimpleTableInfo> pair : triple.getMiddle()) {
@@ -742,6 +743,7 @@ public class MetaTableManagerImpl
                     resultMaps.add(rightPair);
                 } else {
                     leftPair.put("state", "UPDATE");
+                    resultMaps.add(leftPair);
                 }
             }
         }

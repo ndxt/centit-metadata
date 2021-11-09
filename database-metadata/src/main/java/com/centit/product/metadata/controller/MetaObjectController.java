@@ -3,11 +3,13 @@ package com.centit.product.metadata.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.centit.fileserver.utils.UploadDownloadUtils;
 import com.centit.framework.common.ResponseData;
 import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
+import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
@@ -18,19 +20,28 @@ import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
+import com.centit.support.file.FileIOOpt;
+import com.centit.support.file.FileType;
+import com.centit.support.report.ExcelExportUtil;
+import com.centit.support.report.ExcelImportUtil;
+import com.centit.support.report.ExcelTypeEnum;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.URLEncoder;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 对数据库进行简单的增删改查，这个接口不能对外公开
@@ -105,7 +116,7 @@ public class MetaObjectController extends BaseController {
         JSONArray tempJsonArray = JSON.parseArray(primaryArray);
         tempJsonArray.forEach(object ->
             metaObjectService.deleteObjectWithChildren(tableId, CollectionsOpt.objectToMap(object), withChildrenDeep == null ? 1 : withChildrenDeep));
-        return ResponseData.makeSuccessResponse("成功删除"+tempJsonArray.size()+"条");
+        return ResponseData.makeSuccessResponse("成功删除" + tempJsonArray.size() + "条");
     }
 
     @ApiOperation(value = "新增数据库表数据")
@@ -173,9 +184,9 @@ public class MetaObjectController extends BaseController {
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public ResponseData updateObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
-                                                 @RequestBody String jsonString,HttpServletRequest request) {
+                                                 @RequestBody String jsonString, HttpServletRequest request) {
         metaObjectService.updateObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
-        saveOperationLog(request,jsonString,tableId,"update");
+        saveOperationLog(request, jsonString, tableId, "update");
         return ResponseData.makeSuccessResponse();
     }
 
@@ -184,9 +195,9 @@ public class MetaObjectController extends BaseController {
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public ResponseData saveObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
-                                               @RequestBody String jsonString,HttpServletRequest request) {
+                                               @RequestBody String jsonString, HttpServletRequest request) {
         metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
-        saveOperationLog(request,jsonString,tableId,"save");
+        saveOperationLog(request, jsonString, tableId, "save");
         return ResponseData.makeSuccessResponse();
     }
 
@@ -198,16 +209,18 @@ public class MetaObjectController extends BaseController {
                                                  HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
         metaObjectService.deleteObjectWithChildren(tableId, parameters, withChildrenDeep == null ? 1 : withChildrenDeep);
-        saveOperationLog(request,parameters,tableId,"delete");
+        saveOperationLog(request, parameters, tableId, "delete");
         return ResponseData.makeSuccessResponse();
     }
-    private void saveOperationLog(HttpServletRequest request,Object newValue, String optTag, String optMethod){
+
+    private void saveOperationLog(HttpServletRequest request, Object newValue, String optTag, String optMethod) {
         MetaTable tableInfo = metaDataCache.getTableInfo(optTag);
-        if (tableInfo !=null && tableInfo.isWriteOptLog()) {
-            OperationLogCenter.log(request,"0",
-                optTag, "metaData",optMethod, "元数据", newValue,null);
+        if (tableInfo != null && tableInfo.isWriteOptLog()) {
+            OperationLogCenter.log(request, "0",
+                optTag, "metaData", optMethod, "元数据", newValue, null);
         }
     }
+
     @ApiOperation(value = "全文检索")
     @ApiImplicitParams({@ApiImplicitParam(
         name = "tableId", value = "表单模块id",
@@ -245,4 +258,58 @@ public class MetaObjectController extends BaseController {
         pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(res.getLeft()));
         return PageQueryResult.createResult(res.getRight(), pageDesc);
     }
+
+    @ApiOperation(value = "导出数据库表数据列表可分页，传入表id")
+    @RequestMapping(value = "/{tableId}/export", method = RequestMethod.GET)
+    @MetadataJdbcTransaction
+    public void exportObjects(@PathVariable String tableId, PageDesc pageDesc,
+                              HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
+        if (null == tableId) {
+            throw new ObjectException("没有对应的表元数据");
+        }
+        JSONArray jsonArray = metaObjectService.pageQueryObjects(tableId, collectRequestParameters(request), pageDesc);
+        List<String> columnNames = tableInfo.getColumns().stream().map(MetaColumn::getPropertyName).collect(Collectors.toList());
+        InputStream excelStream = ExcelExportUtil.generateExcelStream(jsonArray,
+            CollectionsOpt.listToArray(columnNames), CollectionsOpt.listToArray(columnNames));
+        String fileName = URLEncoder.encode(tableInfo.getTableName(), "UTF-8") +
+            pageDesc.getRowStart() + "-" + pageDesc.getRowEnd() + "-" + pageDesc.getTotalRows() +
+            ".xlsx";
+        response.setContentType(FileType.mapExtNameToMimeType("xlsx"));
+        response.setHeader("Content-disposition", "attachment; filename=" + fileName);
+        IOUtils.copy(excelStream, response.getOutputStream());
+
+    }
+
+    @ApiOperation(value = "导入数据库表数据，传入表id")
+    @RequestMapping(value = "/{tableId}/import", method = RequestMethod.POST)
+    @MetadataJdbcTransaction
+    public ResponseData importObjects(@PathVariable String tableId, HttpServletRequest request) throws IOException {
+
+        Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
+        List<Map<String, Object>> maps = ExcelImportUtil.loadMapFromExcelSheet(fileInfo.getValue(), 0);
+        //剔除数据全为空的数据
+        maps = maps.stream().filter(map -> {
+            boolean b = false;
+            for (Object value : map.values()) {
+                if (null != value && (value instanceof String && StringUtils.isNotBlank((String) value))) {
+                    b = true;
+                }
+            }
+            return b;
+        }).collect(Collectors.toList());
+        //去除有自动生成策略字段中值为空字符串的数据
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
+        List<String> autoCreatedColumns = tableInfo.getColumns().stream().filter(column -> StringUtils.isNotBlank(column.getAutoCreateRule())).map(MetaColumn::getPropertyName).collect(Collectors.toList());
+        maps.forEach(map -> autoCreatedColumns.forEach(column -> {
+                if (StringUtils.isEmpty(MapUtils.getString(map, column))) {
+                    map.remove(column);
+                }
+            }
+        ));
+        maps.forEach(map -> metaObjectService.mergeObjectWithChildren(tableId, map, 1));
+        return ResponseData.makeSuccessResponse();
+    }
+
 }

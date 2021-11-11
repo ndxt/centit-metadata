@@ -793,26 +793,7 @@ public class MetaTableManagerImpl
         if (pageNum < 0 || pageSize < 0) {
             return Collections.emptyList();
         }
-        int totalCount = records.size();
-        int pageCount;
-        int remainder = totalCount % pageSize;
-        if (remainder > 0) {
-            pageCount = totalCount / pageSize + 1;
-        } else {
-            pageCount = totalCount / pageSize;
-        }
-        if (remainder == 0) {
-            records = records.stream().skip((pageNum - 1) * pageSize).limit(pageSize * pageNum).collect(Collectors.toList());
-            return records;
-        } else {
-            if (pageNum == pageCount) {
-                records = records.stream().skip((pageNum - 1) * pageSize).limit(totalCount).collect(Collectors.toList());
-                return records;
-            } else {
-                records = records.stream().skip((pageNum - 1) * pageSize).limit(pageSize * pageNum).collect(Collectors.toList());
-                return records;
-            }
-        }
+        return records.stream().skip((pageNum - 1) * pageSize).limit(pageSize).collect(Collectors.toList());
     }
 
     /**

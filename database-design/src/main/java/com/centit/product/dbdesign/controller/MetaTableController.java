@@ -324,11 +324,8 @@ public class MetaTableController extends BaseController {
         Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
         FileSystemOpt.createDirect(SystemTempFileUtils.getTempDirectory());
         String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
-        try {
-            long uploadSize;
-            try (FileOutputStream out = new FileOutputStream(new File(tempFilePath))) {
-                 uploadSize = FileIOOpt.writeInputStreamToOutputStream( fileInfo.getRight(), out);
-            }
+        try (FileOutputStream out = new FileOutputStream(new File(tempFilePath))){
+            long uploadSize = FileIOOpt.writeInputStreamToOutputStream( fileInfo.getRight(), out);
             if(uploadSize>0){
                 //上传到临时区成功
                 JSONObject jsonObject = new JSONObject();
@@ -337,7 +334,6 @@ public class MetaTableController extends BaseController {
                 data.put("tables", PdmTableInfoUtils.getTableNameFromPdm(tempFilePath));
                 jsonObject.put("tables", data);
                 JsonResultUtils.writeSingleDataJson(jsonObject,response);
-                //FileSystemOpt.deleteFile(tempFilePath);
             }else {
                 JsonResultUtils.writeOriginalJson(UploadDownloadUtils.
                     makeRangeUploadJson(uploadSize, token, token +"_"+size).toJSONString(), response);
@@ -419,12 +415,21 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public PageQueryResult listCombineTables(@PathVariable String databaseCode, PageDesc pageDesc ,HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
-        if (!"databaseCode".equals(databaseCode)){
-            parameters.put("databaseCode", databaseCode);
-        }else {
-            parameters.remove("databaseCode");
-        }
         List list = mdTableMag.listCombineTables(parameters, pageDesc);
+        return PageQueryResult.createResult(list, pageDesc);
+    }
+
+
+    @ApiOperation(value = "查询列元数据,pending表与md表数据的组合,通过osId或optId过滤")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "osId", value = "应用id"),
+        @ApiImplicitParam(name = "optId", value = "操作id")
+    })
+    @GetMapping(value = "/listCombineTables")
+    @WrapUpResponseBody
+    public PageQueryResult listCombineTables( PageDesc pageDesc ,HttpServletRequest request) {
+        Map<String, Object> parameters = collectRequestParameters(request);
+        List list = mdTableMag.listCombineTablesByProperty(parameters, pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }
 }

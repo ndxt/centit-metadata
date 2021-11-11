@@ -1,5 +1,6 @@
 package com.centit.product.dbdesign.dao;
 
+import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.framework.jdbc.dao.DatabaseOptUtils;
@@ -15,34 +16,59 @@ import java.util.Map;
 /**
  * PendingMdTableDao  Repository.
  * create by scaffold 2016-06-01
-
+ * <p>
  * 未落实表元数据表null
-*/
+ */
 
 @Repository
-public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String>
-    {
+public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
 
     public static final Log log = LogFactory.getLog(PendingMetaTableDao.class);
 
     @Override
     public Map<String, String> getFilterField() {
         Map<String, String> filterField = new HashMap<String, String>();
-        filterField.put("tableId" , CodeBook.EQUAL_HQL_ID);
-        filterField.put("databaseCode" , CodeBook.EQUAL_HQL_ID);
-        filterField.put("tableName" , CodeBook.EQUAL_HQL_ID);
-        filterField.put("tableLabelName" , CodeBook.EQUAL_HQL_ID);
-        filterField.put("tableType" , CodeBook.EQUAL_HQL_ID);
-        filterField.put("tableState" , CodeBook.EQUAL_HQL_ID);
-        filterField.put("tableComment" , CodeBook.EQUAL_HQL_ID);
-        filterField.put("isInWorkflow" , CodeBook.EQUAL_HQL_ID);
-        filterField.put("lastModifyDate" , CodeBook.EQUAL_HQL_ID);
-        filterField.put("recorder" , CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableId", CodeBook.EQUAL_HQL_ID);
+        filterField.put("databaseCode", CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableName", CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableLabelName", CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableType", CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableState", CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableComment", CodeBook.EQUAL_HQL_ID);
+        filterField.put("isInWorkflow", CodeBook.EQUAL_HQL_ID);
+        filterField.put("lastModifyDate", CodeBook.EQUAL_HQL_ID);
+        filterField.put("recorder", CodeBook.EQUAL_HQL_ID);
 
         return filterField;
     }
 
-        public Long getNextKey(){
-            return DatabaseOptUtils.getSequenceNextValue(this, "seq_pendingtableid");
-        }
+    public Long getNextKey() {
+        return DatabaseOptUtils.getSequenceNextValue(this, "seq_pendingtableid");
+    }
+
+    /**
+     * 根据osId过滤MPendingMetaTable数据
+     *
+     * @param osId osId
+     * @return
+     */
+    public JSONArray getPendingMetaTableListByOsId(String osId) {
+        String sql = " SELECT  B.TABLE_ID, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_LABEL_NAME, B.TABLE_COMMENT, B.TABLE_STATE, B.WORKFLOW_OPT_TYPE, B.UPDATE_CHECK_TIMESTAMP, B.LAST_MODIFY_DATE,\n" +
+            " B.RECORDER, B.PRIMARY_KEY, B.TABLE_TYPE ,C.DATABASE_NAME FROM f_database_info A JOIN f_pending_meta_table B ON A.Database_Code = B.DATABASE_CODE " +
+            " JOIN  f_database_info C ON B.DATABASE_CODE =C.DATABASE_CODE WHERE a.OS_ID = ?  ";
+        return DatabaseOptUtils.listObjectsBySqlAsJson(this, sql, new Object[]{osId});
+    }
+
+    /**
+     * 根据osId过滤MPendingMetaTable数据
+     *
+     * @param optId optId
+     * @return
+     */
+    public JSONArray getPendingMetaTableListByOptId(String optId) {
+        String sql = " SELECT  B.TABLE_ID, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_LABEL_NAME, B.TABLE_COMMENT, B.TABLE_STATE, B.WORKFLOW_OPT_TYPE, B.UPDATE_CHECK_TIMESTAMP, B.LAST_MODIFY_DATE,\n" +
+            " B.RECORDER, B.PRIMARY_KEY, B.TABLE_TYPE ,C.DATABASE_NAME FROM  f_table_opt_relation A JOIN f_pending_meta_table B ON  A.TABLE_ID = B.TABLE_ID " +
+            "  JOIN  f_database_info C ON B.DATABASE_CODE =C.DATABASE_CODE  WHERE A.OPT_ID = ? ";
+        return DatabaseOptUtils.listObjectsBySqlAsJson(this, sql, new Object[]{optId});
+    }
 }

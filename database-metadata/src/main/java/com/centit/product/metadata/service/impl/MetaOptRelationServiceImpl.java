@@ -52,7 +52,7 @@ public class MetaOptRelationServiceImpl implements MetaOptRelationService {
                 "tableId", relation.getTableId()));
             if (null != metaOptRelation){
                 relation.setId(metaOptRelation.getId());
-                relationDao.mergeObject(metaOptRelation);
+                relationDao.updateObject(metaOptRelation);
             }else {
                 relationDao.saveNewObject(relation);
             }

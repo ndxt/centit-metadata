@@ -63,9 +63,9 @@ public class SourceInfoController extends BaseController {
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public PageQueryResult<Object> list(PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = BaseController.collectRequestParameters(request);
-
-//        JSONArray listObjects = databaseInfoMag.queryDatabaseAsJson(
-//                StringBaseOpt.objectToString(searchColumn.get("databaseName")), pageDesc);
+        if (WebOptUtils.isTenantTopUnit(request)){
+            searchColumn.put("topUnit", WebOptUtils.getCurrentTopUnit(request));
+        }
         JSONArray listObjects = databaseInfoMag.listObjectsAsJson(searchColumn, pageDesc);
 
         return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, SourceInfo.class);

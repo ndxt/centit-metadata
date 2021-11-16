@@ -60,7 +60,9 @@ public class MetadataQueryController extends BaseController {
         if (StringUtils.isBlank(topUnit)){
             throw new ObjectException("用户未登录，请重新登录!");
         }
-        parameters.put("topUnit",topUnit);
+        if (WebOptUtils.isTenantTopUnit(request)) {
+            parameters.put("topUnit", WebOptUtils.getCurrentTopUnit(request));
+        }
         return metaDataService.listDatabase(parameters);
     }
 

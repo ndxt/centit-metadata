@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,8 +58,9 @@ public class MetadataQueryController extends BaseController {
     public List<SourceInfo> databases(String osId,HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
         String topUnit = WebOptUtils.getCurrentTopUnit(request);
+        //如果用户还未加入到任何租户，不进行数据查询操作
         if (StringUtils.isBlank(topUnit)){
-            throw new ObjectException("用户未登录，请重新登录!");
+            return Collections.emptyList();
         }
         if (WebOptUtils.isTenantTopUnit(request)) {
             parameters.put("topUnit", WebOptUtils.getCurrentTopUnit(request));

@@ -415,6 +415,7 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public PageQueryResult listCombineTables(@PathVariable String databaseCode, PageDesc pageDesc ,HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
+        parameters.put("databaseCode",databaseCode);
         List list = mdTableMag.listCombineTables(parameters, pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }

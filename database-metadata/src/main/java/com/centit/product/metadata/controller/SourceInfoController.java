@@ -12,6 +12,7 @@ import com.centit.framework.model.basedata.OperationLog;
 import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.json.JsonPropertyUtils;
 import com.centit.support.network.HtmlFormUtils;
@@ -32,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -63,8 +65,13 @@ public class SourceInfoController extends BaseController {
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public PageQueryResult<Object> list(PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = BaseController.collectRequestParameters(request);
+        String topUnit = WebOptUtils.getCurrentTopUnit(request);
+        //如果用户还未加入到任何租户，不进行数据查询操作
+        if (StringUtils.isBlank(topUnit)){
+            return PageQueryResult.createResult(Collections.emptyList(), pageDesc);
+        }
         if (WebOptUtils.isTenantTopUnit(request)){
-            searchColumn.put("topUnit", WebOptUtils.getCurrentTopUnit(request));
+            searchColumn.put("topUnit", topUnit);
         }
         JSONArray listObjects = databaseInfoMag.listObjectsAsJson(searchColumn, pageDesc);
 

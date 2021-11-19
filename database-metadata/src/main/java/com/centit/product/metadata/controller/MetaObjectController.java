@@ -289,13 +289,12 @@ public class MetaObjectController extends BaseController {
         List<Map<String, Object>> maps = ExcelImportUtil.loadMapFromExcelSheet(fileInfo.getValue(), 0);
         //剔除数据全为空的数据
         maps = maps.stream().filter(map -> {
-            boolean b = false;
             for (Object value : map.values()) {
-                if (null != value && (value instanceof String && StringUtils.isNotBlank((String) value))) {
-                    b = true;
+                if (null != value) {
+                   return true;
                 }
             }
-            return b;
+            return false;
         }).collect(Collectors.toList());
         //去除有自动生成策略字段中值为空字符串的数据
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);

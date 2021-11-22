@@ -49,14 +49,15 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
     /**
      * 根据osId过滤MPendingMetaTable数据
      *
-     * @param osId osId
+     * @param parameters parameters
      * @return
      */
-    public JSONArray getPendingMetaTableListByOsId(String osId) {
-        String sql = " SELECT  B.TABLE_ID, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_LABEL_NAME, B.TABLE_COMMENT, B.TABLE_STATE, B.WORKFLOW_OPT_TYPE, B.UPDATE_CHECK_TIMESTAMP, B.LAST_MODIFY_DATE,\n" +
-            " B.RECORDER, B.PRIMARY_KEY, B.TABLE_TYPE ,C.DATABASE_NAME FROM f_database_info A JOIN f_pending_meta_table B ON A.Database_Code = B.DATABASE_CODE " +
-            " JOIN  f_database_info C ON B.DATABASE_CODE =C.DATABASE_CODE WHERE a.OS_ID = ?  ";
-        return DatabaseOptUtils.listObjectsBySqlAsJson(this, sql, new Object[]{osId});
+    public JSONArray getPendingMetaTableList(Map<String, Object> parameters) {
+        String sql = " SELECT  A.DATABASE_NAME , B.TABLE_ID, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_LABEL_NAME, B.TABLE_COMMENT, B.TABLE_STATE, B.WORKFLOW_OPT_TYPE, B.UPDATE_CHECK_TIMESTAMP, B.LAST_MODIFY_DATE,\n" +
+            " B.RECORDER, B.PRIMARY_KEY, B.TABLE_TYPE  FROM F_DATABASE_INFO A JOIN F_PENDING_META_TABLE B ON A.DATABASE_CODE = B.DATABASE_CODE " +
+            "  WHERE  1 = 1 [ :topUnit | AND A.TOP_UNIT = :topUnit ]  [ :databaseCode | AND A.DATABASE_CODE = :databaseCode ] " +
+            "  [ :(like)tableName | AND B.TABLE_NAME LIKE :tableName ]  [ :(like)tableLabelName | AND B.TABLE_NAME LIKE :tableLabelName ]  ";
+        return DatabaseOptUtils.listObjectsByParamsDriverSqlAsJson(this,sql,parameters);
     }
 
     /**

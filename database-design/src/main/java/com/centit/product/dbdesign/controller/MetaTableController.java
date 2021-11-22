@@ -44,10 +44,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -407,23 +404,9 @@ public class MetaTableController extends BaseController {
     }
 
 
-    @ApiOperation(value = "查询列元数据,pending表与md表数据的组合")
+    @ApiOperation(value = "查询列元数据,pending表与md表数据的组合,通过osId或topUnit,或dataBaseCode过滤")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "tableId", value = "表ID")
-    })
-    @GetMapping(value = "/{databaseCode}/listCombineTables")
-    @WrapUpResponseBody
-    public PageQueryResult listCombineTables(@PathVariable String databaseCode, PageDesc pageDesc ,HttpServletRequest request) {
-        Map<String, Object> parameters = collectRequestParameters(request);
-        parameters.put("databaseCode",databaseCode);
-        List list = mdTableMag.listCombineTables(parameters, pageDesc);
-        return PageQueryResult.createResult(list, pageDesc);
-    }
-
-
-    @ApiOperation(value = "查询列元数据,pending表与md表数据的组合,通过osId或optId过滤")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "osId", value = "应用id"),
+        @ApiImplicitParam(name = "databaseCode", value = "数据库code"),
         @ApiImplicitParam(name = "optId", value = "操作id")
     })
     @GetMapping(value = "/listCombineTables")

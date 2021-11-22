@@ -3,6 +3,8 @@ package com.centit.product.dbdesign.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.ResponseData;
+import com.centit.framework.common.WebOptUtils;
+import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
@@ -654,39 +656,35 @@ public class MetaTableManagerImpl
     }
 
     @Override
-    public List listCombineTables(Map<String, Object> filterMap, PageDesc pageDesc) {
-        List<Map<String, Object>> resultMaps = listCombineTables(filterMap);
-        pageDesc.setTotalRows(resultMaps.size());
-        if (resultMaps.size() == 0) {
-            return Collections.emptyList();
-        }
-        sortCombineTables(filterMap, resultMaps);
-        return pagination(resultMaps, pageDesc.getPageNo(), pageDesc.getPageSize());
-    }
-
-    @Override
     public MetaTable getMetaTableWithReferences(String tableId) {
         return metaTableDao.getObjectWithReferences(tableId);
     }
 
     @Override
     public List listCombineTablesByProperty(Map<String, Object> parameters, PageDesc pageDesc) {
-        String osId = MapUtils.getString(parameters, "osId");
+        String databaseCode = MapUtils.getString(parameters, "databaseCode");
         String optId = MapUtils.getString(parameters, "optId");
-        List<Map<String, Object>> mergeTableList = null;
-        if (StringUtils.isNotBlank(osId)) {
-            JSONArray metaTablesJsonArray = metaTableDao.getMetaTableListByOsId(osId);
-            JSONArray pendingMetaTableJSONArray = pendingMdTableDao.getPendingMetaTableListByOsId(osId);
-            mergeTableList = mergeTableDataList(JSONArray.parseArray(JSON.toJSONString(metaTablesJsonArray),Map.class),
-                JSONArray.parseArray(JSON.toJSONString(pendingMetaTableJSONArray),Map.class));
-        } else if (StringUtils.isNotBlank(optId)) {
+        String topUnit = WebOptUtils.getCurrentTopUnit(RequestThreadLocal.getLocalThreadWrapperRequest());
+        List<Map<String, Object>> mergeTableList = new ArrayList<>();
+        if (StringUtils.isNotBlank(databaseCode)) {
+            //根据 databaseCode查询表信息
+            mergeTableList = listCombineTables(parameters);
+        }else if (StringUtils.isNotBlank(optId)){
+            //根据optId查询表信息
             JSONArray metaTablesJsonArray = metaTableDao.getMetaTableListByOptId(optId);
             JSONArray pendingMetaTableJSONArray = pendingMdTableDao.getPendingMetaTableListByOptId(optId);
-            mergeTableList = mergeTableDataList(JSONArray.parseArray(JSON.toJSONString(metaTablesJsonArray),Map.class),
-                JSONArray.parseArray(JSON.toJSONString(pendingMetaTableJSONArray),Map.class));
+            mergeTableList = mergeTableDataList(JSONArray.parseArray(JSON.toJSONString(metaTablesJsonArray), Map.class),
+                JSONArray.parseArray(JSON.toJSONString(pendingMetaTableJSONArray), Map.class));
+        }else if (StringUtils.isNotBlank(topUnit)){
+            //根据topUnit查询表信息
+            parameters.put("topUnit",topUnit);
+            JSONArray metaTablesJsonArray = metaTableDao.getMetaTableList(parameters);
+            JSONArray pendingMetaTableJSONArray = pendingMdTableDao.getPendingMetaTableList(parameters);
+            mergeTableList = mergeTableDataList(JSONArray.parseArray(JSON.toJSONString(metaTablesJsonArray), Map.class),
+                JSONArray.parseArray(JSON.toJSONString(pendingMetaTableJSONArray), Map.class));
         }
+        pageDesc.setTotalRows(mergeTableList.size());
         if (CollectionUtils.sizeIsEmpty(mergeTableList)) {
-            pageDesc.setTotalRows(0);
             return Collections.emptyList();
         }
         pageDesc.setTotalRows(mergeTableList.size());

@@ -33,14 +33,15 @@ public class MetaTableDao extends BaseDaoImpl<MetaTable, String> {
 
     /**
      * 根据osId过滤MetaTable数据
-     * @param osId osId
+     * @param parameters parameters
      * @return
      */
-    public JSONArray getMetaTableListByOsId(String osId) {
-        String sql = " SELECT B.TABLE_ID, B.TABLE_LABEL_NAME, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_TYPE, B.ACCESS_TYPE, B.TABLE_COMMENT, B.WORKFLOW_OPT_TYPE, B.RECORD_DATE,\n" +
-            " B.RECORDER, B.UPDATE_CHECK_TIMESTAMP, B.FULLTEXT_SEARCH, B.WRITE_OPT_LOG, B.OBJECT_TITLE ,C.DATABASE_NAME  FROM f_database_info A JOIN f_md_table B ON A.Database_Code = B.DATABASE_CODE " +
-            " JOIN  f_database_info C ON B.DATABASE_CODE =C.DATABASE_CODE  WHERE a.OS_ID = ? ";
-        return DatabaseOptUtils.listObjectsBySqlAsJson(this, sql, new Object[]{osId});
+    public JSONArray getMetaTableList(Map<String, Object> parameters) {
+        String sql = " SELECT A.DATABASE_NAME , B.TABLE_ID, B.TABLE_LABEL_NAME, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_TYPE, B.ACCESS_TYPE, B.TABLE_COMMENT, B.WORKFLOW_OPT_TYPE, B.RECORD_DATE,\n" +
+            " B.RECORDER, B.UPDATE_CHECK_TIMESTAMP, B.FULLTEXT_SEARCH, B.WRITE_OPT_LOG, B.OBJECT_TITLE   FROM F_DATABASE_INFO A JOIN F_MD_TABLE B ON A.DATABASE_CODE = B.DATABASE_CODE " +
+            "  WHERE  1 = 1 [ :topUnit | AND A.TOP_UNIT = :topUnit ]  [ :databaseCode | AND A.DATABASE_CODE = :databaseCode ] " +
+            " [ :(like)tableName | AND B.TABLE_NAME LIKE :tableName ]  [ :(like)tableLabelName | AND B.TABLE_NAME LIKE :tableLabelName ] ";
+        return DatabaseOptUtils.listObjectsByParamsDriverSqlAsJson(this,sql,parameters);
     }
 
     /**

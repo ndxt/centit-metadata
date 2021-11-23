@@ -78,10 +78,12 @@
         <dependency>
             <groupId>com.centit.product</groupId>
             <artifactId>fileserver-utils</artifactId>
+            <version>5.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.centit.product</groupId>
             <artifactId>work-group-adapter</artifactId>
+            <version>5.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

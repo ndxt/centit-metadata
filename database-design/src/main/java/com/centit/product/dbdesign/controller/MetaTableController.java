@@ -12,6 +12,8 @@ import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
+import com.centit.framework.core.dao.DictionaryMapColumn;
+import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
 import com.centit.product.dbdesign.pdmutils.PdmTableInfoUtils;
@@ -414,6 +416,20 @@ public class MetaTableController extends BaseController {
     public PageQueryResult listCombineTables( PageDesc pageDesc ,HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
         List list = mdTableMag.listCombineTablesByProperty(parameters, pageDesc);
+        tableDictionaryMap(list);
         return PageQueryResult.createResult(list, pageDesc);
+    }
+
+    /**
+     * 对listCombineTables中的表数据集合进行字段翻译
+     * @param list
+     */
+    private void tableDictionaryMap(List list){
+        DictionaryMapColumn dicMap1 = new DictionaryMapColumn("recorder","recorderName","userCode");
+        DictionaryMapColumn dicMap2 = new DictionaryMapColumn("tableType","tableTypeDes","tableType");
+        ArrayList<DictionaryMapColumn> dicMaps = new ArrayList<>();
+        dicMaps.add(dicMap1);
+        dicMaps.add(dicMap2);
+        DictionaryMapUtils.mapJsonArray(list, dicMaps);
     }
 }

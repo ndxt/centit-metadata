@@ -11,7 +11,7 @@ public interface MetaOptRelationService {
 
     void updateMetaOptRelation(MetaOptRelation relation);
 
-    void deleteMetaOptRelation(String tableId);
+    void deleteMetaOptRelation(String id);
 
     List<MetaOptRelation> listMetaOptRelation(Map<String, Object> params, PageDesc pageDesc);
 

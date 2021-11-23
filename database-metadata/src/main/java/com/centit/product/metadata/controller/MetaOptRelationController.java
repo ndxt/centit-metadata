@@ -43,10 +43,10 @@ public class MetaOptRelationController {
     }
 
     @ApiOperation(value = "删除版本信息")
-    @DeleteMapping(value = "/{tableId}")
+    @DeleteMapping(value = "/{id}")
     @WrapUpResponseBody
-    public void deleteMetaOptRelation(@PathVariable String tableId) {
-        metaOptRelationService.deleteMetaOptRelation(tableId);
+    public void deleteMetaOptRelation(@PathVariable String id) {
+        metaOptRelationService.deleteMetaOptRelation(id);
     }
 
     @ApiOperation(value = "查询版本信息列表")

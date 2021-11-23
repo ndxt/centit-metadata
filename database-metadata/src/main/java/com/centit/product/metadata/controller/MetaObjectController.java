@@ -5,10 +5,15 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.fileserver.utils.UploadDownloadUtils;
 import com.centit.framework.common.ResponseData;
+import com.centit.framework.common.WebOptUtils;
+import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
+import com.centit.framework.filter.RequestThreadLocal;
+import com.centit.framework.model.basedata.IOsInfo;
+import com.centit.product.adapter.api.WorkGroupManager;
 import com.centit.product.metadata.po.MetaColumn;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
@@ -27,6 +32,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,12 +64,16 @@ public class MetaObjectController extends BaseController {
     @Autowired(required = false)
     private ESSearcher esObjectSearcher;
 
+    @Autowired
+    private WorkGroupManager workGroupManager;
+
     @ApiOperation(value = "分页查询数据库表数据列表")
     @RequestMapping(value = "/{tableId}/list", method = RequestMethod.GET)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public PageQueryResult<Object> listObjects(@PathVariable String tableId, PageDesc pageDesc,
                                                String[] fields, HttpServletRequest request) {
+        checkUserOptPower();
         Map<String, Object> params = collectRequestParameters(request);
         JSONArray ja = metaObjectService.pageQueryObjects(
             tableId, params, pageDesc);
@@ -76,6 +86,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public Map<String, Object> getObject(@PathVariable String tableId,
                                          HttpServletRequest request) {
+        checkUserOptPower();
         Map<String, Object> parameters = collectRequestParameters(request);
         return metaObjectService.getObjectById(tableId, parameters);
     }
@@ -86,6 +97,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData updateObject(@PathVariable String tableId,
                                      @RequestBody String jsonString) {
+        checkUserOptPower();
         metaObjectService.updateObject(tableId, JSON.parseObject(jsonString));
         return ResponseData.makeSuccessResponse();
     }
@@ -96,6 +108,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData batchUpdateObject(@PathVariable String tableId,
                                           @RequestBody String fieldsObject, HttpServletRequest request) {
+        checkUserOptPower();
         Map<String, Object> params = collectRequestParameters(request);
         JSONObject object = JSON.parseObject(fieldsObject);
         int iReturn = metaObjectService.updateObjectsByProperties(tableId, object, params);
@@ -111,6 +124,7 @@ public class MetaObjectController extends BaseController {
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public ResponseData batchDeleteObject(@PathVariable String tableId, @RequestBody String primaryArray, Integer withChildrenDeep) {
+        checkUserOptPower();
         JSONArray tempJsonArray = JSON.parseArray(primaryArray);
         tempJsonArray.forEach(object ->
             metaObjectService.deleteObjectWithChildren(tableId, CollectionsOpt.objectToMap(object), withChildrenDeep == null ? 1 : withChildrenDeep));
@@ -123,6 +137,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData saveObject(@PathVariable String tableId,
                                    @RequestBody String jsonString) {
+        checkUserOptPower();
         metaObjectService.saveObject(tableId, JSON.parseObject(jsonString));
         return ResponseData.makeSuccessResponse();
     }
@@ -133,6 +148,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData deleteObject(@PathVariable String tableId,
                                      HttpServletRequest request) {
+        checkUserOptPower();
         Map<String, Object> parameters = collectRequestParameters(request);
         metaObjectService.deleteObject(tableId, parameters);
         return ResponseData.makeSuccessResponse();
@@ -145,6 +161,7 @@ public class MetaObjectController extends BaseController {
     public List<Map<String, Object>> batchMergeObjectWithChildren(@PathVariable String tableId,
                                                                   @RequestBody String mergeArray,
                                                                   Integer withChildrenDeep) {
+        checkUserOptPower();
         JSONArray jsonArray = JSON.parseArray(mergeArray);
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         List<Map<String, Object>> list = new ArrayList<>();
@@ -173,6 +190,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public Map<String, Object> getObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                      HttpServletRequest request) {
+        checkUserOptPower();
         Map<String, Object> parameters = collectRequestParameters(request);
         return metaObjectService.getObjectWithChildren(tableId, parameters, withChildrenDeep == null ? 1 : withChildrenDeep);
     }
@@ -183,6 +201,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData updateObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                  @RequestBody String jsonString, HttpServletRequest request) {
+        checkUserOptPower();
         metaObjectService.updateObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
         saveOperationLog(request, jsonString, tableId, "update");
         return ResponseData.makeSuccessResponse();
@@ -194,6 +213,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData saveObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                @RequestBody String jsonString, HttpServletRequest request) {
+        checkUserOptPower();
         metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
         saveOperationLog(request, jsonString, tableId, "save");
         return ResponseData.makeSuccessResponse();
@@ -205,6 +225,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData deleteObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                  HttpServletRequest request) {
+        checkUserOptPower();
         Map<String, Object> parameters = collectRequestParameters(request);
         metaObjectService.deleteObjectWithChildren(tableId, parameters, withChildrenDeep == null ? 1 : withChildrenDeep);
         saveOperationLog(request, parameters, tableId, "delete");
@@ -235,6 +256,7 @@ public class MetaObjectController extends BaseController {
         if (esObjectSearcher == null) {
             throw new ObjectException(ObjectException.SYSTEM_CONFIG_ERROR, "没有正确配置Elastic Search");
         }
+        checkUserOptPower();
         Map<String, Object> queryParam = collectRequestParameters(request);
         Map<String, Object> searchQuery = new HashMap<>(10);
         String queryWord = StringBaseOpt.castObjectToString(queryParam.get("query"));
@@ -263,6 +285,7 @@ public class MetaObjectController extends BaseController {
     public void exportObjects(@PathVariable String tableId, PageDesc pageDesc,
                               HttpServletRequest request, HttpServletResponse response) throws IOException {
 
+        checkUserOptPower();
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         if (null == tableId) {
             throw new ObjectException("没有对应的表元数据");
@@ -285,13 +308,14 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData importObjects(@PathVariable String tableId, HttpServletRequest request) throws IOException {
 
+        checkUserOptPower();
         Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
         List<Map<String, Object>> maps = ExcelImportUtil.loadMapFromExcelSheet(fileInfo.getValue(), 0);
         //剔除数据全为空的数据
         maps = maps.stream().filter(map -> {
             for (Object value : map.values()) {
                 if (null != value) {
-                   return true;
+                    return true;
                 }
             }
             return false;
@@ -309,4 +333,35 @@ public class MetaObjectController extends BaseController {
         return ResponseData.makeSuccessResponse();
     }
 
+    /**
+     * 判断当前人员是否具有操作权限
+     * 1.未登录者没有权限
+     * 2.登录人没有加入任何租户没有权限
+     * 3.加入租户内没有任何应用没有权限
+     * 4.登录人没有加入开发组没有权限
+     *
+     */
+    private void checkUserOptPower() {
+        HttpServletRequest request = RequestThreadLocal.getLocalThreadWrapperRequest();
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if (StringUtils.isBlank(userCode)) {
+            userCode = WebOptUtils.getRequestFirstOneParameter(request, "userCode");
+        }
+        if (StringUtils.isBlank(userCode)) {
+            throw new ObjectException(ResponseData.ERROR_USER_NOT_LOGIN, "您未登录!");
+        }
+        String topUnit = WebOptUtils.getCurrentTopUnit(request);
+        if (StringUtils.isBlank(topUnit)) {
+            throw new ObjectException(ResponseData.ERROR_PRECONDITION_FAILED, "您还未加入任何租户!");
+        }
+
+        List<? extends IOsInfo> osInfos = CodeRepositoryUtil.listOsInfo(topUnit);
+        if (CollectionUtils.sizeIsEmpty(osInfos)) {
+            throw new ObjectException(ResponseData.ERROR_PRECONDITION_FAILED, "您当前所在的租户还未创建任何应用!");
+        }
+        String osIds = osInfos.stream().map(IOsInfo::getOsId).collect(Collectors.joining(","));
+        if (!workGroupManager.loginUserIsExistWorkGroup(osIds, userCode)) {
+            throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您没有权限！");
+        }
+    }
 }

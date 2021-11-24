@@ -738,7 +738,7 @@ public class MetaTableManagerImpl
                     rightPair.put("state", "RELEASED");
                     //tableComment,workFlowOptType以leftPair左边为准
                     rightPair.put("tableComment",leftPair.get("tableComment"));
-                    rightPair.put("workFlowOptType",leftPair.get("tableComment"));
+                    rightPair.put("workFlowOptType",leftPair.get("workFlowOptType"));
                     resultMaps.add(rightPair);
                 } else {
                     leftPair.put("state", "UPDATE");

@@ -426,7 +426,7 @@ public class MetaTableController extends BaseController {
      */
     private void tableDictionaryMap(List list){
         DictionaryMapColumn dicMap1 = new DictionaryMapColumn("recorder","recorderName","userCode");
-        DictionaryMapColumn dicMap2 = new DictionaryMapColumn("tableType","tableTypeDes","tableType");
+        DictionaryMapColumn dicMap2 = new DictionaryMapColumn("tableType","tableTypeText","tableType");
         ArrayList<DictionaryMapColumn> dicMaps = new ArrayList<>();
         dicMaps.add(dicMap1);
         dicMaps.add(dicMap2);

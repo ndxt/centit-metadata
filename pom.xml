@@ -27,6 +27,7 @@
         <!--<module>database-webapp</module>-->
         <module>database-metadata-graphql</module>
         <module>database-design</module>
+        <module>centit-metadata-adapter</module>
     </modules>
 
     <properties>

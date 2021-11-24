@@ -2,6 +2,7 @@ package com.centit.product.metadata.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.JsonResultUtils;
+import com.centit.framework.common.ResponseData;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
@@ -92,7 +93,14 @@ public class SourceInfoController extends BaseController {
     @RequestMapping(method = {RequestMethod.POST})
     public void saveDatabaseInfo(@RequestBody SourceInfo databaseinfo,
                                  HttpServletRequest request, HttpServletResponse response) {
-
+        if (StringUtils.isBlank(WebOptUtils.getCurrentUserCode(request))){
+            throw new ObjectException(ResponseData.ERROR_USER_NOT_LOGIN,"您未登录!");
+        }
+        String topUnit = WebOptUtils.getCurrentTopUnit(request);
+        if (StringUtils.isBlank(topUnit)){
+            throw new ObjectException(ResponseData.ERROR_INTERNAL_SERVER_ERROR,"您还未加入租户!");
+        }
+        databaseinfo.setTopUnit(topUnit);
         databaseinfo.setDatabaseUrl(HtmlFormUtils.htmlString(databaseinfo.getDatabaseUrl()));
         //加密
         if (StringUtils.isNotBlank(databaseinfo.getPassword())) {

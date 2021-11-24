@@ -733,17 +733,13 @@ public class MetaTableManagerImpl
                 Map leftPair = pair.getLeft();
                 //pmcMaps的子集
                 Map rightPair = pair.getRight();
-                //如果不相等以pmcMaps为准，添加到updateMaps中
+                //如果不相等，以左边为基准
                 if ("S".equals(MapUtils.getString(rightPair, "tableState"))) {
-                    rightPair.put("state", "RELEASED");
-                    //tableComment,workFlowOptType以leftPair左边为准
-                    rightPair.put("tableComment",leftPair.get("tableComment"));
-                    rightPair.put("workFlowOptType",leftPair.get("workFlowOptType"));
-                    resultMaps.add(rightPair);
+                    leftPair.put("state", "RELEASED");
                 } else {
                     leftPair.put("state", "UPDATE");
-                    resultMaps.add(leftPair);
                 }
+                resultMaps.add(leftPair);
             }
         }
         return resultMaps;

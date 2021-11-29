@@ -671,8 +671,8 @@ public class MetaTableManagerImpl
             mergeTableList = listCombineTables(parameters);
         }else if (StringUtils.isNotBlank(optId)){
             //根据optId查询表信息
-            JSONArray metaTablesJsonArray = metaTableDao.getMetaTableListByOptId(optId);
-            JSONArray pendingMetaTableJSONArray = pendingMdTableDao.getPendingMetaTableListByOptId(optId);
+            JSONArray metaTablesJsonArray = metaTableDao.getMetaTableListWithTableOptRelation(parameters);
+            JSONArray pendingMetaTableJSONArray = pendingMdTableDao.getPendingMetaTableListWithTableOptRelation(parameters);
             mergeTableList = mergeTableDataList(JSONArray.parseArray(JSON.toJSONString(metaTablesJsonArray), Map.class),
                 JSONArray.parseArray(JSON.toJSONString(pendingMetaTableJSONArray), Map.class));
         }else if (StringUtils.isNotBlank(topUnit)){
@@ -800,8 +800,8 @@ public class MetaTableManagerImpl
      * @return
      */
     private List<Map<String, Object>> listCombineTables(Map<String, Object> filerMap) {
-        List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(filerMap);
-        List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByProperties(filerMap);
+        List<MetaTable> metaTables = metaTableDao.listObjects(filerMap);
+        List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjects(filerMap);
         if (CollectionUtils.sizeIsEmpty(metaTables) && CollectionUtils.sizeIsEmpty(pendingMetaTables)) {
             return Collections.EMPTY_LIST;
         }

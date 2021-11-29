@@ -30,8 +30,8 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
         Map<String, String> filterField = new HashMap<String, String>();
         filterField.put("tableId", CodeBook.EQUAL_HQL_ID);
         filterField.put("databaseCode", CodeBook.EQUAL_HQL_ID);
-        filterField.put("tableName", CodeBook.EQUAL_HQL_ID);
-        filterField.put("tableLabelName", CodeBook.EQUAL_HQL_ID);
+        filterField.put("tableName", CodeBook.LIKE_HQL_ID);
+        filterField.put("tableLabelName", CodeBook.LIKE_HQL_ID);
         filterField.put("tableType", CodeBook.EQUAL_HQL_ID);
         filterField.put("tableState", CodeBook.EQUAL_HQL_ID);
         filterField.put("tableComment", CodeBook.EQUAL_HQL_ID);
@@ -53,23 +53,24 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
      * @return
      */
     public JSONArray getPendingMetaTableList(Map<String, Object> parameters) {
-        String sql = " SELECT  A.DATABASE_NAME , B.TABLE_ID, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_LABEL_NAME, B.TABLE_COMMENT, B.TABLE_STATE, B.WORKFLOW_OPT_TYPE AS WORK_FLOW_OPT_TYPE, B.UPDATE_CHECK_TIMESTAMP, B.LAST_MODIFY_DATE,\n" +
+        String sql = " SELECT  A.DATABASE_NAME, A.SOURCE_TYPE, B.TABLE_ID, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_LABEL_NAME, B.TABLE_COMMENT, B.TABLE_STATE, B.WORKFLOW_OPT_TYPE AS WORK_FLOW_OPT_TYPE, B.UPDATE_CHECK_TIMESTAMP, B.LAST_MODIFY_DATE,\n" +
             " B.RECORDER, B.PRIMARY_KEY, B.TABLE_TYPE  FROM F_DATABASE_INFO A JOIN F_PENDING_META_TABLE B ON A.DATABASE_CODE = B.DATABASE_CODE " +
             "  WHERE  1 = 1 [ :topUnit | AND A.TOP_UNIT = :topUnit ]  [ :databaseCode | AND A.DATABASE_CODE = :databaseCode ] " +
-            "  [ :(like)tableName | AND B.TABLE_NAME LIKE :tableName ]  [ :(like)tableLabelName | AND B.TABLE_NAME LIKE :tableLabelName ]  ";
+            "  [ :(like)tableName | AND B.TABLE_NAME LIKE :tableName ]  [ :(like)tableLabelName | AND B.TABLE_LABEL_NAME LIKE :tableLabelName ] [ :sourceType | AND A.SOURCE_TYPE = :sourceType ]  ";
         return DatabaseOptUtils.listObjectsByParamsDriverSqlAsJson(this,sql,parameters);
     }
 
     /**
      * 根据osId过滤MPendingMetaTable数据
      *
-     * @param optId optId
+     * @param parameters parameters
      * @return
      */
-    public JSONArray getPendingMetaTableListByOptId(String optId) {
+    public JSONArray getPendingMetaTableListWithTableOptRelation(Map<String, Object> parameters) {
         String sql = " SELECT A.ID, B.TABLE_ID, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_LABEL_NAME, B.TABLE_COMMENT, B.TABLE_STATE, B.WORKFLOW_OPT_TYPE AS WORK_FLOW_OPT_TYPE, B.UPDATE_CHECK_TIMESTAMP, B.LAST_MODIFY_DATE,\n" +
-            " B.RECORDER, B.PRIMARY_KEY, B.TABLE_TYPE ,C.DATABASE_NAME FROM  F_TABLE_OPT_RELATION A JOIN F_PENDING_META_TABLE B ON  A.TABLE_ID = B.TABLE_ID " +
-            "  JOIN  f_database_info C ON B.DATABASE_CODE =C.DATABASE_CODE  WHERE A.OPT_ID = ? ";
-        return DatabaseOptUtils.listObjectsBySqlAsJson(this, sql, new Object[]{optId});
+            " B.RECORDER, B.PRIMARY_KEY, B.TABLE_TYPE ,C.DATABASE_NAME, C.SOURCE_TYPE FROM  F_TABLE_OPT_RELATION A JOIN F_PENDING_META_TABLE B ON  A.TABLE_ID = B.TABLE_ID " +
+            "  JOIN  F_DATABASE_INFO C ON B.DATABASE_CODE =C.DATABASE_CODE  WHERE 1 = 1  [ :optId | AND A.OPT_ID = :optId  ]  [ :sourceType | AND C.SOURCE_TYPE = :sourceType ] " +
+            "  [ :(like)tableName | AND B.TABLE_NAME LIKE :tableName ]  [ :(like)tableLabelName | AND B.TABLE_NAME LIKE :tableLabelName ]  ";
+        return DatabaseOptUtils.listObjectsByParamsDriverSqlAsJson(this,sql,parameters);
     }
 }

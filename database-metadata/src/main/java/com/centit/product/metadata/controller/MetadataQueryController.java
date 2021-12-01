@@ -68,23 +68,6 @@ public class MetadataQueryController extends BaseController {
         return metaDataService.listDatabase(parameters);
     }
 
-    @ApiOperation(value = "数据库中表分页查询")
-    @ApiImplicitParam(name = "databaseCode", value = "数据库代码")
-    @GetMapping(value = "/{databaseCode}/tables")
-    @WrapUpResponseBody
-    public PageQueryResult<Object> metaTables(@PathVariable String databaseCode, PageDesc pageDesc, HttpServletRequest request) {
-        Map<String, Object> searchColumn = collectRequestParameters(request);
-        searchColumn.put("databaseCode", databaseCode);
-        JSONArray list = metaDataService.listMetaTables(searchColumn, pageDesc);
-        return PageQueryResult.createJSONArrayResult(list, pageDesc, MetaTable.class);
-    }
-
-    @ApiOperation(value = "数据库中的表（JDBC元数据）前段应该不需要访问这个接口")
-    @ApiImplicitParam(name = "databaseCode", value = "数据库ID")
-    @GetMapping(value = "/{databaseCode}/dbtables")
-    public List<SimpleTableInfo> databaseTables(@PathVariable String databaseCode) {
-        return metaDataService.listRealTables(databaseCode);
-    }
 
 
     @ApiOperation(value = "查询单个表元数据")
@@ -135,12 +118,6 @@ public class MetadataQueryController extends BaseController {
         return PageQueryResult.createResultMapDict(list, pageDesc);
     }
 
-    @ApiOperation(value = "元数据级联字段，只查询一层")
-    @GetMapping(value = "/tablecascade/{tableId}/{tableAlias}")
-    @WrapUpResponseBody
-    public MetaTableCascade getMetaTableCascade(@PathVariable String tableId, @PathVariable String tableAlias) {
-        return metaDataService.getMetaTableCascade(tableId, tableAlias);
-    }
 
     @ApiOperation(value = "查询单个列参照数据， REFERENCE_TYPE！=‘0’有效")
     @ApiImplicitParams(value = {

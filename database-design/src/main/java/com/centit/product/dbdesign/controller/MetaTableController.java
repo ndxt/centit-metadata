@@ -7,7 +7,6 @@ import com.centit.fileserver.utils.SystemTempFileUtils;
 import com.centit.fileserver.utils.UploadDownloadUtils;
 import com.centit.framework.common.JsonResultUtils;
 import com.centit.framework.common.ResponseData;
-import com.centit.framework.common.ResponseMapData;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpContentType;
@@ -96,22 +95,6 @@ public class MetaTableController extends BaseController {
         return changLog;
     }
 
-    @ApiOperation(value = "查询重构表")
-    @ApiImplicitParam(name = "databaseCode", value = "数据库代码")
-    @RequestMapping(value="/{databaseCode}/list",method = RequestMethod.GET)
-    @WrapUpResponseBody
-    public PageQueryResult listdraft(@PathVariable String databaseCode, String[] field, PageDesc pageDesc,
-                                     HttpServletRequest request, HttpServletResponse response) {
-        Map<String, Object> searchColumn = collectRequestParameters(request);
-        searchColumn.put("databaseCode",databaseCode);
-        JSONArray listObjects = mdTableMag.listDrafts(field, searchColumn, pageDesc);
-        if (ArrayUtils.isNotEmpty(field)) {
-            return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, field, PendingMetaTable.class);
-        }
-        else{
-            return PageQueryResult.createJSONArrayResult(listObjects,pageDesc,PendingMetaTable.class);
-        }
-    }
 
     @ApiOperation(value = "查询单个表重构字段")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.GET})
@@ -258,40 +241,6 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeSingleDataJson(json,response);
     }
 
-    @ApiOperation(value = "列出未加入表单的field")
-    @RequestMapping(value = "/{tableId}/getField", method = RequestMethod.GET)
-    public void listfield(@PathVariable String tableId, HttpServletResponse response, PageDesc pageDesc) {
-
-        List<MetaColumn> meTadColumns =
-            mdTableMag.listFields(tableId);
-        ResponseMapData resData = new ResponseMapData();
-        resData.addResponseData(OBJLIST, meTadColumns);
-        resData.addResponseData(PAGE_DESC, pageDesc);
-        JsonResultUtils.writeSingleDataJson(meTadColumns, response);
-
-    }
-
-    /**
-     * 获取草稿序列中的tableId
-     * @param response HttpServletResponse
-     */
-    @ApiOperation(value = "获取草稿序列中的tableId")
-    @RequestMapping(value = "/draft/getNextKey", method = RequestMethod.GET)
-    public void getPdNextKey(HttpServletResponse response) {
-
-        ResponseMapData resData = new ResponseMapData();
-        resData.addResponseData("tableId", pendingMetaTableDao.getNextKey());
-        JsonResultUtils.writeSingleDataJson(resData, response);
-
-    }
-
-
-   private  List<SimpleTableInfo> fetchPdmTables(String tempFilePath) {
-       if ("".equals(tempFilePath)) {
-           throw new ObjectException("pdm文件不能为空");
-       }
-       return PdmTableInfoUtils.importTableFromPdm(tempFilePath);
-   }
 
     @ApiOperation(value = "range")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.GET)
@@ -420,6 +369,12 @@ public class MetaTableController extends BaseController {
         return PageQueryResult.createResult(list, pageDesc);
     }
 
+    private  List<SimpleTableInfo> fetchPdmTables(String tempFilePath) {
+        if ("".equals(tempFilePath)) {
+            throw new ObjectException("pdm文件不能为空");
+        }
+        return PdmTableInfoUtils.importTableFromPdm(tempFilePath);
+    }
     /**
      * 对listCombineTables中的表数据集合进行字段翻译
      * @param list

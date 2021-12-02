@@ -14,6 +14,7 @@ import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.DictionaryMapColumn;
 import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.core.dao.PageQueryResult;
+import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
 import com.centit.product.dbdesign.pdmutils.PdmTableInfoUtils;
 import com.centit.product.dbdesign.po.MetaChangLog;
@@ -218,7 +219,11 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public ResponseData alertSqlBeforePublish(@PathVariable String ptableId,
                                       HttpServletRequest request, HttpServletResponse response) {
-        return mdTableMag.makeAlterTableSqls(ptableId);
+        List<String> sqlList = mdTableMag.makeAlterTableSqls(ptableId);
+        if (null == sqlList){
+            return ResponseData.makeErrorMessage(601, "表字段不能为空");
+        }
+        return ResponseData.makeResponseData(sqlList);
     }
 
     @ApiOperation(value = "发布重构表")
@@ -229,15 +234,7 @@ public class MetaTableController extends BaseController {
 
 
         Pair<Integer, String> ret = mdTableMag.publishMetaTable(ptableId, userCode);
-        JSONObject json = new JSONObject();
-        json.put(ResponseData.RES_CODE_FILED, ret.getLeft());
-        if (ret.getLeft() == 1){
-            json.put(ResponseData.RES_MSG_FILED, "发布失败");
-        } else if (ret.getLeft() == 0) {
-            json.put(ResponseData.RES_MSG_FILED, "发布成功");
-        } else
-            json.put(ResponseData.RES_MSG_FILED, ret.getRight());
-        json.put(ResponseData.RES_DATA_FILED, ret.getRight());
+        JSONObject json = translatePublishMessage(ret);
         JsonResultUtils.writeSingleDataJson(json,response);
     }
 
@@ -320,17 +317,11 @@ public class MetaTableController extends BaseController {
                                HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         Pair<Integer, String> ret = mdTableMag.publishDatabase(databaseCode, userCode);
-        JSONObject json = new JSONObject();
-        json.put(ResponseData.RES_CODE_FILED, ret.getLeft());
-        if (ret.getLeft() == 1){
-            json.put(ResponseData.RES_MSG_FILED, "发布失败");
-        } else if (ret.getLeft() == 0) {
-            json.put(ResponseData.RES_MSG_FILED, "发布成功");
-        } else
-            json.put(ResponseData.RES_MSG_FILED, ret.getRight());
-        json.put(ResponseData.RES_DATA_FILED, ret.getRight());
+        JSONObject json = translatePublishMessage(ret);
         JsonResultUtils.writeSingleDataJson(json,response);
     }
+
+
 
     @ApiOperation(value = "查询列表元数据")
     @ApiImplicitParams(value = {
@@ -355,15 +346,21 @@ public class MetaTableController extends BaseController {
     }
 
 
-    @ApiOperation(value = "查询列元数据,pending表与md表数据的组合,通过osId或topUnit,或dataBaseCode过滤")
+    @ApiOperation(value = "查询列元数据,pending表与md表数据的组合,通过osId,dataBaseCode过滤,如果osId和dataBaseCode不传,后端根据topUnit过滤)")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "databaseCode", value = "数据库code"),
-        @ApiImplicitParam(name = "optId", value = "操作id")
+        @ApiImplicitParam(name = "databaseCode", value = "数据库code",paramType = "query"),
+        @ApiImplicitParam(name = "optId", value = "操作id",paramType = "query"),
+        @ApiImplicitParam(name = "likeTableNameOrLabel", value = "根据表代码或表名模糊过滤",paramType = "query"),
+        @ApiImplicitParam(name = "tableLabelName", value = "根据表名过滤",paramType = "query"),
+        @ApiImplicitParam(name = "tableName", value = "根据表代码过滤",paramType = "query"),
+        @ApiImplicitParam(name = "sourceType", value = "根据表类型过滤。资源类型,D:关系数据库 M:MongoDb R:redis E:elssearch K:kafka B:rabbitmq,H http服务",paramType = "query")
     })
     @GetMapping(value = "/listCombineTables")
     @WrapUpResponseBody
     public PageQueryResult listCombineTables( PageDesc pageDesc ,HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
+        String topUnit = WebOptUtils.getCurrentTopUnit(RequestThreadLocal.getLocalThreadWrapperRequest());
+        parameters.put("topUnit",topUnit);
         List list = mdTableMag.listCombineTablesByProperty(parameters, pageDesc);
         tableDictionaryMap(list);
         return PageQueryResult.createResult(list, pageDesc);
@@ -386,5 +383,23 @@ public class MetaTableController extends BaseController {
         dicMaps.add(dicMap1);
         dicMaps.add(dicMap2);
         DictionaryMapUtils.mapJsonArray(list, dicMaps);
+    }
+
+    /**
+     * 转换发布结果响应体
+     * @param ret
+     * @return
+     */
+    private JSONObject translatePublishMessage(Pair<Integer, String> ret) {
+        JSONObject json = new JSONObject();
+        json.put(ResponseData.RES_CODE_FILED, ret.getLeft());
+        if (ret.getLeft() == 1) {
+            json.put(ResponseData.RES_MSG_FILED, "发布失败");
+        } else if (ret.getLeft() == 0) {
+            json.put(ResponseData.RES_MSG_FILED, "发布成功");
+        } else
+            json.put(ResponseData.RES_MSG_FILED, ret.getRight());
+        json.put(ResponseData.RES_DATA_FILED, ret.getRight());
+        return json;
     }
 }

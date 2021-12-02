@@ -39,7 +39,7 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
 
     void savePendingMetaTable(PendingMetaTable pmt);
 
-    ResponseData makeAlterTableSqls(String tableId);
+    List<String> makeAlterTableSqls(String tableId);
     List<String> makeAlterTableSqls(PendingMetaTable ptable);
     Pair<Integer, String> publishMetaTable(String tableId, String currentUser);
 

@@ -2,9 +2,6 @@ package com.centit.product.dbdesign.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.centit.framework.common.ResponseData;
-import com.centit.framework.common.WebOptUtils;
-import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
@@ -150,11 +147,12 @@ public class MetaTableManagerImpl
      */
     @Override
     @Transactional
-    public ResponseData makeAlterTableSqls(String tableId) {
+    public List<String> makeAlterTableSqls(String tableId) {
         PendingMetaTable ptable = getPendingMetaTable(tableId);
         if (null == ptable || null == ptable.getColumns()) {
-            return ResponseData.makeErrorMessage(601, "表字段不能为空");
+            return null;
         }
+        return makeAlterTableSqls(ptable);
         /*PendingMetaTable ptable = pendingMdTableDao.getObjectById(tableId);
 
         Set<PendingMetaColumn> pColumn =
@@ -173,7 +171,6 @@ public class MetaTableManagerImpl
         ptable.setMdColumns(pColumn);
         ptable.setMdRelations(pRelation);*/
 
-        return ResponseData.makeResponseData(makeAlterTableSqls(ptable));
     }
 
     @Override
@@ -664,7 +661,7 @@ public class MetaTableManagerImpl
     public List listCombineTablesByProperty(Map<String, Object> parameters, PageDesc pageDesc) {
         String databaseCode = MapUtils.getString(parameters, "databaseCode");
         String optId = MapUtils.getString(parameters, "optId");
-        String topUnit = WebOptUtils.getCurrentTopUnit(RequestThreadLocal.getLocalThreadWrapperRequest());
+        String topUnit = MapUtils.getString(parameters, "topUnit");
         List<Map<String, Object>> mergeTableList = new ArrayList<>();
         if (StringUtils.isNotBlank(databaseCode)) {
             //根据 databaseCode查询表信息
@@ -677,7 +674,6 @@ public class MetaTableManagerImpl
                 JSONArray.parseArray(JSON.toJSONString(pendingMetaTableJSONArray), Map.class));
         }else if (StringUtils.isNotBlank(topUnit)){
             //根据topUnit查询表信息
-            parameters.put("topUnit",topUnit);
             JSONArray metaTablesJsonArray = metaTableDao.getMetaTableList(parameters);
             JSONArray pendingMetaTableJSONArray = pendingMdTableDao.getPendingMetaTableList(parameters);
             mergeTableList = mergeTableDataList(JSONArray.parseArray(JSON.toJSONString(metaTablesJsonArray), Map.class),

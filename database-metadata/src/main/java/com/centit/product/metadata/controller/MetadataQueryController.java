@@ -68,7 +68,16 @@ public class MetadataQueryController extends BaseController {
         return metaDataService.listDatabase(parameters);
     }
 
-
+    @ApiOperation(value = "数据库中表分页查询")
+    @ApiImplicitParam(name = "databaseCode", value = "数据库代码")
+    @GetMapping(value = "/{databaseCode}/tables")
+    @WrapUpResponseBody
+    public PageQueryResult<Object> metaTables(@PathVariable String databaseCode, PageDesc pageDesc, HttpServletRequest request) {
+        Map<String, Object> searchColumn = collectRequestParameters(request);
+        searchColumn.put("databaseCode", databaseCode);
+        JSONArray list = metaDataService.listMetaTables(searchColumn, pageDesc);
+        return PageQueryResult.createJSONArrayResult(list, pageDesc, MetaTable.class);
+    }
 
     @ApiOperation(value = "查询单个表元数据")
     @ApiImplicitParam(name = "tableId", value = "表ID")

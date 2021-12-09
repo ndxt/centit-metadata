@@ -68,14 +68,14 @@ public class MetaOptRelationServiceImpl implements MetaOptRelationService {
 
     @Override
     @Transactional
-    public int deleteMetaOptRelationByOptIds(String optIds) {
-        if (StringUtils.isBlank(optIds)) {
+    public int deleteMetaOptRelationByOptId(String optId) {
+        if (StringUtils.isBlank(optId)) {
             logger.info("根据optIds删除关联关系接口参数optIds为空。");
             return 0;
         }
-        List<MetaOptRelation> metaOptRelations = relationDao.listObjects(CollectionsOpt.createHashMap("optIds", optIds));
+        List<MetaOptRelation> metaOptRelations = relationDao.listObjects(CollectionsOpt.createHashMap("optId", optId));
         if (CollectionUtils.isEmpty(metaOptRelations)) {
-            logger.info("根据optIds未查询到关联信息。optIds:{}", optIds);
+            logger.info("根据optId未查询到关联信息。optId:{}", optId);
             return 0;
         }
         List<String> ids = metaOptRelations.stream().map(MetaOptRelation::getId).collect(Collectors.toList());

@@ -659,7 +659,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
             Map<String, Object> mainObj = dao.getObjectById(pk);
-
+            if (null == mainObj || mainObj.size() == 0){
+                return;
+            }
             List<MetaRelation> mds = tableInfo.getMdRelations();
             if (mds != null) {
                 for (MetaRelation md : mds) {

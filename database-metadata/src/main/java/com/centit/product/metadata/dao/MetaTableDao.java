@@ -6,6 +6,7 @@ import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.algorithm.CollectionsOpt;
+import com.centit.support.algorithm.NumberBaseOpt;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
@@ -57,5 +58,10 @@ public class MetaTableDao extends BaseDaoImpl<MetaTable, String> {
             "  JOIN  F_DATABASE_INFO C ON B.DATABASE_CODE =C.DATABASE_CODE  WHERE  1 = 1  [ :optId | AND A.OPT_ID = :optId  ]  [ :sourceType | AND C.SOURCE_TYPE = :sourceType ] " +
             " [ :(like)tableName | AND B.TABLE_NAME LIKE :tableName ]  [ :(like)tableLabelName | AND B.TABLE_NAME LIKE :tableLabelName ] [ :(like)likeTableNameOrLabel | AND ( B.TABLE_NAME LIKE :likeTableNameOrLabel OR B.TABLE_LABEL_NAME LIKE :likeTableNameOrLabel  ) ] ";
         return DatabaseOptUtils.listObjectsByParamsDriverSqlAsJson(this,sql,parameters);
+    }
+
+    public boolean isTableExist(String tableName, String dataBaseCode) {
+        String sql = " SELECT COUNT(1) FROM F_MD_TABLE WHERE TABLE_NAME = ? AND DATABASE_CODE = ?  ";
+        return NumberBaseOpt.castObjectToInteger(DatabaseOptUtils.getScalarObjectQuery(this, sql, new Object[]{tableName, dataBaseCode})) >0;
     }
 }

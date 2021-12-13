@@ -69,4 +69,13 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
 
     List listCombineTablesByProperty(Map<String, Object> parameters, PageDesc pageDesc);
 
+
+    /**
+     * 检查 F_MD_TABLE 或 F_PENDING_META_TABLE 是否存在 tableName 表
+     * @param tableName 表名
+     * @param dataBaseCode 数据库code
+     * @return
+     */
+    boolean isTableExist(String tableName,String dataBaseCode);
+
 }

@@ -688,6 +688,12 @@ public class MetaTableManagerImpl
         return pagination(mergeTableList, pageDesc.getPageNo(), pageDesc.getPageSize());
     }
 
+    @Override
+    public boolean isTableExist(String tableName, String dataBaseCode) {
+        return pendingMdTableDao.isTableExist(tableName,dataBaseCode)
+            || metaTableDao.isTableExist(tableName,dataBaseCode);
+    }
+
     /**
      * state	编辑		重构		发布  f_md_table  f_pending_meta_table
      * NEW		 ×			√			√       ×             √

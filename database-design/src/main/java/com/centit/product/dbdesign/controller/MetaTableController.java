@@ -69,8 +69,6 @@ public class MetaTableController extends BaseController {
     @Resource
     private MetaChangLogManager mdChangLogMag;
 
-    @Resource
-    private PendingMetaTableDao pendingMetaTableDao;
 
     @ApiOperation(value = "查询重构记录")
     @RequestMapping(value = "/{databaseCode}/log", method = RequestMethod.GET)
@@ -134,12 +132,9 @@ public class MetaTableController extends BaseController {
     @RequestMapping(method = {RequestMethod.POST})
     public void createMdTable(PendingMetaTable mdTable,HttpServletRequest request,
                               HttpServletResponse response) {
-        Map<String, Object> searchColumn = new HashMap<>();
-        searchColumn.put("tableName",mdTable.getTableName());
-        searchColumn.put("databaseCode",mdTable.getDatabaseCode());
-        PageDesc pageDesc=new PageDesc();
-        JSONArray listObjects = mdTableMag.listDrafts(new String[]{}, searchColumn, pageDesc);
-        if (listObjects.isEmpty()) {
+
+        boolean isExist = mdTableMag.isTableExist(mdTable.getTableName(), mdTable.getDatabaseCode());
+        if (!isExist) {
             String userCode = WebOptUtils.getCurrentUserCode(request);
             mdTable.setRecorder(userCode);
             mdTable.setTableState("W");

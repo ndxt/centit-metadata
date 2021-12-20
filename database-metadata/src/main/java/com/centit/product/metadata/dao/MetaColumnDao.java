@@ -1,7 +1,7 @@
 package com.centit.product.metadata.dao;
 
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
-import com.centit.product.metadata.po.MetaColumn;
+import com.centit.product.adapter.po.MetaColumn;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;

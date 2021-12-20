@@ -1,13 +1,8 @@
 package com.centit.product.dbdesign.service;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.framework.common.ResponseData;
 import com.centit.framework.jdbc.service.BaseEntityManager;
-import com.centit.product.dbdesign.po.MetaChangLog;
-import com.centit.product.dbdesign.po.PendingMetaColumn;
-import com.centit.product.dbdesign.po.PendingMetaTable;
-import com.centit.product.metadata.po.MetaColumn;
-import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.adapter.po.*;
 import com.centit.support.database.utils.PageDesc;
 import org.apache.commons.lang3.tuple.Pair;
 

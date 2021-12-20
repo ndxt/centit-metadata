@@ -1,4 +1,4 @@
-package com.centit.product.metadata.transaction;
+package com.centit.product.adapter.api;
 
 import com.centit.support.database.metadata.IDatabaseInfo;
 

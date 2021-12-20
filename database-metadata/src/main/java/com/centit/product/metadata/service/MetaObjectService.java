@@ -1,7 +1,7 @@
 package com.centit.product.metadata.service;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.adapter.po.MetaTable;
 import com.centit.support.database.utils.PageDesc;
 
 import java.util.Collection;
@@ -28,7 +28,7 @@ public interface MetaObjectService {
                                               String [] parents, String [] children);
 
     Map<String, Object> fetchObjectParentAndChildren(MetaTable tableInfo, Map<String, Object> mainObj,
-                                                            String [] parents, String [] children);
+                                                     String [] parents, String [] children);
 
     Map<String, Object> makeNewObject(String tableId, Map<String, Object> extParams);
     Map<String, Object> makeNewObject(String tableId);

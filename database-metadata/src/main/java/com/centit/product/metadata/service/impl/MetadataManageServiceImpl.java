@@ -1,8 +1,9 @@
 package com.centit.product.metadata.service.impl;
 
-import com.centit.product.dubbo.adapter.MetaOptRelationService;
+import com.centit.product.adapter.api.MetadataManageService;
+import com.centit.product.adapter.po.MetaOptRelation;
 import com.centit.product.metadata.dao.MetaOptRelationDao;
-import com.centit.product.metadata.po.MetaOptRelation;
+import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.support.algorithm.CollectionsOpt;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -13,18 +14,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-@Service
-public class MetaOptRelationServiceAdapterImpl implements MetaOptRelationService {
 
-    protected Logger logger = LoggerFactory.getLogger(MetaOptRelationService.class);
+@Service
+public class MetadataManageServiceImpl implements MetadataManageService {
+
+    @Autowired
+    private SourceInfoDao sourceInfoDao;
+
+
+    protected Logger logger = LoggerFactory.getLogger(MetadataManageService.class);
 
     @Autowired
     MetaOptRelationDao relationDao;
 
     @Override
     @Transactional
-    public int deleteMetaOptRelationByOptIds(String optIds) {
+    public int deleteMetaOptRelationByOptId(String optIds) {
         if (StringUtils.isBlank(optIds)) {
             logger.info("根据optIds删除关联关系接口参数optIds为空。");
             return 0;
@@ -39,5 +46,11 @@ public class MetaOptRelationServiceAdapterImpl implements MetaOptRelationService
             relationDao.deleteObjectById(id);
         }
         return ids.size();
+    }
+
+    @Override
+    public int countDataBase(Map<String,Object> params) {
+
+        return sourceInfoDao.countDataBase(params);
     }
 }

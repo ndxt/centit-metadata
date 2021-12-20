@@ -1,4 +1,4 @@
-package com.centit.product.dbdesign.po;
+package com.centit.product.adapter.po;
 
 import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.support.algorithm.DatetimeOpt;

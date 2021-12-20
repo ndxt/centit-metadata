@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.framework.jdbc.dao.DatabaseOptUtils;
-import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.adapter.po.MetaTable;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import org.springframework.stereotype.Repository;

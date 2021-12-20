@@ -3,18 +3,22 @@ package com.centit.product.metadata.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.centit.framework.components.CodeRepositoryUtil;
+import com.centit.framework.core.dao.DictionaryMapColumn;
 import com.centit.framework.core.dao.DictionaryMapUtils;
+import com.centit.product.adapter.po.MetaColumn;
+import com.centit.product.adapter.po.MetaRelation;
+import com.centit.product.adapter.po.MetaTable;
+import com.centit.product.adapter.po.SourceInfo;
 import com.centit.product.metadata.dao.SourceInfoDao;
-import com.centit.product.metadata.po.MetaColumn;
-import com.centit.product.metadata.po.MetaRelation;
-import com.centit.product.metadata.po.MetaTable;
-import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
 import com.centit.search.document.ObjectDocument;
 import com.centit.search.service.Impl.ESIndexer;
 import com.centit.support.algorithm.*;
+import com.centit.support.common.CachedObject;
+import com.centit.support.common.ICachedObject;
 import com.centit.support.common.ObjectException;
 import com.centit.support.compiler.ObjectTranslate;
 import com.centit.support.compiler.Pretreatment;
@@ -23,6 +27,7 @@ import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.utils.*;
+import com.centit.support.security.Md5Encoder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -250,7 +255,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 .getObjectById(ref);
             mainObj.put(md.getRelationName(),
                 DictionaryMapUtils.mapJsonObject(ja,
-                    parentTableInfo.fetchDictionaryMapColumns(sourceInfoDao)));
+                    this.fetchDictionaryMapColumns(sourceInfoDao,parentTableInfo)));
         }
     }
 
@@ -273,7 +278,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         if (ref != null) {
             JSONArray ja = DictionaryMapUtils.mapJsonArray(
                 GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
-                    .listObjectsByProperties(ref), subTableInfo.fetchDictionaryMapColumns(sourceInfoDao));
+                    .listObjectsByProperties(ref), this.fetchDictionaryMapColumns(sourceInfoDao,subTableInfo));
             mainObj.put(md.getRelationName(), ja);
         }
     }
@@ -288,7 +293,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 if (ref != null) {
                     JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
                         .listObjectsByProperties(ref);
-                    ja = DictionaryMapUtils.mapJsonArray(ja, subTableInfo.fetchDictionaryMapColumns(sourceInfoDao));
+                    ja = DictionaryMapUtils.mapJsonArray(ja, fetchDictionaryMapColumns(sourceInfoDao,subTableInfo));
                     if (withChildrenDeep > 1 && ja != null) {
                         for (Object subObject : ja) {
                             if (subObject instanceof Map) {
@@ -314,7 +319,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 innerGetObjectPartFieldsById(conn, tableInfo, pk, fields)
                 : innerGetObjectById(conn, tableInfo, pk);
 
-            mainObj = DictionaryMapUtils.mapJsonObject(mainObj, tableInfo.fetchDictionaryMapColumns(sourceInfoDao));
+            mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(sourceInfoDao,tableInfo));
             return fetchObjectParentAndChildren(tableInfo, mainObj, parents, children);
         } catch (Exception e) {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
@@ -358,7 +363,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             Map<String, Object> mainObj = innerGetObjectById(conn, tableInfo, pk);
-            mainObj = DictionaryMapUtils.mapJsonObject(mainObj, tableInfo.fetchDictionaryMapColumns(sourceInfoDao));
+            mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(sourceInfoDao,tableInfo));
             if (withChildrenDeep > 0 && mainObj != null) {
                 fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
             }
@@ -702,7 +707,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).listObjectsByProperties(filter);
-            return DictionaryMapUtils.mapJsonArray(ja, tableInfo.fetchDictionaryMapColumns(sourceInfoDao));
+            return DictionaryMapUtils.mapJsonArray(ja, this.fetchDictionaryMapColumns(sourceInfoDao,tableInfo));
         } catch (Exception e) {
             throw new ObjectException(filter, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -809,7 +814,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Object obj = DatabaseAccess.getScalarObjectQuery(conn,
                 sGetCountSql, params);
             pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
-            JSONArray ja = DictionaryMapUtils.mapJsonArray(objs, tableInfo.fetchDictionaryMapColumns(sourceInfoDao));
+            JSONArray ja = DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(sourceInfoDao,tableInfo));
             if ("C".equals(tableInfo.getTableType())) {
                 ja = mapListPoToDto(ja);
             }
@@ -846,7 +851,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
             pageDesc.setTotalRows(
                 NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, querySql, params)));
-            return DictionaryMapUtils.mapJsonArray(objs, tableInfo.fetchDictionaryMapColumns(sourceInfoDao));
+            return DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(sourceInfoDao,tableInfo));
         } catch (Exception e) {
             throw new ObjectException(params, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -858,4 +863,79 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return pageQueryObjects(tableId, qap.getQuery(), qap.getParams(), pageDesc);
     }
 
+    private List<DictionaryMapColumn> fetchDictionaryMapColumns(SourceInfoDao sourceInfoDao,MetaTable tableInfo) {
+        if (tableInfo.getMdColumns() == null || tableInfo.getMdColumns().size() == 0) {
+            return null;
+        }
+        List<DictionaryMapColumn> dictionaryMapColumns = new ArrayList<>(4);
+        for (MetaColumn mc : tableInfo.getMdColumns()) {
+            //dictionary; 解析 mc.getReferenceData() json
+            if ("1".equals(mc.getReferenceType())) {
+                setDictionaryColumns(dictionaryMapColumns, mc, false);
+            } else if ("2".equals(mc.getReferenceType())) {
+                String jsonStr = mc.getReferenceData().trim();
+                String catalogCode = Md5Encoder.encodeBase64(jsonStr, true);
+                boolean hasDictoinary = CodeRepositoryUtil.hasExtendedDictionary(catalogCode);
+                if (!hasDictoinary) {
+                    Object jsonObject = JSON.parse(jsonStr);
+                    if (jsonObject instanceof Map) {
+                        CodeRepositoryUtil.registeExtendedCodeRepo(catalogCode,
+                            CollectionsOpt.objectMapToStringMap((Map) jsonObject));
+                        hasDictoinary = true;
+                    }
+                }
+                if (hasDictoinary) {
+                    dictionaryMapColumns.add(new DictionaryMapColumn(
+                        mc.getPropertyName(),
+                        mc.getPropertyName() + "Desc",
+                        catalogCode));
+                }
+            } else if ("3".equals(mc.getReferenceType())) {
+                String sqlStr = mc.getReferenceData().trim();
+                String catalogCode = Md5Encoder.encodeBase64(sqlStr, true);
+                if (!CodeRepositoryUtil.hasExtendedDictionary(catalogCode)) {
+                    CodeRepositoryUtil.registeExtendedCodeRepo(catalogCode,
+                        new CachedObject<>(
+                            new SqlDictionaryMapSupplier(
+                                sourceInfoDao.getDatabaseInfoById(tableInfo.getDatabaseCode()),
+                                sqlStr),
+                            ICachedObject.KEEP_FRESH_PERIOD * 3));
+                }
+                DictionaryMapColumn dictionaryMapColumn = new DictionaryMapColumn(
+                    mc.getPropertyName(),
+                    mc.getPropertyName() + "Desc",
+                    catalogCode);
+                dictionaryMapColumn.setExpression(true);
+                dictionaryMapColumns.add(dictionaryMapColumn);
+            } else if ("4".equals(mc.getReferenceType())) {
+                setDictionaryColumns(dictionaryMapColumns, mc, true);
+            }
+        }
+        return dictionaryMapColumns;
+    }
+
+    private void setDictionaryColumns(List<DictionaryMapColumn> dictionaryMapColumns, MetaColumn mc, boolean isExpression) {
+        if (mc.getReferenceData().startsWith("{")) {
+            Object jsonObject = JSON.parse(mc.getReferenceData());
+            if (jsonObject instanceof JSONObject) {
+                for (Map.Entry<String, Object> ent : ((JSONObject) jsonObject).entrySet()) {
+                    DictionaryMapColumn dictionaryMapColumn = new DictionaryMapColumn(
+                        mc.getPropertyName(),
+                        ent.getKey(),
+                        StringBaseOpt.castObjectToString(ent.getValue())
+                    );
+                    dictionaryMapColumn.setExpression(isExpression);
+                    dictionaryMapColumns.add(dictionaryMapColumn);
+                }
+            }
+        } else {
+            DictionaryMapColumn dictionaryMapColumn = new DictionaryMapColumn(
+                mc.getPropertyName(),
+                mc.getPropertyName() + "Desc",
+                mc.getReferenceData()
+            );
+            dictionaryMapColumn.setExpression(isExpression);
+            dictionaryMapColumns.add(dictionaryMapColumn);
+        }
+    }
 }

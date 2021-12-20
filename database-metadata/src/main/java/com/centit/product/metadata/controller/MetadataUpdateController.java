@@ -4,9 +4,9 @@ import com.centit.framework.common.ResponseData;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
-import com.centit.product.metadata.po.MetaColumn;
-import com.centit.product.metadata.po.MetaTable;
-import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.adapter.po.MetaColumn;
+import com.centit.product.adapter.po.MetaTable;
+import com.centit.product.adapter.po.SourceInfo;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.support.database.utils.FieldType;
 import io.swagger.annotations.Api;
@@ -58,7 +58,7 @@ public class MetadataUpdateController extends BaseController {
     })
     @PutMapping(value = "/table/{tableId}")
     @WrapUpResponseBody
-    public void updateMetaTable(@PathVariable String tableId, @RequestBody MetaTable metaTable,HttpServletRequest request){
+    public void updateMetaTable(@PathVariable String tableId, @RequestBody MetaTable metaTable, HttpServletRequest request){
         String userCode = WebOptUtils.getCurrentUserCode(request);
         metaTable.setTableId(tableId);
         metaTable.setRecorder(userCode);

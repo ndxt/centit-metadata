@@ -1,17 +1,7 @@
-package com.centit.product.metadata.po;
+package com.centit.product.adapter.po;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.dao.DictionaryMap;
-import com.centit.framework.core.dao.DictionaryMapColumn;
-import com.centit.product.metadata.dao.SourceInfoDao;
-import com.centit.product.metadata.service.impl.SqlDictionaryMapSupplier;
-import com.centit.support.algorithm.CollectionsOpt;
-import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.common.CachedObject;
-import com.centit.support.common.ICachedObject;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.metadata.TableReference;
@@ -19,20 +9,18 @@ import com.centit.support.database.orm.GeneratorCondition;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
 import com.centit.support.database.utils.DBType;
-import com.centit.support.security.Md5Encoder;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author codefan
@@ -374,82 +362,6 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @ApiModelProperty(hidden = true)
     public String getTableLabelName() {
         return this.tableLabelName;
-    }
-
-    public List<DictionaryMapColumn> fetchDictionaryMapColumns(SourceInfoDao sourceInfoDao) {
-        if (mdColumns == null || mdColumns.size() == 0) {
-            return null;
-        }
-        List<DictionaryMapColumn> dictionaryMapColumns = new ArrayList<>(4);
-        for (MetaColumn mc : mdColumns) {
-            //dictionary; 解析 mc.getReferenceData() json
-            if ("1".equals(mc.getReferenceType())) {
-                setDictionaryColumns(dictionaryMapColumns, mc, false);
-            } else if ("2".equals(mc.getReferenceType())) {
-                String jsonStr = mc.getReferenceData().trim();
-                String catalogCode = Md5Encoder.encodeBase64(jsonStr, true);
-                boolean hasDictoinary = CodeRepositoryUtil.hasExtendedDictionary(catalogCode);
-                if (!hasDictoinary) {
-                    Object jsonObject = JSON.parse(jsonStr);
-                    if (jsonObject instanceof Map) {
-                        CodeRepositoryUtil.registeExtendedCodeRepo(catalogCode,
-                            CollectionsOpt.objectMapToStringMap((Map) jsonObject));
-                        hasDictoinary = true;
-                    }
-                }
-                if (hasDictoinary) {
-                    dictionaryMapColumns.add(new DictionaryMapColumn(
-                        mc.getPropertyName(),
-                        mc.getPropertyName() + "Desc",
-                        catalogCode));
-                }
-            } else if ("3".equals(mc.getReferenceType())) {
-                String sqlStr = mc.getReferenceData().trim();
-                String catalogCode = Md5Encoder.encodeBase64(sqlStr, true);
-                if (!CodeRepositoryUtil.hasExtendedDictionary(catalogCode)) {
-                    CodeRepositoryUtil.registeExtendedCodeRepo(catalogCode,
-                        new CachedObject<>(
-                            new SqlDictionaryMapSupplier(
-                                sourceInfoDao.getDatabaseInfoById(this.getDatabaseCode()),
-                                sqlStr),
-                            ICachedObject.KEEP_FRESH_PERIOD * 3));
-                }
-                DictionaryMapColumn dictionaryMapColumn = new DictionaryMapColumn(
-                    mc.getPropertyName(),
-                    mc.getPropertyName() + "Desc",
-                    catalogCode);
-                dictionaryMapColumn.setExpression(true);
-                dictionaryMapColumns.add(dictionaryMapColumn);
-            } else if ("4".equals(mc.getReferenceType())) {
-                setDictionaryColumns(dictionaryMapColumns, mc, true);
-            }
-        }
-        return dictionaryMapColumns;
-    }
-
-    private void setDictionaryColumns(List<DictionaryMapColumn> dictionaryMapColumns, MetaColumn mc, boolean isExpression) {
-        if (mc.getReferenceData().startsWith("{")) {
-            Object jsonObject = JSON.parse(mc.getReferenceData());
-            if (jsonObject instanceof JSONObject) {
-                for (Map.Entry<String, Object> ent : ((JSONObject) jsonObject).entrySet()) {
-                    DictionaryMapColumn dictionaryMapColumn = new DictionaryMapColumn(
-                        mc.getPropertyName(),
-                        ent.getKey(),
-                        StringBaseOpt.castObjectToString(ent.getValue())
-                    );
-                    dictionaryMapColumn.setExpression(isExpression);
-                    dictionaryMapColumns.add(dictionaryMapColumn);
-                }
-            }
-        } else {
-            DictionaryMapColumn dictionaryMapColumn = new DictionaryMapColumn(
-                mc.getPropertyName(),
-                mc.getPropertyName() + "Desc",
-                mc.getReferenceData()
-            );
-            dictionaryMapColumn.setExpression(isExpression);
-            dictionaryMapColumns.add(dictionaryMapColumn);
-        }
     }
 
 }

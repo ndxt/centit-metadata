@@ -1,7 +1,6 @@
-package com.centit.product.dbdesign.po;
+package com.centit.product.adapter.po;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.centit.product.metadata.po.MetaColumn;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.orm.GeneratorCondition;

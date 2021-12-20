@@ -1,6 +1,7 @@
 package com.centit.product.metadata.service;
 
-import com.centit.product.metadata.po.MetaTable;
+
+import com.centit.product.adapter.po.MetaTable;
 
 public interface MetaDataCache {
     MetaTable getTableInfo(String tableId);

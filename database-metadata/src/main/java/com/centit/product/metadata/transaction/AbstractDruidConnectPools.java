@@ -1,7 +1,8 @@
 package com.centit.product.metadata.transaction;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.adapter.api.ISourceInfo;
+import com.centit.product.adapter.po.SourceInfo;
 import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;

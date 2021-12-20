@@ -3,16 +3,15 @@ package com.centit.product.metadata.dao;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
+import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.framework.jdbc.dao.JdbcTemplateUtils;
-import com.centit.product.metadata.po.SourceInfo;
-import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
+import com.centit.product.adapter.po.SourceInfo;
+import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.database.utils.PageDesc;
-import com.centit.support.database.utils.QueryUtils;
+import com.centit.support.database.utils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,5 +61,16 @@ public class SourceInfoDao extends BaseDaoImpl<SourceInfo, String> {
         }
         String matchStr = QueryUtils.getMatchString(databaseName);
         return super.listObjectsByFilterAsJson("where DATABASE_NAME like ? or DATABASE_URL like ?", new Object[]{matchStr, matchStr}, pageDesc);
+    }
+
+    /**
+     * 统计租户下数据个数
+     * @param params 过滤参数
+     * @return
+     */
+    public int countDataBase(Map<String,Object> params){
+        String sql = "  SELECT COUNT(1) COUNT FROM F_DATABASE_INFO WHERE 1 = 1 [ :topUnit | AND TOP_UNIT = :topUnit ]  [ :sourceType |  AND SOURCE_TYPE  = :sourceType ]  ";
+        QueryAndParams queryAndParams = QueryAndParams.createFromQueryAndNamedParams(QueryUtils.translateQuery(sql, params));
+        return NumberBaseOpt.castObjectToInteger(DatabaseOptUtils.getScalarObjectQuery(this, queryAndParams.getQuery(),queryAndParams.getParams()));
     }
 }

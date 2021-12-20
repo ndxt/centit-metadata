@@ -1,8 +1,6 @@
-package com.centit.product.dbdesign.po;
+package com.centit.product.adapter.po;
 
 import com.centit.framework.core.dao.DictionaryMap;
-import com.centit.product.metadata.po.MetaColumn;
-import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.metadata.TableReference;

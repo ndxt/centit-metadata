@@ -1,8 +1,8 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
+import com.centit.product.adapter.po.SourceInfo;
 import com.centit.product.metadata.dao.SourceInfoDao;
-import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.DatabaseRunTime;
 import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
 import com.centit.support.common.ObjectException;

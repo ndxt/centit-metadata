@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.framework.jdbc.dao.DatabaseOptUtils;
-import com.centit.product.dbdesign.po.PendingMetaTable;
+import com.centit.product.adapter.po.PendingMetaTable;
 import com.centit.support.algorithm.NumberBaseOpt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

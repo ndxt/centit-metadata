@@ -1,9 +1,9 @@
-package com.centit.product.metadata.po;
+package com.centit.product.adapter.po;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
-import com.centit.product.metadata.transaction.ISourceInfo;
+import com.centit.product.adapter.api.ISourceInfo;
 import com.centit.support.database.orm.GeneratorCondition;
 import com.centit.support.database.orm.GeneratorTime;
 import com.centit.support.database.orm.GeneratorType;

@@ -1,5 +1,6 @@
 package com.centit.product.metadata.transaction;
 
+import com.centit.product.adapter.api.ISourceInfo;
 import com.centit.support.network.HttpExecutorContext;
 
 import java.io.IOException;

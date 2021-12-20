@@ -8,18 +8,16 @@ import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
-import com.centit.product.metadata.po.MetaColumn;
-import com.centit.product.metadata.po.MetaRelation;
-import com.centit.product.metadata.po.MetaTable;
-import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.adapter.po.MetaColumn;
+import com.centit.product.adapter.po.MetaRelation;
+import com.centit.product.adapter.po.MetaTable;
+import com.centit.product.adapter.po.SourceInfo;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
-import com.centit.product.metadata.vo.MetaTableCascade;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
-import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -55,7 +53,7 @@ public class MetadataQueryController extends BaseController {
     @ApiOperation(value = "数据库列表")
     @GetMapping(value = "/databases")
     @WrapUpResponseBody
-    public List<SourceInfo> databases(String osId,HttpServletRequest request) {
+    public List<SourceInfo> databases(String osId, HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
         String topUnit = WebOptUtils.getCurrentTopUnit(request);
         //如果用户还未加入到任何租户，不进行数据查询操作

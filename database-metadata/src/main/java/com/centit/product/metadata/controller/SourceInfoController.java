@@ -10,7 +10,7 @@ import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.model.basedata.OperationLog;
-import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.adapter.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
 import com.centit.support.common.ObjectException;

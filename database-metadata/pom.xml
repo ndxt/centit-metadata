@@ -78,17 +78,23 @@
         <dependency>
             <groupId>com.centit.product</groupId>
             <artifactId>fileserver-utils</artifactId>
-            <version>5.2-SNAPSHOT</version>
+            <version>${centit.framework.version}</version>
         </dependency>
         <dependency>
             <groupId>com.centit.product</groupId>
             <artifactId>work-group-adapter</artifactId>
-            <version>5.2-SNAPSHOT</version>
+            <version>${centit.framework.version}</version>
         </dependency>
         <dependency>
             <groupId>com.centit.product</groupId>
             <artifactId>centit-metadata-adapter</artifactId>
-            <version>5.2-SNAPSHOT</version>
+            <version>${centit.framework.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.centit.framework</groupId>
+            <artifactId>integraton-platform-dubbo-adapter</artifactId>
+            <version>${centit.framework.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

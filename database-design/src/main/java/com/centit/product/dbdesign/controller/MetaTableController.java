@@ -349,7 +349,7 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public PageQueryResult listCombineTables( PageDesc pageDesc ,HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
-        String topUnit = WebOptUtils.getCurrentTopUnit(RequestThreadLocal.getLocalThreadWrapperRequest());
+        String topUnit = WebOptUtils.getCurrentTopUnit(request);
         parameters.put("topUnit",topUnit);
         List list = mdTableMag.listCombineTablesByProperty(parameters, pageDesc);
         tableDictionaryMap(list);

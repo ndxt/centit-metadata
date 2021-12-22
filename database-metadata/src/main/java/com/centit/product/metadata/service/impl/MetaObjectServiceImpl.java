@@ -802,7 +802,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 sql = sql + " order by "
                     + QueryUtils.cleanSqlStatement(orderBy);
             }
-            String querySql = QueryUtils.buildLimitQuerySQL(sql,
+            //小于0时查询不分页
+            String querySql = pageDesc.getPageSize()<0?sql:QueryUtils.buildLimitQuerySQL(sql,
                 pageDesc.getRowStart(), pageDesc.getPageSize(), false,
                 sourceInfo.getDBType());
             JSONArray objs = GeneralJsonObjectDao.findObjectsByNamedSql(conn,

@@ -26,7 +26,8 @@ public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, Str
 
     //private static final SysOptLog sysOptLog = SysOptLogFactoryImpl.getSysOptLog();
 
-    @Autowired
+    //防止其他工程引用这个工程的同时没有配置dubbo客户端，导致启动报错
+    @Autowired(required = false)
     private TenantManageService tenantManageService;
 
     @Override

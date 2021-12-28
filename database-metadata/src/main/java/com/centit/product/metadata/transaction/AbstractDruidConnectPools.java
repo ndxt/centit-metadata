@@ -31,7 +31,7 @@ public abstract class AbstractDruidConnectPools {
 
     private static DruidDataSource mapDataSource(ISourceInfo dsDesc) {
         DruidDataSource ds = new DruidDataSource();
-        ds.setBreakAfterAcquireFailure(true);
+        ds.setBreakAfterAcquireFailure(false);
         ds.setDriverClassName(DBType.getDbDriver(DBType.mapDBType(dsDesc.getDatabaseUrl())));
         ds.setUsername(dsDesc.getUsername());
         ds.setPassword(dsDesc.getClearPassword());
@@ -53,15 +53,21 @@ public abstract class AbstractDruidConnectPools {
         ds.setKeepAlive(BooleanBaseOpt.castObjectToBoolean(
             dsDesc.getExtProp("keepAlive"), true));
         ds.setTimeBetweenEvictionRunsMillis(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("timeBetweenEvictionRunsMillis"), 600000));
+            dsDesc.getExtProp("timeBetweenEvictionRunsMillis"), 60000));
         ds.setMinEvictableIdleTimeMillis(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("timeBetweenEvictionRunsMillis"), 300000));
+            dsDesc.getExtProp("minEvictableIdleTimeMillis"), 300000));
         ds.setRemoveAbandoned(BooleanBaseOpt.castObjectToBoolean(
             dsDesc.getExtProp("removeAbandoned"), true));
         ds.setRemoveAbandonedTimeout(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("removeAbandonedTimeout"), 80));
         ds.setLogAbandoned(BooleanBaseOpt.castObjectToBoolean(
             dsDesc.getExtProp("logAbandoned"), true));
+        ds.setTestOnBorrow(BooleanBaseOpt.castObjectToBoolean(
+            dsDesc.getExtProp("testOnBorrow"), true));
+        ds.setTestOnReturn(BooleanBaseOpt.castObjectToBoolean(
+            dsDesc.getExtProp("testOnReturn"), false));
+        ds.setMaxWait(NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("maxWait"), 60000));
         return ds;
     }
 

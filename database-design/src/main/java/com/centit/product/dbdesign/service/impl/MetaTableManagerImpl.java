@@ -354,7 +354,6 @@ public class MetaTableManagerImpl
                 return new ImmutablePair<>(2, "信息未变更，无需发布");
             if (errors.size() == 0) {
                 ptable.setRecorder(currentUser);
-                //todo：here
                 ptable.setTableState("S");
                 ptable.setLastModifyDate(new Date());
                 pendingMdTableDao.mergeObject(ptable);
@@ -610,7 +609,6 @@ public class MetaTableManagerImpl
                     success.add(sqls.toString());
                 if (error.size() == 0) {
                     metaTable.setRecorder(recorder);
-                    //todo:here
                     metaTable.setTableState("S");
                     metaTable.setLastModifyDate(new Date());
                     pendingMdTableDao.mergeObject(metaTable);

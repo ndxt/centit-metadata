@@ -14,7 +14,6 @@ import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.DictionaryMapColumn;
 import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.core.dao.PageQueryResult;
-import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.product.adapter.po.*;
 import com.centit.product.dbdesign.pdmutils.PdmTableInfoUtils;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
@@ -102,24 +101,7 @@ public class MetaTableController extends BaseController {
             return mdTable;
         }
         //如果mdTable数据为空，重新用MetaTable数据初始化
-        MetaTable metaTable = mdTableMag.getMetaTableWithReferences(tableId);
-        if (null == metaTable){
-            throw new ObjectException("tableId有误!");
-        }
-        mdTable = new PendingMetaTable();
-        BeanUtils.copyProperties(metaTable,mdTable);
-        String userCode = WebOptUtils.getCurrentUserCode(request);
-        mdTable.setRecorder(userCode);
-        mdTable.setTableState("W");
-        List<PendingMetaColumn> mdColumns = new ArrayList<>();
-        List<MetaColumn> metaColumns = metaTable.getColumns();
-        for (MetaColumn metaColumn : metaColumns) {
-            PendingMetaColumn pendingMetaColumn = new PendingMetaColumn();
-            BeanUtils.copyProperties(metaColumn,pendingMetaColumn);
-            mdColumns.add(pendingMetaColumn);
-        }
-        mdTable.setMdColumns(mdColumns);
-        mdTableMag.saveNewPendingMetaTable(mdTable);
+        mdTable = mdTableMag.initPendingMetaTable(tableId, WebOptUtils.getCurrentUserCode(request));
         return mdTable;
     }
 
@@ -190,10 +172,8 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public void updateMdTable(@PathVariable String tableId, @RequestBody PendingMetaTable mdTable) {
         mdTable.setTableId(tableId);
-        List<String> sqls = mdTableMag.makeAlterTableSqls(mdTable);
-        if(sqls.size() > 0){
-            mdTable.setTableState("W");
-        }
+        List<String> alterSqls = mdTableMag.makeAlterTableSqls(mdTable);
+        mdTable.setTableState(alterSqls.size()>0?"W":"S");
         mdTableMag.savePendingMetaTable(mdTable);
     }
 
@@ -354,6 +334,17 @@ public class MetaTableController extends BaseController {
         List list = mdTableMag.listCombineTablesByProperty(parameters, pageDesc);
         tableDictionaryMap(list);
         return PageQueryResult.createResult(list, pageDesc);
+    }
+
+    @ApiOperation(value = "同步数据库")
+    @ApiImplicitParam(name = "databaseCode", value = "数据库ID")
+    @GetMapping(value = "/sync/{databaseCode}")
+    @WrapUpResponseBody
+    public ResponseData syncDb(@PathVariable String databaseCode,String tableName, HttpServletRequest request){
+
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        mdTableMag.syncDb(databaseCode, userCode,tableName);
+        return ResponseData.makeSuccessResponse();
     }
 
     private  List<SimpleTableInfo> fetchPdmTables(String tempFilePath) {

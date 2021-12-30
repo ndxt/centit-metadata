@@ -1,10 +1,7 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.adapter.po.MetaColumn;
-import com.centit.product.adapter.po.MetaRelation;
-import com.centit.product.adapter.po.MetaTable;
-import com.centit.product.adapter.po.SourceInfo;
+import com.centit.product.adapter.po.*;
 import com.centit.product.metadata.dao.*;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;

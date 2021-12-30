@@ -34,21 +34,6 @@ public class MetadataUpdateController extends BaseController {
         return FieldType.getAllTypeMap();
     }
 
-    @ApiOperation(value = "同步数据库")
-    @ApiImplicitParam(name = "databaseCode", value = "数据库ID")
-    @GetMapping(value = "/sync/{databaseCode}")
-    @WrapUpResponseBody
-    public ResponseData syncDb(@PathVariable String databaseCode,String tableName, HttpServletRequest request){
-        SourceInfo databaseInfo = metaDataService.getDatabaseInfo(databaseCode);
-        //先写死，后面在表中加个字段或者放配置文件中，不然后面每加一个就需要更改
-        if (databaseInfo!=null&&("H".equals(databaseInfo.getSourceType()) || "R".equals(databaseInfo.getSourceType()))){
-            return ResponseData.makeErrorMessage("选择的资源不支持反向工程！");
-        }
-        String userCode = WebOptUtils.getCurrentUserCode(request);
-        metaDataService.syncDb(databaseCode, userCode,tableName);
-        return ResponseData.makeSuccessResponse();
-    }
-
 
     @ApiOperation(value = "修改表元数据")
     @ApiImplicitParams(value = {

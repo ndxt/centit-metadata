@@ -12,10 +12,12 @@ import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaTableDao;;
+import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.algorithm.GeneralAlgorithm;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.ddl.*;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.SimpleTableInfo;
@@ -28,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -58,6 +61,9 @@ public class MetaTableManagerImpl
     //public static final Log logger = LogFactory.getLog(MetaTableManager.class);
     @Autowired
     private SourceInfoDao sourceInfoDao;
+
+    @Autowired
+    private MetaDataService metaDataService;
 
     private MetaTableDao metaTableDao;
 
@@ -348,6 +354,7 @@ public class MetaTableManagerImpl
                 return new ImmutablePair<>(2, "信息未变更，无需发布");
             if (errors.size() == 0) {
                 ptable.setRecorder(currentUser);
+                //todo：here
                 ptable.setTableState("S");
                 ptable.setLastModifyDate(new Date());
                 pendingMdTableDao.mergeObject(ptable);
@@ -603,6 +610,7 @@ public class MetaTableManagerImpl
                     success.add(sqls.toString());
                 if (error.size() == 0) {
                     metaTable.setRecorder(recorder);
+                    //todo:here
                     metaTable.setTableState("S");
                     metaTable.setLastModifyDate(new Date());
                     pendingMdTableDao.mergeObject(metaTable);
@@ -687,6 +695,59 @@ public class MetaTableManagerImpl
     public boolean isTableExist(String tableName, String dataBaseCode) {
         return pendingMdTableDao.isTableExist(tableName,dataBaseCode)
             || metaTableDao.isTableExist(tableName,dataBaseCode);
+    }
+
+    @Override
+    @Transactional
+    public void syncDb(String databaseCode, String userCode, String tableName) {
+        SourceInfo databaseInfo = metaDataService.getDatabaseInfo(databaseCode);
+        //先写死，后面在表中加个字段或者放配置文件中，不然后面每加一个就需要更改
+        if (databaseInfo!=null&&("H".equals(databaseInfo.getSourceType()) || "R".equals(databaseInfo.getSourceType()))){
+            throw new ObjectException("选择的资源不支持反向工程！");
+        }
+        metaDataService.syncDb(databaseCode,userCode,tableName);
+        deletePendingTableWithColumns(databaseCode, tableName);
+    }
+
+    @Override
+    public PendingMetaTable initPendingMetaTable(String tableId, String userCode) {
+        MetaTable metaTable = this.getMetaTableWithReferences(tableId);
+        if (null == metaTable){
+            throw new ObjectException("tableId有误!");
+        }
+        PendingMetaTable pendingMetaTable = new PendingMetaTable();
+        BeanUtils.copyProperties(metaTable,pendingMetaTable);
+        pendingMetaTable.setRecorder(userCode);
+        pendingMetaTable.setTableState("S");
+        List<PendingMetaColumn> mdColumns = new ArrayList<>();
+        List<MetaColumn> metaColumns = metaTable.getColumns();
+        for (MetaColumn metaColumn : metaColumns) {
+            PendingMetaColumn pendingMetaColumn = new PendingMetaColumn();
+            BeanUtils.copyProperties(metaColumn,pendingMetaColumn);
+            mdColumns.add(pendingMetaColumn);
+        }
+        pendingMetaTable.setMdColumns(mdColumns);
+        this.saveNewPendingMetaTable(pendingMetaTable);
+        return pendingMetaTable;
+    }
+
+    /**
+     * 删除 f_pending_meta_table 和 f_pending_meta_column 中的数据
+     * @param databaseCode 数据库code
+     * @param tableName 表名
+     */
+    private void deletePendingTableWithColumns(String databaseCode, String tableName) {
+        Map<String, Object> filterMap = CollectionsOpt.createHashMap("databaseCode", databaseCode);
+        if (StringUtils.isNotBlank(tableName)){
+            filterMap.put("tableName",tableName);
+        }
+        List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByProperties(filterMap);
+        if (!CollectionUtils.sizeIsEmpty(pendingMetaTables)){
+            String[] tableIds = CollectionsOpt.listToArray(pendingMetaTables.stream().map(PendingMetaTable::getTableId).collect(Collectors.toSet()));
+            Map<String, Object> deleteFilterMap = CollectionsOpt.createHashMap("tableId_in", tableIds);
+            pendingMdTableDao.deleteObjectsByProperties(deleteFilterMap);
+            pendingMetaColumnDao.deleteObjectsByProperties(deleteFilterMap);
+        }
     }
 
     /**

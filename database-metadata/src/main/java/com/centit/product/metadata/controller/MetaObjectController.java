@@ -10,6 +10,7 @@ import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
+import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.framework.model.basedata.IOsInfo;
@@ -64,7 +65,7 @@ public class MetaObjectController extends BaseController {
     @Autowired(required = false)
     private ESSearcher esObjectSearcher;
 
-    @Autowired
+    @Autowired(required = false)
     private WorkGroupManager workGroupManager;
 
     @ApiOperation(value = "分页查询数据库表数据列表")

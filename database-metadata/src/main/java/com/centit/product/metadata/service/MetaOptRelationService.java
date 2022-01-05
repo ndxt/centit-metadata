@@ -19,11 +19,4 @@ public interface MetaOptRelationService {
 
     void batchAddOptRelation(List<MetaOptRelation> relations);
 
-
-    /**
-     * 根据optId批量删除MetaOptRelation关联信息
-     * @param optId optId
-     * @return 删除数据的格式
-     */
-    int deleteMetaOptRelationByOptId(String optId);
 }

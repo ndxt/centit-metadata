@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,17 +32,17 @@ public class MetadataManageServiceImpl implements MetadataManageService {
 
     @Override
     @Transactional
-    public int deleteMetaOptRelationByOptId(String optIds) {
-        if (StringUtils.isBlank(optIds)) {
-            logger.info("根据optIds删除关联关系接口参数optIds为空。");
+    public int deleteMetaOptRelationByOptId(String optId) {
+        if (StringUtils.isBlank(optId)) {
+            logger.info("根据optId删除关联关系接口参数optId为空。");
             return 0;
         }
-        List<MetaOptRelation> metaOptRelations = relationDao.listObjects(CollectionsOpt.createHashMap("optIds", optIds));
+        List<MetaOptRelation> metaOptRelations = relationDao.listObjects(CollectionsOpt.createHashMap("optId", optId));
         if (CollectionUtils.isEmpty(metaOptRelations)) {
-            logger.info("根据optIds未查询到关联信息。optIds:{}", optIds);
+            logger.info("根据optId未查询到关联信息。optId:{}", optId);
             return 0;
         }
-        List<String> ids = metaOptRelations.stream().map(MetaOptRelation::getId).collect(Collectors.toList());
+        Set<String> ids = metaOptRelations.stream().map(MetaOptRelation::getId).collect(Collectors.toSet());
         for (String id : ids) {
             relationDao.deleteObjectById(id);
         }

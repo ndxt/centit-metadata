@@ -66,4 +66,5 @@ public interface MetaDataService {
     void updateMetaColumn(MetaColumn metaColumn);
 
     MetaTableCascade getMetaTableCascade(String databaseCode, String tableCode);
+
 }

@@ -10,11 +10,10 @@ import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
-import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.filter.RequestThreadLocal;
+import com.centit.framework.model.adapter.PlatformEnvironment;
 import com.centit.framework.model.basedata.IOsInfo;
-import com.centit.product.adapter.api.WorkGroupManager;
 import com.centit.product.adapter.po.MetaColumn;
 import com.centit.product.adapter.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
@@ -64,9 +63,8 @@ public class MetaObjectController extends BaseController {
     private MetaDataCache metaDataCache;
     @Autowired(required = false)
     private ESSearcher esObjectSearcher;
-
-    @Autowired(required = false)
-    private WorkGroupManager workGroupManager;
+    @Autowired
+    private PlatformEnvironment platformEnvironment;
 
     @ApiOperation(value = "分页查询数据库表数据列表")
     @RequestMapping(value = "/{tableId}/list", method = RequestMethod.GET)
@@ -361,7 +359,7 @@ public class MetaObjectController extends BaseController {
             throw new ObjectException(ResponseData.ERROR_PRECONDITION_FAILED, "您当前所在的租户还未创建任何应用!");
         }
         String osIds = osInfos.stream().map(IOsInfo::getOsId).collect(Collectors.joining(","));
-        if (!workGroupManager.loginUserIsExistWorkGroup(osIds, userCode)) {
+        if (!platformEnvironment.loginUserIsExistWorkGroup(osIds, userCode)) {
             throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您没有权限！");
         }
     }

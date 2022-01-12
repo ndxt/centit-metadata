@@ -82,11 +82,6 @@
         </dependency>
         <dependency>
             <groupId>com.centit.product</groupId>
-            <artifactId>work-group-adapter</artifactId>
-            <version>${centit.framework.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.centit.product</groupId>
             <artifactId>centit-metadata-adapter</artifactId>
             <version>${centit.framework.version}</version>
             <scope>compile</scope>

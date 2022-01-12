@@ -414,7 +414,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             prepareObjectForSave(object, tableInfo);
             return dao.saveNewObject(object);
         } catch (Exception e) {
-            throw new ObjectException(object, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+             throw new ObjectException(object, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 

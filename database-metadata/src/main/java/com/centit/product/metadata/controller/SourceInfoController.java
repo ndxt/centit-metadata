@@ -109,7 +109,8 @@ public class SourceInfoController extends BaseController {
         databaseinfo.setCreated(WebOptUtils.getCurrentUserCode(request));
         databaseInfoMag.saveNewObject(databaseinfo);
 
-        JsonResultUtils.writeBlankJson(response);
+        JsonResultUtils.writeSingleDataJson(databaseinfo.getDatabaseCode(),response);
+
 
         /**********************log************************/
         OperationLogCenter.logNewObject(request, optId, databaseinfo.getDatabaseCode(), OperationLog.P_OPT_LOG_METHOD_C,

@@ -27,5 +27,7 @@ public interface SourceInfoManager extends BaseEntityManager<SourceInfo,String> 
     JSONArray queryDatabaseAsJson(String databaseName, PageDesc pageDesc);
 
     List<SourceInfo> listDatabaseByOsId(String osId);
+
+    void deletetReferences(String databaseCode);
 }
 

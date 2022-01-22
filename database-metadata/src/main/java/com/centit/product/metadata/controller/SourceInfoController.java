@@ -219,8 +219,6 @@ public class SourceInfoController extends BaseController {
                                HttpServletRequest request, HttpServletResponse response) {
         SourceInfo sourceInfo = databaseInfoMag.getObjectById(databaseCode);
         databaseInfoMag.deleteObjectById(databaseCode);
-        //删除应用和资源管理的关联信息
-        databaseInfoMag.deletetReferences(databaseCode);
         JsonResultUtils.writeBlankJson(response);
 
         /******************************log********************************/

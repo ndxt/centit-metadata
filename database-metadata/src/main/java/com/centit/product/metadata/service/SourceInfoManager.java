@@ -28,6 +28,5 @@ public interface SourceInfoManager extends BaseEntityManager<SourceInfo,String> 
 
     List<SourceInfo> listDatabaseByOsId(String osId);
 
-    void deletetReferences(String databaseCode);
 }
 

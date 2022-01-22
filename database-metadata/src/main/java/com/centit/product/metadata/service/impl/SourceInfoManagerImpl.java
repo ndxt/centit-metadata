@@ -94,12 +94,6 @@ public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, Str
         return baseDao.listObjectsByProperty("osId",osId);
     }
 
-    @Override
-    @Transactional
-    public void deletetReferences(String databaseCode) {
-        baseDao.deletetReferences(databaseCode);
-    }
-
 
     /**
      * 验证资源数量是否达到限制

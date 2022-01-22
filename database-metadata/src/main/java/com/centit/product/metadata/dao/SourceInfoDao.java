@@ -73,8 +73,4 @@ public class SourceInfoDao extends BaseDaoImpl<SourceInfo, String> {
         QueryAndParams queryAndParams = QueryAndParams.createFromQueryAndNamedParams(QueryUtils.translateQuery(sql, params));
         return NumberBaseOpt.castObjectToInteger(DatabaseOptUtils.getScalarObjectQuery(this, queryAndParams.getQuery(),queryAndParams.getParams()));
     }
-
-    public void deletetReferences(String databaseCode){
-        this.getJdbcTemplate().update("DELETE FROM m_application_rescourse WHERE database_id = ? ", new Object[]{databaseCode});
-    }
 }

@@ -35,6 +35,7 @@ public class SourceInfoDao extends BaseDaoImpl<SourceInfo, String> {
         filterField.put("created", CodeBook.LIKE_HQL_ID);
         filterField.put("sourceType", CodeBook.EQUAL_HQL_ID);
         filterField.put("topUnit",CodeBook.EQUAL_HQL_ID);
+        filterField.put("databaseCodes","Database_Code in (:databaseCodes)");
         return filterField;
     }
 

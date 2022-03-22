@@ -46,6 +46,17 @@ public abstract class AbstractSourceConnectThreadHolder {
         }
     }
 
+    public static void commitAll() throws SQLException {
+        SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
+        wrapper.commitAllWork();
+    }
+
+    public static void commit(ISourceInfo description) throws SQLException {
+        SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
+        Connection conn = wrapper.fetchConnect(description);
+        conn.commit();
+    }
+
     public static void rollbackAndRelease() throws SQLException {
         SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
         try {

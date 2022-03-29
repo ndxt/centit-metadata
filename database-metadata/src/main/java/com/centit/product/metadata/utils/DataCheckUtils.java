@@ -16,16 +16,16 @@ public abstract class DataCheckUtils {
      * @param param 校验参数，key 包括： checkValue， param1， param2， param3,
      * @return 是否符合规则，和不符合错误提示
      */
-    public LeftRightPair<Boolean, String> checkData(Object data, DataCheckRule rule, Map<String, String> param){
+    public boolean checkData(Object data, DataCheckRule rule, Map<String, String> param){
         Map<String, Object> realPparam = new HashMap<>();
         if(!param.isEmpty()){
             for(Map.Entry<String, String> ent : param.entrySet()){
                 realPparam.put(ent.getKey(), VariableFormula.calculate(ent.getValue(), data));
             }
         }
-        return new LeftRightPair<>(
-            BooleanBaseOpt.castObjectToBoolean(
-                VariableFormula.calculate(rule.getRuleFormula(), realPparam)
-            ), rule.getFaultMessage());
+        //return new LeftRightPair<>(
+        return BooleanBaseOpt.castObjectToBoolean(
+                VariableFormula.calculate(rule.getRuleFormula(), realPparam), false);
+          //  ), rule.getFaultMessage());
     }
 }

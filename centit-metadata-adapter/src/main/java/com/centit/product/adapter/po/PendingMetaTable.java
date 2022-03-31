@@ -126,6 +126,10 @@ public class PendingMetaTable implements
     @DictionaryMap(fieldName = "recorderName", value = "userCode")
     private String recorder;
 
+    @ApiModelProperty(value = "视图构建sql")
+    @Column(name = "VIEW_SQL")
+    private String viewSql;
+
     @OneToMany(mappedBy="mdTable",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "TABLE_ID", referencedColumnName = "TABLE_ID")
     private List<PendingMetaColumn> mdColumns;

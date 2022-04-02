@@ -43,7 +43,7 @@ public class PendingMetaTable implements
     //1.用一张hibernate_sequences表管理主键,需要建hibernate_sequences表
     //@ValueGenerator(strategy = GeneratorType.SEQUENCE, value = "seq_pendingtableid")
     @ValueGenerator(strategy = GeneratorType.UUID22)
-     //2.用序列
+    //2.用序列
 //    @GeneratedValue(strategy=GenerationType.SEQUENCE,generator="seqgen")
 //    @SequenceGenerator(sequenceName="SEQ_PENDINGTABLEID",name="seqgen",allocationSize=1,initialValue=1)
     private String tableId;
@@ -53,7 +53,7 @@ public class PendingMetaTable implements
      */
     @ApiModelProperty(value = "数据库ID")
     @Column(name = "DATABASE_CODE")
-    @DictionaryMap(value="databaseInfo",fieldName = "databaseName")
+    @DictionaryMap(value = "databaseInfo", fieldName = "databaseName")
     private String databaseCode;
     /**
      * 表代码 null
@@ -72,15 +72,15 @@ public class PendingMetaTable implements
     @Length(max = 100, message = "字段长度不能大于{max}")
     private String tableLabelName;
     /**
-     * 表类型 T，C
+     * 表类型 T，V
      */
-    @ApiModelProperty(value = "表类型（T-表；C-大字段）", required = true)
+    @ApiModelProperty(value = "表类型（T-表；V-视图）", required = true)
     @Column(name = "TABLE_TYPE")
     @NotBlank(message = "字段不能为空")
-    @Pattern(regexp = "[TC]")
+    @Pattern(regexp = "[TV]")
     @Length(max = 1, message = "字段长度不能大于{max}")
     @DictionaryMap(fieldName = "tableTypeText", value = "TableType")
-    private String tableType="T";
+    private String tableType = "T";
     /**
      * 描述 null
      */
@@ -130,7 +130,11 @@ public class PendingMetaTable implements
     @Column(name = "VIEW_SQL")
     private String viewSql;
 
-    @OneToMany(mappedBy="mdTable",orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ApiModelProperty(value = "视图构建顺序，针对嵌套视图")
+    @Column(name = "VIEW_ORDER")
+    private int viewOrder=0;
+
+    @OneToMany(mappedBy = "mdTable", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "TABLE_ID", referencedColumnName = "TABLE_ID")
     private List<PendingMetaColumn> mdColumns;
     @Transient
@@ -154,14 +158,16 @@ public class PendingMetaTable implements
     public PendingMetaTable() {
 
     }
-    public boolean isUpdateCheckTimeStamp(){
+
+    public boolean isUpdateCheckTimeStamp() {
         return updateCheckTimeStamp != null && updateCheckTimeStamp;
     }
+
     public void addMdColumn(PendingMetaColumn mdColumn) {
         if (mdColumn == null)
             return;
         mdColumn.setTableId(this.tableId);
-        if(this.mdColumns ==null){
+        if (this.mdColumns == null) {
             this.mdColumns = new ArrayList<>(20);
         }
         this.mdColumns.add(mdColumn);
@@ -276,7 +282,7 @@ public class PendingMetaTable implements
         return null;
     }
 
-    public MetaTable mapToMetaTable(){
+    public MetaTable mapToMetaTable() {
         MetaTable mt = new MetaTable();
         mt.setTableId(this.getTableId());
         mt.setDatabaseCode(this.getDatabaseCode());
@@ -300,13 +306,13 @@ public class PendingMetaTable implements
     }
 
     //将数据库表同步到元数据表
-    public PendingMetaTable convertFromPdmTable(SimpleTableInfo tableInfo){
+    public PendingMetaTable convertFromPdmTable(SimpleTableInfo tableInfo) {
 
         this.tableName = tableInfo.getTableName();
-        if(StringUtils.isNotBlank(tableInfo.getTableLabelName())) {
+        if (StringUtils.isNotBlank(tableInfo.getTableLabelName())) {
             this.tableLabelName = tableInfo.getTableLabelName();
         }
-        if(StringUtils.isNotBlank(tableInfo.getTableComment())){
+        if (StringUtils.isNotBlank(tableInfo.getTableComment())) {
             this.tableComment = tableInfo.getTableComment();
         }
         this.tableState = StringUtils.isNotBlank(this.tableState) ? this.tableState : "W";

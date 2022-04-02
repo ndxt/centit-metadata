@@ -9,9 +9,9 @@ import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
 import com.centit.product.dbdesign.pdmutils.PdmTableInfoUtils;
 import com.centit.product.dbdesign.service.MetaTableManager;
-import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.dao.MetaColumnDao;
-import com.centit.product.metadata.dao.MetaTableDao;;
+import com.centit.product.metadata.dao.MetaTableDao;
+import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
 import com.centit.support.algorithm.CollectionsOpt;
@@ -43,6 +43,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+;
 
 /**
  * MdTable  Service.
@@ -209,41 +211,43 @@ public class MetaTableManagerImpl
         }
 
         List<String> sqls = new ArrayList<>();
-        if (stable == null) {
-            sqls.add(ddlOpt.makeCreateTableSql(ptable));
+        if ("V".equals(ptable.getTableType())) {
+            sqls.add(ptable.getViewSql());
         } else {
-            stable.setDatabaseType(dbType);
-            for (PendingMetaColumn pcol : ptable.getMdColumns()) {
-                MetaColumn ocol = stable.findFieldByColumn(pcol.getColumnName());
-                if (ocol == null) {
-                    sqls.add(ddlOpt.makeAddColumnSql(
-                        ptable.getTableName(), pcol));
-                } else {
-                    if (StringUtils.equalsAnyIgnoreCase(pcol.getFieldType(), ocol.getFieldType())) {
-                        boolean exits = !GeneralAlgorithm.equals(pcol.getMaxLength(), ocol.getMaxLength()) ||
-                            !GeneralAlgorithm.equals(pcol.getScale(), ocol.getScale()) ||
-                            !GeneralAlgorithm.equals(pcol.getMandatory(), ocol.getMandatory()) ||
-                            (!StringUtils.equals(pcol.getFieldLabelName(), ocol.getFieldLabelName())
-                                && dbType.equals(DBType.MySql));
-                        if (exits) {
-                            sqls.add(ddlOpt.makeModifyColumnSql(
-                                ptable.getTableName(), ocol, pcol));
-                        }
+            if (stable == null) {
+                sqls.add(ddlOpt.makeCreateTableSql(ptable));
+            } else {
+                stable.setDatabaseType(dbType);
+                for (PendingMetaColumn pcol : ptable.getMdColumns()) {
+                    MetaColumn ocol = stable.findFieldByColumn(pcol.getColumnName());
+                    if (ocol == null) {
+                        sqls.add(ddlOpt.makeAddColumnSql(
+                            ptable.getTableName(), pcol));
                     } else {
-                        sqls.addAll(ddlOpt.makeReconfigurationColumnSqls(
-                            ptable.getTableName(), ocol.getColumnName(), pcol));
+                        if (StringUtils.equalsAnyIgnoreCase(pcol.getFieldType(), ocol.getFieldType())) {
+                            boolean exits = !GeneralAlgorithm.equals(pcol.getMaxLength(), ocol.getMaxLength()) ||
+                                !GeneralAlgorithm.equals(pcol.getScale(), ocol.getScale()) ||
+                                !GeneralAlgorithm.equals(pcol.getMandatory(), ocol.getMandatory()) ||
+                                (!StringUtils.equals(pcol.getFieldLabelName(), ocol.getFieldLabelName())
+                                    && dbType.equals(DBType.MySql));
+                            if (exits) {
+                                sqls.add(ddlOpt.makeModifyColumnSql(
+                                    ptable.getTableName(), ocol, pcol));
+                            }
+                        } else {
+                            sqls.addAll(ddlOpt.makeReconfigurationColumnSqls(
+                                ptable.getTableName(), ocol.getColumnName(), pcol));
+                        }
+                    }
+                }
+                for (MetaColumn ocol : stable.getMdColumns()) {
+                    PendingMetaColumn pcol = ptable.findFieldByColumn(ocol.getColumnName());
+                    if (pcol == null) {
+                        sqls.add(ddlOpt.makeDropColumnSql(stable.getTableName(), ocol.getColumnName()));
                     }
                 }
             }
-
-            for (MetaColumn ocol : stable.getMdColumns()) {
-                PendingMetaColumn pcol = ptable.findFieldByColumn(ocol.getColumnName());
-                if (pcol == null) {
-                    sqls.add(ddlOpt.makeDropColumnSql(stable.getTableName(), ocol.getColumnName()));
-                }
-            }
         }
-
         return sqls;
     }
 
@@ -667,13 +671,13 @@ public class MetaTableManagerImpl
         if (StringUtils.isNotBlank(databaseCode)) {
             //根据 databaseCode查询表信息
             mergeTableList = listCombineTables(parameters);
-        }else if (StringUtils.isNotBlank(optId)){
+        } else if (StringUtils.isNotBlank(optId)) {
             //根据optId查询表信息
             JSONArray metaTablesJsonArray = metaTableDao.getMetaTableListWithTableOptRelation(parameters);
             JSONArray pendingMetaTableJSONArray = pendingMdTableDao.getPendingMetaTableListWithTableOptRelation(parameters);
             mergeTableList = mergeTableDataList(JSONArray.parseArray(JSON.toJSONString(metaTablesJsonArray), Map.class),
                 JSONArray.parseArray(JSON.toJSONString(pendingMetaTableJSONArray), Map.class));
-        }else if (StringUtils.isNotBlank(topUnit)){
+        } else if (StringUtils.isNotBlank(topUnit)) {
             //根据topUnit查询表信息
             JSONArray metaTablesJsonArray = metaTableDao.getMetaTableList(parameters);
             JSONArray pendingMetaTableJSONArray = pendingMdTableDao.getPendingMetaTableList(parameters);
@@ -691,8 +695,8 @@ public class MetaTableManagerImpl
 
     @Override
     public boolean isTableExist(String tableName, String dataBaseCode) {
-        return pendingMdTableDao.isTableExist(tableName,dataBaseCode)
-            || metaTableDao.isTableExist(tableName,dataBaseCode);
+        return pendingMdTableDao.isTableExist(tableName, dataBaseCode)
+            || metaTableDao.isTableExist(tableName, dataBaseCode);
     }
 
     @Override
@@ -700,28 +704,28 @@ public class MetaTableManagerImpl
     public void syncDb(String databaseCode, String userCode, String tableName) {
         SourceInfo databaseInfo = metaDataService.getDatabaseInfo(databaseCode);
         //先写死，后面在表中加个字段或者放配置文件中，不然后面每加一个就需要更改
-        if (databaseInfo!=null&&("H".equals(databaseInfo.getSourceType()) || "R".equals(databaseInfo.getSourceType()))){
+        if (databaseInfo != null && ("H".equals(databaseInfo.getSourceType()) || "R".equals(databaseInfo.getSourceType()))) {
             throw new ObjectException("选择的资源不支持反向工程！");
         }
-        metaDataService.syncDb(databaseCode,userCode,tableName);
+        metaDataService.syncDb(databaseCode, userCode, tableName);
         deletePendingTableWithColumns(databaseCode, tableName);
     }
 
     @Override
     public PendingMetaTable initPendingMetaTable(String tableId, String userCode) {
         MetaTable metaTable = this.getMetaTableWithReferences(tableId);
-        if (null == metaTable){
+        if (null == metaTable) {
             throw new ObjectException("tableId有误!");
         }
         PendingMetaTable pendingMetaTable = new PendingMetaTable();
-        BeanUtils.copyProperties(metaTable,pendingMetaTable);
+        BeanUtils.copyProperties(metaTable, pendingMetaTable);
         pendingMetaTable.setRecorder(userCode);
         pendingMetaTable.setTableState("S");
         List<PendingMetaColumn> mdColumns = new ArrayList<>();
         List<MetaColumn> metaColumns = metaTable.getColumns();
         for (MetaColumn metaColumn : metaColumns) {
             PendingMetaColumn pendingMetaColumn = new PendingMetaColumn();
-            BeanUtils.copyProperties(metaColumn,pendingMetaColumn);
+            BeanUtils.copyProperties(metaColumn, pendingMetaColumn);
             mdColumns.add(pendingMetaColumn);
         }
         pendingMetaTable.setMdColumns(mdColumns);
@@ -731,16 +735,17 @@ public class MetaTableManagerImpl
 
     /**
      * 删除 f_pending_meta_table 和 f_pending_meta_column 中的数据
+     *
      * @param databaseCode 数据库code
-     * @param tableName 表名
+     * @param tableName    表名
      */
     private void deletePendingTableWithColumns(String databaseCode, String tableName) {
         Map<String, Object> filterMap = CollectionsOpt.createHashMap("databaseCode", databaseCode);
-        if (StringUtils.isNotBlank(tableName)){
-            filterMap.put("tableName",tableName);
+        if (StringUtils.isNotBlank(tableName)) {
+            filterMap.put("tableName", tableName);
         }
         List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByProperties(filterMap);
-        if (!CollectionUtils.sizeIsEmpty(pendingMetaTables)){
+        if (!CollectionUtils.sizeIsEmpty(pendingMetaTables)) {
             String[] tableIds = CollectionsOpt.listToArray(pendingMetaTables.stream().map(PendingMetaTable::getTableId).collect(Collectors.toSet()));
             Map<String, Object> deleteFilterMap = CollectionsOpt.createHashMap("tableId_in", tableIds);
             pendingMdTableDao.deleteObjectsByProperties(deleteFilterMap);

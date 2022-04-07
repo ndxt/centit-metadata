@@ -83,8 +83,7 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/log/{changeId}", method = {RequestMethod.GET})
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public MetaChangLog getMdTableLog(@PathVariable String changeId) {
-        MetaChangLog changLog = mdTableMag.getMetaChangLog(changeId);
-        return changLog;
+        return mdTableMag.getMetaChangLog(changeId);
     }
 
 
@@ -116,30 +115,6 @@ public class MetaTableController extends BaseController {
             mdTable.setTableState("W");
             PendingMetaTable table = new PendingMetaTable();
             table.copyNotNullProperty(mdTable);
-            /*if("C".equals(table.getTableType())){
-                PendingMetaColumn col = table.findFieldByName(MetaTable.OBJECT_AS_CLOB_ID_PROP);
-                if (col == null) {
-                    col = new PendingMetaColumn(table, MetaTable.OBJECT_AS_CLOB_ID_FIELD);
-                    col.setFieldLabelName("大字段ID");
-                    col.setColumnComment("大字段ID");
-                    col.setFieldType(FieldType.STRING);
-                    col.setMaxLength(64);
-                    col.setPrimaryKey(true);
-                    col.setLastModifyDate(DatetimeOpt.currentUtilDate());
-                    col.setRecorder(userCode);
-                    table.addMdColumn(col);
-                }
-                col = table.findFieldByName(MetaTable.OBJECT_AS_CLOB_PROP);
-                if (col == null) {
-                    col = new PendingMetaColumn(table, MetaTable.OBJECT_AS_CLOB_FIELD);
-                    col.setFieldLabelName("大字段field");
-                    col.setColumnComment("大字段field");
-                    col.setFieldType(FieldType.JSON_OBJECT);
-                    col.setLastModifyDate(DatetimeOpt.currentUtilDate());
-                    col.setRecorder(userCode);
-                    table.addMdColumn(col);
-                }
-            }*/
             mdTableMag.saveNewPendingMetaTable(table);
             JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
         } else{
@@ -171,7 +146,7 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public void updateMdTable(@PathVariable String tableId, @RequestBody PendingMetaTable mdTable) {
         mdTable.setTableId(tableId);
-        List<String> alterSqls = mdTableMag.makeAlterTableSqls(mdTable);
+        List<String> alterSqls = mdTableMag.makeAlterTableSqlList(mdTable);
         mdTable.setTableState(alterSqls.size()>0?"W":"S");
         mdTableMag.savePendingMetaTable(mdTable);
     }
@@ -184,11 +159,11 @@ public class MetaTableController extends BaseController {
     }
 
     @ApiOperation(value = "查看发布重构表sql")
-    @RequestMapping(value = "/beforePublish/{ptableId}", method = {RequestMethod.POST})
+    @RequestMapping(value = "/beforePublish/{pendingTableId}", method = {RequestMethod.POST})
     @WrapUpResponseBody
     public ResponseData alertSqlBeforePublish(@PathVariable String ptableId,
                                       HttpServletRequest request, HttpServletResponse response) {
-        List<String> sqlList = mdTableMag.makeAlterTableSqls(ptableId);
+        List<String> sqlList = mdTableMag.makeAlterTableSqlList(ptableId);
         if (null == sqlList){
             return ResponseData.makeErrorMessage(601, "表字段不能为空");
         }
@@ -196,13 +171,11 @@ public class MetaTableController extends BaseController {
     }
 
     @ApiOperation(value = "发布重构表")
-    @RequestMapping(value = "/publish/{ptableId}", method = {RequestMethod.POST})
-    public void publishMdTable(@PathVariable String ptableId,
+    @RequestMapping(value = "/publish/{pendingTableId}", method = {RequestMethod.POST})
+    public void publishMdTable(@PathVariable String pendingTableId,
                                HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
-
-
-        Pair<Integer, String> ret = mdTableMag.publishMetaTable(ptableId, userCode);
+        Pair<Integer, String> ret = mdTableMag.publishMetaTable(pendingTableId, userCode);
         JSONObject json = translatePublishMessage(ret);
         JsonResultUtils.writeSingleDataJson(json,response);
     }
@@ -339,10 +312,11 @@ public class MetaTableController extends BaseController {
     @ApiImplicitParam(name = "databaseCode", value = "数据库ID")
     @GetMapping(value = "/sync/{databaseCode}")
     @WrapUpResponseBody
-    public ResponseData syncDb(@PathVariable String databaseCode,String tableName, HttpServletRequest request){
-
+    public ResponseData syncDb(@PathVariable String databaseCode,String[] tableNames, HttpServletRequest request){
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        mdTableMag.syncDb(databaseCode, userCode,tableName);
+        for(String tableName:tableNames) {
+            mdTableMag.syncDb(databaseCode, userCode, tableName);
+        }
         return ResponseData.makeSuccessResponse();
     }
 
@@ -377,8 +351,9 @@ public class MetaTableController extends BaseController {
             json.put(ResponseData.RES_MSG_FILED, "发布失败");
         } else if (ret.getLeft() == 0) {
             json.put(ResponseData.RES_MSG_FILED, "发布成功");
-        } else
+        } else {
             json.put(ResponseData.RES_MSG_FILED, ret.getRight());
+        }
         json.put(ResponseData.RES_DATA_FILED, ret.getRight());
         return json;
     }

@@ -1,7 +1,7 @@
 package com.centit.product.metadata.graphql;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.metadata.po.MetaTable;
+import com.centit.product.adapter.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;

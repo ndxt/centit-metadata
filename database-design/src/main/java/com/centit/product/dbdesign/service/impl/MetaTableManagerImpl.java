@@ -60,6 +60,7 @@ public class MetaTableManagerImpl
     extends BaseEntityManagerImpl<MetaTable, String, MetaTableDao>
     implements MetaTableManager {
 
+    public static final String VIEW = "V";
     //public static final Log logger = LogFactory.getLog(MetaTableManager.class);
     @Autowired
     private SourceInfoDao sourceInfoDao;
@@ -150,49 +151,26 @@ public class MetaTableManagerImpl
      */
     @Override
     @Transactional
-    public List<String> makeAlterTableSqls(String tableId) {
+    public List<String> makeAlterTableSqlList(String tableId) {
         PendingMetaTable ptable = getPendingMetaTable(tableId);
         if (null == ptable || null == ptable.getColumns()) {
             return null;
         }
-        return makeAlterTableSqls(ptable);
-        /*PendingMetaTable ptable = pendingMdTableDao.getObjectById(tableId);
-
-        Set<PendingMetaColumn> pColumn =
-            new HashSet<>(pendingMetaColumnDao.listObjectsByProperty("tableId", tableId));
-        Set<PendingMetaRelation> pRelation =
-            new HashSet<>(pendingRelationDao.listObjectsByProperty("parentTableId", tableId));
-
-        Iterator<PendingMetaRelation> itr = pRelation.iterator();
-        while (itr.hasNext()) {
-            PendingMetaRelation relation = itr.next();
-            Set<PendingMetaRelDetail> relDetails = new HashSet<>(
-                pendingMetaRelDetialDao.listObjectsByProperty("relationId", relation.getRelationId()));
-            relation.setRelationDetails(relDetails);
-        }
-
-        ptable.setMdColumns(pColumn);
-        ptable.setMdRelations(pRelation);*/
-
+        return makeAlterTableSqlList(ptable);
     }
 
     @Override
-    @Transactional
-    public List<String> makeAlterTableSqls(PendingMetaTable ptable) {
-        MetaTable stable = metaTableDao.getMetaTable(ptable.getDatabaseCode(), ptable.getTableName());
-        if (stable != null)
-            stable = metaTableDao.fetchObjectReferences(stable);
-
-        SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
-        //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
-
-        DBType dbType = DBType.mapDBType(mdb.getDatabaseUrl());
-        ptable.setDatabaseType(dbType);
-        DDLOperations ddlOpt = null;
+    @Transactional(rollbackFor = Exception.class)
+    public List<String> makeAlterTableSqlList(PendingMetaTable pendingMetaTable) {
+        MetaTable metaTable = metaTableDao.getMetaTable(pendingMetaTable.getDatabaseCode(), pendingMetaTable.getTableName());
+        if (metaTable != null) {
+            metaTable = metaTableDao.fetchObjectReferences(metaTable);
+        }
+        SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(pendingMetaTable.getDatabaseCode());
+        DBType dbType = DBType.mapDBType(sourceInfo.getDatabaseUrl());
+        pendingMetaTable.setDatabaseType(dbType);
+        DDLOperations ddlOpt;
         switch (dbType) {
-            case Oracle:
-                ddlOpt = new OracleDDLOperations();
-                break;
             case DB2:
                 ddlOpt = new DB2DDLOperations();
                 break;
@@ -210,45 +188,45 @@ public class MetaTableManagerImpl
                 break;
         }
 
-        List<String> sqls = new ArrayList<>();
-        if ("V".equals(ptable.getTableType())) {
-            sqls.add(ptable.getViewSql());
+        List<String> sqlList = new ArrayList<>();
+        if (VIEW.equals(pendingMetaTable.getTableType())) {
+            sqlList.add(ddlOpt.makeViewSql(pendingMetaTable.getViewSql(),pendingMetaTable.getTableName()));
         } else {
-            if (stable == null) {
-                sqls.add(ddlOpt.makeCreateTableSql(ptable));
+            if (metaTable == null) {
+                sqlList.add(ddlOpt.makeCreateTableSql(pendingMetaTable));
             } else {
-                stable.setDatabaseType(dbType);
-                for (PendingMetaColumn pcol : ptable.getMdColumns()) {
-                    MetaColumn ocol = stable.findFieldByColumn(pcol.getColumnName());
+                metaTable.setDatabaseType(dbType);
+                for (PendingMetaColumn pendingMetaColumn : pendingMetaTable.getMdColumns()) {
+                    MetaColumn ocol = metaTable.findFieldByColumn(pendingMetaColumn.getColumnName());
                     if (ocol == null) {
-                        sqls.add(ddlOpt.makeAddColumnSql(
-                            ptable.getTableName(), pcol));
+                        sqlList.add(ddlOpt.makeAddColumnSql(
+                            pendingMetaTable.getTableName(), pendingMetaColumn));
                     } else {
-                        if (StringUtils.equalsAnyIgnoreCase(pcol.getFieldType(), ocol.getFieldType())) {
-                            boolean exits = !GeneralAlgorithm.equals(pcol.getMaxLength(), ocol.getMaxLength()) ||
-                                !GeneralAlgorithm.equals(pcol.getScale(), ocol.getScale()) ||
-                                !GeneralAlgorithm.equals(pcol.getMandatory(), ocol.getMandatory()) ||
-                                (!StringUtils.equals(pcol.getFieldLabelName(), ocol.getFieldLabelName())
+                        if (StringUtils.equalsAnyIgnoreCase(pendingMetaColumn.getFieldType(), ocol.getFieldType())) {
+                            boolean exits = !GeneralAlgorithm.equals(pendingMetaColumn.getMaxLength(), ocol.getMaxLength()) ||
+                                !GeneralAlgorithm.equals(pendingMetaColumn.getScale(), ocol.getScale()) ||
+                                !GeneralAlgorithm.equals(pendingMetaColumn.getMandatory(), ocol.getMandatory()) ||
+                                (!StringUtils.equals(pendingMetaColumn.getFieldLabelName(), ocol.getFieldLabelName())
                                     && dbType.equals(DBType.MySql));
                             if (exits) {
-                                sqls.add(ddlOpt.makeModifyColumnSql(
-                                    ptable.getTableName(), ocol, pcol));
+                                sqlList.add(ddlOpt.makeModifyColumnSql(
+                                    pendingMetaTable.getTableName(), ocol, pendingMetaColumn));
                             }
                         } else {
-                            sqls.addAll(ddlOpt.makeReconfigurationColumnSqls(
-                                ptable.getTableName(), ocol.getColumnName(), pcol));
+                            sqlList.addAll(ddlOpt.makeReconfigurationColumnSqls(
+                                pendingMetaTable.getTableName(), ocol.getColumnName(), pendingMetaColumn));
                         }
                     }
                 }
-                for (MetaColumn ocol : stable.getMdColumns()) {
-                    PendingMetaColumn pcol = ptable.findFieldByColumn(ocol.getColumnName());
+                for (MetaColumn metaColumn : metaTable.getMdColumns()) {
+                    PendingMetaColumn pcol = pendingMetaTable.findFieldByColumn(metaColumn.getColumnName());
                     if (pcol == null) {
-                        sqls.add(ddlOpt.makeDropColumnSql(stable.getTableName(), ocol.getColumnName()));
+                        sqlList.add(ddlOpt.makeDropColumnSql(metaTable.getTableName(), metaColumn.getColumnName()));
                     }
                 }
             }
         }
-        return sqls;
+        return sqlList;
     }
 
     public void checkPendingMetaTable(PendingMetaTable ptable, String currentUser) {
@@ -318,56 +296,56 @@ public class MetaTableManagerImpl
     @Override
     @Transactional
     public Pair<Integer, String> publishMetaTable(String tableId, String currentUser) {
-        //TODO 根据不同的表类别 做不同的重构
         try {
-            final PendingMetaTable ptable = pendingMdTableDao.getObjectById(tableId);
-            pendingMdTableDao.fetchObjectReferences(ptable);
-
-            Pair<Integer, String> ret = GeneralDDLOperations.checkTableWellDefined(ptable);
-            if (ret.getLeft() != 0)
+            final PendingMetaTable pTable = pendingMdTableDao.getObjectById(tableId);
+            pendingMdTableDao.fetchObjectReferences(pTable);
+            Pair<Integer, String> ret = GeneralDDLOperations.checkTableWellDefined(pTable);
+            if (ret.getLeft() != 0) {
                 return ret;
+            }
             MetaChangLog chgLog = new MetaChangLog();
             List<String> errors = new ArrayList<>();
-
-            SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
-            //databaseInfoDao.getDatabaseInfoById(ptable.getDatabaseCode());
-
+            SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(pTable.getDatabaseCode());
             DataSourceDescription dbc = new DataSourceDescription();
             dbc.setDatabaseCode(mdb.getDatabaseCode());
             dbc.setConnUrl(mdb.getDatabaseUrl());
             dbc.setUsername(mdb.getUsername());
             dbc.setPassword(mdb.getClearPassword());
-
             DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
-            ptable.setDatabaseType(databaseType);
+            pTable.setDatabaseType(databaseType);
             //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
-            checkPendingMetaTable(ptable, currentUser);
-            List<String> sqls = TransactionHandler.executeInTransaction(dbc,
-                (conn) -> runDDLSql(ptable, errors, conn));
-
-            if (sqls.size() > 0) {
-                chgLog.setDatabaseCode(ptable.getDatabaseCode());
-                chgLog.setChangeScript(JSON.toJSONString(sqls));
+            checkPendingMetaTable(pTable, currentUser);
+            List<String> sqlList = TransactionHandler.executeInTransaction(dbc,
+                (conn) -> runDdlSql(pTable, errors, conn));
+            if (sqlList.size() > 0) {
+                chgLog.setDatabaseCode(pTable.getDatabaseCode());
+                chgLog.setChangeScript(JSON.toJSONString(sqlList));
                 chgLog.setChangeComment(JSON.toJSONString(errors));
-                //chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
-                chgLog.setTableID(ptable.getTableId());
+                chgLog.setTableID(pTable.getTableId());
                 chgLog.setChanger(currentUser);
                 metaChangLogDao.saveNewObject(chgLog);
             }
-            if (sqls.size() == 0)
+            if (sqlList.size() == 0) {
                 return new ImmutablePair<>(2, "信息未变更，无需发布");
+            }
             if (errors.size() == 0) {
-                ptable.setRecorder(currentUser);
-                ptable.setTableState("S");
-                ptable.setLastModifyDate(new Date());
-                pendingMdTableDao.mergeObject(ptable);
-                pendingMdTableDao.saveObjectReferences(ptable);
-                if (sqls.size() > 0) {
-                    pendingToMeta(currentUser, ptable);
+                pTable.setRecorder(currentUser);
+                pTable.setTableState("S");
+                pTable.setLastModifyDate(new Date());
+                pendingMdTableDao.mergeObject(pTable);
+                pendingMdTableDao.saveObjectReferences(pTable);
+                if (sqlList.size() > 0) {
+                    if(VIEW.equals(pTable.getTableType())){
+                      //todo 视图执行反向工程
+                        syncDb(pTable.getDatabaseCode(),currentUser,pTable.getTableName());
+                    }else{
+                        pendingToMeta(currentUser, pTable);
+                    }
                 }
                 return new ImmutablePair<>(0, chgLog.getChangeId());
-            } else
+            } else {
                 return new ImmutablePair<>(1, chgLog.getChangeId());
+            }
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
@@ -375,9 +353,9 @@ public class MetaTableManagerImpl
         }
     }
 
-    private List<String> runDDLSql(PendingMetaTable ptable, List<String> errors, Connection conn) throws SQLException {
-        List<String> sqls = makeAlterTableSqls(ptable);
-        for (String sql : sqls) {
+    private List<String> runDdlSql(PendingMetaTable pendingMetaTable, List<String> errors, Connection conn) throws SQLException {
+        List<String> sqlList = makeAlterTableSqlList(pendingMetaTable);
+        for (String sql : sqlList) {
             try {
                 DatabaseAccess.doExecuteSql(conn, sql);
             } catch (SQLException se) {
@@ -385,7 +363,7 @@ public class MetaTableManagerImpl
                 logger.error("执行sql失败:" + sql, se);
             }
         }
-        return sqls;
+        return sqlList;
     }
 
     private void pendingToMeta(String currentUser, PendingMetaTable ptable) {
@@ -607,7 +585,7 @@ public class MetaTableManagerImpl
                 checkPendingMetaTable(metaTable, recorder);
                 PendingMetaTable finalMetaTable = metaTable;
                 List<String> sqls = TransactionHandler.executeInTransaction(dbc,
-                    (conn) -> runDDLSql(finalMetaTable, errors, conn));
+                    (conn) -> runDdlSql(finalMetaTable, errors, conn));
 
                 if (sqls.size() > 0)
                     success.add(sqls.toString());
@@ -704,7 +682,7 @@ public class MetaTableManagerImpl
     public void syncDb(String databaseCode, String userCode, String tableName) {
         SourceInfo databaseInfo = metaDataService.getDatabaseInfo(databaseCode);
         //先写死，后面在表中加个字段或者放配置文件中，不然后面每加一个就需要更改
-        if (databaseInfo != null && ("H".equals(databaseInfo.getSourceType()) || "R".equals(databaseInfo.getSourceType()))) {
+        if (databaseInfo != null && !"D".equals(databaseInfo.getSourceType())) {
             throw new ObjectException("选择的资源不支持反向工程！");
         }
         metaDataService.syncDb(databaseCode, userCode, tableName);
@@ -740,7 +718,7 @@ public class MetaTableManagerImpl
      * @param tableName    表名
      */
     private void deletePendingTableWithColumns(String databaseCode, String tableName) {
-        Map<String, Object> filterMap = CollectionsOpt.createHashMap("databaseCode", databaseCode);
+        Map<String, Object> filterMap = CollectionsOpt.createHashMap("databaseCode", databaseCode,"tableType_ne","V");
         if (StringUtils.isNotBlank(tableName)) {
             filterMap.put("tableName", tableName);
         }

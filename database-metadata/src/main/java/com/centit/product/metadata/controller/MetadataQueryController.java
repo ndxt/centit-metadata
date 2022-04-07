@@ -18,6 +18,7 @@ import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
+import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -186,5 +187,12 @@ public class MetadataQueryController extends BaseController {
             default:
                 return null;
         }
+    }
+    @ApiOperation(value = "获取数据库原表")
+    @ApiImplicitParam(name = "databaseCode", value = "数据库ID")
+    @GetMapping(value = "/origintables/{databaseCode}")
+    @WrapUpResponseBody
+    public List<SimpleTableInfo> syncTables(@PathVariable String databaseCode){
+        return metaDataService.listRealTablesWithoutColumn(databaseCode);
     }
 }

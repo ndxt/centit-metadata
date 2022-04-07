@@ -140,6 +140,11 @@ public class MetaDataServiceImpl implements MetaDataService {
         JdbcMetadata jdbcMetadata = getJdbcMetadata(databaseCode);
         return jdbcMetadata.listAllTable();
     }
+    @Override
+    public List<SimpleTableInfo> listRealTablesWithoutColumn(String databaseCode) {
+        JdbcMetadata jdbcMetadata = getJdbcMetadata(databaseCode);
+        return jdbcMetadata.listAllTable(false);
+    }
 
     public static <K, V> Triple<List<K>, List<Pair<V, K>>, List<V>>
     compareMetaBetweenDbTables(List<V> metaTables, List<K> simpleTableInfos, Comparator comparator) {

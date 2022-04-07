@@ -1,8 +1,9 @@
 package com.centit.product.metadata.graphql;
 
-import com.centit.product.metadata.po.MetaColumn;
-import com.centit.product.metadata.po.MetaRelation;
-import com.centit.product.metadata.po.MetaTable;
+
+import com.centit.product.adapter.po.MetaColumn;
+import com.centit.product.adapter.po.MetaRelation;
+import com.centit.product.adapter.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.FieldType;

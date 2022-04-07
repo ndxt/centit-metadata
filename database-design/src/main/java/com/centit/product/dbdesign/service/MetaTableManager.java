@@ -34,8 +34,8 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
 
     void savePendingMetaTable(PendingMetaTable pmt);
 
-    List<String> makeAlterTableSqls(String tableId);
-    List<String> makeAlterTableSqls(PendingMetaTable ptable);
+    List<String> makeAlterTableSqlList(String tableId);
+    List<String> makeAlterTableSqlList(PendingMetaTable ptable);
     Pair<Integer, String> publishMetaTable(String tableId, String currentUser);
 
     JSONArray listDrafts(String[] fields, Map<String, Object> searchColumn, PageDesc pageDesc);

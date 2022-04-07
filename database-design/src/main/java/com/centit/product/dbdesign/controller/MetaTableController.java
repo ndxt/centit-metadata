@@ -314,8 +314,12 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public ResponseData syncDb(@PathVariable String databaseCode,String[] tableNames, HttpServletRequest request){
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        for(String tableName:tableNames) {
-            mdTableMag.syncDb(databaseCode, userCode, tableName);
+        if(tableNames==null){
+            mdTableMag.syncDb(databaseCode, userCode,null);
+        }else {
+            for (String tableName : tableNames) {
+                mdTableMag.syncDb(databaseCode, userCode, tableName);
+            }
         }
         return ResponseData.makeSuccessResponse();
     }

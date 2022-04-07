@@ -678,10 +678,9 @@ public class MetaTableManagerImpl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void syncDb(String databaseCode, String userCode, String tableName) {
         SourceInfo databaseInfo = metaDataService.getDatabaseInfo(databaseCode);
-        //先写死，后面在表中加个字段或者放配置文件中，不然后面每加一个就需要更改
         if (databaseInfo != null && !"D".equals(databaseInfo.getSourceType())) {
             throw new ObjectException("选择的资源不支持反向工程！");
         }

@@ -94,9 +94,10 @@ public abstract class AbstractDruidConnectPools {
 
     public static void testConnect(SourceInfo sourceInfo) throws SQLException {
         DruidDataSource ds =mapDataSource(sourceInfo);
-        Connection conn = ds.getConnection();
-        conn.close();
-        ds.close();
+        try (Connection conn = ds.getConnection()) {
+            conn.close();
+            ds.close();
+        }
     }
 
 }

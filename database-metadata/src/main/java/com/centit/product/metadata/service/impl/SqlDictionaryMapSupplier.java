@@ -30,8 +30,10 @@ public class SqlDictionaryMapSupplier implements Supplier<Map<String, String>> {
     @Override
     public Map<String, String> get() {
         try {
-            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
-            List<Object[]> datas = DatabaseAccess.findObjectsBySql(conn, sqlSen);
+            List<Object[]> datas;
+            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
+                datas = DatabaseAccess.findObjectsBySql(conn, sqlSen);
+            }
             if(datas!=null){
                 Map<String, String> dictionary = new HashMap<>(datas.size()*5/4+1);
                 for(Object[] objs : datas){

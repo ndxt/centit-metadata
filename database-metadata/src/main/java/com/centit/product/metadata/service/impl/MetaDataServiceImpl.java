@@ -53,7 +53,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public List<SourceInfo> listDatabase(Map<String,Object>  map) {
+    public List<SourceInfo> listDatabase(Map<String, Object> map) {
         return sourceInfoDao.listObjectsByProperties(map);
     }
 
@@ -88,13 +88,18 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public void syncDb(String databaseCode, String recorder, String tableName) {
+        syncDb(databaseCode, recorder, tableName, null);
+    }
+
+    @Override
+    public void syncDb(String databaseCode, String recorder, String tableName, String tableId) {
         List<SimpleTableInfo> dbTables = new ArrayList<>();
         List<MetaTable> metaTables;
         if (tableName != null) {
-            tableName = StringUtils.upperCase(tableName);
-            dbTables.add(getRealTable(databaseCode, tableName));
+            String upperTableName = StringUtils.upperCase(tableName);
+            dbTables.add(getRealTable(databaseCode, upperTableName));
             metaTables = metaTableDao.listObjectsByFilter("where DATABASE_CODE = ? and table_name=?",
-                new Object[]{databaseCode, tableName});
+                new Object[]{databaseCode, upperTableName});
         } else {
             dbTables = listRealTables(databaseCode);
             metaTables = metaTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
@@ -102,7 +107,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
         Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple = compareMetaBetweenDbTables(metaTables, dbTables, comparator);
         if (triple.getLeft() != null && triple.getLeft().size() > 0) {
-            addSyncData(databaseCode, recorder, triple);
+            addSyncData(databaseCode, recorder, triple,tableId);
         }
         if (triple.getRight() != null && triple.getRight().size() > 0) {
             deleteSyncData(triple);
@@ -140,6 +145,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         JdbcMetadata jdbcMetadata = getJdbcMetadata(databaseCode);
         return jdbcMetadata.listAllTable();
     }
+
     @Override
     public List<SimpleTableInfo> listRealTablesWithoutColumn(String databaseCode) {
         JdbcMetadata jdbcMetadata = getJdbcMetadata(databaseCode);
@@ -192,7 +198,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         return new ImmutableTriple<>(insertList, updateList, delList);
     }
 
-    private void addSyncData(String databaseCode, String recorder, Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple) {
+    private void addSyncData(String databaseCode, String recorder, Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple,String tableId) {
         for (SimpleTableInfo table : triple.getLeft()) {
             //表
             MetaTable metaTable = new MetaTable().convertFromDbTable(table);
@@ -201,6 +207,9 @@ public class MetaDataServiceImpl implements MetaDataService {
                 metaTable.setTableLabelName(table.getTableName());
             }
             metaTable.setRecorder(recorder);
+            if(tableId!=null){
+                metaTable.setTableId(tableId);
+            }
             metaTableDao.saveNewObject(metaTable);
             //列
             List<SimpleTableField> columns = table.getColumns();

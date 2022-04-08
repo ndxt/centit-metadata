@@ -153,9 +153,11 @@ public class MetadataQueryController extends BaseController {
                 MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
                 SourceInfo sourceInfo = metaDataService.getDatabaseInfo(tableInfo.getDatabaseCode());
                 try {
-                    Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
-                    QueryAndNamedParams qAp = QueryUtils.translateQuery(col.getReferenceData(), searchColumn);
-                    List<Object[]> objects = DatabaseAccess.findObjectsBySql(conn, qAp.getQuery(), qAp.getParams());
+                    List<Object[]> objects;
+                    try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
+                        QueryAndNamedParams qAp = QueryUtils.translateQuery(col.getReferenceData(), searchColumn);
+                        objects = DatabaseAccess.findObjectsBySql(conn, qAp.getQuery(), qAp.getParams());
+                    }
                     if (objects != null) {
                         Map<String, String> stringMap = new HashMap<>(objects.size() * 3 / 2 + 1);
                         for (Object[] objs : objects) {

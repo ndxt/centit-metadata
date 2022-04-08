@@ -35,6 +35,7 @@ public interface MetaDataService {
     List<SimpleTableInfo> listRealTablesWithoutColumn(String databaseCode);
 
     void syncDb(String databaseCode, String recorder,String tableName);
+    void syncDb(String databaseCode, String recorder,String tableName,String tableId);
 
     void updateMetaTable(MetaTable metaTable);
 

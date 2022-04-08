@@ -33,10 +33,11 @@ public abstract class AbstractHttpConnectPools {
     private static HttpExecutorContext mapHttpSource(ISourceInfo dsDesc) throws IOException {
         HttpClientContext context = HttpClientContext.create();
         BasicCookieStore cookieStore = new BasicCookieStore();
-        CloseableHttpClient httpClient = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
-        loginOpt(dsDesc, context, httpClient);
-        context.setCookieStore(cookieStore);
-        return HttpExecutorContext.create(httpClient).context(context).header("Connection", "close").timout(5000);
+        try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCookieStore(cookieStore).build()) {
+            loginOpt(dsDesc, context, httpClient);
+            context.setCookieStore(cookieStore);
+            return HttpExecutorContext.create(httpClient).context(context).header("Connection", "close").timout(5000);
+        }
     }
 
     private static void loginOpt(ISourceInfo dsDesc, HttpClientContext context, CloseableHttpClient httpClient) throws IOException {

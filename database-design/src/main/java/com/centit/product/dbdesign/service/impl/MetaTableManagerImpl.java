@@ -14,9 +14,11 @@ import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
+import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.algorithm.GeneralAlgorithm;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.ddl.*;
 import com.centit.support.database.metadata.SimpleTableField;
@@ -39,6 +41,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
@@ -116,7 +119,6 @@ public class MetaTableManagerImpl
     @Transactional
     public void deletePendingMetaTable(String tableId) {
         pendingMdTableDao.deleteObjectById(tableId);
-
         Map<String, Object> tempFilter = new HashMap<>();
         tempFilter.put("tableId", tableId);
         pendingMetaColumnDao.deleteObjectsForceByProperties(tempFilter);
@@ -125,7 +127,6 @@ public class MetaTableManagerImpl
     @Override
     @Transactional
     public PendingMetaTable getPendingMetaTable(String tableId) {
-
         PendingMetaTable resultPdMetaTable = pendingMdTableDao.getObjectById(tableId);
         return pendingMdTableDao.fetchObjectReferences(resultPdMetaTable);
     }
@@ -133,8 +134,7 @@ public class MetaTableManagerImpl
     @Override
     @Transactional
     public MetaChangLog getMetaChangLog(String changeId) {
-        MetaChangLog metaChangLog = metaChangLogDao.getObjectById(changeId);
-        return metaChangLog;
+        return metaChangLogDao.getObjectById(changeId);
     }
 
     @Override
@@ -190,7 +190,7 @@ public class MetaTableManagerImpl
 
         List<String> sqlList = new ArrayList<>();
         if (VIEW.equals(pendingMetaTable.getTableType())) {
-            sqlList.add(ddlOpt.makeViewSql(pendingMetaTable.getViewSql(),pendingMetaTable.getTableName()));
+            sqlList.add(ddlOpt.makeCreateViewSql(pendingMetaTable.getViewSql(), pendingMetaTable.getTableName()));
         } else {
             if (metaTable == null) {
                 sqlList.add(ddlOpt.makeCreateTableSql(pendingMetaTable));
@@ -299,7 +299,15 @@ public class MetaTableManagerImpl
         try {
             final PendingMetaTable pTable = pendingMdTableDao.getObjectById(tableId);
             pendingMdTableDao.fetchObjectReferences(pTable);
-            Pair<Integer, String> ret = GeneralDDLOperations.checkTableWellDefined(pTable);
+            Pair<Integer, String> ret;
+            if(VIEW.equals(pTable.getTableType())){
+                ret = GeneralDDLOperations.checkViewWellDefined(pTable);
+                if(StringBaseOpt.isNvl(pTable.getViewSql())){
+                    ret=new ImmutablePair<>(-1, "视图" + pTable.getTableName() + "没有定义sql！");
+                }
+            }else {
+                ret = GeneralDDLOperations.checkTableWellDefined(pTable);
+            }
             if (ret.getLeft() != 0) {
                 return ret;
             }
@@ -335,10 +343,9 @@ public class MetaTableManagerImpl
                 pendingMdTableDao.mergeObject(pTable);
                 pendingMdTableDao.saveObjectReferences(pTable);
                 if (sqlList.size() > 0) {
-                    if(VIEW.equals(pTable.getTableType())){
-                      //todo 视图执行反向工程
-                        syncDb(pTable.getDatabaseCode(),currentUser,pTable.getTableName());
-                    }else{
+                    if (VIEW.equals(pTable.getTableType())) {
+                        metaDataService.syncDb(pTable.getDatabaseCode(), currentUser, pTable.getTableName(),pTable.getTableId());
+                    } else {
                         pendingToMeta(currentUser, pTable);
                     }
                 }
@@ -423,9 +430,7 @@ public class MetaTableManagerImpl
     public JSONArray listDrafts(String[] fields, Map<String, Object> searchColumn,
                                 PageDesc pageDesc) {
 
-        JSONArray listTables =
-            pendingMdTableDao.listObjectsAsJson(searchColumn, pageDesc);
-        return listTables;
+        return pendingMdTableDao.listObjectsAsJson(searchColumn, pageDesc);
     }
 
     @Override
@@ -437,8 +442,9 @@ public class MetaTableManagerImpl
     @Transactional
     public boolean importTableFromPdm(String pdmFilePath, String tableCode, String databaseCode) {
         PendingMetaTable metaTable = PdmTableInfoUtils.importTableFromPdm(pdmFilePath, tableCode, databaseCode);
-        if (metaTable == null)
+        if (metaTable == null) {
             return false;
+        }
         pendingMdTableDao.saveNewObject(metaTable);
         return true;
     }
@@ -481,8 +487,9 @@ public class MetaTableManagerImpl
     public Pair<Integer, String> syncPdm(String databaseCode, String pdmFilePath, List<String> tables, String recorder) {
         try {
             List<SimpleTableInfo> pdmTables = PdmTableInfoUtils.importTableFromPdm(pdmFilePath, tables);
-            if (pdmTables == null)
+            if (pdmTables == null) {
                 return new ImmutablePair<>(-1, "读取文件失败,导入失败！");
+            }
             List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
             Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
             Triple<List<SimpleTableInfo>, List<Pair<PendingMetaTable, SimpleTableInfo>>, List<PendingMetaTable>> triple = MetaDataServiceImpl.compareMetaBetweenDbTables(pendingMetaTables, pdmTables, comparator);
@@ -570,25 +577,22 @@ public class MetaTableManagerImpl
             List<String> errors = new ArrayList<>();
             for (PendingMetaTable metaTable : metaTables) {
                 metaTable = pendingMdTableDao.fetchObjectReferences(metaTable);
-
                 Pair<Integer, String> ret = GeneralDDLOperations.checkTableWellDefined(metaTable);
-                if (ret.getLeft() != 0)
+                if (ret.getLeft() != 0) {
                     return ret;
+                }
                 List<String> error = new ArrayList<>();
                 SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
-
                 DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
-
                 DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
                 metaTable.setDatabaseType(databaseType);
-                //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
                 checkPendingMetaTable(metaTable, recorder);
                 PendingMetaTable finalMetaTable = metaTable;
                 List<String> sqls = TransactionHandler.executeInTransaction(dbc,
-                    (conn) -> runDdlSql(finalMetaTable, errors, conn));
-
-                if (sqls.size() > 0)
+                    (conn) -> runDdlSql(finalMetaTable, error, conn));
+                if (sqls.size() > 0) {
                     success.add(sqls.toString());
+                }
                 if (error.size() == 0) {
                     metaTable.setRecorder(recorder);
                     metaTable.setTableState("S");
@@ -607,16 +611,17 @@ public class MetaTableManagerImpl
                 chgLog.setDatabaseCode(databaseCode);
                 chgLog.setChangeScript(JSON.toJSONString(success));
                 chgLog.setChangeComment(JSON.toJSONString(errors));
-                //chgLog.setChangeId(String.valueOf(metaChangLogDao.getNextKey()));
                 chgLog.setChanger(recorder);
                 metaChangLogDao.saveNewObject(chgLog);
             }
-            if (success.size() == 0)
+            if (success.size() == 0) {
                 return new ImmutablePair<>(2, "信息未变更，无需批量发布");
-            if (errors.size() == 0)
+            }
+            if (errors.size() == 0) {
                 return new ImmutablePair<>(0, chgLog.getChangeId());
-            else
+            } else {
                 return new ImmutablePair<>(1, chgLog.getChangeId());
+            }
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
@@ -717,7 +722,7 @@ public class MetaTableManagerImpl
      * @param tableName    表名
      */
     private void deletePendingTableWithColumns(String databaseCode, String tableName) {
-        Map<String, Object> filterMap = CollectionsOpt.createHashMap("databaseCode", databaseCode,"tableType_ne","V");
+        Map<String, Object> filterMap = CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableType_ne", "V");
         if (StringUtils.isNotBlank(tableName)) {
             filterMap.put("tableName", tableName);
         }
@@ -822,13 +827,14 @@ public class MetaTableManagerImpl
         if (CollectionUtils.isEmpty(records)) {
             return Collections.emptyList();
         }
+        int pageNumCopy=pageNum;
         if (0 == pageNum) {
-            pageNum = 1;
+            pageNumCopy = 1;
         }
-        if (pageNum < 0 || pageSize < 0) {
+        if (pageNumCopy < 0 || pageSize < 0) {
             return Collections.emptyList();
         }
-        return records.stream().skip((pageNum - 1) * pageSize).limit(pageSize).collect(Collectors.toList());
+        return records.stream().skip((pageNumCopy - 1) * pageSize).limit(pageSize).collect(Collectors.toList());
     }
 
     /**
@@ -846,6 +852,14 @@ public class MetaTableManagerImpl
         List<Map> metaTablesMaps = JSONArray.parseArray(JSON.toJSONString(metaTables), Map.class);
         List<Map> pendingMetaTablesMaps = JSONArray.parseArray(JSON.toJSONString(pendingMetaTables), Map.class);
         return mergeTableDataList(metaTablesMaps, pendingMetaTablesMaps);
+    }
+
+    @Override
+    public JSONArray viewList(String databaseId, String sql) throws SQLException, IOException {
+        SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseId);
+        try (Connection conn = AbstractDruidConnectPools.getDbcpConnect(sourceInfo)) {
+            return DatabaseAccess.findObjectsAsJSON(conn, sql, null, 1, 10);
+        }
     }
 }
 

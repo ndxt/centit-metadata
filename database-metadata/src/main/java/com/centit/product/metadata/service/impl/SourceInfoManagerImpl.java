@@ -39,8 +39,7 @@ public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, Str
 
     @Override
     public List<SourceInfo> listDatabase() {
-        List<SourceInfo> database = baseDao.listDatabase();
-        return database;
+        return baseDao.listDatabase();
     }
 
     @Override

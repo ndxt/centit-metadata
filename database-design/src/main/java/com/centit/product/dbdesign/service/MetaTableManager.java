@@ -6,6 +6,8 @@ import com.centit.product.adapter.po.*;
 import com.centit.support.database.utils.PageDesc;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +41,8 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
     Pair<Integer, String> publishMetaTable(String tableId, String currentUser);
 
     JSONArray listDrafts(String[] fields, Map<String, Object> searchColumn, PageDesc pageDesc);
+
+    JSONArray viewList(String databaseId,String sql) throws SQLException, IOException;
 
     List<Pair<String, String>> listTablesInPdm(String pdmFilePath);
 

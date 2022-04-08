@@ -291,15 +291,15 @@ public class MetaObjectController extends BaseController {
         }
         JSONArray jsonArray = metaObjectService.pageQueryObjects(tableId, collectRequestParameters(request), pageDesc);
         List<String> columnNames = tableInfo.getColumns().stream().map(MetaColumn::getPropertyName).collect(Collectors.toList());
-        InputStream excelStream = ExcelExportUtil.generateExcelStream(jsonArray,
-            CollectionsOpt.listToArray(columnNames), CollectionsOpt.listToArray(columnNames));
-        String fileName = URLEncoder.encode(tableInfo.getTableName(), "UTF-8") +
-            pageDesc.getRowStart() + "-" + pageDesc.getRowEnd() + "-" + pageDesc.getTotalRows() +
-            ".xlsx";
-        response.setContentType(FileType.mapExtNameToMimeType("xlsx"));
-        response.setHeader("Content-disposition", "attachment; filename=" + fileName);
-        IOUtils.copy(excelStream, response.getOutputStream());
-
+        try (InputStream excelStream = ExcelExportUtil.generateExcelStream(jsonArray,
+            CollectionsOpt.listToArray(columnNames), CollectionsOpt.listToArray(columnNames))) {
+            String fileName = URLEncoder.encode(tableInfo.getTableName(), "UTF-8") +
+                pageDesc.getRowStart() + "-" + pageDesc.getRowEnd() + "-" + pageDesc.getTotalRows() +
+                ".xlsx";
+            response.setContentType(FileType.mapExtNameToMimeType("xlsx"));
+            response.setHeader("Content-disposition", "attachment; filename=" + fileName);
+            IOUtils.copy(excelStream, response.getOutputStream());
+        }
     }
 
     @ApiOperation(value = "导入数据库表数据，传入表id")

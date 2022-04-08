@@ -23,28 +23,7 @@ public class MetaTableCascade {
     // 关联的表
     private List<Table> relationTable;
 
-    @Data
-    class Table{
-        String tableId;
-        String table;
-        String title;
-        String tableAlias;
-        List<RefJoinColumn> joinColumns;
-    }
 
-    @Data
-    class RefJoinColumn{
-        String leftColumn;
-        String rightColumn;
-    }
-
-    @Data
-    class SqlColumn {
-        String title;
-        String tableAlias;
-        String column;
-        String columnType;
-    }
 
     public void setTableInfo(MetaTable metaTable){
         this.databaseCode = metaTable.getDatabaseCode();
@@ -86,6 +65,31 @@ public class MetaTableCascade {
             column.setColumnType(metaColumn.getColumnType());
             tableFields.add(column);
         }
+    }
+    @Data
+    static
+    class Table{
+        String tableId;
+        String table;
+        String title;
+        String tableAlias;
+        List<RefJoinColumn> joinColumns;
+    }
+
+    @Data
+    static
+    class RefJoinColumn{
+        String leftColumn;
+        String rightColumn;
+    }
+
+    @Data
+    static
+    class SqlColumn {
+        String title;
+        String tableAlias;
+        String column;
+        String columnType;
     }
 
 }

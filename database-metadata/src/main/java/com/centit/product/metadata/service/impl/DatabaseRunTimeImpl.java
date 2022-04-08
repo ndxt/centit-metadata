@@ -31,8 +31,9 @@ public class DatabaseRunTimeImpl implements DatabaseRunTime {
     @Override
     public JSONArray query(String databaseId, String sql, Object[] params) {
         try {
-            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(fetchDataSource(databaseId));
-            return DatabaseAccess.findObjectsAsJSON(conn, sql, params);
+            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(fetchDataSource(databaseId))) {
+                return DatabaseAccess.findObjectsAsJSON(conn, sql, params);
+            }
         } catch (SQLException | IOException e) {
             throw new ObjectException(PersistenceException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
         }
@@ -41,8 +42,9 @@ public class DatabaseRunTimeImpl implements DatabaseRunTime {
     @Override
     public JSONArray query(String databaseId, String sql) {
         try {
-            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(fetchDataSource(databaseId));
-            return DatabaseAccess.findObjectsAsJSON(conn, sql);
+            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(fetchDataSource(databaseId))) {
+                return DatabaseAccess.findObjectsAsJSON(conn, sql);
+            }
         } catch (SQLException | IOException e){
             throw new ObjectException(PersistenceException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
         }
@@ -51,8 +53,9 @@ public class DatabaseRunTimeImpl implements DatabaseRunTime {
     @Override
     public int execute(String databaseId, String sql, Object[] params) {
         try {
-            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(fetchDataSource(databaseId));
-            return DatabaseAccess.doExecuteSql(conn, sql, params);
+            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(fetchDataSource(databaseId))) {
+                return DatabaseAccess.doExecuteSql(conn, sql, params);
+            }
         } catch (SQLException e){
             throw new ObjectException(PersistenceException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
         }
@@ -61,8 +64,9 @@ public class DatabaseRunTimeImpl implements DatabaseRunTime {
     @Override
     public int execute(String databaseId, String sql) {
         try {
-            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(fetchDataSource(databaseId));
-            return DatabaseAccess.doExecuteSql(conn, sql)?1:0;
+            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(fetchDataSource(databaseId))) {
+                return DatabaseAccess.doExecuteSql(conn, sql) ? 1 : 0;
+            }
         } catch (SQLException e){
             throw new ObjectException(PersistenceException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
         }

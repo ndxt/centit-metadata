@@ -215,6 +215,9 @@ public class PendingMetaTable implements
             this.recorder = other.getRecorder();
         if (other.getTableType() != null)
             this.tableType = other.getTableType();
+        this.viewOrder = other.getViewOrder();
+        if (other.getViewSql() != null)
+            this.viewSql = other.getViewSql();
         return this;
     }
 

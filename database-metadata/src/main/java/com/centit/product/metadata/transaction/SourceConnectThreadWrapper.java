@@ -51,8 +51,9 @@ class SourceConnectThreadWrapper implements Serializable {
         }
         for (Map.Entry<ISourceInfo, Object> map : connectPools.entrySet()) {
             if (StringBaseOpt.isNvl(map.getKey().getSourceType()) || ISourceInfo.DATABASE.equals(map.getKey().getSourceType())) {
-                Connection conn = (Connection) map.getValue();
-                conn.commit();
+                try (Connection conn = (Connection) map.getValue()) {
+                    conn.commit();
+                }
             }
         }
     }
@@ -63,8 +64,9 @@ class SourceConnectThreadWrapper implements Serializable {
         }
         for (Map.Entry<ISourceInfo, Object> map : connectPools.entrySet()) {
             if (StringBaseOpt.isNvl(map.getKey().getSourceType()) || ISourceInfo.DATABASE.equals(map.getKey().getSourceType())) {
-                Connection conn = (Connection) map.getValue();
-                conn.rollback();
+                try (Connection conn = (Connection) map.getValue()) {
+                    conn.rollback();
+                }
             }
         }
     }
@@ -75,8 +77,13 @@ class SourceConnectThreadWrapper implements Serializable {
         }
         for (Map.Entry<ISourceInfo, Object> map : connectPools.entrySet()) {
             if (StringBaseOpt.isNvl(map.getKey().getSourceType()) || ISourceInfo.DATABASE.equals(map.getKey().getSourceType())) {
-                Connection conn = (Connection) map.getValue();
-                AbstractDruidConnectPools.closeConnect(conn);
+                try {
+                    try (Connection conn = (Connection) map.getValue()) {
+                        AbstractDruidConnectPools.closeConnect(conn);
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             } else if (ISourceInfo.HTTP.equals(map.getKey().getSourceType())) {
                 AbstractHttpConnectPools.releaseHttp(map.getKey());
             }

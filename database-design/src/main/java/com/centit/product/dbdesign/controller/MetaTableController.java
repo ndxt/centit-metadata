@@ -18,6 +18,8 @@ import com.centit.product.adapter.po.*;
 import com.centit.product.dbdesign.pdmutils.PdmTableInfoUtils;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
 import com.centit.product.dbdesign.service.MetaTableManager;
+import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
+import com.centit.product.metadata.transaction.MetadataJdbcTransaction;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;
@@ -39,6 +41,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 
@@ -360,5 +364,13 @@ public class MetaTableController extends BaseController {
         }
         json.put(ResponseData.RES_DATA_FILED, ret.getRight());
         return json;
+    }
+
+    @ApiOperation(value = "分页查询数据库表数据列表")
+    @RequestMapping(value = "/{databaseId}/viewlist", method = RequestMethod.POST)
+    @WrapUpResponseBody
+    @MetadataJdbcTransaction
+    public JSONArray viewList(@PathVariable String databaseId,@RequestBody JSONObject sql) throws IOException, SQLException {
+        return mdTableMag.viewList(databaseId,sql.getString("sql"));
     }
 }

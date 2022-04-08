@@ -18,8 +18,7 @@ public class DataCheckRuleDao extends BaseDaoImpl<DataCheckRule, String> {
     public Map<String, String> getFilterField() {
         Map<String, String> filterField = new HashMap<>();
         filterField.put("ruleId" , CodeBook.EQUAL_HQL_ID);
-        filterField.put("topUnit" , CodeBook.EQUAL_HQL_ID);
-        filterField.put("topUnit_in" , CodeBook.IN_HQL_ID);
+        filterField.put("topUnit" , CodeBook.IN_HQL_ID);
         filterField.put("ruleType" , CodeBook.EQUAL_HQL_ID);
         filterField.put("ruleName" , CodeBook.EQUAL_HQL_ID);
         filterField.put("ruleFormula" , CodeBook.LIKE_HQL_ID);

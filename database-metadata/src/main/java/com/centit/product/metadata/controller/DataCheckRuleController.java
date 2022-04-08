@@ -35,6 +35,9 @@ public class DataCheckRuleController extends BaseController {
     @Autowired
     private DataCheckRuleService dataCheckRuleService;
 
+//    @Autowired
+//    private TenantService tenantService;
+
     private String optId = "DATACHECKRULE";
 
     @ApiOperation(value = "所有数据校验规则信息", notes = "所有数据校验规则信息")
@@ -54,7 +57,7 @@ public class DataCheckRuleController extends BaseController {
             String[] strArry = new String[2];
             strArry[0] = topUnit;
             strArry[1] = "system";
-            searchColumn.put("topUnit_in", strArry);
+            searchColumn.put("topUnit", strArry);
         }
         JSONArray listObjects = dataCheckRuleService.listObjectsAsJson(searchColumn, pageDesc);
         return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, DataCheckRule.class);

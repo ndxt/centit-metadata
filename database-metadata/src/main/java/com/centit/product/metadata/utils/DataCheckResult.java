@@ -16,8 +16,28 @@ import java.util.function.Function;
 
 @Data
 public class DataCheckResult {
+    /**
+     * 验证结果
+     */
     private  boolean result;
+    /**
+     * 验证错误消息提示
+     */
     private List<String> errorMsgs;
+
+    /**
+     * @return 返回所有错误信息，null 没有错误。
+     */
+    public String getErrorMessage(){
+        if(result){
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for(String msg : errorMsgs){
+            sb.append(msg).append("\r\n");
+        }
+        return sb.toString();
+    }
 
     public DataCheckResult(){
         result = true;

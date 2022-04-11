@@ -3,7 +3,9 @@ package com.centit.product.metadata.utils;
 import com.centit.product.adapter.po.DataCheckRule;
 import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
+import com.centit.support.common.LeftRightPair;
 import com.centit.support.compiler.ObjectTranslate;
+import com.centit.support.compiler.Pretreatment;
 import com.centit.support.compiler.VariableFormula;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,6 +21,7 @@ public abstract class DataCheckUtils {
      * @param param 校验参数，key 包括： checkValue， param1， param2， param3,
      * @return 是否符合规则，和不符合错误提示
      */
+    @Deprecated
     public static boolean checkData(Object data, DataCheckRule rule, Map<String, String> param){
         Map<String, Object> realPparam = new HashMap<>();
         if(!param.isEmpty()){
@@ -29,11 +32,10 @@ public abstract class DataCheckUtils {
         Map<String, Function<Object[], Object>> extraFunc = new HashMap<>();
         extraFunc.put("checkIdCardNo",
             (d) -> DataCheckUtils.checkIdCardNo(StringBaseOpt.castObjectToString(d[0])) );
-        //return new LeftRightPair<>(
         return BooleanBaseOpt.castObjectToBoolean(
                 VariableFormula.calculate(rule.getRuleFormula(),new ObjectTranslate(realPparam) , extraFunc), false);
-          //  ), rule.getFaultMessage());
     }
+
 
     /**
      * 十七位数字本体码权重
@@ -44,7 +46,7 @@ public abstract class DataCheckUtils {
      */
     private static final char[] VALIDATE = {'1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'};
 
-    private static boolean checkIdCardNo(String idCard) {
+    static boolean checkIdCardNo(String idCard) {
         if (StringUtils.isBlank(idCard)) {
             return false;
         }

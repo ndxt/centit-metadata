@@ -394,11 +394,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l, true);
-                fetchObjectParents(conn, objectMap, tableInfo);
-            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+            makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l, true);
+            fetchObjectParents(conn, objectMap, tableInfo);
             return objectMap;
         } catch (Exception e) {
             throw new ObjectException(objectMap, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
@@ -416,9 +415,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             GeneralJsonObjectDao dao;
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
             makeObjectValueByGenerator(object, extParams, tableInfo, dao, 1l, false);
             prepareObjectForSave(object, tableInfo);
             return dao.saveNewObject(object);
@@ -438,9 +436,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         prepareObjectForSave(object, tableInfo);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(object);
-            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(object);
         } catch (Exception e) {
             throw new ObjectException(object, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -454,9 +451,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             GeneralJsonObjectDao dao;
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
             return dao.updateObjectsByProperties(fields, object, dao.makePkFieldMap(object));
         } catch (Exception e) {
             throw new ObjectException(object, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
@@ -469,10 +465,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
-                    .deleteObjectsByProperties(filterProperties);
-            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
+                .deleteObjectsByProperties(filterProperties);
         } catch (Exception e) {
             throw new ObjectException(filterProperties, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -485,10 +480,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         prepareObjectForSave(fieldValues, tableInfo);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
-                    .updateObjectsByProperties(fields, fieldValues, filterProperties);
-            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
+                .updateObjectsByProperties(fields, fieldValues, filterProperties);
         } catch (Exception e) {
             throw new ObjectException(fieldValues, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -523,9 +517,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         //prepareObjectForSave(pk, tableInfo);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).deleteObjectById(pk);
-            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).deleteObjectById(pk);
             deleteFulltextIndex(pk, tableId);
         } catch (Exception e) {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
@@ -603,7 +596,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             }
         }
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
-        try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
+        try {
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             if (isUpdate) {
                 prepareObjectForSave(mainObj, tableInfo);
                 GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(mainObj);
@@ -672,24 +666,23 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             GeneralJsonObjectDao dao;
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                Map<String, Object> mainObj = dao.getObjectById(pk);
-                if (null == mainObj || mainObj.size() == 0) {
-                    return;
-                }
-                List<MetaRelation> mds = tableInfo.getMdRelations();
-                if (mds != null) {
-                    for (MetaRelation md : mds) {
-                        MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
-                        if ("T".equals(relTableInfo.getTableType())) {
-                            List<MetaRelation> mdChilds = relTableInfo.getMdRelations();
-                            if (mdChilds != null && withChildrenDeep > 1) {
-                                deleteObjectWithChildren(relTableInfo.getTableId(), md.fetchChildFk(mainObj), withChildrenDeep - 1);
-                            } else {
-                                GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
-                                    .deleteObjectsByProperties(md.fetchChildFk(mainObj));
-                            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+            Map<String, Object> mainObj = dao.getObjectById(pk);
+            if (null == mainObj || mainObj.size() == 0) {
+                return;
+            }
+            List<MetaRelation> mds = tableInfo.getMdRelations();
+            if (mds != null) {
+                for (MetaRelation md : mds) {
+                    MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
+                    if ("T".equals(relTableInfo.getTableType())) {
+                        List<MetaRelation> mdChilds = relTableInfo.getMdRelations();
+                        if (mdChilds != null && withChildrenDeep > 1) {
+                            deleteObjectWithChildren(relTableInfo.getTableId(), md.fetchChildFk(mainObj), withChildrenDeep - 1);
+                        } else {
+                            GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
+                                .deleteObjectsByProperties(md.fetchChildFk(mainObj));
                         }
                     }
                 }

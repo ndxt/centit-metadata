@@ -214,8 +214,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             filter = GeneralJsonObjectDao.buildFilterSqlByPk(tableInfo, null);
         } else if (pk.containsKey(MetaTable.WORKFLOW_INST_ID_PROP)) {
             filter = GeneralJsonObjectDao.buildFilterSql(tableInfo, null,
-                CollectionsOpt.createList(MetaTable.WORKFLOW_INST_ID_PROP,
-                    MetaTable.WORKFLOW_NODE_INST_ID_PROP));
+                CollectionsOpt.createHashMap(MetaTable.WORKFLOW_INST_ID_PROP,
+                    pk.get(MetaTable.WORKFLOW_INST_ID_PROP),
+                    MetaTable.WORKFLOW_NODE_INST_ID_PROP,
+                    pk.get(MetaTable.WORKFLOW_NODE_INST_ID_PROP)));
         } else {
             throw new ObjectException(tableInfo.getTableName() + "没有传入主键");
         }
@@ -801,7 +803,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     GeneralJsonObjectDao.buildFieldSqlWithFields(tableInfo, null, true)
                     : GeneralJsonObjectDao.buildPartFieldSqlWithFields(tableInfo, fieldSet, null, false);
 
-                String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo, null, params.keySet());
+                String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo, null, params);
                 if (StringUtils.isNotBlank(extFilter)) {
                     if (StringUtils.isNotBlank(filter)) {
                         filter = extFilter + " and " + filter;

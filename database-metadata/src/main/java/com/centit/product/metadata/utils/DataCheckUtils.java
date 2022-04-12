@@ -1,42 +1,8 @@
 package com.centit.product.metadata.utils;
 
-import com.centit.product.adapter.po.DataCheckRule;
-import com.centit.support.algorithm.BooleanBaseOpt;
-import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.common.LeftRightPair;
-import com.centit.support.compiler.ObjectTranslate;
-import com.centit.support.compiler.Pretreatment;
-import com.centit.support.compiler.VariableFormula;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
 public abstract class DataCheckUtils {
-    /**
-     * 规则校验
-     * @param data 校验的对象
-     * @param rule 规则
-     * @param param 校验参数，key 包括： checkValue， param1， param2， param3,
-     * @return 是否符合规则，和不符合错误提示
-     */
-  /*  @Deprecated
-    public static boolean checkData(Object data, DataCheckRule rule, Map<String, String> param){
-        Map<String, Object> realPparam = new HashMap<>();
-        if(!param.isEmpty()){
-            for(Map.Entry<String, String> ent : param.entrySet()){
-                realPparam.put(ent.getKey(), VariableFormula.calculate(ent.getValue(), data));
-            }
-        }
-        Map<String, Function<Object[], Object>> extraFunc = new HashMap<>();
-        extraFunc.put("checkIdCardNo",
-            (d) -> DataCheckUtils.checkIdCardNo(StringBaseOpt.castObjectToString(d[0])) );
-        return BooleanBaseOpt.castObjectToBoolean(
-                VariableFormula.calculate(rule.getRuleFormula(),new ObjectTranslate(realPparam) , extraFunc), false);
-    }*/
-
-
     /**
      * 十七位数字本体码权重
      */

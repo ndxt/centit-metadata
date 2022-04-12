@@ -21,7 +21,7 @@ public abstract class DataCheckUtils {
      * @param param 校验参数，key 包括： checkValue， param1， param2， param3,
      * @return 是否符合规则，和不符合错误提示
      */
-    @Deprecated
+  /*  @Deprecated
     public static boolean checkData(Object data, DataCheckRule rule, Map<String, String> param){
         Map<String, Object> realPparam = new HashMap<>();
         if(!param.isEmpty()){
@@ -34,7 +34,7 @@ public abstract class DataCheckUtils {
             (d) -> DataCheckUtils.checkIdCardNo(StringBaseOpt.castObjectToString(d[0])) );
         return BooleanBaseOpt.castObjectToBoolean(
                 VariableFormula.calculate(rule.getRuleFormula(),new ObjectTranslate(realPparam) , extraFunc), false);
-    }
+    }*/
 
 
     /**

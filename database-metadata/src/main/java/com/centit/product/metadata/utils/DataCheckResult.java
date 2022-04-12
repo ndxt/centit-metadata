@@ -19,7 +19,7 @@ public class DataCheckResult {
     /**
      * 验证结果
      */
-    private  boolean result;
+    private  Boolean result;
     /**
      * 验证错误消息提示
      */

@@ -2,6 +2,7 @@ package com.centit.product.metadata.utils;
 
 import com.centit.product.adapter.po.DataCheckRule;
 import com.centit.support.algorithm.BooleanBaseOpt;
+import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.compiler.ObjectTranslate;
 import com.centit.support.compiler.Pretreatment;
@@ -25,6 +26,12 @@ public class DataCheckResult {
      */
     private List<String> errorMsgs;
 
+    private static final  Map<String, Function<Object[], Object>> extraFunc = new HashMap<>();
+    static {
+        extraFunc.put("checkIdCardNo",
+            (d) -> DataCheckUtils.checkIdCardNo(StringBaseOpt.castObjectToString(d[0])));
+    }
+
     /**
      * @return 返回所有错误信息，null 没有错误。
      */
@@ -42,6 +49,11 @@ public class DataCheckResult {
     public DataCheckResult(){
         result = true;
         errorMsgs = new ArrayList<>(4);
+    }
+
+    public void reset(){
+        result = true;
+        errorMsgs.clear();
     }
 
     public static DataCheckResult create(){
@@ -62,9 +74,7 @@ public class DataCheckResult {
                 realPparam.put(ent.getKey(), VariableFormula.calculate(ent.getValue(), data));
             }
         }
-        Map<String, Function<Object[], Object>> extraFunc = new HashMap<>();
-        extraFunc.put("checkIdCardNo",
-            (d) -> DataCheckUtils.checkIdCardNo(StringBaseOpt.castObjectToString(d[0])) );
+
         if(!BooleanBaseOpt.castObjectToBoolean(
                 VariableFormula.calculate(rule.getRuleFormula(),new ObjectTranslate(realPparam) , extraFunc), false)){
             result = false;

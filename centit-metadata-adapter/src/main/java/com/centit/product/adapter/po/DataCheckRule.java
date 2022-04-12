@@ -1,5 +1,6 @@
 package com.centit.product.adapter.po;
 
+import com.alibaba.fastjson.JSONObject;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
 import io.swagger.annotations.ApiModel;
@@ -45,7 +46,7 @@ public class DataCheckRule implements java.io.Serializable {
     private int  ruleParamSum;
 
     @Column(name = "RULE_PARAM_DESC")
-    private String  ruleParamDesc;
+    private JSONObject ruleParamDesc;
 
     @Column(name = "FAULT_MESSAGE")
     private String  faultMessage;

@@ -17,8 +17,16 @@ public abstract class DataCheckUtils {
             return false;
         }
         String idCardNo = idCard.trim();
+        //32012378 1030153
         if (idCardNo.length() == 15) {
-            return true;
+            for(int i=0;i<15;i++){
+                if(idCard.charAt(i)<'0' || idCard.charAt(i)>'9'){
+                    return false;
+                }
+            }
+            int month = Integer.parseInt(idCard.substring(8,10));
+            int day = Integer.parseInt(idCard.substring(10,12));
+            return month>0 && month<13 && day>0 && day<32;
         }
         if (idCardNo.length() != 18) {
             return false;
@@ -35,9 +43,13 @@ public abstract class DataCheckUtils {
             }
             sum += (idCardNo.charAt(i) - '0') * WEIGHT[i];
         }
-        // 进行模11运算
+        int year = Integer.parseInt(idCard.substring(6,10));
+        int month = Integer.parseInt(idCard.substring(10,12));
+        int day = Integer.parseInt(idCard.substring(12,14));
+        // 进行模11运算 codefan@sina.com
         mod = sum % 11;
-        return VALIDATE[mod] == idCardNo.charAt(17);
+        return VALIDATE[mod] == idCardNo.charAt(17) &&
+                year > 1900 && year< 2100 && month>0 && month<13 && day>0 && day<32;
     }
 
 }

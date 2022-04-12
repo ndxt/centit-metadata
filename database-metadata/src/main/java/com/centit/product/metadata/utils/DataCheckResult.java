@@ -2,7 +2,6 @@ package com.centit.product.metadata.utils;
 
 import com.centit.product.adapter.po.DataCheckRule;
 import com.centit.support.algorithm.BooleanBaseOpt;
-import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.compiler.ObjectTranslate;
 import com.centit.support.compiler.Pretreatment;

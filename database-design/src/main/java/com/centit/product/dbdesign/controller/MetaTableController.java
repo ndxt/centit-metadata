@@ -165,9 +165,9 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "查看发布重构表sql")
     @RequestMapping(value = "/beforePublish/{pendingTableId}", method = {RequestMethod.POST})
     @WrapUpResponseBody
-    public ResponseData alertSqlBeforePublish(@PathVariable String ptableId,
+    public ResponseData alertSqlBeforePublish(@PathVariable String pendingTableId,
                                       HttpServletRequest request, HttpServletResponse response) {
-        List<String> sqlList = mdTableMag.makeAlterTableSqlList(ptableId);
+        List<String> sqlList = mdTableMag.makeAlterTableSqlList(pendingTableId);
         if (null == sqlList){
             return ResponseData.makeErrorMessage(601, "表字段不能为空");
         }

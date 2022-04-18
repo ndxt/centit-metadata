@@ -238,9 +238,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                return innerGetObjectById(conn, tableInfo, pk);
-            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            return innerGetObjectById(conn, tableInfo, pk);
         } catch (Exception e) {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -316,12 +315,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Map<String, Object> mainObj;
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                mainObj = (fields != null && fields.length > 0) ?
-                    innerGetObjectPartFieldsById(conn, tableInfo, pk, fields)
-                    : innerGetObjectById(conn, tableInfo, pk);
-            }
-
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            mainObj = (fields != null && fields.length > 0) ?
+                innerGetObjectPartFieldsById(conn, tableInfo, pk, fields)
+                : innerGetObjectById(conn, tableInfo, pk);
             mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(sourceInfoDao, tableInfo));
             return fetchObjectParentAndChildren(tableInfo, mainObj, parents, children);
         } catch (Exception e) {
@@ -334,23 +331,22 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                                             String[] parents, String[] children) {
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                if (parents != null && parents.length > 0) {
-                    List<MetaRelation> mds = tableInfo.getParents();
-                    if (mds != null) {
-                        for (MetaRelation md : mds) {
-                            if (StringUtils.equalsAny(md.getReferenceName(), parents) && md.getRelationDetails() != null) {
-                                fetchObjectParent(conn, mainObj, md);
-                            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            if (parents != null && parents.length > 0) {
+                List<MetaRelation> mds = tableInfo.getParents();
+                if (mds != null) {
+                    for (MetaRelation md : mds) {
+                        if (StringUtils.equalsAny(md.getReferenceName(), parents) && md.getRelationDetails() != null) {
+                            fetchObjectParent(conn, mainObj, md);
                         }
                     }
                 }
-                List<MetaRelation> mds = tableInfo.getMdRelations();
-                if (mds != null) {
-                    for (MetaRelation md : mds) {
-                        if (StringUtils.equalsAny(md.getReferenceName(), children) && md.getRelationDetails() != null) {
-                            fetchObjectRefrence(conn, mainObj, md);
-                        }
+            }
+            List<MetaRelation> mds = tableInfo.getMdRelations();
+            if (mds != null) {
+                for (MetaRelation md : mds) {
+                    if (StringUtils.equalsAny(md.getReferenceName(), children) && md.getRelationDetails() != null) {
+                        fetchObjectRefrence(conn, mainObj, md);
                     }
                 }
             }
@@ -366,14 +362,13 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Map<String, Object> mainObj;
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                mainObj = innerGetObjectById(conn, tableInfo, pk);
-                mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(sourceInfoDao, tableInfo));
-                if (withChildrenDeep > 0 && mainObj != null) {
-                    fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
-                }
-                fetchObjectParents(conn, mainObj, tableInfo);
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            mainObj = innerGetObjectById(conn, tableInfo, pk);
+            mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(sourceInfoDao, tableInfo));
+            if (withChildrenDeep > 0 && mainObj != null) {
+                fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
             }
+            fetchObjectParents(conn, mainObj, tableInfo);
             return mainObj;
         } catch (Exception e) {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
@@ -711,9 +706,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             JSONArray ja;
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                ja = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).listObjectsByProperties(filter);
-            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            ja = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).listObjectsByProperties(filter);
             return DictionaryMapUtils.mapJsonArray(ja, this.fetchDictionaryMapColumns(sourceInfoDao, tableInfo));
         } catch (Exception e) {
             throw new ObjectException(filter, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
@@ -785,45 +779,44 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             JSONArray objs;
             Object obj;
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                HashSet<String> fieldSet = null;
-                if (fields != null && fields.length > 0) {
-                    fieldSet = collectPartFields(tableInfo, fields);
-                }
-                Pair<String, TableField[]> q = (fieldSet == null) ?
-                    GeneralJsonObjectDao.buildFieldSqlWithFields(tableInfo, null, true)
-                    : GeneralJsonObjectDao.buildPartFieldSqlWithFields(tableInfo, fieldSet, null, false);
-
-                String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo, null, params);
-                if (StringUtils.isNotBlank(extFilter)) {
-                    if (StringUtils.isNotBlank(filter)) {
-                        filter = extFilter + " and " + filter;
-                    } else {
-                        filter = extFilter;
-                    }
-                }
-                String sql = "select " + q.getLeft() + " from " + tableInfo.getTableName();
-                if (StringUtils.isNotBlank(filter)) {
-                    sql = sql + " where " + filter;
-                }
-                String orderBy = GeneralJsonObjectDao.fetchSelfOrderSql(sql, params);
-                if (StringUtils.isNotBlank(orderBy)) {
-                    sql = sql + " order by "
-                        + QueryUtils.cleanSqlStatement(orderBy);
-                }
-                //小于0时查询不分页
-                String querySql = pageDesc.getPageSize() < 0 ? sql : QueryUtils.buildLimitQuerySQL(sql,
-                    pageDesc.getRowStart(), pageDesc.getPageSize(), false,
-                    sourceInfo.getDBType());
-                objs = GeneralJsonObjectDao.findObjectsByNamedSql(conn,
-                    querySql, params, q.getRight());
-                String sGetCountSql = "select count(1) as totalRows from " + tableInfo.getTableName();
-                if (StringUtils.isNotBlank(filter)) {
-                    sGetCountSql = sGetCountSql + " where " + filter;
-                }
-                obj = DatabaseAccess.getScalarObjectQuery(conn,
-                    sGetCountSql, params);
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            HashSet<String> fieldSet = null;
+            if (fields != null && fields.length > 0) {
+                fieldSet = collectPartFields(tableInfo, fields);
             }
+            Pair<String, TableField[]> q = (fieldSet == null) ?
+                GeneralJsonObjectDao.buildFieldSqlWithFields(tableInfo, null, true)
+                : GeneralJsonObjectDao.buildPartFieldSqlWithFields(tableInfo, fieldSet, null, false);
+
+            String filter = GeneralJsonObjectDao.buildFilterSql(tableInfo, null, params);
+            if (StringUtils.isNotBlank(extFilter)) {
+                if (StringUtils.isNotBlank(filter)) {
+                    filter = extFilter + " and " + filter;
+                } else {
+                    filter = extFilter;
+                }
+            }
+            String sql = "select " + q.getLeft() + " from " + tableInfo.getTableName();
+            if (StringUtils.isNotBlank(filter)) {
+                sql = sql + " where " + filter;
+            }
+            String orderBy = GeneralJsonObjectDao.fetchSelfOrderSql(sql, params);
+            if (StringUtils.isNotBlank(orderBy)) {
+                sql = sql + " order by "
+                    + QueryUtils.cleanSqlStatement(orderBy);
+            }
+            //小于0时查询不分页
+            String querySql = pageDesc.getPageSize() < 0 ? sql : QueryUtils.buildLimitQuerySQL(sql,
+                pageDesc.getRowStart(), pageDesc.getPageSize(), false,
+                sourceInfo.getDBType());
+            objs = GeneralJsonObjectDao.findObjectsByNamedSql(conn,
+                querySql, params, q.getRight());
+            String sGetCountSql = "select count(1) as totalRows from " + tableInfo.getTableName();
+            if (StringUtils.isNotBlank(filter)) {
+                sGetCountSql = sGetCountSql + " where " + filter;
+            }
+            obj = DatabaseAccess.getScalarObjectQuery(conn,
+                sGetCountSql, params);
             pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
             JSONArray ja = DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(sourceInfoDao, tableInfo));
             if ("C".equals(tableInfo.getTableType())) {
@@ -855,15 +848,12 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             + QueryUtils.cleanSqlStatement(orderBy);
         try {
             JSONArray objs;
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-
-                objs = dao.findObjectsByNamedSqlAsJSON(
-                    querySql, params, null, pageDesc.getPageNo(), pageDesc.getPageSize());
-
-                pageDesc.setTotalRows(
-                    NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, querySql, params)));
-            }
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+            objs = dao.findObjectsByNamedSqlAsJSON(
+                querySql, params, null, pageDesc.getPageNo(), pageDesc.getPageSize());
+            pageDesc.setTotalRows(
+                NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, querySql, params)));
             return DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(sourceInfoDao, tableInfo));
         } catch (Exception e) {
             throw new ObjectException(params, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);

@@ -1,6 +1,7 @@
 package com.centit.product.adapter.po;
 
 import com.alibaba.fastjson.JSONObject;
+import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
 import io.swagger.annotations.ApiModel;
@@ -31,9 +32,11 @@ public class DataCheckRule implements java.io.Serializable {
 
     @Column(name = "TOP_UNIT")
     @ApiModelProperty(value = "所属租户", name = "topUnit")
+    @DictionaryMap(fieldName = "topUnitName", value = "unitCode")
     private String topUnit;
 
     @Column(name = "RULE_TYPE")
+    @DictionaryMap(fieldName = "ruleTypeText", value = "checkRuleType")
     private String  ruleType;
 
     @Column(name = "RULE_NAME")

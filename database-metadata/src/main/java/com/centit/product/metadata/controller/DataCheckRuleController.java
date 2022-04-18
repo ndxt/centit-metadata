@@ -5,6 +5,7 @@ import com.centit.framework.common.JsonResultUtils;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
+import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.model.basedata.OperationLog;
@@ -35,9 +36,6 @@ public class DataCheckRuleController extends BaseController {
     @Autowired
     private DataCheckRuleService dataCheckRuleService;
 
-//    @Autowired
-//    private TenantService tenantService;
-
     private String optId = "DATACHECKRULE";
 
     @ApiOperation(value = "所有数据校验规则信息", notes = "所有数据校验规则信息")
@@ -45,7 +43,7 @@ public class DataCheckRuleController extends BaseController {
         name = "pageDesc", value = "json格式，分页对象信息",
         paramType = "body", dataTypeClass = PageDesc.class)
     @RequestMapping(method = RequestMethod.GET)
-    @WrapUpResponseBody
+    @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public PageQueryResult<Object> list(PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = BaseController.collectRequestParameters(request);
         String topUnit = WebOptUtils.getCurrentTopUnit(request);
@@ -60,7 +58,7 @@ public class DataCheckRuleController extends BaseController {
             searchColumn.put("topUnit", strArry);
         }
         JSONArray listObjects = dataCheckRuleService.listObjectsAsJson(searchColumn, pageDesc);
-        return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, DataCheckRule.class);
+        return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, new Class[]{DataCheckRule.class});
     }
 
     /**

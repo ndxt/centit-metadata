@@ -2,6 +2,7 @@ package com.centit.product.metadata.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.JsonResultUtils;
+import com.centit.framework.common.ResponseData;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
@@ -11,6 +12,7 @@ import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.model.basedata.OperationLog;
 import com.centit.product.adapter.po.DataCheckRule;
 import com.centit.product.metadata.service.DataCheckRuleService;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -57,6 +59,23 @@ public class DataCheckRuleController extends BaseController {
             strArry[1] = "system";
             searchColumn.put("topUnit", strArry);
         }
+        JSONArray listObjects = dataCheckRuleService.listObjectsAsJson(searchColumn, pageDesc);
+        return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, new Class[]{DataCheckRule.class});
+    }
+
+    @ApiOperation(value = "当前租户的数据校验规则信息", notes = "当前租户的数据校验规则信息")
+    @ApiImplicitParam(
+        name = "pageDesc", value = "json格式，分页对象信息",
+        paramType = "body", dataTypeClass = PageDesc.class)
+    @RequestMapping(value = "/listByTopUnit", method = {RequestMethod.GET})
+    @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
+    public PageQueryResult<Object> listByTopUnit(PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> searchColumn = BaseController.collectRequestParameters(request);
+        String topUnit = WebOptUtils.getCurrentTopUnit(request);
+        if (StringUtils.isBlank(topUnit)){
+            throw new ObjectException(ResponseData.ERROR_INTERNAL_SERVER_ERROR,"topUnit不能为空!");
+        }
+        searchColumn.put("topUnit", topUnit);
         JSONArray listObjects = dataCheckRuleService.listObjectsAsJson(searchColumn, pageDesc);
         return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, new Class[]{DataCheckRule.class});
     }

@@ -31,6 +31,7 @@ public abstract class AbstractSourceConnectThreadHolder {
         SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
         return wrapper.fetchConnect(description);
     }
+
     public static HttpExecutorContext fetchHttpContext(ISourceInfo description) throws IOException {
         SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
         return wrapper.fetchHttpContext(description);
@@ -53,9 +54,8 @@ public abstract class AbstractSourceConnectThreadHolder {
 
     public static void commit(ISourceInfo description) throws SQLException {
         SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
-        try (Connection conn = wrapper.fetchConnect(description)) {
-            conn.commit();
-        }
+        Connection conn = wrapper.fetchConnect(description);
+        conn.commit();
     }
 
     public static void rollbackAndRelease() throws SQLException {

@@ -113,16 +113,21 @@ public class MetaTableController extends BaseController {
                               HttpServletResponse response) {
 
         boolean isExist = mdTableMag.isTableExist(mdTable.getTableName(), mdTable.getDatabaseCode());
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        mdTable.setRecorder(userCode);
+        mdTable.setTableState("W");
+        PendingMetaTable table = new PendingMetaTable();
+        table.copyNotNullProperty(mdTable);
         if (!isExist) {
-            String userCode = WebOptUtils.getCurrentUserCode(request);
-            mdTable.setRecorder(userCode);
-            mdTable.setTableState("W");
-            PendingMetaTable table = new PendingMetaTable();
-            table.copyNotNullProperty(mdTable);
             mdTableMag.saveNewPendingMetaTable(table);
             JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
         } else{
-            JsonResultUtils.writeErrorMessageJson(800,mdTable.getTableName()+"已存在", response);
+            if("V".equals(mdTable.getTableType())){
+                mdTableMag.savePendingMetaTable(table);
+                JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
+            }else {
+                JsonResultUtils.writeErrorMessageJson(800, mdTable.getTableName() + "已存在", response);
+            }
         }
     }
 

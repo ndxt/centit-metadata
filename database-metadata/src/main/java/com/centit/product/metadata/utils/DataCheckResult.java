@@ -25,7 +25,7 @@ public class DataCheckResult {
      */
     private List<String> errorMsgs;
 
-    private static final  Map<String, Function<Object[], Object>> extraFunc = new HashMap<>();
+    public static final  Map<String, Function<Object[], Object>> extraFunc = new HashMap<>();
     static {
         extraFunc.put("checkIdCardNo",
             (d) -> DataCheckUtils.checkIdCardNo(StringBaseOpt.castObjectToString(d[0])));

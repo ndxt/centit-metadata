@@ -153,7 +153,7 @@ public class MetaTableManagerImpl
     @Transactional
     public List<String> makeAlterTableSqlList(String tableId) {
         PendingMetaTable ptable = getPendingMetaTable(tableId);
-        if (null == ptable || null == ptable.getColumns()) {
+        if (null == ptable || ("T".equals(ptable.getTableType()) && null == ptable.getColumns())) {
             return null;
         }
         return makeAlterTableSqlList(ptable);

@@ -649,12 +649,13 @@ public class MetaTableManagerImpl
     public List listCombineTablesByProperty(Map<String, Object> parameters, PageDesc pageDesc) {
         String databaseCode = MapUtils.getString(parameters, "databaseCode");
         String optId = MapUtils.getString(parameters, "optId");
+        String osId = MapUtils.getString(parameters, "osId");
         String topUnit = MapUtils.getString(parameters, "topUnit");
         List<Map<String, Object>> mergeTableList = new ArrayList<>();
         if (StringUtils.isNotBlank(databaseCode)) {
             //根据 databaseCode查询表信息
             mergeTableList = listCombineTables(parameters);
-        } else if (StringUtils.isNotBlank(optId)) {
+        } else if (StringUtils.isNotBlank(optId) || StringUtils.isNotBlank(osId)) {
             //根据optId查询表信息
             JSONArray metaTablesJsonArray = metaTableDao.getMetaTableListWithTableOptRelation(parameters);
             JSONArray pendingMetaTableJSONArray = pendingMdTableDao.getPendingMetaTableListWithTableOptRelation(parameters);

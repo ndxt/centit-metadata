@@ -73,13 +73,12 @@ public class MetaTableController extends BaseController {
     public PageQueryResult loglist(@PathVariable String databaseCode, String[] field, PageDesc pageDesc,
                                    HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = collectRequestParameters(request);
-        searchColumn.put("databaseCode",databaseCode);
+        searchColumn.put("databaseCode", databaseCode);
         JSONArray listObjects = mdChangLogMag.listMdChangLogsAsJson(field, searchColumn, pageDesc);
         if (ArrayUtils.isNotEmpty(field)) {
             return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, field, MetaChangLog.class);
-        }
-        else{
-            return PageQueryResult.createJSONArrayResult(listObjects,pageDesc,MetaChangLog.class);
+        } else {
+            return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, MetaChangLog.class);
         }
     }
 
@@ -94,10 +93,10 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "查询单个表重构字段")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.GET})
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
-    public PendingMetaTable getMdTableDraft(@PathVariable String tableId,HttpServletRequest request) {
+    public PendingMetaTable getMdTableDraft(@PathVariable String tableId, HttpServletRequest request) {
         PendingMetaTable mdTable = mdTableMag.getPendingMetaTable(tableId);
-        if (null !=mdTable){
-            if (null ==mdTable.getColumns()){
+        if (null != mdTable) {
+            if (null == mdTable.getColumns()) {
                 mdTable.setMdColumns(new ArrayList<>());
             }
             return mdTable;
@@ -109,7 +108,7 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "新增重构表")
     @RequestMapping(method = {RequestMethod.POST})
-    public void createMdTable(PendingMetaTable mdTable,HttpServletRequest request,
+    public void createMdTable(PendingMetaTable mdTable, HttpServletRequest request,
                               HttpServletResponse response) {
 
         boolean isExist = mdTableMag.isTableExist(mdTable.getTableName(), mdTable.getDatabaseCode());
@@ -121,11 +120,11 @@ public class MetaTableController extends BaseController {
         if (!isExist) {
             mdTableMag.saveNewPendingMetaTable(table);
             JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
-        } else{
-            if("V".equals(mdTable.getTableType())){
+        } else {
+            if ("V".equals(mdTable.getTableType())) {
                 mdTableMag.savePendingMetaTable(table);
                 JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
-            }else {
+            } else {
                 JsonResultUtils.writeErrorMessageJson(800, mdTable.getTableName() + "已存在", response);
             }
         }
@@ -134,7 +133,7 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "修改重构表")
     @PutMapping(value = "/table/{tableId}")
     @WrapUpResponseBody
-    public void updateMetaTable(@PathVariable String tableId, @RequestBody PendingMetaTable metaTable,HttpServletRequest request){
+    public void updateMetaTable(@PathVariable String tableId, @RequestBody PendingMetaTable metaTable, HttpServletRequest request) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         metaTable.setTableId(tableId);
         metaTable.setRecorder(userCode);
@@ -144,7 +143,7 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "修改重构表字段")
     @PutMapping(value = "/column/{tableId}/{columnCode}")
     @WrapUpResponseBody
-    public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode, @RequestBody PendingMetaColumn metaColumn){
+    public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode, @RequestBody PendingMetaColumn metaColumn) {
         metaColumn.setTableId(tableId);
         metaColumn.setColumnName(columnCode);
         mdTableMag.updateMetaColumn(metaColumn);
@@ -156,7 +155,7 @@ public class MetaTableController extends BaseController {
     public void updateMdTable(@PathVariable String tableId, @RequestBody PendingMetaTable mdTable) {
         mdTable.setTableId(tableId);
         List<String> alterSqls = mdTableMag.makeAlterTableSqlList(mdTable);
-        mdTable.setTableState(alterSqls.size()>0?"W":"S");
+        mdTable.setTableState(alterSqls.size() > 0 ? "W" : "S");
         mdTableMag.savePendingMetaTable(mdTable);
     }
 
@@ -171,9 +170,9 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/beforePublish/{pendingTableId}", method = {RequestMethod.POST})
     @WrapUpResponseBody
     public ResponseData alertSqlBeforePublish(@PathVariable String pendingTableId,
-                                      HttpServletRequest request, HttpServletResponse response) {
+                                              HttpServletRequest request, HttpServletResponse response) {
         List<String> sqlList = mdTableMag.makeAlterTableSqlList(pendingTableId);
-        if (null == sqlList){
+        if (null == sqlList) {
             return ResponseData.makeErrorMessage(601, "表字段不能为空");
         }
         return ResponseData.makeResponseData(sqlList);
@@ -186,7 +185,7 @@ public class MetaTableController extends BaseController {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         Pair<Integer, String> ret = mdTableMag.publishMetaTable(pendingTableId, userCode);
         JSONObject json = translatePublishMessage(ret);
-        JsonResultUtils.writeSingleDataJson(json,response);
+        JsonResultUtils.writeSingleDataJson(json, response);
     }
 
 
@@ -201,8 +200,8 @@ public class MetaTableController extends BaseController {
         String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
         long tempFileSize = SystemTempFileUtils.checkTempFileSize(tempFilePath);
         Map<String, Object> data = new HashMap<>(4);
-        data.put("tempFilePath", token +"_"+size);
-        JSONObject jsonObject = UploadDownloadUtils.makeRangeUploadJson(tempFileSize, token, token +"_"+size);
+        data.put("tempFilePath", token + "_" + size);
+        JSONObject jsonObject = UploadDownloadUtils.makeRangeUploadJson(tempFileSize, token, token + "_" + size);
         if (tempFileSize == size) {
             data.put("tables", fetchPdmTables(tempFilePath));
             jsonObject.put("tables", data);
@@ -214,28 +213,28 @@ public class MetaTableController extends BaseController {
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.POST)
     @RequestMapping(value = "/range", method = {RequestMethod.POST})
     public void syncPdm(String token, long size,
-        HttpServletRequest request, HttpServletResponse response)
+                        HttpServletRequest request, HttpServletResponse response)
         throws IOException {
 
         Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
         FileSystemOpt.createDirect(SystemTempFileUtils.getTempDirectory());
         String tempFilePath = SystemTempFileUtils.getTempFilePath(token, size);
-        try (FileOutputStream out = new FileOutputStream(new File(tempFilePath))){
-            long uploadSize = FileIOOpt.writeInputStreamToOutputStream( fileInfo.getRight(), out);
-            if(uploadSize>0){
+        try (FileOutputStream out = new FileOutputStream(new File(tempFilePath))) {
+            long uploadSize = FileIOOpt.writeInputStreamToOutputStream(fileInfo.getRight(), out);
+            if (uploadSize > 0) {
                 //上传到临时区成功
                 JSONObject jsonObject = new JSONObject();
                 Map<String, Object> data = new HashMap<>(4);
-                data.put("tempFilePath", token +"_"+size);
+                data.put("tempFilePath", token + "_" + size);
                 data.put("tables", PdmTableInfoUtils.getTableNameFromPdm(tempFilePath));
                 jsonObject.put("tables", data);
-                JsonResultUtils.writeSingleDataJson(jsonObject,response);
-            }else {
+                JsonResultUtils.writeSingleDataJson(jsonObject, response);
+            } else {
                 JsonResultUtils.writeOriginalJson(UploadDownloadUtils.
-                    makeRangeUploadJson(uploadSize, token, token +"_"+size).toJSONString(), response);
+                    makeRangeUploadJson(uploadSize, token, token + "_" + size).toJSONString(), response);
             }
 
-        }catch (ObjectException e){
+        } catch (ObjectException e) {
             logger.error(e.getMessage(), e);
             JsonResultUtils.writeHttpErrorMessage(e.getExceptionCode(),
                 e.getMessage(), response);
@@ -246,18 +245,18 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/{databaseCode}/confirm", method = {RequestMethod.POST})
     @WrapUpResponseBody
     public void syncConfirm(@PathVariable String databaseCode, @RequestBody String data,
-                                HttpServletRequest request, HttpServletResponse response) {
+                            HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> params = collectRequestParameters(request);
         JSONObject object = JSON.parseObject(data);
         object.putAll(params);
-        String tempFilePath =SystemTempFileUtils.getTempDirectory() + object.getString("tempFilePath") + ".tmp";
+        String tempFilePath = SystemTempFileUtils.getTempDirectory() + object.getString("tempFilePath") + ".tmp";
         JSONArray jsonArray = object.getJSONArray("data");
-        List<String>  tables = new ArrayList<>();
+        List<String> tables = new ArrayList<>();
         for (Object o : jsonArray) {
             tables.add(o.toString());
         }
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        Pair<Integer, String> ret = mdTableMag.syncPdm(databaseCode,tempFilePath,tables,userCode);
+        Pair<Integer, String> ret = mdTableMag.syncPdm(databaseCode, tempFilePath, tables, userCode);
         JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }
 
@@ -265,13 +264,12 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/{databaseCode}/publish", method = {RequestMethod.POST})
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public void publishDatabase(@PathVariable String databaseCode,
-                               HttpServletRequest request, HttpServletResponse response) {
+                                HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         Pair<Integer, String> ret = mdTableMag.publishDatabase(databaseCode, userCode);
         JSONObject json = translatePublishMessage(ret);
-        JsonResultUtils.writeSingleDataJson(json,response);
+        JsonResultUtils.writeSingleDataJson(json, response);
     }
-
 
 
     @ApiOperation(value = "查询列表元数据")
@@ -280,7 +278,7 @@ public class MetaTableController extends BaseController {
     })
     @GetMapping(value = "/{tableId}/columns")
     @WrapUpResponseBody
-    public PageQueryResult<PendingMetaColumn> listColumns(@PathVariable String tableId, PageDesc pageDesc){
+    public PageQueryResult<PendingMetaColumn> listColumns(@PathVariable String tableId, PageDesc pageDesc) {
         List<PendingMetaColumn> list = mdTableMag.listMetaColumns(tableId, pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }
@@ -292,26 +290,26 @@ public class MetaTableController extends BaseController {
     })
     @GetMapping(value = "/{tableId}/column/{columnName}")
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
-    public PendingMetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName){
+    public PendingMetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName) {
         return mdTableMag.getMetaColumn(tableId, columnName);
     }
 
 
     @ApiOperation(value = "查询列元数据,pending表与md表数据的组合,通过osId,dataBaseCode过滤,如果osId和dataBaseCode不传,后端根据topUnit过滤)")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "databaseCode", value = "数据库code",paramType = "query"),
-        @ApiImplicitParam(name = "optId", value = "操作id",paramType = "query"),
-        @ApiImplicitParam(name = "likeTableNameOrLabel", value = "根据表代码或表名模糊过滤",paramType = "query"),
-        @ApiImplicitParam(name = "tableLabelName", value = "根据表名过滤",paramType = "query"),
-        @ApiImplicitParam(name = "tableName", value = "根据表代码过滤",paramType = "query"),
-        @ApiImplicitParam(name = "sourceType", value = "根据表类型过滤。资源类型,D:关系数据库 M:MongoDb R:redis E:elssearch K:kafka B:rabbitmq,H http服务",paramType = "query")
+        @ApiImplicitParam(name = "databaseCode", value = "数据库code", paramType = "query"),
+        @ApiImplicitParam(name = "optId", value = "操作id", paramType = "query"),
+        @ApiImplicitParam(name = "likeTableNameOrLabel", value = "根据表代码或表名模糊过滤", paramType = "query"),
+        @ApiImplicitParam(name = "tableLabelName", value = "根据表名过滤", paramType = "query"),
+        @ApiImplicitParam(name = "tableName", value = "根据表代码过滤", paramType = "query"),
+        @ApiImplicitParam(name = "sourceType", value = "根据表类型过滤。资源类型,D:关系数据库 M:MongoDb R:redis E:elssearch K:kafka B:rabbitmq,H http服务", paramType = "query")
     })
     @GetMapping(value = "/listCombineTables")
     @WrapUpResponseBody
-    public PageQueryResult listCombineTables( PageDesc pageDesc ,HttpServletRequest request) {
+    public PageQueryResult listCombineTables(PageDesc pageDesc, HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
         String topUnit = WebOptUtils.getCurrentTopUnit(request);
-        parameters.put("topUnit",topUnit);
+        parameters.put("topUnit", topUnit);
         List list = mdTableMag.listCombineTablesByProperty(parameters, pageDesc);
         tableDictionaryMap(list);
         return PageQueryResult.createResult(list, pageDesc);
@@ -321,31 +319,31 @@ public class MetaTableController extends BaseController {
     @ApiImplicitParam(name = "databaseCode", value = "数据库ID")
     @GetMapping(value = "/sync/{databaseCode}")
     @WrapUpResponseBody
-    public ResponseData syncDb(@PathVariable String databaseCode,String[] tableNames, HttpServletRequest request){
+    public ResponseData syncDb(@PathVariable String databaseCode, String[] tableNames, HttpServletRequest request) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        if(tableNames==null){
-            mdTableMag.syncDb(databaseCode, userCode,null);
-        }else {
-            for (String tableName : tableNames) {
-                mdTableMag.syncDb(databaseCode, userCode, tableName);
-            }
+        if (tableNames == null) {
+            mdTableMag.syncDb(databaseCode, userCode, null);
+        } else {
+            mdTableMag.syncDb(databaseCode, userCode, tableNames);
         }
         return ResponseData.makeSuccessResponse();
     }
 
-    private  List<SimpleTableInfo> fetchPdmTables(String tempFilePath) {
+    private List<SimpleTableInfo> fetchPdmTables(String tempFilePath) {
         if ("".equals(tempFilePath)) {
             throw new ObjectException("pdm文件不能为空");
         }
         return PdmTableInfoUtils.importTableFromPdm(tempFilePath);
     }
+
     /**
      * 对listCombineTables中的表数据集合进行字段翻译
+     *
      * @param list
      */
-    private void tableDictionaryMap(List list){
-        DictionaryMapColumn dicMap1 = new DictionaryMapColumn("recorder","recorderName","userCode");
-        DictionaryMapColumn dicMap2 = new DictionaryMapColumn("tableType","tableTypeText","tableType");
+    private void tableDictionaryMap(List list) {
+        DictionaryMapColumn dicMap1 = new DictionaryMapColumn("recorder", "recorderName", "userCode");
+        DictionaryMapColumn dicMap2 = new DictionaryMapColumn("tableType", "tableTypeText", "tableType");
         ArrayList<DictionaryMapColumn> dicMaps = new ArrayList<>();
         dicMaps.add(dicMap1);
         dicMaps.add(dicMap2);
@@ -354,6 +352,7 @@ public class MetaTableController extends BaseController {
 
     /**
      * 转换发布结果响应体
+     *
      * @param ret
      * @return
      */
@@ -375,7 +374,7 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/{databaseId}/viewlist", method = RequestMethod.POST)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public JSONArray viewList(@PathVariable String databaseId,@RequestBody JSONObject sql) throws IOException, SQLException {
-        return mdTableMag.viewList(databaseId,sql.getString("sql"));
+    public JSONArray viewList(@PathVariable String databaseId, @RequestBody JSONObject sql) throws IOException, SQLException {
+        return mdTableMag.viewList(databaseId, sql.getString("sql"));
     }
 }

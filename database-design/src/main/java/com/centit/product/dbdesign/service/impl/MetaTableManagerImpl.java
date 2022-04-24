@@ -300,12 +300,12 @@ public class MetaTableManagerImpl
             final PendingMetaTable pTable = pendingMdTableDao.getObjectById(tableId);
             pendingMdTableDao.fetchObjectReferences(pTable);
             Pair<Integer, String> ret;
-            if(VIEW.equals(pTable.getTableType())){
+            if (VIEW.equals(pTable.getTableType())) {
                 ret = GeneralDDLOperations.checkViewWellDefined(pTable);
-                if(StringBaseOpt.isNvl(pTable.getViewSql())){
-                    ret=new ImmutablePair<>(-1, "视图" + pTable.getTableName() + "没有定义sql！");
+                if (StringBaseOpt.isNvl(pTable.getViewSql())) {
+                    ret = new ImmutablePair<>(-1, "视图" + pTable.getTableName() + "没有定义sql！");
                 }
-            }else {
+            } else {
                 ret = GeneralDDLOperations.checkTableWellDefined(pTable);
             }
             if (ret.getLeft() != 0) {
@@ -344,7 +344,7 @@ public class MetaTableManagerImpl
                 pendingMdTableDao.saveObjectReferences(pTable);
                 if (sqlList.size() > 0) {
                     if (VIEW.equals(pTable.getTableType())) {
-                        metaDataService.syncDb(pTable.getDatabaseCode(), currentUser, pTable.getTableName(),pTable.getTableId());
+                        metaDataService.syncDb(pTable.getDatabaseCode(), currentUser, new String[]{pTable.getTableName()}, pTable.getTableId());
                     } else {
                         pendingToMeta(currentUser, pTable);
                     }
@@ -685,13 +685,13 @@ public class MetaTableManagerImpl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void syncDb(String databaseCode, String userCode, String tableName) {
+    public void syncDb(String databaseCode, String userCode, String[] tableNames) {
         SourceInfo databaseInfo = metaDataService.getDatabaseInfo(databaseCode);
         if (databaseInfo != null && !"D".equals(databaseInfo.getSourceType())) {
             throw new ObjectException("选择的资源不支持反向工程！");
         }
-        metaDataService.syncDb(databaseCode, userCode, tableName);
-        deletePendingTableWithColumns(databaseCode, tableName);
+        metaDataService.syncDb(databaseCode, userCode, tableNames);
+        deletePendingTableWithColumns(databaseCode, tableNames, userCode);
     }
 
     @Override
@@ -720,19 +720,22 @@ public class MetaTableManagerImpl
      * 删除 f_pending_meta_table 和 f_pending_meta_column 中的数据
      *
      * @param databaseCode 数据库code
-     * @param tableName    表名
+     * @param tableNames   表名
      */
-    private void deletePendingTableWithColumns(String databaseCode, String tableName) {
+    private void deletePendingTableWithColumns(String databaseCode, String[] tableNames, String userCode) {
         Map<String, Object> filterMap = CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableType_ne", "V");
-        if (StringUtils.isNotBlank(tableName)) {
-            filterMap.put("tableName", tableName);
+        if (tableNames != null) {
+            filterMap.put("tableNames", tableNames);
         }
-        List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByProperties(filterMap);
-        if (!CollectionUtils.sizeIsEmpty(pendingMetaTables)) {
-            String[] tableIds = CollectionsOpt.listToArray(pendingMetaTables.stream().map(PendingMetaTable::getTableId).collect(Collectors.toSet()));
+        List<MetaTable> metaTables = metaTableDao.listObjects(filterMap);
+        if (!CollectionUtils.sizeIsEmpty(metaTables)) {
+            String[] tableIds = CollectionsOpt.listToArray(metaTables.stream().map(MetaTable::getTableId).collect(Collectors.toSet()));
             Map<String, Object> deleteFilterMap = CollectionsOpt.createHashMap("tableId_in", tableIds);
             pendingMdTableDao.deleteObjectsByProperties(deleteFilterMap);
             pendingMetaColumnDao.deleteObjectsByProperties(deleteFilterMap);
+            for (String tableId : tableIds) {
+                initPendingMetaTable(tableId, userCode);
+            }
         }
     }
 
@@ -796,23 +799,17 @@ public class MetaTableManagerImpl
      * @param resultMaps 需要被排序的集合
      */
     private void sortCombineTables(Map<String, Object> filterMap, List<Map<String, Object>> resultMaps) {
-        resultMaps.forEach(map -> {
-            if (null != map.get("recordDate")) {
-                Date recordDate = new Date(MapUtils.getLong(map, "recordDate"));
-                map.put("lastModifyDate", recordDate);
-                map.put("recordDate", recordDate);
-            } else {
-                Long lastModifyDate = MapUtils.getLong(map, "lastModifyDate");
-                Date recordDate = new Date(null == lastModifyDate ? System.currentTimeMillis() : lastModifyDate);
-                map.put("lastModifyDate", recordDate);
-                map.put("recordDate", recordDate);
+        String[] sortKey = {"tableType", "tableName"};
+        Comparator<Map> comparator = (a, b) ->
+        {
+            for (String sort : sortKey) {
+                int cr= GeneralAlgorithm.compareTwoObject(a.get(sort), b.get(sort));
+                if (cr != 0) {
+                    return cr;
+                }
             }
-        });
-        String sortKey = null == MapUtils.getString(filterMap, "sort") ? "lastModifyDate" : MapUtils.getString(filterMap, "sort");
-        Comparator<Map> comparator = (a, b) -> GeneralAlgorithm.compareTwoObject(a.get(sortKey), b.get(sortKey));
-        if ("desc".equals(MapUtils.getString(filterMap, "order"))) {
-            comparator = comparator.reversed();
-        }
+            return 0;
+        };
         resultMaps.sort(comparator);
     }
 
@@ -828,7 +825,7 @@ public class MetaTableManagerImpl
         if (CollectionUtils.isEmpty(records)) {
             return Collections.emptyList();
         }
-        int pageNumCopy=pageNum;
+        int pageNumCopy = pageNum;
         if (0 == pageNum) {
             pageNumCopy = 1;
         }

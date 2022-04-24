@@ -77,7 +77,7 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
      */
     boolean isTableExist(String tableName,String dataBaseCode);
 
-    void syncDb(String databaseCode, String userCode, String tableName);
+    void syncDb(String databaseCode, String userCode, String[] tableNames);
 
     /**
      * 初始化pending数据

@@ -16,6 +16,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Autowired
     private MetaRelationDao metaRelationDao;
+
 
     @Override
     public List<SourceInfo> listDatabase(String osId) {
@@ -87,19 +89,27 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public void syncDb(String databaseCode, String recorder, String tableName) {
-        syncDb(databaseCode, recorder, tableName, null);
+    public void syncDb(String databaseCode, String recorder, String[] tableNames) {
+        syncDb(databaseCode, recorder, tableNames, null);
     }
 
     @Override
-    public void syncDb(String databaseCode, String recorder, String tableName, String tableId) {
+    public void syncDb(String databaseCode, String recorder, String[] tableNames, String tableId) {
         List<SimpleTableInfo> dbTables = new ArrayList<>();
         List<MetaTable> metaTables;
-        if (tableName != null) {
-            String upperTableName = StringUtils.upperCase(tableName);
-            dbTables.add(getRealTable(databaseCode, upperTableName));
-            metaTables = metaTableDao.listObjectsByFilter("where DATABASE_CODE = ? and table_name=?",
-                new Object[]{databaseCode, upperTableName});
+        if (tableNames != null) {
+            String[] upperTableNames = new String[tableNames.length];
+            List<SimpleTableInfo> tables = listRealTables(databaseCode);
+            for (int i = 0; i < tableNames.length; i++) {
+                upperTableNames[i] = StringUtils.upperCase(tableNames[i]);
+                for (SimpleTableInfo info : tables) {
+                    if (upperTableNames[i].equalsIgnoreCase(info.getTableName())) {
+                        dbTables.add(info);
+                        break;
+                    }
+                }
+            }
+            metaTables = metaTableDao.listObjects(CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableNames", upperTableNames));
         } else {
             dbTables = listRealTables(databaseCode);
             metaTables = metaTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
@@ -107,7 +117,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
         Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple = compareMetaBetweenDbTables(metaTables, dbTables, comparator);
         if (triple.getLeft() != null && triple.getLeft().size() > 0) {
-            addSyncData(databaseCode, recorder, triple,tableId);
+            addSyncData(databaseCode, recorder, triple, tableId);
         }
         if (triple.getRight() != null && triple.getRight().size() > 0) {
             deleteSyncData(triple);
@@ -117,10 +127,6 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
     }
 
-    private SimpleTableInfo getRealTable(String databaseCode, String tableName) {
-        JdbcMetadata jdbcMetadata = getJdbcMetadata(databaseCode);
-        return jdbcMetadata.getTableMetadata(tableName);
-    }
 
     private JdbcMetadata getJdbcMetadata(String databaseCode) {
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
@@ -149,7 +155,20 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     public List<SimpleTableInfo> listRealTablesWithoutColumn(String databaseCode) {
         JdbcMetadata jdbcMetadata = getJdbcMetadata(databaseCode);
-        return jdbcMetadata.listAllTable(false);
+        List<SimpleTableInfo> dbTableInfo = jdbcMetadata.listAllTable(false);
+        dbTableInfo.sort(Comparator.comparing(SimpleTableInfo::getTableType));
+        List<MetaTable> metaTables = metaTableDao.listObjects(CollectionsOpt.createHashMap("databaseCode", databaseCode));
+        Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
+        Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple = compareMetaBetweenDbTables(metaTables, dbTableInfo, comparator);
+        if (triple.getRight() != null && triple.getRight().size() > 0) {
+            for (MetaTable metaTable : triple.getRight()) {
+                SimpleTableInfo simpleTableInfo = new SimpleTableInfo();
+                simpleTableInfo.setTableName(metaTable.getTableName());
+                simpleTableInfo.setTableType("Z");
+                dbTableInfo.add(simpleTableInfo);
+            }
+        }
+        return dbTableInfo;
     }
 
     public static <K, V> Triple<List<K>, List<Pair<V, K>>, List<V>>
@@ -198,7 +217,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         return new ImmutableTriple<>(insertList, updateList, delList);
     }
 
-    private void addSyncData(String databaseCode, String recorder, Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple,String tableId) {
+    private void addSyncData(String databaseCode, String recorder, Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple, String tableId) {
         for (SimpleTableInfo table : triple.getLeft()) {
             //表
             MetaTable metaTable = new MetaTable().convertFromDbTable(table);
@@ -207,7 +226,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                 metaTable.setTableLabelName(table.getTableName());
             }
             metaTable.setRecorder(recorder);
-            if(tableId!=null){
+            if (tableId != null) {
                 metaTable.setTableId(tableId);
             }
             metaTableDao.saveNewObject(metaTable);

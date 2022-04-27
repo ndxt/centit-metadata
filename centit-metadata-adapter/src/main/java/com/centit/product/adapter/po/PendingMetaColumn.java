@@ -86,7 +86,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @ApiModelProperty(value = "是否为主键")
     @Column(name = "PRIMARY_KEY")
     @Length(max=1, message = "字段长度不能大于{max}")
-    private Boolean primaryKey;
+    private Boolean primaryKey=false;
 
     @ApiModelProperty(value = "更改时间", hidden = true)
     @ValueGenerator(strategy = GeneratorType.FUNCTION, occasion = GeneratorTime.NEW_UPDATE, condition = GeneratorCondition.ALWAYS, value = "today()")

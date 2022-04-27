@@ -81,7 +81,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @ApiModelProperty(value = "是否必填")
     @Column(name = "MANDATORY")
     @Length(max=1, message = "字段长度不能大于{max}")
-    private Boolean  mandatory;
+    private Boolean  mandatory=false;
 
     @ApiModelProperty(value = "是否为主键")
     @Column(name = "PRIMARY_KEY")

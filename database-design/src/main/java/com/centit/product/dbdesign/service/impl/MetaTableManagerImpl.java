@@ -15,10 +15,7 @@ import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
-import com.centit.support.algorithm.CollectionsOpt;
-import com.centit.support.algorithm.DatetimeOpt;
-import com.centit.support.algorithm.GeneralAlgorithm;
-import com.centit.support.algorithm.StringBaseOpt;
+import com.centit.support.algorithm.*;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.ddl.*;
 import com.centit.support.database.metadata.SimpleTableField;
@@ -205,7 +202,7 @@ public class MetaTableManagerImpl
                         if (StringUtils.equalsAnyIgnoreCase(pendingMetaColumn.getFieldType(), ocol.getFieldType())) {
                             boolean exits = !GeneralAlgorithm.equals(pendingMetaColumn.getMaxLength(), ocol.getMaxLength()) ||
                                 !GeneralAlgorithm.equals(pendingMetaColumn.getScale(), ocol.getScale()) ||
-                                !GeneralAlgorithm.equals(pendingMetaColumn.getMandatory(), ocol.getMandatory()) ||
+                                !GeneralAlgorithm.equals(BooleanBaseOpt.castObjectToBoolean(pendingMetaColumn.getMandatory(),false), ocol.getMandatory()) ||
                                 (!StringUtils.equals(pendingMetaColumn.getFieldLabelName(), ocol.getFieldLabelName())
                                     && dbType.equals(DBType.MySql));
                             if (exits) {

@@ -129,7 +129,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
 
-    private List<SimpleTableInfo> getJdbcMetadata(String databaseCode){
+    private List<SimpleTableInfo> getJdbcMetadata(String databaseCode,boolean withColumn){
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
         try(Connection conn=AbstractDruidConnectPools.getDbcpConnect(sourceInfo)) {
@@ -140,7 +140,7 @@ public class MetaDataServiceImpl implements MetaDataService {
             if (sourceInfo.getDatabaseUrl().contains(CONTAIN_ORACLE)) {
                 jdbcMetadata.setDBSchema(sourceInfo.getUsername().toUpperCase());
             }
-            return jdbcMetadata.listAllTable();
+            return jdbcMetadata.listAllTable(withColumn);
         } catch (SQLException e) {
             logger.error("连接数据库【{}】出错", sourceInfo.getDatabaseName());
             throw new ObjectException("连接数据库出错" + e.getMessage());
@@ -149,12 +149,12 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public List<SimpleTableInfo> listRealTables(String databaseCode) {
-        return getJdbcMetadata(databaseCode);
+        return getJdbcMetadata(databaseCode,true);
     }
 
     @Override
     public List<SimpleTableInfo> listRealTablesWithoutColumn(String databaseCode) {
-        List<SimpleTableInfo> dbTableInfo = getJdbcMetadata(databaseCode);
+        List<SimpleTableInfo> dbTableInfo = getJdbcMetadata(databaseCode,false);
         dbTableInfo.sort(Comparator.comparing(SimpleTableInfo::getTableType));
         List<MetaTable> metaTables = metaTableDao.listObjects(CollectionsOpt.createHashMap("databaseCode", databaseCode));
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());

@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -128,34 +129,32 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
 
-    private JdbcMetadata getJdbcMetadata(String databaseCode) {
+    private List<SimpleTableInfo> getJdbcMetadata(String databaseCode){
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
-        try {
-            jdbcMetadata.setDBConfig(AbstractDruidConnectPools.getDbcpConnect(sourceInfo));
+        try(Connection conn=AbstractDruidConnectPools.getDbcpConnect(sourceInfo)) {
+            jdbcMetadata.setDBConfig(conn);
             if (sourceInfo.getExtProps().containsKey(CONTAIN_SCHEMA)) {
                 jdbcMetadata.setDBSchema(sourceInfo.getExtProps().getString(CONTAIN_SCHEMA).toUpperCase());
             }
             if (sourceInfo.getDatabaseUrl().contains(CONTAIN_ORACLE)) {
                 jdbcMetadata.setDBSchema(sourceInfo.getUsername().toUpperCase());
             }
+            return jdbcMetadata.listAllTable();
         } catch (SQLException e) {
             logger.error("连接数据库【{}】出错", sourceInfo.getDatabaseName());
             throw new ObjectException("连接数据库出错" + e.getMessage());
         }
-        return jdbcMetadata;
     }
 
     @Override
     public List<SimpleTableInfo> listRealTables(String databaseCode) {
-        JdbcMetadata jdbcMetadata = getJdbcMetadata(databaseCode);
-        return jdbcMetadata.listAllTable();
+        return getJdbcMetadata(databaseCode);
     }
 
     @Override
     public List<SimpleTableInfo> listRealTablesWithoutColumn(String databaseCode) {
-        JdbcMetadata jdbcMetadata = getJdbcMetadata(databaseCode);
-        List<SimpleTableInfo> dbTableInfo = jdbcMetadata.listAllTable(false);
+        List<SimpleTableInfo> dbTableInfo = getJdbcMetadata(databaseCode);
         dbTableInfo.sort(Comparator.comparing(SimpleTableInfo::getTableType));
         List<MetaTable> metaTables = metaTableDao.listObjects(CollectionsOpt.createHashMap("databaseCode", databaseCode));
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());

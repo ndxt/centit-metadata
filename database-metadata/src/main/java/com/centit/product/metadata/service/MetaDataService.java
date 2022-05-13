@@ -31,7 +31,6 @@ public interface MetaDataService {
      */
     List<SourceInfo> listDatabase(Map<String,Object>  map);
 
-    List<SimpleTableInfo> listRealTables(String databaseCode);
     List<SimpleTableInfo> listRealTablesWithoutColumn(String databaseCode);
 
     void syncDb(String databaseCode, String recorder,String[] tableNames);

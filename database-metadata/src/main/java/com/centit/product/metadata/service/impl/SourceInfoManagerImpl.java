@@ -100,15 +100,13 @@ public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, Str
      * @param sourceInfo
      */
     private void checkDatabaseNumberLimit(SourceInfo sourceInfo) {
-        if ("D".equals(sourceInfo.getSourceType())){
-            JSONObject tenantInfo = tenantManageService.getTenantInfoByTopUnit(sourceInfo.getTopUnit());
-            if (null == tenantInfo){
-                throw new ObjectException("租户信息有误!");
-            }
-            int countDataBase = countDataBase(sourceInfo.getTopUnit(), sourceInfo.getSourceType());
-            if (countDataBase >= tenantInfo.getIntValue("databaseNumberLimit")){
-                throw new ObjectException("数据库资源超过了限制!");
-            }
+        JSONObject tenantInfo = tenantManageService.getTenantInfoByTopUnit(sourceInfo.getTopUnit());
+        if (null == tenantInfo){
+            throw new ObjectException("租户信息有误!");
+        }
+        int countDataBase = countDataBase(sourceInfo.getTopUnit(), null);
+        if (countDataBase >= tenantInfo.getIntValue("databaseNumberLimit")){
+            throw new ObjectException("数据库资源超过了限制!");
         }
     }
 

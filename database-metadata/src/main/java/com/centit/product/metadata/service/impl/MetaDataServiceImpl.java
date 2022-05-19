@@ -130,7 +130,7 @@ public class MetaDataServiceImpl implements MetaDataService {
             if (sourceInfo.getDatabaseUrl().contains(CONTAIN_ORACLE)) {
                 jdbcMetadata.setDBSchema(sourceInfo.getUsername().toUpperCase());
             }
-            return jdbcMetadata.listAllTable(withColumn,tableNames);
+            return jdbcMetadata.listTables(withColumn,tableNames);
         } catch (SQLException e) {
             logger.error("连接数据库【{}】出错", sourceInfo.getDatabaseName());
             throw new ObjectException("连接数据库出错" + e.getMessage());

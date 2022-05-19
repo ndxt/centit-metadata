@@ -1,12 +1,14 @@
 package com.centit.product.adapter.po;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,6 +25,7 @@ import javax.persistence.Table;
 @Table(name = "F_DATA_CHECK_RULE")
 public class DataCheckRule implements java.io.Serializable {
     private static final long serialVersionUID =  202203291917L;
+    public static final String CHECK_VALUE_TAG ="checkValue";
 
     @ApiModelProperty(value = "规则ID", hidden = true)
     @Id
@@ -56,4 +59,8 @@ public class DataCheckRule implements java.io.Serializable {
 
     @Column(name = "RULE_DESC")
     private String  ruleDesc;
+    @Column(name = "SOURCE_ID")
+    @Length(max = 32, message = "字段长度不能大于{max}")
+    @JSONField(serialize = false)
+    private String sourceId;
 }

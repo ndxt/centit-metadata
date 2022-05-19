@@ -412,6 +412,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             GeneralJsonObjectDao dao;
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+///todo 添加规则判段
             makeObjectValueByGenerator(object, extParams, tableInfo, dao, 1l, false);
             prepareObjectForSave(object, tableInfo);
             return dao.saveNewObject(object);

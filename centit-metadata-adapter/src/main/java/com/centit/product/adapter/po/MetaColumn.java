@@ -1,5 +1,6 @@
 package com.centit.product.adapter.po;
 
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
 import com.centit.support.database.metadata.SimpleTableField;
@@ -130,16 +131,16 @@ public class MetaColumn implements TableField, java.io.Serializable {
      * 约束表达式 regex表达式
      */
     @ApiModelProperty(value = "约束表达式 regex表达式")
-    @Column(name = "VALIDATE_REGEX")
-    @Length(max = 200, message = "字段长度不能大于{max}")
-    private String  validateRegex;
+    @Column(name = "CHECK_RULE_ID")
+    @Length(max = 64, message = "字段长度不能大于{max}")
+    private String  checkRuleId;
     /**
      * 约束提示 约束不通过提示信息
      */
     @ApiModelProperty(value = "约束提示 约束不通过提示信息")
-    @Column(name = "VALIDATE_INFO")
-    @Length(max = 200, message = "字段长度不能大于{max}")
-    private String  validateInfo;
+    @Column(name = "CHECK_RULE_PARAMS")
+    @Length(max = 512, message = "字段长度不能大于{max}")
+    private JSONObject checkRuleParams;
 
     /**
      * 自动生成规则   C 常量  U uuid S sequence

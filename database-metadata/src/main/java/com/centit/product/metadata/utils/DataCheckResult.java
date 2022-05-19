@@ -64,9 +64,12 @@ public class DataCheckResult {
      * @param data 校验的对象
      * @param rule 规则
      * @param param 校验参数，key 包括： checkValue， param1， param2， param3,
+     * @param nullAsTrue checkValue 是null的时候 忽略规则
      * @return 是否符合规则，和不符合错误提示
      */
-    public DataCheckResult checkData(Object data, DataCheckRule rule, Map<String, String> param, boolean makeErrorMessage){
+    public DataCheckResult checkData(Object data, DataCheckRule rule, Map<String, String> param,
+                                     boolean makeErrorMessage, boolean nullAsTrue){
+
         Map<String, Object> realPparam = new HashMap<>();
         if(!param.isEmpty()){
             for(Map.Entry<String, String> ent : param.entrySet()){
@@ -74,8 +77,16 @@ public class DataCheckResult {
             }
         }
 
-        if(!BooleanBaseOpt.castObjectToBoolean(
-                VariableFormula.calculate(rule.getRuleFormula(),new ObjectTranslate(realPparam) , extraFunc), false)){
+        Object checkValue = realPparam.get(DataCheckRule.CHECK_VALUE_TAG);
+        if(checkValue==null){
+            if(!nullAsTrue) {
+                result = false;
+                if (makeErrorMessage) {
+                    errorMsgs.add(Pretreatment.mapTemplateString(rule.getFaultMessage(), realPparam));
+                }
+            }
+        } else if(!BooleanBaseOpt.castObjectToBoolean(
+                VariableFormula.calculate(rule.getRuleFormula(), new ObjectTranslate(realPparam), extraFunc), false)){
             result = false;
             if(makeErrorMessage) {
                 errorMsgs.add(Pretreatment.mapTemplateString(rule.getFaultMessage(), realPparam));
@@ -85,6 +96,6 @@ public class DataCheckResult {
     }
 
     public DataCheckResult checkData(Object data, DataCheckRule rule, Map<String, String> param){
-        return checkData( data, rule, param, true);
+        return checkData( data, rule, param, true, true);
     }
 }

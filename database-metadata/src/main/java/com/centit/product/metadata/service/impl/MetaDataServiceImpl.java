@@ -96,23 +96,13 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public void syncDb(String databaseCode, String recorder, String[] tableNames, String tableId) {
-        List<SimpleTableInfo> dbTables = new ArrayList<>();
+        List<SimpleTableInfo> dbTables;
         List<MetaTable> metaTables;
         if (tableNames != null) {
-            String[] upperTableNames = new String[tableNames.length];
-            List<SimpleTableInfo> tables = listRealTables(databaseCode);
-            for (int i = 0; i < tableNames.length; i++) {
-                upperTableNames[i] = StringUtils.upperCase(tableNames[i]);
-                for (SimpleTableInfo info : tables) {
-                    if (upperTableNames[i].equalsIgnoreCase(info.getTableName())) {
-                        dbTables.add(info);
-                        break;
-                    }
-                }
-            }
-            metaTables = metaTableDao.listObjects(CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableNames", upperTableNames));
+            dbTables = getJdbcMetadata(databaseCode,true,tableNames);
+            metaTables = metaTableDao.listObjects(CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableNames", tableNames));
         } else {
-            dbTables = listRealTables(databaseCode);
+            dbTables = getJdbcMetadata(databaseCode,true,null);
             metaTables = metaTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
         }
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
@@ -129,7 +119,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
 
-    private List<SimpleTableInfo> getJdbcMetadata(String databaseCode,boolean withColumn){
+    private List<SimpleTableInfo> getJdbcMetadata(String databaseCode,boolean withColumn,String[] tableNames){
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
         try(Connection conn=AbstractDruidConnectPools.getDbcpConnect(sourceInfo)) {
@@ -140,21 +130,18 @@ public class MetaDataServiceImpl implements MetaDataService {
             if (sourceInfo.getDatabaseUrl().contains(CONTAIN_ORACLE)) {
                 jdbcMetadata.setDBSchema(sourceInfo.getUsername().toUpperCase());
             }
-            return jdbcMetadata.listAllTable(withColumn);
+            return jdbcMetadata.listAllTable(withColumn,tableNames);
         } catch (SQLException e) {
             logger.error("连接数据库【{}】出错", sourceInfo.getDatabaseName());
             throw new ObjectException("连接数据库出错" + e.getMessage());
         }
     }
 
-    @Override
-    public List<SimpleTableInfo> listRealTables(String databaseCode) {
-        return getJdbcMetadata(databaseCode,true);
-    }
+
 
     @Override
     public List<SimpleTableInfo> listRealTablesWithoutColumn(String databaseCode) {
-        List<SimpleTableInfo> dbTableInfo = getJdbcMetadata(databaseCode,false);
+        List<SimpleTableInfo> dbTableInfo = getJdbcMetadata(databaseCode,false,null);
         dbTableInfo.sort(Comparator.comparing(SimpleTableInfo::getTableType));
         List<MetaTable> metaTables = metaTableDao.listObjects(CollectionsOpt.createHashMap("databaseCode", databaseCode));
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());

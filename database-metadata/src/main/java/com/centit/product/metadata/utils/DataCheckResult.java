@@ -59,6 +59,25 @@ public class DataCheckResult {
         return new DataCheckResult();
     }
 
+    public DataCheckResult runCkeckRule(DataCheckRule rule, Map<String, Object> realParams,
+                                     boolean makeErrorMessage, boolean nullAsTrue){
+        Object checkValue = realParams.get(DataCheckRule.CHECK_VALUE_TAG);
+        if(checkValue==null){
+            if(!nullAsTrue) {
+                result = false;
+                if (makeErrorMessage) {
+                    errorMsgs.add(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams));
+                }
+            }
+        } else if(!BooleanBaseOpt.castObjectToBoolean(
+            VariableFormula.calculate(rule.getRuleFormula(), new ObjectTranslate(realParams), extraFunc), false)){
+            result = false;
+            if(makeErrorMessage) {
+                errorMsgs.add(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams));
+            }
+        }
+        return this;
+    }
     /**
      * 规则校验
      * @param data 校验的对象
@@ -77,22 +96,7 @@ public class DataCheckResult {
             }
         }
 
-        Object checkValue = realPparam.get(DataCheckRule.CHECK_VALUE_TAG);
-        if(checkValue==null){
-            if(!nullAsTrue) {
-                result = false;
-                if (makeErrorMessage) {
-                    errorMsgs.add(Pretreatment.mapTemplateString(rule.getFaultMessage(), realPparam));
-                }
-            }
-        } else if(!BooleanBaseOpt.castObjectToBoolean(
-                VariableFormula.calculate(rule.getRuleFormula(), new ObjectTranslate(realPparam), extraFunc), false)){
-            result = false;
-            if(makeErrorMessage) {
-                errorMsgs.add(Pretreatment.mapTemplateString(rule.getFaultMessage(), realPparam));
-            }
-        }
-        return this;
+       return runCkeckRule(rule, realPparam, makeErrorMessage, nullAsTrue);
     }
 
     public DataCheckResult checkData(Object data, DataCheckRule rule, Map<String, String> param){

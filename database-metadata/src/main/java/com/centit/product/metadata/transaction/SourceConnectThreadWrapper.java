@@ -4,7 +4,6 @@ import com.centit.product.adapter.api.ISourceInfo;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.network.HttpExecutorContext;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -33,7 +32,7 @@ class SourceConnectThreadWrapper implements Serializable {
         return null;
     }
 
-    HttpExecutorContext fetchHttpContext(ISourceInfo description) throws IOException {
+    HttpExecutorContext fetchHttpContext(ISourceInfo description) throws Exception {
         if (ISourceInfo.HTTP.equals(description.getSourceType())) {
             HttpExecutorContext conn = (HttpExecutorContext) connectPools.get(description);
             if (conn == null) {

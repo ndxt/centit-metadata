@@ -1,8 +1,8 @@
 package com.centit.product.metadata.transaction;
 
 
-
 import com.centit.product.adapter.api.ISourceInfo;
+import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.network.HttpExecutor;
 import com.centit.support.network.HttpExecutorContext;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -30,10 +30,15 @@ public abstract class AbstractHttpConnectPools {
         throw new IllegalAccessError("Utility class");
     }
 
-    private static HttpExecutorContext mapHttpSource(ISourceInfo dsDesc) throws IOException {
-        HttpClientContext context = HttpClientContext.create();
-        BasicCookieStore cookieStore = new BasicCookieStore();
-        try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCookieStore(cookieStore).build()) {
+    private static HttpExecutorContext mapHttpSource(ISourceInfo dsDesc) throws Exception {
+        Map<String, Object> extProps = dsDesc.getExtProps();
+        if(extProps.containsKey("SSL") && BooleanBaseOpt.castObjectToBoolean(extProps.get("SSL"))){
+            CloseableHttpClient keepSessionHttpsClient = HttpExecutor.createKeepSessionHttpsClient();
+            return HttpExecutorContext.create(keepSessionHttpsClient);
+        }else {
+            HttpClientContext context = HttpClientContext.create();
+            BasicCookieStore cookieStore = new BasicCookieStore();
+            CloseableHttpClient httpClient = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
             loginOpt(dsDesc, context, httpClient);
             context.setCookieStore(cookieStore);
             return HttpExecutorContext.create(httpClient).context(context).header("Connection", "close").timout(5000);
@@ -48,7 +53,7 @@ public abstract class AbstractHttpConnectPools {
         }
     }
 
-    static synchronized HttpExecutorContext getHttpConnect(ISourceInfo dsDesc) throws IOException {
+    static synchronized HttpExecutorContext getHttpConnect(ISourceInfo dsDesc) throws Exception {
         HttpExecutorContext ds = HTTP_DATA_SOURCE_POOLS.get(dsDesc);
         if (ds == null) {
             ds = mapHttpSource(dsDesc);

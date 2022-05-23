@@ -3,7 +3,6 @@ package com.centit.product.metadata.transaction;
 import com.centit.product.adapter.api.ISourceInfo;
 import com.centit.support.network.HttpExecutorContext;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -32,7 +31,7 @@ public abstract class AbstractSourceConnectThreadHolder {
         return wrapper.fetchConnect(description);
     }
 
-    public static HttpExecutorContext fetchHttpContext(ISourceInfo description) throws IOException {
+    public static HttpExecutorContext fetchHttpContext(ISourceInfo description) throws Exception {
         SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
         return wrapper.fetchHttpContext(description);
     }

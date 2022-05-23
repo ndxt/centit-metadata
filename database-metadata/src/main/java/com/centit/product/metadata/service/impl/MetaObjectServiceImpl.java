@@ -6,14 +6,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.dao.DictionaryMapColumn;
 import com.centit.framework.core.dao.DictionaryMapUtils;
-import com.centit.product.adapter.po.MetaColumn;
-import com.centit.product.adapter.po.MetaRelation;
-import com.centit.product.adapter.po.MetaTable;
-import com.centit.product.adapter.po.SourceInfo;
+import com.centit.product.adapter.po.*;
+import com.centit.product.metadata.dao.DataCheckRuleDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
+import com.centit.product.metadata.utils.DataCheckResult;
 import com.centit.search.document.ObjectDocument;
 import com.centit.search.service.Impl.ESIndexer;
 import com.centit.support.algorithm.*;
@@ -37,6 +36,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class MetaObjectServiceImpl implements MetaObjectService {
@@ -47,6 +47,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Autowired
     private MetaDataCache metaDataCache;
+
+    @Autowired
+    private DataCheckRuleDao dataCheckRuleDao;
 
     @Autowired(required = false)
     private ESIndexer esObjectIndexer;
@@ -407,12 +410,13 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public int saveObject(String tableId, Map<String, Object> object, Map<String, Object> extParams) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
+        ///todo 添加规则判段
+        checkFieldRule(tableInfo, object);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             GeneralJsonObjectDao dao;
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-///todo 添加规则判段
             makeObjectValueByGenerator(object, extParams, tableInfo, dao, 1l, false);
             prepareObjectForSave(object, tableInfo);
             return dao.saveNewObject(object);
@@ -420,6 +424,34 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             throw new ObjectException(object, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
+
+    //校验字段是否符合规则约束
+    private void checkFieldRule(MetaTable tableInfo,Map<String, Object> object){
+        List<MetaColumn> columns = tableInfo.getColumns();
+        //过滤出需要校验的字段
+        List<MetaColumn> checkFieldList = columns.stream().filter(metaColumn ->
+            StringUtils.isNotBlank(metaColumn.getCheckRuleId())).collect(Collectors.toList());
+        DataCheckResult result = DataCheckResult.create();
+        for (MetaColumn metaColumn : checkFieldList) {
+            String columnName = metaColumn.getColumnName();
+            DataCheckRule dataCheckRule = dataCheckRuleDao.getObjectById(metaColumn.getCheckRuleId());
+            Map<String, Object> checkParam = CollectionsOpt.objectToMap(metaColumn.getCheckRuleParams());
+            Map<String,String> param = new HashMap<>();
+            param.put(DataCheckRule.CHECK_VALUE_TAG,columnName);
+            checkParam.forEach((key,value)->{
+                Map<String, Object> checkRouleInfo = CollectionsOpt.objectToMap(value);
+                String checkValue = StringBaseOpt.castObjectToString(checkRouleInfo.get("value"));
+                if (StringUtils.isNotBlank(checkValue)){
+                    param.put(key,checkValue);
+                }
+            });
+            result.checkData(object, dataCheckRule, param);
+        }
+        if (!result.getResult()){
+            throw new ObjectException(StringBaseOpt.castObjectToString(result.getErrorMsgs()));
+        }
+    }
+
 
     @Override
     public int saveObject(String tableId, Map<String, Object> object) {
@@ -429,6 +461,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public int updateObject(String tableId, Map<String, Object> object) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
+        checkFieldRule(tableInfo, object);
         prepareObjectForSave(object, tableInfo);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -443,6 +476,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public int updateObjectFields(String tableId, final Collection<String> fields, final Map<String, Object> object) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
+        checkFieldRule(tableInfo, object);
         prepareObjectForSave(object, tableInfo);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -473,6 +507,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     public int updateObjectsByProperties(String tableId, final Collection<String> fields,
                                          final Map<String, Object> fieldValues, final Map<String, Object> filterProperties) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
+        checkFieldRule(tableInfo, fieldValues);
         prepareObjectForSave(fieldValues, tableInfo);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -583,6 +618,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     private int innerSaveObject(String tableId, Map<String, Object> mainObj, Map<String, Object> extParams, boolean isUpdate, int withChildrenDeep) {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
+        checkFieldRule(tableInfo,mainObj);
         if (tableInfo.isUpdateCheckTimeStamp()) {
             if (isUpdate) {
                 Map<String, Object> dbObject = getObjectWithChildren(tableId, mainObj, 1);

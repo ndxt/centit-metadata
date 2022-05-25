@@ -68,6 +68,8 @@ public abstract class AbstractDruidConnectPools {
             dsDesc.getExtProp("testOnReturn"), false));
         ds.setMaxWait(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("maxWait"), 60000));
+        //创建连接时连接失败后 禁止重试连接
+        ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(dsDesc.getExtProp("breakAfterAcquireFailure"),true));
         return ds;
     }
 

@@ -31,7 +31,9 @@ public abstract class AbstractDruidConnectPools {
 
     private static DruidDataSource mapDataSource(ISourceInfo dsDesc) {
         DruidDataSource ds = new DruidDataSource();
-        ds.setBreakAfterAcquireFailure(false);
+        //创建连接时连接失败后
+        ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(dsDesc.getExtProp("breakAfterAcquireFailure"),true));
+        //ds.setConnectionErrorRetryAttempts(3);
         ds.setDriverClassName(DBType.getDbDriver(DBType.mapDBType(dsDesc.getDatabaseUrl())));
         ds.setUsername(dsDesc.getUsername());
         ds.setPassword(dsDesc.getClearPassword());
@@ -68,12 +70,6 @@ public abstract class AbstractDruidConnectPools {
             dsDesc.getExtProp("testOnReturn"), false));
         ds.setMaxWait(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("maxWait"), 60000));
-        //创建连接时连接失败后 禁止重试连接
-        ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(dsDesc.getExtProp("breakAfterAcquireFailure"),true));
-        ds.setTimeBetweenConnectErrorMillis(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("timeBetweenConnectErrorMillis"), 6000));
-        ds.setConnectionErrorRetryAttempts(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("connectionErrorRetryAttempts"), 1));
         return ds;
     }
 

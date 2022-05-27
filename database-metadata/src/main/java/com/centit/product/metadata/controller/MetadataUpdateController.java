@@ -1,12 +1,10 @@
 package com.centit.product.metadata.controller;
 
-import com.centit.framework.common.ResponseData;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.product.adapter.po.MetaColumn;
 import com.centit.product.adapter.po.MetaTable;
-import com.centit.product.adapter.po.SourceInfo;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.support.database.utils.FieldType;
 import io.swagger.annotations.Api;

@@ -31,8 +31,8 @@ public abstract class AbstractDruidConnectPools {
 
     private static DruidDataSource mapDataSource(ISourceInfo dsDesc) {
         DruidDataSource ds = new DruidDataSource();
-        //创建连接时连接失败后
-        ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(dsDesc.getExtProp("breakAfterAcquireFailure"),true));
+        //失败时是否进行重试连接    true:不进行重试   false：进行重试    设置为false时达蒙数据库会出现问题（会导致达蒙连接撑爆挂掉）
+        ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(dsDesc.getExtProp("breakAfterAcquireFailure"),false));
         ds.setTimeBetweenConnectErrorMillis(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("timeBetweenConnectErrorMillis"), 6000));
         ds.setConnectionErrorRetryAttempts(NumberBaseOpt.castObjectToInteger(

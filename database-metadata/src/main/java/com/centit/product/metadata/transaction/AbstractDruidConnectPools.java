@@ -70,6 +70,10 @@ public abstract class AbstractDruidConnectPools {
             dsDesc.getExtProp("maxWait"), 60000));
         //创建连接时连接失败后 禁止重试连接
         ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(dsDesc.getExtProp("breakAfterAcquireFailure"),true));
+        ds.setTimeBetweenConnectErrorMillis(NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("timeBetweenConnectErrorMillis"), 6000));
+        ds.setConnectionErrorRetryAttempts(NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("connectionErrorRetryAttempts"), 1));
         return ds;
     }
 

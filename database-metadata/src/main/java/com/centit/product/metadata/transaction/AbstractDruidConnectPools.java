@@ -33,6 +33,10 @@ public abstract class AbstractDruidConnectPools {
         DruidDataSource ds = new DruidDataSource();
         //创建连接时连接失败后
         ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(dsDesc.getExtProp("breakAfterAcquireFailure"),true));
+        ds.setTimeBetweenConnectErrorMillis(NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("timeBetweenConnectErrorMillis"), 6000));
+        ds.setConnectionErrorRetryAttempts(NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("connectionErrorRetryAttempts"), 1));
         //ds.setConnectionErrorRetryAttempts(3);
         ds.setDriverClassName(DBType.getDbDriver(DBType.mapDBType(dsDesc.getDatabaseUrl())));
         ds.setUsername(dsDesc.getUsername());

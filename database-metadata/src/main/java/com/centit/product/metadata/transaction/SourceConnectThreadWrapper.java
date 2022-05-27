@@ -23,7 +23,7 @@ class SourceConnectThreadWrapper implements Serializable {
     Connection fetchConnect(ISourceInfo description) throws SQLException {
         if (StringBaseOpt.isNvl(description.getSourceType()) || ISourceInfo.DATABASE.equals(description.getSourceType())) {
             Connection conn = (Connection) connectPools.get(description);
-            if (conn == null) {
+            if (conn == null ||conn.isClosed()) {
                 conn = AbstractDruidConnectPools.getDbcpConnect(description);
                 connectPools.put(description, conn);
             }

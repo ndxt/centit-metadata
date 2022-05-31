@@ -24,7 +24,6 @@
 <!--            <groupId>com.centit.framework</groupId>-->
 <!--            <artifactId>framework-session</artifactId>-->
 <!--        </dependency>-->
-
         <dependency>
             <groupId>com.centit.framework</groupId>
             <artifactId>framework-system-static</artifactId>
@@ -35,10 +34,6 @@
             <artifactId>framework-core-web</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.centit.framework</groupId>
-            <artifactId>framework-base-view-easyui</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>com.centit.product</groupId>

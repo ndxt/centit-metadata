@@ -32,7 +32,7 @@ public abstract class AbstractDruidConnectPools {
     private static DruidDataSource mapDataSource(ISourceInfo dsDesc) {
         DruidDataSource ds = new DruidDataSource();
         //失败时是否进行重试连接    true:不进行重试   false：进行重试    设置为false时达蒙数据库会出现问题（会导致达蒙连接撑爆挂掉）
-        ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(dsDesc.getExtProp("breakAfterAcquireFailure"),true));
+        ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(dsDesc.getExtProp("breakAfterAcquireFailure"),false));
         ds.setTimeBetweenConnectErrorMillis(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("timeBetweenConnectErrorMillis"), 6000));
         ds.setConnectionErrorRetryAttempts(NumberBaseOpt.castObjectToInteger(
@@ -100,8 +100,16 @@ public abstract class AbstractDruidConnectPools {
 
     public static void testConnect(SourceInfo sourceInfo) throws SQLException {
         DruidDataSource ds =mapDataSource(sourceInfo);
-        try (Connection conn = ds.getConnection()) {
+        Connection conn=null;
+        try  {
+            conn = ds.getConnection();
             conn.close();
+            ds.close();
+        }
+        finally {
+            if(conn!=null) {
+                conn.close();
+            }
             ds.close();
         }
     }

@@ -22,7 +22,7 @@ public class SqlDictionaryMapSupplier implements Supplier<Map<String, String>> {
     private SourceInfo sourceInfo;
     private String sqlSen;
 
-    public SqlDictionaryMapSupplier(SourceInfo sourceInfo, String sqlSen){
+    public SqlDictionaryMapSupplier(SourceInfo sourceInfo, String sqlSen) {
         this.sourceInfo = sourceInfo;
         this.sqlSen = sqlSen;
     }
@@ -31,13 +31,12 @@ public class SqlDictionaryMapSupplier implements Supplier<Map<String, String>> {
     public Map<String, String> get() {
         try {
             List<Object[]> datas;
-            try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
-                datas = DatabaseAccess.findObjectsBySql(conn, sqlSen);
-            }
-            if(datas!=null){
-                Map<String, String> dictionary = new HashMap<>(datas.size()*5/4+1);
-                for(Object[] objs : datas){
-                    if(objs != null && objs.length>1){
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            datas = DatabaseAccess.findObjectsBySql(conn, sqlSen);
+            if (datas != null) {
+                Map<String, String> dictionary = new HashMap<>(datas.size() * 5 / 4 + 1);
+                for (Object[] objs : datas) {
+                    if (objs != null && objs.length > 1) {
                         dictionary.put(StringBaseOpt.castObjectToString(objs[0]),
                             StringBaseOpt.castObjectToString(objs[1]));
                     }

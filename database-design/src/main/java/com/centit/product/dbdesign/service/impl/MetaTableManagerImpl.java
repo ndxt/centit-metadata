@@ -348,7 +348,7 @@ public class MetaTableManagerImpl
                 }
                 return new ImmutablePair<>(0, chgLog.getChangeId());
             } else {
-                return new ImmutablePair<>(1, chgLog.getChangeId());
+                return new ImmutablePair<>(-1, "发布失败!"+JSON.toJSONString(errors));
             }
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

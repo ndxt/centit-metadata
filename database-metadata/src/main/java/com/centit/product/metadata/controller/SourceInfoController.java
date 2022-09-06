@@ -199,8 +199,7 @@ public class SourceInfoController extends BaseController {
     public void getDatabaseInhfo(@PathVariable String databaseCode, HttpServletResponse response) {
         SourceInfo sourceInfo = databaseInfoMag.getObjectById(databaseCode);
 
-        JsonResultUtils.writeSingleDataJson(sourceInfo, response,
-            JsonPropertyUtils.getExcludePropPreFilter(SourceInfo.class, "databaseInfo"));
+        JsonResultUtils.writeSingleDataJson(sourceInfo, response);
     }
 
     /**

@@ -38,7 +38,8 @@ public abstract class AbstractDruidConnectPools {
         ds.setConnectionErrorRetryAttempts(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("connectionErrorRetryAttempts"), 1));
         //ds.setConnectionErrorRetryAttempts(3);
-        ds.setDriverClassName(DBType.getDbDriver(DBType.mapDBType(dsDesc.getDatabaseUrl())));
+        DBType dbType=DBType.mapDBType(dsDesc.getDatabaseUrl());
+        ds.setDriverClassName(DBType.getDbDriver(dbType));
         ds.setUsername(dsDesc.getUsername());
         ds.setPassword(dsDesc.getClearPassword());
         ds.setUrl(dsDesc.getDatabaseUrl());
@@ -52,6 +53,9 @@ public abstract class AbstractDruidConnectPools {
             dsDesc.getExtProp("minIdle"), 5));
         ds.setValidationQuery(StringBaseOpt.castObjectToString(dsDesc.getExtProp("validationQuery"),
             "select 1"));
+        if(dbType.equals(DBType.Oracle) || dbType.equals(DBType.DM)){
+            ds.setValidationQuery("select 1 from dual");
+        }
         ds.setTestWhileIdle(BooleanBaseOpt.castObjectToBoolean(
             dsDesc.getExtProp("testWhileIdle"), true));
         ds.setValidationQueryTimeout(NumberBaseOpt.castObjectToInteger(

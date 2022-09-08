@@ -55,6 +55,7 @@ public abstract class AbstractDruidConnectPools {
             "select 1"));
         if(dbType.equals(DBType.Oracle) || dbType.equals(DBType.DM)){
             ds.setValidationQuery("select 1 from dual");
+            ds.setBreakAfterAcquireFailure(true);
         }
         ds.setTestWhileIdle(BooleanBaseOpt.castObjectToBoolean(
             dsDesc.getExtProp("testWhileIdle"), true));

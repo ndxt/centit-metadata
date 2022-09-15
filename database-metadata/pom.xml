@@ -49,7 +49,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.2</version>
         </dependency>
 
         <dependency>
@@ -67,25 +66,30 @@
             <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>com.centit.support</groupId>
             <artifactId>centit-es-client</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.centit.support</groupId>
             <artifactId>centit-report-utils</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.centit.product</groupId>
             <artifactId>fileserver-utils</artifactId>
             <version>${centit.framework.version}</version>
         </dependency>
+
         <dependency>
             <groupId>com.centit.product</groupId>
             <artifactId>centit-metadata-adapter</artifactId>
             <version>${centit.framework.version}</version>
             <scope>compile</scope>
         </dependency>
+
         <dependency>
             <groupId>com.centit.framework</groupId>
             <artifactId>integraton-platform-dubbo-adapter</artifactId>

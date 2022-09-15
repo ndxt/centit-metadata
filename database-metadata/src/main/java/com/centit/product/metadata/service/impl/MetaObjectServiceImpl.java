@@ -13,14 +13,11 @@ import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
 import com.centit.product.metadata.utils.DataCheckResult;
-import com.centit.search.document.ObjectDocument;
-import com.centit.search.service.Impl.ESIndexer;
 import com.centit.support.algorithm.*;
 import com.centit.support.common.CachedObject;
 import com.centit.support.common.ICachedObject;
 import com.centit.support.common.ObjectException;
 import com.centit.support.compiler.ObjectTranslate;
-import com.centit.support.compiler.Pretreatment;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
@@ -50,9 +47,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     @Autowired
     private DataCheckRuleDao dataCheckRuleDao;
-
-    @Autowired(required = false)
-    private ESIndexer esObjectIndexer;
 
     private static Map<String, Object> prepareObjectForSave(Map<String, Object> object, MetaTable metaTable) {
         for (MetaColumn col : metaTable.getMdColumns()) {
@@ -426,7 +420,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     //校验字段是否符合规则约束
-    private void checkFieldRule(MetaTable tableInfo,Map<String, Object> object){
+    private void checkFieldRule(MetaTable tableInfo, Map<String, Object> object) {
         List<MetaColumn> columns = tableInfo.getColumns();
         //过滤出需要校验的字段
         List<MetaColumn> checkFieldList = columns.stream().filter(metaColumn ->
@@ -436,18 +430,18 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             String columnName = metaColumn.getColumnName();
             DataCheckRule dataCheckRule = dataCheckRuleDao.getObjectById(metaColumn.getCheckRuleId());
             Map<String, Object> checkParam = CollectionsOpt.objectToMap(metaColumn.getCheckRuleParams());
-            Map<String,String> param = new HashMap<>();
-            param.put(DataCheckRule.CHECK_VALUE_TAG,columnName);
-            checkParam.forEach((key,value)->{
+            Map<String, String> param = new HashMap<>();
+            param.put(DataCheckRule.CHECK_VALUE_TAG, columnName);
+            checkParam.forEach((key, value) -> {
                 Map<String, Object> checkRouleInfo = CollectionsOpt.objectToMap(value);
                 String checkValue = StringBaseOpt.castObjectToString(checkRouleInfo.get("value"));
-                if (StringUtils.isNotBlank(checkValue)){
-                    param.put(key,checkValue);
+                if (StringUtils.isNotBlank(checkValue)) {
+                    param.put(key, checkValue);
                 }
             });
             result.checkData(object, dataCheckRule, param);
         }
-        if (!result.getResult()){
+        if (!result.getResult()) {
             throw new ObjectException(StringBaseOpt.castObjectToString(result.getErrorMsgs()));
         }
     }
@@ -527,20 +521,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             fieldValues, filterProperties);
     }
 
-    private void deleteFulltextIndex(Map<String, Object> obj, String tableId) {
-        MetaTable metaTable = metaDataCache.getTableInfo(tableId);
-        if (esObjectIndexer != null && metaTable != null &&
-            ("T".equals(metaTable.getFulltextSearch())
-                // 用json格式保存在大字段中的内容不能用sql检索，必须用全文检索
-                || "C".equals(metaTable.getTableType()))) {
-            try {
-                esObjectIndexer.deleteDocument(
-                    mapObjectToDocument(obj, metaTable));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     @Override
     public void deleteObject(String tableId, Map<String, Object> pk) {
@@ -550,7 +530,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).deleteObjectById(pk);
-            deleteFulltextIndex(pk, tableId);
         } catch (Exception e) {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -571,54 +550,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         object.put(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP, DatetimeOpt.currentSqlDate());
     }
 
-    private ObjectDocument mapObjectToDocument(Map<String, Object> object, MetaTable metaTable) {
-        ObjectDocument doc = new ObjectDocument();
-        doc.setOsId(metaTable.getDatabaseCode());
-        doc.setOptId(metaTable.getTableId());
-        //Map<String, Object> pkMap = metaTable.fetchObjectPkAsId(object);
-        doc.setOptTag(metaTable.fetchObjectPkAsId(object));
-        doc.contentObject(object);//.setContent(JSON.toJSONString(object));
-        doc.setTitle(Pretreatment.mapTemplateString(metaTable.getObjectTitle(), object));
-        doc.setUserCode((String) object.get("userCode"));
-        doc.setUnitCode((String) object.get("unitCode"));
-        return doc;
-    }
-
-    private void saveFulltextIndex(Map<String, Object> obj, MetaTable metaTable) {
-        //MetaTable metaTable = metaDataCache.getTableInfo(tableId);
-        if (esObjectIndexer != null && metaTable != null &&
-            ("T".equals(metaTable.getFulltextSearch())
-                // 用json格式保存在大字段中的内容不能用sql检索，必须用全文检索
-                || "C".equals(metaTable.getTableType()))) {
-            try {
-                esObjectIndexer.saveNewDocument(
-                    mapObjectToDocument(obj, metaTable));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void updataFulltextIndex(Map<String, Object> obj, MetaTable metaTable) {
-        //MetaTable metaTable = metaDataCache.getTableInfo(tableId);
-        if (esObjectIndexer != null && metaTable != null &&
-            ("T".equals(metaTable.getFulltextSearch())
-                // 用json格式保存在大字段中的内容不能用sql检索，必须用全文检索
-                || "C".equals(metaTable.getTableType()))) {
-            try {
-                Map<String, Object> dbObject =
-                    getObjectWithChildren(metaTable.getTableId(), obj, 1);
-                esObjectIndexer.mergeDocument(
-                    mapObjectToDocument(dbObject, metaTable));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     private int innerSaveObject(String tableId, Map<String, Object> mainObj, Map<String, Object> extParams, boolean isUpdate, int withChildrenDeep) {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
-        checkFieldRule(tableInfo,mainObj);
+        checkFieldRule(tableInfo, mainObj);
         if (tableInfo.isUpdateCheckTimeStamp()) {
             if (isUpdate) {
                 Map<String, Object> dbObject = getObjectWithChildren(tableId, mainObj, 1);
@@ -665,11 +599,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         }
                     }
                 }
-            }
-            if (isUpdate) {
-                updataFulltextIndex(mainObj, tableInfo);
-            } else {
-                saveFulltextIndex(mainObj, tableInfo);
             }
             return 1;
         } catch (Exception e) {

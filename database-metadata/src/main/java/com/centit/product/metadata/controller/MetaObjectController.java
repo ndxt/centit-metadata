@@ -19,18 +19,11 @@ import com.centit.product.adapter.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.product.metadata.transaction.MetadataJdbcTransaction;
-import com.centit.search.service.Impl.ESSearcher;
 import com.centit.support.algorithm.CollectionsOpt;
-import com.centit.support.algorithm.NumberBaseOpt;
-import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.file.FileType;
-import com.centit.support.report.ExcelExportUtil;
-import com.centit.support.report.ExcelImportUtil;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -42,9 +35,12 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -61,8 +57,7 @@ public class MetaObjectController extends BaseController {
     private MetaObjectService metaObjectService;
     @Autowired
     private MetaDataCache metaDataCache;
-    @Autowired(required = false)
-    private ESSearcher esObjectSearcher;
+
     @Autowired
     private PlatformEnvironment platformEnvironment;
 
@@ -237,99 +232,6 @@ public class MetaObjectController extends BaseController {
             OperationLogCenter.log(request, "0",
                 optTag, "metaData", optMethod, "元数据", newValue, null);
         }
-    }
-
-    @ApiOperation(value = "全文检索")
-    @ApiImplicitParams({@ApiImplicitParam(
-        name = "tableId", value = "表单模块id",
-        required = true, paramType = "path", dataType = "String"
-    ), @ApiImplicitParam(
-        name = "query", value = "检索关键字",
-        required = true, paramType = "query", dataType = "String"
-    )})
-    @RequestMapping(value = "/{tableId}/search", method = RequestMethod.GET)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public PageQueryResult<Map<String, Object>> searchObject(@PathVariable String tableId,
-                                                             HttpServletRequest request, PageDesc pageDesc) {
-        if (esObjectSearcher == null) {
-            throw new ObjectException(ObjectException.SYSTEM_CONFIG_ERROR, "没有正确配置Elastic Search");
-        }
-        checkUserOptPower();
-        Map<String, Object> queryParam = collectRequestParameters(request);
-        Map<String, Object> searchQuery = new HashMap<>(10);
-        String queryWord = StringBaseOpt.castObjectToString(queryParam.get("query"));
-        searchQuery.put("optId", tableId);
-        Object user = queryParam.get("userCode");
-        if (user != null) {
-            searchQuery.put("userCode", StringBaseOpt.castObjectToString(user));
-        }
-        Object units = queryParam.get("unitCode");
-        if (units != null) {
-            searchQuery.put("unitCode", StringBaseOpt.objectToStringArray(units));
-        }
-
-        Pair<Long, List<Map<String, Object>>> res =
-            esObjectSearcher.search(searchQuery, queryWord, pageDesc.getPageNo(), pageDesc.getPageSize());
-        if (res == null) {
-            throw new ObjectException("ELK异常");
-        }
-        pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(res.getLeft()));
-        return PageQueryResult.createResult(res.getRight(), pageDesc);
-    }
-
-    @ApiOperation(value = "导出数据库表数据列表可分页，传入表id")
-    @RequestMapping(value = "/{tableId}/export", method = RequestMethod.GET)
-    @MetadataJdbcTransaction
-    public void exportObjects(@PathVariable String tableId, PageDesc pageDesc,
-                              HttpServletRequest request, HttpServletResponse response) throws IOException {
-
-        checkUserOptPower();
-        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
-        if (null == tableId) {
-            throw new ObjectException("没有对应的表元数据");
-        }
-        JSONArray jsonArray = metaObjectService.pageQueryObjects(tableId, collectRequestParameters(request), pageDesc);
-        List<String> columnNames = tableInfo.getColumns().stream().map(MetaColumn::getPropertyName).collect(Collectors.toList());
-        try (InputStream excelStream = ExcelExportUtil.generateExcelStream(jsonArray,
-            CollectionsOpt.listToArray(columnNames), CollectionsOpt.listToArray(columnNames))) {
-            String fileName = URLEncoder.encode(tableInfo.getTableName(), "UTF-8") +
-                pageDesc.getRowStart() + "-" + pageDesc.getRowEnd() + "-" + pageDesc.getTotalRows() +
-                ".xlsx";
-            response.setContentType(FileType.mapExtNameToMimeType("xlsx"));
-            response.setHeader("Content-disposition", "attachment; filename=" + fileName);
-            IOUtils.copy(excelStream, response.getOutputStream());
-        }
-    }
-
-    @ApiOperation(value = "导入数据库表数据，传入表id")
-    @RequestMapping(value = "/{tableId}/import", method = RequestMethod.POST)
-    @MetadataJdbcTransaction
-    public ResponseData importObjects(@PathVariable String tableId, HttpServletRequest request) throws IOException {
-
-        checkUserOptPower();
-        Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
-        List<Map<String, Object>> maps = ExcelImportUtil.loadMapFromExcelSheet(fileInfo.getValue(), 0);
-        //剔除数据全为空的数据
-        maps = maps.stream().filter(map -> {
-            for (Object value : map.values()) {
-                if (null != value) {
-                    return true;
-                }
-            }
-            return false;
-        }).collect(Collectors.toList());
-        //去除有自动生成策略字段中值为空字符串的数据
-        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
-        List<String> autoCreatedColumns = tableInfo.getColumns().stream().filter(column -> StringUtils.isNotBlank(column.getAutoCreateRule())).map(MetaColumn::getPropertyName).collect(Collectors.toList());
-        maps.forEach(map -> autoCreatedColumns.forEach(column -> {
-                if (StringUtils.isEmpty(MapUtils.getString(map, column))) {
-                    map.remove(column);
-                }
-            }
-        ));
-        maps.forEach(map -> metaObjectService.mergeObjectWithChildren(tableId, map, 1));
-        return ResponseData.makeSuccessResponse();
     }
 
     /**

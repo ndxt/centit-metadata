@@ -1,8 +1,14 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.centit.product.adapter.po.*;
-import com.centit.product.metadata.dao.*;
+import com.centit.product.adapter.po.MetaColumn;
+import com.centit.product.adapter.po.MetaRelation;
+import com.centit.product.adapter.po.MetaTable;
+import com.centit.product.adapter.po.SourceInfo;
+import com.centit.product.metadata.dao.MetaColumnDao;
+import com.centit.product.metadata.dao.MetaRelationDao;
+import com.centit.product.metadata.dao.MetaTableDao;
+import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
 import com.centit.product.metadata.vo.MetaTableCascade;
@@ -16,7 +22,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author zhf
@@ -99,10 +107,10 @@ public class MetaDataServiceImpl implements MetaDataService {
         List<SimpleTableInfo> dbTables;
         List<MetaTable> metaTables;
         if (tableNames != null) {
-            dbTables = getJdbcMetadata(databaseCode,true,tableNames);
+            dbTables = getJdbcMetadata(databaseCode, true, tableNames);
             metaTables = metaTableDao.listObjects(CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableNames", tableNames));
         } else {
-            dbTables = getJdbcMetadata(databaseCode,true,null);
+            dbTables = getJdbcMetadata(databaseCode, true, null);
             metaTables = metaTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
         }
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
@@ -119,10 +127,10 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
 
-    private List<SimpleTableInfo> getJdbcMetadata(String databaseCode,boolean withColumn,String[] tableNames){
+    private List<SimpleTableInfo> getJdbcMetadata(String databaseCode, boolean withColumn, String[] tableNames) {
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
-        try(Connection conn=AbstractDruidConnectPools.getDbcpConnect(sourceInfo)) {
+        try (Connection conn = AbstractDruidConnectPools.getDbcpConnect(sourceInfo)) {
             jdbcMetadata.setDBConfig(conn);
             if (sourceInfo.getExtProps().containsKey(CONTAIN_SCHEMA)) {
                 jdbcMetadata.setDBSchema(sourceInfo.getExtProps().getString(CONTAIN_SCHEMA).toUpperCase());
@@ -130,7 +138,7 @@ public class MetaDataServiceImpl implements MetaDataService {
             if (sourceInfo.getDatabaseUrl().contains(CONTAIN_ORACLE)) {
                 jdbcMetadata.setDBSchema(sourceInfo.getUsername().toUpperCase());
             }
-            return jdbcMetadata.listTables(withColumn,tableNames);
+            return jdbcMetadata.listTables(withColumn, tableNames);
         } catch (SQLException e) {
             logger.error("连接数据库【{}】出错", sourceInfo.getDatabaseName());
             throw new ObjectException("连接数据库出错" + e.getMessage());
@@ -138,10 +146,9 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
 
-
     @Override
     public List<SimpleTableInfo> listRealTablesWithoutColumn(String databaseCode) {
-        List<SimpleTableInfo> dbTableInfo = getJdbcMetadata(databaseCode,false,null);
+        List<SimpleTableInfo> dbTableInfo = getJdbcMetadata(databaseCode, false, null);
         dbTableInfo.sort(Comparator.comparing(SimpleTableInfo::getTableType));
         List<MetaTable> metaTables = metaTableDao.listObjects(CollectionsOpt.createHashMap("databaseCode", databaseCode));
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());

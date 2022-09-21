@@ -390,7 +390,7 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/map/column", method = RequestMethod.GET)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public String mapLableToColumn(@RequestParam("labelName") String labelName)  {
+    public String mapLabelToColumn(@RequestParam("labelName") String labelName)  {
         return translateColumn.transLabelToColumn(labelName);
     }
 
@@ -398,7 +398,7 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/map/property", method = RequestMethod.GET)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public String mapLableToProperty(@RequestParam("labelName") String labelName) {
+    public String mapLabelToProperty(@RequestParam("labelName") String labelName) {
         return translateColumn.transLabelToProperty(labelName);
     }
 }

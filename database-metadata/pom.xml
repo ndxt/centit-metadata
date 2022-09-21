@@ -86,6 +86,7 @@
             <version>${centit.framework.version}</version>
             <scope>compile</scope>
         </dependency>
+
     </dependencies>
 
 </project>

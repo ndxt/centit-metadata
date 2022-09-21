@@ -14,11 +14,13 @@ import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.DictionaryMapColumn;
 import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.framework.core.dao.PageQueryResult;
-import com.centit.product.adapter.po.*;
+import com.centit.product.adapter.po.MetaChangLog;
+import com.centit.product.adapter.po.PendingMetaColumn;
+import com.centit.product.adapter.po.PendingMetaTable;
 import com.centit.product.dbdesign.pdmutils.PdmTableInfoUtils;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
 import com.centit.product.dbdesign.service.MetaTableManager;
-import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
+import com.centit.product.dbdesign.service.TranslateColumn;
 import com.centit.product.metadata.transaction.MetadataJdbcTransaction;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.SimpleTableInfo;
@@ -41,9 +43,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -65,6 +69,10 @@ public class MetaTableController extends BaseController {
 
     @Resource
     private MetaChangLogManager mdChangLogMag;
+
+    @Resource
+    private TranslateColumn translateColumn;
+
 
 
     @ApiOperation(value = "查询重构记录")
@@ -376,5 +384,21 @@ public class MetaTableController extends BaseController {
     @MetadataJdbcTransaction
     public JSONArray viewList(@PathVariable String databaseId, @RequestBody JSONObject sql) throws IOException, SQLException {
         return mdTableMag.viewList(databaseId, sql.getString("sql"));
+    }
+
+    @ApiOperation(value = "根据中文名称翻译表名或者字段名")
+    @RequestMapping(value = "/map/column", method = RequestMethod.GET)
+    @WrapUpResponseBody
+    @MetadataJdbcTransaction
+    public String mapLableToColumn(@RequestParam("labelName") String labelName)  {
+        return translateColumn.transLabelToColumn(labelName);
+    }
+
+    @ApiOperation(value = "根据中文名称翻译属性名称")
+    @RequestMapping(value = "/map/property", method = RequestMethod.GET)
+    @WrapUpResponseBody
+    @MetadataJdbcTransaction
+    public String mapLableToProperty(@RequestParam("labelName") String labelName) {
+        return translateColumn.transLabelToProperty(labelName);
     }
 }

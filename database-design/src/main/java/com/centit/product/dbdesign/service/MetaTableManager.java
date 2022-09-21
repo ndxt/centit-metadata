@@ -73,7 +73,7 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
      * 检查 F_MD_TABLE 或 F_PENDING_META_TABLE 是否存在 tableName 表
      * @param tableName 表名
      * @param dataBaseCode 数据库code
-     * @return
+     * @return boolean
      */
     boolean isTableExist(String tableName,String dataBaseCode);
 
@@ -83,7 +83,7 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
      * 初始化pending数据
      * @param tableId 表id
      * @param userCode 操作人userCode
-     * @return
+     * @return PendingMetaTable
      */
     PendingMetaTable initPendingMetaTable(String tableId, String userCode);
 }

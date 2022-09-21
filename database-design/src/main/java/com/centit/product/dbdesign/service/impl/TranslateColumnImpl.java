@@ -19,10 +19,11 @@ public class TranslateColumnImpl implements TranslateColumn {
     private String accessKeyId;
     @Value("${translate.service.aliyun.access.secret:}")
     private String accessKeySecret;
+
     /**
-     * 使用AK&SK初始化账号Client
+     * 使用AK SK初始化账号Client
      * @return Client
-     * @throws Exception
+     * @throws Exception 异常
      */
     public com.aliyun.alimt20181012.Client createClient() throws Exception {
         if(StringUtils.isBlank(accessKeyId) || StringUtils.isBlank(accessKeySecret)){

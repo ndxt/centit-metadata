@@ -52,7 +52,7 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
      * 根据osId过滤MPendingMetaTable数据
      *
      * @param parameters parameters
-     * @return
+     * @return JSONArray
      */
     public JSONArray getPendingMetaTableList(Map<String, Object> parameters) {
         String sql = " SELECT  A.DATABASE_NAME, A.SOURCE_TYPE, B.TABLE_ID, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_LABEL_NAME, B.TABLE_COMMENT, B.TABLE_STATE, B.WORKFLOW_OPT_TYPE AS WORK_FLOW_OPT_TYPE, B.UPDATE_CHECK_TIMESTAMP, B.LAST_MODIFY_DATE,\n" +
@@ -67,7 +67,7 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
      * 根据osId过滤MPendingMetaTable数据
      *
      * @param parameters parameters
-     * @return
+     * @return JSONArray
      */
     public JSONArray getPendingMetaTableListWithTableOptRelation(Map<String, Object> parameters) {
         String sql = " SELECT A.ID, B.TABLE_ID, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_LABEL_NAME, B.TABLE_COMMENT, B.TABLE_STATE, B.WORKFLOW_OPT_TYPE AS WORK_FLOW_OPT_TYPE, B.UPDATE_CHECK_TIMESTAMP, B.LAST_MODIFY_DATE,\n" +
@@ -82,7 +82,7 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
      *表是否存在
      * @param tableName 表名
      * @param dataBaseCode 数据库code
-     * @return
+     * @return boolean
      */
     public boolean isTableExist(String tableName, String dataBaseCode) {
         String sql = " SELECT COUNT(1) FROM F_PENDING_META_TABLE WHERE TABLE_NAME = ? AND DATABASE_CODE = ?  ";

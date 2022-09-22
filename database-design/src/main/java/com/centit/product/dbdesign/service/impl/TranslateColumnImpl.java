@@ -9,9 +9,10 @@ import com.centit.support.database.utils.FieldType;
 import com.centit.support.security.AESSecurityUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.util.Locale;
-
+@Service
 public class TranslateColumnImpl implements TranslateColumn {
 
     @Value("${translate.service.aliyun.access.key:}")

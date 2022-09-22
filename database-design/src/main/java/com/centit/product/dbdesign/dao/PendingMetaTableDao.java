@@ -40,6 +40,7 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
         filterField.put("lastModifyDate", CodeBook.EQUAL_HQL_ID);
         filterField.put("recorder", CodeBook.EQUAL_HQL_ID);
         filterField.put("(splitforin)tableNames","upper(table_name) in (:tableNames)");
+        filterField.put("(splitforin)databaseCode_in","database_code in (:databaseCode_in)");
         filterField.put("(like)likeTableNameOrLabel", " ( TABLE_NAME LIKE :likeTableNameOrLabel OR TABLE_LABEL_NAME LIKE :likeTableNameOrLabel )");
         return filterField;
     }

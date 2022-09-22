@@ -24,6 +24,7 @@ public class MetaTableDao extends BaseDaoImpl<MetaTable, String> {
         filterField.put("tableName", CodeBook.LIKE_HQL_ID);
         filterField.put("tableLabelName", CodeBook.LIKE_HQL_ID);
         filterField.put("(splitforin)tableNames","upper(table_name) in (:tableNames)");
+        filterField.put("(splitforin)databaseCode_in","database_code in (:databaseCode_in)");
         filterField.put("(like)likeTableNameOrLabel", " ( TABLE_NAME LIKE :likeTableNameOrLabel OR TABLE_LABEL_NAME LIKE :likeTableNameOrLabel  ) ");
         return  filterField;
     }

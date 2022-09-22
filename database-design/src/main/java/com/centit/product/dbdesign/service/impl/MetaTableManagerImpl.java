@@ -645,11 +645,12 @@ public class MetaTableManagerImpl
     @Override
     public List listCombineTablesByProperty(Map<String, Object> parameters, PageDesc pageDesc) {
         String databaseCode = MapUtils.getString(parameters, "databaseCode");
+        String databaseCodeIn = MapUtils.getString(parameters, "databaseCode_in");
         String optId = MapUtils.getString(parameters, "optId");
         String osId = MapUtils.getString(parameters, "osId");
         String topUnit = MapUtils.getString(parameters, "topUnit");
         List<Map<String, Object>> mergeTableList = new ArrayList<>();
-        if (StringUtils.isNotBlank(databaseCode)) {
+        if (StringUtils.isNotBlank(databaseCode)||StringUtils.isNotBlank(databaseCodeIn)) {
             //根据 databaseCode查询表信息
             mergeTableList = listCombineTables(parameters);
         } else if (StringUtils.isNotBlank(optId) || StringUtils.isNotBlank(osId)) {

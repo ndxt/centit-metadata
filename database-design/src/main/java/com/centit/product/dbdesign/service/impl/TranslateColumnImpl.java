@@ -1,11 +1,10 @@
 package com.centit.product.dbdesign.service.impl;
 
 
-import com.alibaba.fastjson.JSON;
 import com.aliyun.alimt20181012.models.TranslateGeneralResponse;
-import com.aliyun.tea.TeaException;
 import com.centit.product.dbdesign.service.TranslateColumn;
 import com.centit.support.algorithm.StringBaseOpt;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.FieldType;
 import com.centit.support.security.AESSecurityUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,8 +44,8 @@ public class TranslateColumnImpl implements TranslateColumn {
             return null;
         }
         //避免翻译太长的字符串，这个费钱，哈哈
-        if(labelName.length()>32){
-            labelName = labelName.substring(0,32);
+        if(labelName.length()>64){
+            labelName = labelName.substring(0, 64);
         }
         com.aliyun.alimt20181012.Client client = this.createClient();
         com.aliyun.alimt20181012.models.TranslateGeneralRequest translateGeneralRequest
@@ -86,7 +85,9 @@ public class TranslateColumnImpl implements TranslateColumn {
             english = english.replaceAll(" ", "_");
             return english.toUpperCase(Locale.ROOT);
         } catch (Exception e){
-            return null;
+            throw new ObjectException(ObjectException.SYSTEM_CONFIG_ERROR,
+                "请确认开通了aliyun翻译接口服务，并且已正确配置：\r\n" +
+                    "translate.service.aliyun.access.key 和 translate.service.aliyun.access.secret参数。");
         }
     }
 

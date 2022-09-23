@@ -7,12 +7,12 @@ import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.utils.DBType;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractDruidConnectPools {
     private static final Logger logger = LoggerFactory.getLogger(AbstractDruidConnectPools.class);
     private static final
-    Map<ISourceInfo, DruidDataSource> DRUID_DATA_SOURCE_POOLS
+    ConcurrentHashMap<ISourceInfo, DruidDataSource> DRUID_DATA_SOURCE_POOLS
         = new ConcurrentHashMap<>();
 
     private AbstractDruidConnectPools() {
@@ -51,14 +51,20 @@ public abstract class AbstractDruidConnectPools {
             dsDesc.getExtProp("maxWaitMillis"), 10000));
         ds.setMinIdle(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("minIdle"), 5));
-        ds.setValidationQuery(StringBaseOpt.castObjectToString(dsDesc.getExtProp("validationQuery"),
-            "select 1"));
-        if(dbType.equals(DBType.Oracle) || dbType.equals(DBType.DM)){
-            ds.setValidationQuery("select 1 from dual");
-            ds.setBreakAfterAcquireFailure(true);
+
+        String validationQuery = StringBaseOpt.castObjectToString(dsDesc.getExtProp("validationQuery"));
+        if(StringUtils.isBlank(validationQuery)){
+            validationQuery = DBType.getDBValidationQuery(dbType);
         }
-        ds.setTestWhileIdle(BooleanBaseOpt.castObjectToBoolean(
-            dsDesc.getExtProp("testWhileIdle"), true));
+
+        boolean testWhileIdle = BooleanBaseOpt.castObjectToBoolean(
+            dsDesc.getExtProp("testWhileIdle"), true);
+
+        if(testWhileIdle && StringUtils.isNotBlank(validationQuery)){
+            ds.setValidationQuery(validationQuery);
+            ds.setTestWhileIdle(true);
+        }
+
         ds.setValidationQueryTimeout(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("validationQueryTimeout"), 1000 * 10));
         ds.setKeepAlive(BooleanBaseOpt.castObjectToBoolean(

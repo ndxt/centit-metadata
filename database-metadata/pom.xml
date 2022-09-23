@@ -16,7 +16,6 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
-            <version>1.2.8</version>
         </dependency>
 
         <dependency>
@@ -77,14 +76,12 @@
             <groupId>com.centit.product</groupId>
             <artifactId>centit-metadata-adapter</artifactId>
             <version>${centit.framework.version}</version>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>com.centit.framework</groupId>
             <artifactId>integraton-platform-dubbo-adapter</artifactId>
             <version>${centit.framework.version}</version>
-            <scope>compile</scope>
         </dependency>
 
     </dependencies>

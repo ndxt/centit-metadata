@@ -6,7 +6,6 @@ import com.centit.product.metadata.graphql.GraphQLExecutor;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.support.database.utils.DataSourceDescription;
 import graphql.ExecutionResult;
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import javax.sql.DataSource;
 
 @PropertySource(value = "classpath:application.properties")
 @ComponentScan(basePackages = {"com.centit"},
@@ -29,7 +30,7 @@ public class TestGraphQL {
     private MetaDataService metaDataService;
 
     @Autowired
-    private BasicDataSource dataSource;
+    private DataSource dataSource;
 
     @Test
     public void test(){
@@ -39,7 +40,7 @@ public class TestGraphQL {
             "bizdata"
         );
         //metaDataService.
-        System.out.println(dataSource.getUrl());
+        //System.out.println(dataSource.getUrl());
         dataSourceDesc.setDatabaseCode("0000000124");
         GraphQLExecutor executor = new GraphQLExecutor(metaDataService, dataSourceDesc);
 

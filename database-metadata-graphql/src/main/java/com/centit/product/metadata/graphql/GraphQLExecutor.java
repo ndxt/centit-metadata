@@ -41,7 +41,7 @@ public class GraphQLExecutor {
      * @param databaseId 数据库id
      *
      */
-    public GraphQLExecutor(MetaDataService metaDataService,DataSourceDescription databaseId) {
+    public GraphQLExecutor(MetaDataService metaDataService, DataSourceDescription databaseId) {
         this.metaDataService = metaDataService;
         this.dataSourceDesc = databaseId;
         createGraphQL();

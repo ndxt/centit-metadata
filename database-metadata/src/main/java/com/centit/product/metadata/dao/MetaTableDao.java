@@ -24,6 +24,7 @@ public class MetaTableDao extends BaseDaoImpl<MetaTable, String> {
         filterField.put("tableName", CodeBook.LIKE_HQL_ID);
         filterField.put("tableLabelName", CodeBook.LIKE_HQL_ID);
         filterField.put("(splitforin)tableNames","upper(table_name) in (:tableNames)");
+        filterField.put("(splitforin)databaseCode_in","database_code in (:databaseCode_in)");
         filterField.put("(like)likeTableNameOrLabel", " ( TABLE_NAME LIKE :likeTableNameOrLabel OR TABLE_LABEL_NAME LIKE :likeTableNameOrLabel  ) ");
         return  filterField;
     }
@@ -42,7 +43,7 @@ public class MetaTableDao extends BaseDaoImpl<MetaTable, String> {
     public JSONArray getMetaTableList(Map<String, Object> parameters) {
         String sql = " SELECT A.DATABASE_NAME, A.SOURCE_TYPE,  B.TABLE_ID, B.TABLE_LABEL_NAME, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_TYPE, B.ACCESS_TYPE, B.TABLE_COMMENT, B.WORKFLOW_OPT_TYPE AS WORK_FLOW_OPT_TYPE, B.RECORD_DATE,\n" +
             " B.RECORDER, B.UPDATE_CHECK_TIMESTAMP, B.FULLTEXT_SEARCH, B.WRITE_OPT_LOG, B.OBJECT_TITLE   FROM F_DATABASE_INFO A JOIN F_MD_TABLE B ON A.DATABASE_CODE = B.DATABASE_CODE " +
-            "  WHERE  1 = 1 [ :topUnit | AND A.TOP_UNIT = :topUnit ]  [ :databaseCode | AND A.DATABASE_CODE = :databaseCode ] " +
+            "  WHERE  1 = 1 [ :topUnit | AND A.TOP_UNIT = :topUnit ]  [ :databaseCode | AND A.DATABASE_CODE = :databaseCode ] [ :databaseCode_in | AND A.DATABASE_CODE in (:databaseCode_in) ] " +
             " [ :(like)tableName | AND B.TABLE_NAME LIKE :tableName ]  [ :(like)tableLabelName | AND B.TABLE_LABEL_NAME LIKE :tableLabelName ]  [ :sourceType | AND A.SOURCE_TYPE = :sourceType ] " +
             " [ :(like)likeTableNameOrLabel | AND ( B.TABLE_NAME LIKE :likeTableNameOrLabel OR B.TABLE_LABEL_NAME LIKE :likeTableNameOrLabel  ) ]  ";
         return DatabaseOptUtils.listObjectsByParamsDriverSqlAsJson(this,sql,parameters);

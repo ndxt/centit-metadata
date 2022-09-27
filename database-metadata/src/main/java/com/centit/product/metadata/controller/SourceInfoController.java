@@ -133,7 +133,7 @@ public class SourceInfoController extends BaseController {
         paramType = "body", dataTypeClass = SourceInfo.class)
     @RequestMapping(value = "/testConnect", method = {RequestMethod.POST})
     public void testConnect(@Valid SourceInfo sourceInfo, HttpServletResponse response) {
-        sourceInfo.setDatabaseUrl(sourceInfo.getDatabaseUrl().replaceAll("&amp;","&"));
+        sourceInfo.setDatabaseUrl(HtmlFormUtils.htmlString(sourceInfo.getDatabaseUrl()));
         if (sourceInfo.getDatabaseCode() != null) {
             SourceInfo dataBaseSourceInfo = databaseInfoMag.getObjectById(sourceInfo.getDatabaseCode());
             if (dataBaseSourceInfo != null) {

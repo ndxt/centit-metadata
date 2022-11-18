@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -39,6 +40,9 @@ public abstract class AbstractDruidConnectPools {
             dsDesc.getExtProp("connectionErrorRetryAttempts"), 1));
         //ds.setConnectionErrorRetryAttempts(3);
         DBType dbType=DBType.mapDBType(dsDesc.getDatabaseUrl());
+        if(dbType.equals(DBType.Oracle)){
+            ds.setConnectionProperties("remarksReporting=true");
+        }
         ds.setDriverClassName(DBType.getDbDriver(dbType));
         ds.setUsername(dsDesc.getUsername());
         ds.setPassword(dsDesc.getClearPassword());

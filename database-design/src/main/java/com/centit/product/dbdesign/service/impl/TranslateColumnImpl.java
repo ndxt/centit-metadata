@@ -57,26 +57,18 @@ public class TranslateColumnImpl implements TranslateColumn {
             .setSourceText(labelName)
             .setScene("general");
         com.aliyun.teautil.models.RuntimeOptions runtime = new com.aliyun.teautil.models.RuntimeOptions();
-        //  try {
-            // 复制代码运行请自行打印 API 的返回值
-            TranslateGeneralResponse respond = client.translateGeneralWithOptions(translateGeneralRequest, runtime);
-            String englishName =
-                StringBaseOpt.castObjectToString(
-                    respond.getBody().getData().toMap().get("Translated"));
-            //System.out.println(englishName);
-            int nPos = englishName.indexOf(';');
-            if(nPos>0){
-                englishName = englishName.substring(0,nPos);
-            }
-            return englishName;
-        /*} catch (TeaException error) {
-            // 如有需要，请打印 error
-            com.aliyun.teautil.Common.assertAsString(error.message);
-        } catch (Exception _error) {
-            TeaException error = new TeaException(_error.getMessage(), _error);
-            // 如有需要，请打印 error
-            com.aliyun.teautil.Common.assertAsString(error.message);
-        }*/
+
+        TranslateGeneralResponse respond = client.translateGeneralWithOptions(translateGeneralRequest, runtime);
+        String englishName =
+            StringBaseOpt.castObjectToString(
+                respond.getBody().getData().toMap().get("Translated"));
+        //System.out.println(englishName);
+        int nPos = englishName.indexOf(';');
+        if(nPos>0){
+            englishName = englishName.substring(0,nPos);
+        }
+        return englishName;
+
     }
 
     @Override

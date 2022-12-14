@@ -21,12 +21,15 @@ import com.centit.support.compiler.ObjectTranslate;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
+import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.TableField;
+import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.utils.*;
 import com.centit.support.security.Md5Encoder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -99,20 +102,20 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 //只有为空时才创建
                 if (object.get(field.getPropertyName()) == null) {
                     switch (field.getAutoCreateRule()) {
-                        case "U":
+                        case "U": // uuid
                             object.put(field.getPropertyName(), UuidOpt.getUuidAsString32());
                             break;
-                        case "S":
+                        case "S": // sequence
                             //GeneratorTime.READ 读取数据时不能用 SEQUENCE 生成值
                             if (sqlDialect != null) {
                                 object.put(field.getPropertyName(),
                                     sqlDialect.getSequenceNextValue(field.getAutoCreateParam()));
                             }
                             break;
-                        case "C":
+                        case "C": // const
                             object.put(field.getPropertyName(), field.getAutoCreateParam());
                             break;
-                        case "F":
+                        case "F": // formula
                             VariableFormula formula = new VariableFormula();
                             formula.addExtendFunc("getSequence", (a) -> {
                                 try {
@@ -136,7 +139,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                     formula.calcFormula());
                             }
                             break;
-                        case "O":
+                        case "O": // order
                             if (isGetObject) {
                                 break;
                             }
@@ -389,6 +392,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
             makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l, true);
+
             fetchObjectParents(conn, objectMap, tableInfo);
             return objectMap;
         } catch (Exception e) {
@@ -399,24 +403,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public Map<String, Object> makeNewObject(String tableId) {
         return makeNewObject(tableId, null);
-    }
-
-    @Override
-    public int saveObject(String tableId, Map<String, Object> object, Map<String, Object> extParams) {
-        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
-        ///todo 添加规则判段
-        checkFieldRule(tableInfo, object);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
-        try {
-            GeneralJsonObjectDao dao;
-            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
-            dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            makeObjectValueByGenerator(object, extParams, tableInfo, dao, 1l, false);
-            prepareObjectForSave(object, tableInfo);
-            return dao.saveNewObject(object);
-        } catch (Exception e) {
-            throw new ObjectException(object, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
-        }
     }
 
     //校验字段是否符合规则约束
@@ -444,12 +430,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         if (!result.getResult()) {
             throw new ObjectException(StringBaseOpt.castObjectToString(result.getErrorMsgs()));
         }
-    }
-
-
-    @Override
-    public int saveObject(String tableId, Map<String, Object> object) {
-        return saveObject(tableId, object, null);
     }
 
     @Override
@@ -550,8 +530,20 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         object.put(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP, DatetimeOpt.currentSqlDate());
     }
 
+
+    @Override
+    public int saveObject(String tableId, Map<String, Object> object) {
+        return innerSaveObject(tableId, object, null, false, 0);
+    }
+
+    @Override
+    public int saveObject(String tableId, Map<String, Object> object, Map<String, Object> extParams) {
+        return innerSaveObject(tableId, object, extParams, false, 0);
+    }
+
     private int innerSaveObject(String tableId, Map<String, Object> mainObj, Map<String, Object> extParams, boolean isUpdate, int withChildrenDeep) {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
+        ///todo 添加规则判段
         checkFieldRule(tableInfo, mainObj);
         if (tableInfo.isUpdateCheckTimeStamp()) {
             if (isUpdate) {
@@ -571,8 +563,25 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
                 makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao, 1l, false);
                 prepareObjectForSave(mainObj, tableInfo);
-                dao.saveNewObject(mainObj);
+                if(tableInfo.hasGeneratedKeys()){
+                    Map<String, Object> ids = dao.saveNewObjectAndFetchGeneratedKeys(mainObj);
+                    //写回主键值 20221214
+                    if(ids !=null && !ids.isEmpty()) {
+                        for (Map.Entry<String, Object> ent : ids.entrySet()) {
+                            MetaColumn filed = tableInfo.findFieldByColumn(ent.getKey());
+                            if (filed != null) {
+                                mainObj.put(filed.getPropertyName(), ent.getValue());
+                            }
+                        }
+                    }
+                } else {
+                    dao.saveNewObject(mainObj);
+                }
             }
+            if(withChildrenDeep<1){
+                return 1;
+            }
+
             List<MetaRelation> mds = tableInfo.getMdRelations();
             if (mds != null) {
                 for (MetaRelation md : mds) {

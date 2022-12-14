@@ -2,6 +2,7 @@ package com.centit.product.adapter.po;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
+import com.centit.support.common.LeftRightPair;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.metadata.TableReference;
@@ -324,6 +325,15 @@ public class MetaTable implements TableInfo, java.io.Serializable {
             }
         }
         return null;
+    }
+
+    public boolean hasGeneratedKeys(){
+        for (MetaColumn c : mdColumns) {
+            if ("A".equals(c.getAutoCreateRule())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

@@ -37,6 +37,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class MetaObjectServiceImpl implements MetaObjectService {
@@ -568,9 +569,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     //写回主键值 20221214
                     if(ids !=null && !ids.isEmpty()) {
                         for (Map.Entry<String, Object> ent : ids.entrySet()) {
-                            MetaColumn filed = tableInfo.findFieldByColumn(ent.getKey());
-                            if (filed != null) {
-                                mainObj.put(filed.getPropertyName(), ent.getValue());
+                            MetaColumn column = tableInfo.getGeneratedKey();
+                            if (column != null){
+                                mainObj.put(column.getPropertyName(), ent.getValue());
                             }
                         }
                     }

@@ -336,6 +336,15 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         return false;
     }
 
+    public MetaColumn getGeneratedKey(){
+        for (MetaColumn column : mdColumns) {
+            if ("A".equals(column.getAutoCreateRule())) {
+                return column ;
+            }
+        }
+        return null;
+    }
+
     @Override
     public MetaColumn findFieldByColumn(String name) {
         if (mdColumns == null) {

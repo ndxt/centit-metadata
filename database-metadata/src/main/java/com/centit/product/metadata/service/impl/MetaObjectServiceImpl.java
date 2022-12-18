@@ -568,11 +568,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     Map<String, Object> ids = dao.saveNewObjectAndFetchGeneratedKeys(mainObj);
                     //写回主键值 20221214
                     if(ids !=null && !ids.isEmpty()) {
-                        for (Map.Entry<String, Object> ent : ids.entrySet()) {
-                            MetaColumn column = tableInfo.getGeneratedKey();
-                            if (column != null){
-                                mainObj.put(column.getPropertyName(), ent.getValue());
-                            }
+                        MetaColumn column = tableInfo.fetchGeneratedKey();
+                        if (column != null){
+                            mainObj.put(column.getPropertyName(), ids.values().iterator().next());
                         }
                     }
                 } else {

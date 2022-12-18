@@ -336,7 +336,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         return false;
     }
 
-    public MetaColumn getGeneratedKey(){
+    public MetaColumn fetchGeneratedKey(){
         for (MetaColumn column : mdColumns) {
             if ("A".equals(column.getAutoCreateRule())) {
                 return column ;

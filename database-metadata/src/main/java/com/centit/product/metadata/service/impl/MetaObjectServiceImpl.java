@@ -26,6 +26,7 @@ import com.centit.support.database.utils.*;
 import com.centit.support.security.Md5Encoder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -538,6 +539,38 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return innerSaveObject(tableId, object, extParams, false, 0);
     }
 
+    public int replaceObjectsAsTabulation(GeneralJsonObjectDao dao,  MetaTable relTableInfo,
+                                          final List<Map<String, Object>> newObjects, Map<String, Object> extParams,
+                                          final Map<String, Object> properties, int withChildrenDeep)
+        throws SQLException, IOException {
+        List<Map<String, Object>> dbObjects =  (List) dao.listObjectsByProperties(properties);
+        Triple<List<Map<String, Object>>, List<Pair<Map<String, Object>, Map<String, Object>>>, List<Map<String, Object>>>
+            comRes =
+            CollectionsOpt.compareTwoList(dbObjects, newObjects, new GeneralJsonObjectDao.JSONObjectComparator(relTableInfo));
+
+        int resN = 0;
+        if (comRes.getLeft() != null) {
+            for (Map<String, Object> obj : comRes.getLeft()) {
+                resN += innerSaveObject(relTableInfo.getTableId(), obj, extParams, false, withChildrenDeep);
+            }
+        }
+        if (comRes.getRight() != null) {
+            for (Map<String, Object> obj : comRes.getRight()) {
+                resN ++;
+                deleteObjectWithChildren(relTableInfo.getTableId(), obj, withChildrenDeep);
+            }
+        }
+        if (comRes.getMiddle() != null) {
+            for (Pair<Map<String, Object>, Map<String, Object>> pobj : comRes.getMiddle()) {
+                //对比减少不必要的更新
+                if(dao.checkNeedUpdate(pobj.getLeft(), pobj.getRight())) {
+                    resN += innerSaveObject(relTableInfo.getTableId(), pobj.getRight(), extParams, true, withChildrenDeep);
+                }
+            }
+        }
+        return resN;
+    }
+
     private int innerSaveObject(String tableId, Map<String, Object> mainObj, Map<String, Object> extParams, boolean isUpdate, int withChildrenDeep) {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
         ///todo 添加规则判段
@@ -585,21 +618,15 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         Object subObjects = mainObj.get(md.getRelationName());
                         if (subObjects instanceof List) {
                             List<Map<String, Object>> subTable = (List<Map<String, Object>>) subObjects;
-                            List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
+                            //List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
                             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
                             Map<String, Object> ref = md.fetchChildFk(mainObj);
-                            long order = 1l;
+
                             for (Map<String, Object> subObj : subTable) {
                                 subObj.putAll(ref);
-                                if (mdchilds != null && withChildrenDeep > 1) {
-                                    innerSaveObject(relTableInfo.getTableId(), subObj, extParams, isUpdate, withChildrenDeep - 1);
-                                } else {
-                                    makeObjectValueByGenerator(subObj, extParams, relTableInfo, dao, order, false);
-                                    order++;
-                                    prepareObjectForSave(subObj, relTableInfo);
-                                }
                             }
-                            dao.replaceObjectsAsTabulation(subTable, ref);
+                            this.replaceObjectsAsTabulation(dao, relTableInfo, subTable, extParams,
+                                ref, withChildrenDeep - 1);
                         }
                     }
                 }

@@ -657,9 +657,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
-            GeneralJsonObjectDao dao;
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
-            dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+            GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
             Map<String, Object> mainObj = dao.getObjectById(pk);
             if (null == mainObj || mainObj.size() == 0) {
                 return;
@@ -671,7 +670,14 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     if ("T".equals(relTableInfo.getTableType())) {
                         List<MetaRelation> mdChilds = relTableInfo.getMdRelations();
                         if (mdChilds != null && withChildrenDeep > 1) {
-                            deleteObjectWithChildren(relTableInfo.getTableId(), md.fetchChildFk(mainObj), withChildrenDeep - 1);
+                            JSONArray children = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
+                                .listObjectsByProperties(md.fetchChildFk(mainObj));
+                            if(children != null  && children.size()> 0){
+                                for(Object obj : children){
+                                    deleteObjectWithChildren(relTableInfo.getTableId(), 
+                                        （Map<String, Object>）obj, withChildrenDeep - 1);
+                                }
+                            }
                         } else {
                             GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
                                 .deleteObjectsByProperties(md.fetchChildFk(mainObj));

@@ -674,8 +674,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                 .listObjectsByProperties(md.fetchChildFk(mainObj));
                             if(children != null  && children.size()> 0){
                                 for(Object obj : children){
-                                    deleteObjectWithChildren(relTableInfo.getTableId(), 
-                                        （Map<String, Object>）obj, withChildrenDeep - 1);
+                                    deleteObjectWithChildren(relTableInfo.getTableId(),
+                                        (Map<String, Object>)obj, withChildrenDeep - 1);
                                 }
                             }
                         } else {

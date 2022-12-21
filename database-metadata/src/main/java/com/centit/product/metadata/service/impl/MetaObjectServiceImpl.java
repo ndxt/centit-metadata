@@ -616,18 +616,22 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
                     if ("T".equals(relTableInfo.getTableType())) {
                         Object subObjects = mainObj.get(md.getRelationName());
-                        if (subObjects instanceof List) {
-                            List<Map<String, Object>> subTable = (List<Map<String, Object>>) subObjects;
-                            //List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
-                            GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
-                            Map<String, Object> ref = md.fetchChildFk(mainObj);
-
+                        List<Map<String, Object>> subTable =  null;
+                        if (subObjects instanceof Map){
+                            subTable = new ArrayList<Map<String, Object>>(2);
+                            ((Map<String, Object>)subObjects).putAll(ref);
+                            subTable.add(subObjects);
+                        } else if (subObjects instanceof List) {
+                            subTable = (List<Map<String, Object>>) subObjects;
                             for (Map<String, Object> subObj : subTable) {
                                 subObj.putAll(ref);
                             }
-                            this.replaceObjectsAsTabulation(dao, relTableInfo, subTable, extParams,
-                                ref, withChildrenDeep - 1);
                         }
+                        //List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
+                        GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
+                        Map<String, Object> ref = md.fetchChildFk(mainObj);
+                        this.replaceObjectsAsTabulation(dao, relTableInfo, subTable, extParams,
+                            ref, withChildrenDeep - 1);
                     }
                 }
             }

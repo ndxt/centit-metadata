@@ -563,7 +563,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         if (comRes.getMiddle() != null) {
             for (Pair<Map<String, Object>, Map<String, Object>> pobj : comRes.getMiddle()) {
                 //对比减少不必要的更新
-                if(dao.checkNeedUpdate(pobj.getLeft(), pobj.getRight())) {
+                if(withChildrenDeep>0 || dao.checkNeedUpdate(pobj.getLeft(), pobj.getRight())) {
                     resN += innerSaveObject(relTableInfo.getTableId(), pobj.getRight(), extParams, true, withChildrenDeep);
                 }
             }
@@ -617,10 +617,12 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     if ("T".equals(relTableInfo.getTableType())) {
                         Object subObjects = mainObj.get(md.getRelationName());
                         List<Map<String, Object>> subTable =  null;
+                        Map<String, Object> ref = md.fetchChildFk(mainObj);
+
                         if (subObjects instanceof Map){
                             subTable = new ArrayList<Map<String, Object>>(2);
                             ((Map<String, Object>)subObjects).putAll(ref);
-                            subTable.add(subObjects);
+                            subTable.add((Map<String, Object>)subObjects);
                         } else if (subObjects instanceof List) {
                             subTable = (List<Map<String, Object>>) subObjects;
                             for (Map<String, Object> subObj : subTable) {
@@ -629,7 +631,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         }
                         //List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
                         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
-                        Map<String, Object> ref = md.fetchChildFk(mainObj);
                         this.replaceObjectsAsTabulation(dao, relTableInfo, subTable, extParams,
                             ref, withChildrenDeep - 1);
                     }

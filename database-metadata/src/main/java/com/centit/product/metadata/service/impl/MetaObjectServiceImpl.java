@@ -613,26 +613,28 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             List<MetaRelation> mds = tableInfo.getMdRelations();
             if (mds != null) {
                 for (MetaRelation md : mds) {
-                    MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
-                    if ("T".equals(relTableInfo.getTableType())) {
-                        Object subObjects = mainObj.get(md.getRelationName());
-                        List<Map<String, Object>> subTable =  null;
-                        Map<String, Object> ref = md.fetchChildFk(mainObj);
+                    Object subObjects = mainObj.get(md.getRelationName());
+                    if(subObjects!=null) { // 必须不为 null， 如果需要删除 请赋值为[]
+                        MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
+                        if ("T".equals(relTableInfo.getTableType())) {
+                            List<Map<String, Object>> subTable = null;
+                            Map<String, Object> ref = md.fetchChildFk(mainObj);
 
-                        if (subObjects instanceof Map){
-                            subTable = new ArrayList<Map<String, Object>>(2);
-                            ((Map<String, Object>)subObjects).putAll(ref);
-                            subTable.add((Map<String, Object>)subObjects);
-                        } else if (subObjects instanceof List) {
-                            subTable = (List<Map<String, Object>>) subObjects;
-                            for (Map<String, Object> subObj : subTable) {
-                                subObj.putAll(ref);
+                            if (subObjects instanceof Map) {
+                                subTable = new ArrayList<Map<String, Object>>(2);
+                                ((Map<String, Object>) subObjects).putAll(ref);
+                                subTable.add((Map<String, Object>) subObjects);
+                            } else if (subObjects instanceof List) {
+                                subTable = (List<Map<String, Object>>) subObjects;
+                                for (Map<String, Object> subObj : subTable) {
+                                    subObj.putAll(ref);
+                                }
                             }
+                            //List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
+                            GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
+                            this.replaceObjectsAsTabulation(dao, relTableInfo, subTable, extParams,
+                                ref, withChildrenDeep - 1);
                         }
-                        //List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
-                        GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
-                        this.replaceObjectsAsTabulation(dao, relTableInfo, subTable, extParams,
-                            ref, withChildrenDeep - 1);
                     }
                 }
             }

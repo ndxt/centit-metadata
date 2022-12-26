@@ -630,10 +630,12 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                     subObj.putAll(ref);
                                 }
                             }
-                            //List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
-                            GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
-                            this.replaceObjectsAsTabulation(dao, relTableInfo, subTable, extParams,
-                                ref, withChildrenDeep - 1);
+                            //if(subTable!=null) {
+                                //List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
+                                GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
+                                this.replaceObjectsAsTabulation(dao, relTableInfo, subTable, extParams,
+                                    ref, withChildrenDeep - 1);
+                            //}
                         }
                     }
                 }

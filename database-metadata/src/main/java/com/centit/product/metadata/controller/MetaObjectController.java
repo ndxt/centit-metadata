@@ -13,6 +13,7 @@ import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.framework.model.adapter.PlatformEnvironment;
 import com.centit.framework.model.basedata.IOsInfo;
+import com.centit.framework.model.basedata.OperationLog;
 import com.centit.product.adapter.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
@@ -219,8 +220,10 @@ public class MetaObjectController extends BaseController {
     private void saveOperationLog(HttpServletRequest request, Object newValue, String optTag, String optMethod) {
         MetaTable tableInfo = metaDataCache.getTableInfo(optTag);
         if (tableInfo != null && tableInfo.isWriteOptLog()) {
-            OperationLogCenter.log(request, "0",
-                optTag, "metaData", optMethod, "元数据", newValue, null);
+            OperationLogCenter.log(OperationLog.create().user(WebOptUtils.getCurrentUserCode(request))
+                    .unit(WebOptUtils.getCurrentUnitCode(request)).topUnit(WebOptUtils.getCurrentTopUnit(request))
+                    .correlation(WebOptUtils.getCorrelationId(request)).tag(optTag).method(optMethod)
+                .operation("metaData").content("元数据操作").newObject(newValue));
         }
     }
 

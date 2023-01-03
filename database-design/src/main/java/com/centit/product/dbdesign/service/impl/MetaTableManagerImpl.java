@@ -648,6 +648,7 @@ public class MetaTableManagerImpl
         String optId = MapUtils.getString(parameters, "optId");
         String osId = MapUtils.getString(parameters, "osId");
         String topUnit = MapUtils.getString(parameters, "topUnit");
+        String tableId= MapUtils.getString(parameters, "tableId");
         List<Map<String, Object>> mergeTableList = new ArrayList<>();
         if (StringUtils.isNotBlank(databaseCode)) {
             //根据 databaseCode查询表信息

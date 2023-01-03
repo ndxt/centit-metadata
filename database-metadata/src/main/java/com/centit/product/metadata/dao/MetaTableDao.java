@@ -57,7 +57,7 @@ public class MetaTableDao extends BaseDaoImpl<MetaTable, String> {
     public JSONArray getMetaTableListWithTableOptRelation(Map<String, Object> parameters) {
         String sql = "SELECT A.ID, B.TABLE_ID, B.TABLE_LABEL_NAME, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_TYPE, B.ACCESS_TYPE, B.TABLE_COMMENT, B.WORKFLOW_OPT_TYPE AS WORK_FLOW_OPT_TYPE, B.RECORD_DATE,\n" +
             " B.RECORDER, B.UPDATE_CHECK_TIMESTAMP, B.FULLTEXT_SEARCH, B.WRITE_OPT_LOG, B.OBJECT_TITLE ,C.DATABASE_NAME, C.SOURCE_TYPE  FROM  F_TABLE_OPT_RELATION A JOIN F_MD_TABLE B ON  A.TABLE_ID = B.TABLE_ID " +
-            "  JOIN  F_DATABASE_INFO C ON B.DATABASE_CODE =C.DATABASE_CODE  WHERE  1 = 1  [ :optId | AND A.OPT_ID = :optId  ] [ :osId | AND A.OS_ID = :osId  ]  [ :sourceType | AND C.SOURCE_TYPE = :sourceType ] " +
+            "  JOIN  F_DATABASE_INFO C ON B.DATABASE_CODE =C.DATABASE_CODE  WHERE  1 = 1  [ :optId | AND A.OPT_ID = :optId  ] [ :osId | AND A.OS_ID = :osId  ][ :tableId | AND A.table_ID = :tableId  ]  [ :sourceType | AND C.SOURCE_TYPE = :sourceType ] " +
             " [ :(like)tableName | AND B.TABLE_NAME LIKE :tableName ]  [ :(like)tableLabelName | AND B.TABLE_NAME LIKE :tableLabelName ] [ :(like)likeTableNameOrLabel | AND ( B.TABLE_NAME LIKE :likeTableNameOrLabel OR B.TABLE_LABEL_NAME LIKE :likeTableNameOrLabel  ) ] ";
         return DatabaseOptUtils.listObjectsByParamsDriverSqlAsJson(this,sql,parameters);
     }

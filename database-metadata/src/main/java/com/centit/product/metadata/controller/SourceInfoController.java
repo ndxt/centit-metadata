@@ -13,6 +13,7 @@ import com.centit.framework.model.basedata.OperationLog;
 import com.centit.product.adapter.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.network.HtmlFormUtils;
@@ -134,6 +135,9 @@ public class SourceInfoController extends BaseController {
             SourceInfo dataBaseSourceInfo = databaseInfoMag.getObjectById(sourceInfo.getDatabaseCode());
             if (dataBaseSourceInfo != null) {
                 sourceInfo.setExtProps(dataBaseSourceInfo.getExtProps());
+            }
+            if(StringBaseOpt.isNvl(sourceInfo.getPassword())){
+                sourceInfo.setPassword(dataBaseSourceInfo.getPassword());
             }
         }
         try {

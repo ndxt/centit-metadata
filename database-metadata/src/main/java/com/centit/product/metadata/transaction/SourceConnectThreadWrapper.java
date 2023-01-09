@@ -3,6 +3,7 @@ package com.centit.product.metadata.transaction;
 import com.centit.product.adapter.api.ISourceInfo;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.network.HttpExecutorContext;
+import io.lettuce.core.RedisClient;
 
 import java.io.Serializable;
 import java.sql.Connection;
@@ -32,11 +33,23 @@ class SourceConnectThreadWrapper implements Serializable {
         return null;
     }
 
+    RedisClient fetchRedisClient(ISourceInfo description)  {
+        if (ISourceInfo.REDIS.equals(description.getSourceType())) {
+            RedisClient client = (RedisClient) connectPools.get(description);
+            if (client == null) {
+                client = AbstractRedisClientPools.getRedisConnect(description);
+                connectPools.put(description, client);
+            }
+            return client;
+        }
+        return null;
+    }
+
     HttpExecutorContext fetchHttpContext(ISourceInfo description) throws Exception {
         if (ISourceInfo.HTTP.equals(description.getSourceType())) {
             HttpExecutorContext conn = (HttpExecutorContext) connectPools.get(description);
             if (conn == null) {
-                conn = AbstractHttpConnectPools.getHttpConnect(description);
+                conn = AbstractHttpContextCreator.createHttpConnect(description);
                 connectPools.put(description, conn);
             }
             return conn;
@@ -77,10 +90,11 @@ class SourceConnectThreadWrapper implements Serializable {
 
                 Connection conn = (Connection) map.getValue();
                 AbstractDruidConnectPools.closeConnect(conn);
-
-            } else if (ISourceInfo.HTTP.equals(map.getKey().getSourceType())) {
+            } /*else if (ISourceInfo.HTTP.equals(map.getKey().getSourceType())) {
                 AbstractHttpConnectPools.releaseHttp(map.getKey());
-            }
+            } else if (ISourceInfo.REDIS.equals(map.getKey().getSourceType())) {
+                AbstractRedisClientPools.releaseClient(map.getKey());
+            }*/
         }
         connectPools.clear();
     }

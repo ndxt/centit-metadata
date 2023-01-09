@@ -2,6 +2,7 @@ package com.centit.product.metadata.transaction;
 
 import com.centit.product.adapter.api.ISourceInfo;
 import com.centit.support.network.HttpExecutorContext;
+import io.lettuce.core.RedisClient;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -25,10 +26,14 @@ public abstract class AbstractSourceConnectThreadHolder {
         return wrapper;
     }
 
-
     public static Connection fetchConnect(ISourceInfo description) throws SQLException {
         SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
         return wrapper.fetchConnect(description);
+    }
+
+    public static RedisClient fetchRedisClient(ISourceInfo description)  {
+        SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
+        return wrapper.fetchRedisClient(description);
     }
 
     public static HttpExecutorContext fetchHttpContext(ISourceInfo description) throws Exception {

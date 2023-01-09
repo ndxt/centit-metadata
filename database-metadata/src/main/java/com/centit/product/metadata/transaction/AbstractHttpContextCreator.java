@@ -14,23 +14,27 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
  * @author zhf
  */
-public abstract class AbstractHttpConnectPools {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractHttpConnectPools.class);
-    private static final
-    Map<ISourceInfo, HttpExecutorContext> HTTP_DATA_SOURCE_POOLS
-        = new ConcurrentHashMap<>();
+public abstract class AbstractHttpContextCreator {
+    private static final Logger logger = LoggerFactory.getLogger(AbstractHttpContextCreator.class);
 
-    private AbstractHttpConnectPools() {
+    private AbstractHttpContextCreator() {
         throw new IllegalAccessError("Utility class");
     }
 
-    private static HttpExecutorContext mapHttpSource(ISourceInfo dsDesc) throws Exception {
+    private static void loginOpt(ISourceInfo dsDesc, HttpClientContext context, CloseableHttpClient httpClient) throws IOException {
+        if (dsDesc.getExtProps() != null && dsDesc.getExtProps().get("loginUrl")!=null) {
+            HttpExecutor.formPost(HttpExecutorContext.create(httpClient).context(context),
+                (String) dsDesc.getExtProps().get("loginUrl"),
+                dsDesc.getExtProps(), false);
+        }
+    }
+
+    static synchronized HttpExecutorContext createHttpConnect(ISourceInfo dsDesc) throws Exception {
         Map<String, Object> extProps = dsDesc.getExtProps();
         if(extProps.containsKey("SSL") && BooleanBaseOpt.castObjectToBoolean(extProps.get("SSL"))){
             CloseableHttpClient keepSessionHttpsClient = HttpExecutor.createKeepSessionHttpsClient();
@@ -45,24 +49,4 @@ public abstract class AbstractHttpConnectPools {
         }
     }
 
-    private static void loginOpt(ISourceInfo dsDesc, HttpClientContext context, CloseableHttpClient httpClient) throws IOException {
-        if (dsDesc.getExtProps() != null && dsDesc.getExtProps().get("loginUrl")!=null) {
-            HttpExecutor.formPost(HttpExecutorContext.create(httpClient).context(context),
-                (String) dsDesc.getExtProps().get("loginUrl"),
-                dsDesc.getExtProps(), false);
-        }
-    }
-
-    static synchronized HttpExecutorContext getHttpConnect(ISourceInfo dsDesc) throws Exception {
-        HttpExecutorContext ds = HTTP_DATA_SOURCE_POOLS.get(dsDesc);
-        if (ds == null) {
-            ds = mapHttpSource(dsDesc);
-            HTTP_DATA_SOURCE_POOLS.put(dsDesc, ds);
-        }
-        return ds;
-    }
-
-    static void releaseHttp(ISourceInfo dsDesc) {
-        HTTP_DATA_SOURCE_POOLS.remove(dsDesc);
-    }
 }

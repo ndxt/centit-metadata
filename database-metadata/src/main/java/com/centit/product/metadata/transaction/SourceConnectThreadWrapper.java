@@ -3,7 +3,7 @@ package com.centit.product.metadata.transaction;
 import com.centit.product.adapter.api.ISourceInfo;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.network.HttpExecutorContext;
-import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
 
 import java.io.Serializable;
 import java.sql.Connection;
@@ -33,11 +33,12 @@ class SourceConnectThreadWrapper implements Serializable {
         return null;
     }
 
-    RedisClient fetchRedisClient(ISourceInfo description)  {
+    StatefulRedisConnection<String, String> fetchRedisClient(ISourceInfo description)  {
         if (ISourceInfo.REDIS.equals(description.getSourceType())) {
-            RedisClient client = (RedisClient) connectPools.get(description);
+            StatefulRedisConnection<String, String> client =
+                (StatefulRedisConnection<String, String>) connectPools.get(description);
             if (client == null) {
-                client = AbstractRedisClientPools.getRedisConnect(description);
+                client = AbstractRedisConnectPools.getRedisConnect(description);
                 connectPools.put(description, client);
             }
             return client;
@@ -92,9 +93,10 @@ class SourceConnectThreadWrapper implements Serializable {
                 AbstractDruidConnectPools.closeConnect(conn);
             } /*else if (ISourceInfo.HTTP.equals(map.getKey().getSourceType())) {
                 AbstractHttpConnectPools.releaseHttp(map.getKey());
-            } else if (ISourceInfo.REDIS.equals(map.getKey().getSourceType())) {
-                AbstractRedisClientPools.releaseClient(map.getKey());
-            }*/
+            } */ else if (ISourceInfo.REDIS.equals(map.getKey().getSourceType())) {
+                StatefulRedisConnection<String, String> conn = (StatefulRedisConnection<String, String>) map.getValue();
+                AbstractRedisConnectPools.closeConnect(conn);
+            }
         }
         connectPools.clear();
     }

@@ -2,7 +2,7 @@ package com.centit.product.metadata.transaction;
 
 import com.centit.product.adapter.api.ISourceInfo;
 import com.centit.support.network.HttpExecutorContext;
-import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -31,7 +31,7 @@ public abstract class AbstractSourceConnectThreadHolder {
         return wrapper.fetchConnect(description);
     }
 
-    public static RedisClient fetchRedisClient(ISourceInfo description)  {
+    public static StatefulRedisConnection<String, String> fetchRedisConnect(ISourceInfo description)  {
         SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
         return wrapper.fetchRedisClient(description);
     }

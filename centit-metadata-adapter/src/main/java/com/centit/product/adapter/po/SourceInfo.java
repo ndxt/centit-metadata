@@ -119,13 +119,13 @@ public class SourceInfo implements ISourceInfo, Serializable {
         this.databaseDesc = dataDesc;
     }
 
-    public void setPassword(String password) {
-        if (StringUtils.isNotBlank(password)) {
-            if (password.startsWith("cipher:")) {
-                this.password = password;
+    public void setPassword(String pwd) {
+        if (StringUtils.isNotBlank(pwd)) {
+            if (pwd.startsWith("cipher:")) {
+                this.password = pwd;
             } else {
                 this.password = "cipher:" + AESSecurityUtils.encryptAndBase64(
-                    password, SourceInfo.DESKEY);
+                    pwd, SourceInfo.DESKEY);
             }
         }
     }
@@ -133,8 +133,12 @@ public class SourceInfo implements ISourceInfo, Serializable {
     @Override
     @JSONField(serialize = false)
     public String getClearPassword() {
-        return AESSecurityUtils.decryptBase64String(
-            getPassword().substring(7), SourceInfo.DESKEY);
+        if (this.password.startsWith("cipher:")) {
+            return AESSecurityUtils.decryptBase64String(
+                getPassword().substring(7), SourceInfo.DESKEY);
+        } else {
+            return this.password;
+        }
     }
 
     @Override

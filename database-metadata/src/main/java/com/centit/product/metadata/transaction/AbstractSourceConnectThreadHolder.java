@@ -3,6 +3,7 @@ package com.centit.product.metadata.transaction;
 import com.centit.product.adapter.api.ISourceInfo;
 import com.centit.support.network.HttpExecutorContext;
 import io.lettuce.core.api.StatefulRedisConnection;
+import org.elasticsearch.client.RestHighLevelClient;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -39,6 +40,11 @@ public abstract class AbstractSourceConnectThreadHolder {
     public static HttpExecutorContext fetchHttpContext(ISourceInfo description) throws Exception {
         SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
         return wrapper.fetchHttpContext(description);
+    }
+
+    public static RestHighLevelClient fetchESClient(ISourceInfo description) throws Exception {
+        SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
+        return wrapper.fetchESClient(description);
     }
 
     public static void commitAndRelease() throws SQLException {

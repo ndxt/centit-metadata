@@ -9,7 +9,7 @@ public interface ISourceInfo extends IDatabaseInfo {
     String DATABASE="D";
     String MONGO_DB="M";
     String REDIS="R";
-    String ELS="E";
+    String ES="E";
     String KAFKA="K";
     String RABBIT_MQ="B";
     String HTTP="H";

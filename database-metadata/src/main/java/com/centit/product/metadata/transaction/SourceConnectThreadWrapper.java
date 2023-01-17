@@ -4,7 +4,6 @@ import com.centit.product.adapter.api.ISourceInfo;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.network.HttpExecutorContext;
 import io.lettuce.core.api.StatefulRedisConnection;
-import org.elasticsearch.client.RestHighLevelClient;
 
 import java.io.Serializable;
 import java.sql.Connection;
@@ -59,20 +58,6 @@ class SourceConnectThreadWrapper implements Serializable {
         return null;
     }
 
-    RestHighLevelClient fetchESClient(ISourceInfo description) throws Exception {
-        if (ISourceInfo.ES.equals(description.getSourceType())) {
-            RestHighLevelClient conn = (RestHighLevelClient) connectPools.get(description);
-            if (conn == null) {
-                conn = AbstractEsClientPools.fetchESClient(description);
-                connectPools.put(description, conn);
-            }
-            return conn;
-        }
-        return null;
-    }
-
-
-
     void commitAllWork() throws SQLException {
         if (connectPools.size() == 0) {
             return;
@@ -111,10 +96,6 @@ class SourceConnectThreadWrapper implements Serializable {
             } */ else if (ISourceInfo.REDIS.equals(map.getKey().getSourceType())) {
                 StatefulRedisConnection<String, String> conn = (StatefulRedisConnection<String, String>) map.getValue();
                 AbstractRedisConnectPools.closeConnect(conn);
-            } else if (ISourceInfo.ES.equals(map.getKey().getSourceType())) {
-                //释放ESClient
-                RestHighLevelClient conn = (RestHighLevelClient) map.getValue();
-                AbstractEsClientPools.returnClient(map.getKey(), conn);
             }
         }
         connectPools.clear();

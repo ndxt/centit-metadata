@@ -22,7 +22,7 @@ public abstract class AbstractEsClientPools {
         throw new IllegalAccessError("Utility class");
     }
 
-    private static GenericObjectPool<RestHighLevelClient> fetchClientPool(ISourceInfo dsDesc) {
+    private static GenericObjectPool<RestHighLevelClient> fetchClientPool(ISourceInfo dsDesc, boolean createNew) {
         ESServerConfig config = new ESServerConfig();
         String[] hostAndIp = dsDesc.getDatabaseUrl().split(":");
         config.setServerHostIp(hostAndIp[0]);
@@ -40,16 +40,18 @@ public abstract class AbstractEsClientPools {
         //"elasticsearch.filter.minScore
         config.setMinScore(NumberBaseOpt.castObjectToFloat(dsDesc.getExtProp("minScore"), 0.5f));
 
-        return IndexerSearcherFactory.obtainclientPool(config);
+        return IndexerSearcherFactory.obtainclientPool(config, createNew);
     }
 
     public static synchronized RestHighLevelClient fetchESClient(ISourceInfo dsDesc) throws Exception {
-        GenericObjectPool<RestHighLevelClient> clientPool =  fetchClientPool(dsDesc);
+        GenericObjectPool<RestHighLevelClient> clientPool =  fetchClientPool(dsDesc, true);
         return clientPool.borrowObject();
     }
 
     public static void returnClient(ISourceInfo dsDesc , RestHighLevelClient client) {
-        GenericObjectPool<RestHighLevelClient> clientPool =  fetchClientPool(dsDesc);
-        clientPool.returnObject(client);
+        GenericObjectPool<RestHighLevelClient> clientPool =  fetchClientPool(dsDesc, false);
+        if(clientPool!=null) {
+            clientPool.returnObject(client);
+        }
     }
 }

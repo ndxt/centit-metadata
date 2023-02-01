@@ -111,11 +111,11 @@ class SourceConnectThreadWrapper implements Serializable {
             } */ else if (ISourceInfo.REDIS.equals(map.getKey().getSourceType())) {
                 StatefulRedisConnection<String, String> conn = (StatefulRedisConnection<String, String>) map.getValue();
                 AbstractRedisConnectPools.closeConnect(conn);
-            } /*else if (ISourceInfo.ES.equals(map.getKey().getSourceType())) {
+            } else if (ISourceInfo.ES.equals(map.getKey().getSourceType())) {
                 //释放ESClient
                 RestHighLevelClient conn = (RestHighLevelClient) map.getValue();
                 AbstractEsClientPools.returnClient(map.getKey(), conn);
-            }*/
+            }
         }
         connectPools.clear();
     }

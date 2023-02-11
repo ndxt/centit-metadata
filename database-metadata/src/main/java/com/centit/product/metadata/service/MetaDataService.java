@@ -24,7 +24,7 @@ public interface MetaDataService {
 
     List<SourceInfo> listDatabase(String osId);
 
-    /**
+    /*
      * 根据传入的过滤条件获取资源库信息
      * @param map
      * @return

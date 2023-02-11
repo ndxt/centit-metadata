@@ -60,7 +60,7 @@ public class SourceInfoDao extends BaseDaoImpl<SourceInfo, String> {
 
     public JSONArray queryDatabaseAsJson(String databaseName, PageDesc pageDesc) {
         if (StringUtils.isBlank(databaseName)) {
-            return super.listObjectsAsJson(new HashMap<>(1), pageDesc);
+            return super.listObjectsByPropertiesAsJson(new HashMap<>(1), pageDesc);
         }
         String matchStr = QueryUtils.getMatchString(databaseName);
         return super.listObjectsByFilterAsJson("where DATABASE_NAME like ? or DATABASE_URL like ?", new Object[]{matchStr, matchStr}, pageDesc);
@@ -69,7 +69,7 @@ public class SourceInfoDao extends BaseDaoImpl<SourceInfo, String> {
     /**
      * 统计租户下数据个数
      * @param params 过滤参数
-     * @return
+     * @return 统计租户下数据个数
      */
     public int countDataBase(Map<String,Object> params){
         String sql = "  SELECT COUNT(1) COUNT FROM F_DATABASE_INFO WHERE 1 = 1 [ :topUnit | AND TOP_UNIT = :topUnit ]  [ :sourceType |  AND SOURCE_TYPE  = :sourceType ]  ";

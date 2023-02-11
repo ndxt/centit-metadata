@@ -53,7 +53,7 @@ public class MetaChangLogManagerImpl
             String[] fields,
             Map<String, Object> filterMap, PageDesc pageDesc){
 
-        return metaChangLogDao.listObjectsAsJson(filterMap, pageDesc);
+        return metaChangLogDao.listObjectsByPropertiesAsJson(filterMap, pageDesc);
     }
 
 }

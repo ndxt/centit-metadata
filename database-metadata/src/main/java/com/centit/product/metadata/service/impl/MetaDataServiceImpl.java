@@ -70,7 +70,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public JSONArray listMetaTables(Map<String, Object> filterMap, PageDesc pageDesc) {
-        return metaTableDao.listObjectsAsJson(filterMap, pageDesc);
+        return metaTableDao.listObjectsByPropertiesAsJson(filterMap, pageDesc);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         List<MetaTable> metaTables;
         if (tableNames != null) {
             dbTables = getJdbcMetadata(databaseCode, true, tableNames);
-            metaTables = metaTableDao.listObjects(CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableNames", tableNames));
+            metaTables = metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableNames", tableNames));
         } else {
             dbTables = getJdbcMetadata(databaseCode, true, null);
             metaTables = metaTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
@@ -150,7 +150,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     public List<SimpleTableInfo> listRealTablesWithoutColumn(String databaseCode) {
         List<SimpleTableInfo> dbTableInfo = getJdbcMetadata(databaseCode, false, null);
         dbTableInfo.sort(Comparator.comparing(SimpleTableInfo::getTableType));
-        List<MetaTable> metaTables = metaTableDao.listObjects(CollectionsOpt.createHashMap("databaseCode", databaseCode));
+        List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode));
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
         Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple = compareMetaBetweenDbTables(metaTables, dbTableInfo, comparator);
         if (triple.getRight() != null && triple.getRight().size() > 0) {
@@ -344,7 +344,8 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public List<MetaRelation> listMetaRelation(String tableId) {
-        List<MetaRelation> list = metaRelationDao.listObjectsByProperty("parentTableId", tableId);
+        List<MetaRelation> list = metaRelationDao.listObjectsByProperties(
+            CollectionsOpt.createHashMap("parentTableId", tableId));
         for (MetaRelation relation : list) {
             fetchMetaRelationDetail(relation);
         }
@@ -361,7 +362,8 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public List<MetaColumn> listMetaColumns(String tableId) {
-        return metaColumnDao.listObjectsByProperty("tableId", tableId);
+        return metaColumnDao.listObjectsByProperties(
+            CollectionsOpt.createHashMap("tableId", tableId));
     }
 
     @Override
@@ -398,7 +400,8 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public void saveRelations(String tableId, List<MetaRelation> relations) {
-        List<MetaRelation> dbRelations = metaRelationDao.listObjectsByProperty("parentTableId", tableId);
+        List<MetaRelation> dbRelations = metaRelationDao.listObjectsByProperties(
+            CollectionsOpt.createHashMap("parentTableId", tableId));
 
         Triple<List<MetaRelation>, List<Pair<MetaRelation, MetaRelation>>, List<MetaRelation>> comparedRelation =
             CollectionsOpt.compareTwoList(dbRelations, relations,

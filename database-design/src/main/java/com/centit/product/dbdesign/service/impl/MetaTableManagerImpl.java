@@ -102,7 +102,7 @@ public class MetaTableManagerImpl
         String[] fields,
         Map<String, Object> filterMap, PageDesc pageDesc) {
 
-        return baseDao.listObjectsAsJson(filterMap, pageDesc);
+        return baseDao.listObjectsByPropertiesAsJson(filterMap, pageDesc);
     }
 
     @Override
@@ -427,7 +427,7 @@ public class MetaTableManagerImpl
     public JSONArray listDrafts(String[] fields, Map<String, Object> searchColumn,
                                 PageDesc pageDesc) {
 
-        return pendingMdTableDao.listObjectsAsJson(searchColumn, pageDesc);
+        return pendingMdTableDao.listObjectsByPropertiesAsJson(searchColumn, pageDesc);
     }
 
     @Override
@@ -463,7 +463,7 @@ public class MetaTableManagerImpl
         Map<String, Object> filterMap = new HashMap<String, Object>();
         filterMap.put("tableId", tableId);
 
-        return metaColumnDao.listObjects(filterMap);
+        return metaColumnDao.listObjectsByProperties(filterMap);
     }
 
     @Override
@@ -724,7 +724,7 @@ public class MetaTableManagerImpl
         if (tableNames != null) {
             filterMap.put("tableNames", tableNames);
         }
-        List<MetaTable> metaTables = metaTableDao.listObjects(filterMap);
+        List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(filterMap);
         if (!CollectionUtils.sizeIsEmpty(metaTables)) {
             String[] tableIds = CollectionsOpt.listToArray(metaTables.stream().map(MetaTable::getTableId).collect(Collectors.toSet()));
             Map<String, Object> deleteFilterMap = CollectionsOpt.createHashMap("tableId_in", tableIds);
@@ -839,8 +839,8 @@ public class MetaTableManagerImpl
      * @return
      */
     private List<Map<String, Object>> listCombineTables(Map<String, Object> filerMap) {
-        List<MetaTable> metaTables = metaTableDao.listObjects(filerMap);
-        List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjects(filerMap);
+        List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(filerMap);
+        List<PendingMetaTable> pendingMetaTables = pendingMdTableDao.listObjectsByProperties(filerMap);
         if (CollectionUtils.sizeIsEmpty(metaTables) && CollectionUtils.sizeIsEmpty(pendingMetaTables)) {
             return Collections.EMPTY_LIST;
         }

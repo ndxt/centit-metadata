@@ -83,6 +83,7 @@ public class DataCheckResult {
      * @param data 校验的对象
      * @param rule 规则
      * @param param 校验参数，key 包括： checkValue， param1， param2， param3,
+     * @param makeErrorMessage 不符合规范时返回的错误信息
      * @param nullAsTrue checkValue 是null的时候 忽略规则
      * @return 是否符合规则，和不符合错误提示
      */

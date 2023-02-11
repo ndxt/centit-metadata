@@ -74,12 +74,12 @@ public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, Str
 
     @Override
     public List<SourceInfo> listObjects(Map<String, Object> map){
-        return baseDao.listObjects(map);
+        return baseDao.listObjectsByProperties(map);
     }
 
     @Override
     public JSONArray listDatabaseAsJson(Map<String, Object> filterMap, PageDesc pageDesc){
-        return baseDao.listObjectsAsJson(filterMap, pageDesc);
+        return baseDao.listObjectsByPropertiesAsJson(filterMap, pageDesc);
     }
 
     @Override
@@ -90,7 +90,8 @@ public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, Str
     @Override
     @Transactional
     public List<SourceInfo> listDatabaseByOsId(String osId) {
-        return baseDao.listObjectsByProperty("osId",osId);
+        return baseDao.listObjectsByProperties(
+            CollectionsOpt.createHashMap("osId",osId));
     }
 
 

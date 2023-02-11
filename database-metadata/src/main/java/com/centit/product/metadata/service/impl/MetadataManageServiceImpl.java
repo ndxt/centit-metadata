@@ -37,7 +37,8 @@ public class MetadataManageServiceImpl implements MetadataManageService {
             logger.info("根据optId删除关联关系接口参数optId为空。");
             return 0;
         }
-        List<MetaOptRelation> metaOptRelations = relationDao.listObjects(CollectionsOpt.createHashMap("optId", optId));
+        List<MetaOptRelation> metaOptRelations =
+            relationDao.listObjectsByProperties(CollectionsOpt.createHashMap("optId", optId));
         if (CollectionUtils.isEmpty(metaOptRelations)) {
             logger.info("根据optId未查询到关联信息。optId:{}", optId);
             return 0;

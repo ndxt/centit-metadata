@@ -63,7 +63,7 @@ public class DataCheckRuleController extends BaseController {
             strArry[1] = "system";
             searchColumn.put("topUnit", strArry);
         }
-        JSONArray listObjects = dataCheckRuleService.listObjectsAsJson(searchColumn, pageDesc);
+        JSONArray listObjects = dataCheckRuleService.listObjectsByPropertiesAsJson(searchColumn, pageDesc);
         return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, new Class[]{DataCheckRule.class});
     }
 
@@ -80,7 +80,7 @@ public class DataCheckRuleController extends BaseController {
             throw new ObjectException(ResponseData.ERROR_INTERNAL_SERVER_ERROR, "topUnit不能为空!");
         }
         searchColumn.put("topUnit", topUnit);
-        JSONArray listObjects = dataCheckRuleService.listObjectsAsJson(searchColumn, pageDesc);
+        JSONArray listObjects = dataCheckRuleService.listObjectsByPropertiesAsJson(searchColumn, pageDesc);
         return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, new Class[]{DataCheckRule.class});
     }
 
@@ -149,7 +149,7 @@ public class DataCheckRuleController extends BaseController {
         /**********************log****************************/
     }
 
-    /**
+    /*
      * 获取单个数据校验规则
      *
      * @param ruleId   数据校验规则代码

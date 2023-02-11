@@ -40,7 +40,7 @@ public class MetaOptRelationServiceImpl implements MetaOptRelationService {
 
     @Override
     public List<MetaOptRelation> listMetaOptRelation(Map<String, Object> params, PageDesc pageDesc) {
-        return relationDao.listObjects(params,pageDesc);
+        return relationDao.listObjectsByProperties(params,pageDesc);
     }
 
     @Override

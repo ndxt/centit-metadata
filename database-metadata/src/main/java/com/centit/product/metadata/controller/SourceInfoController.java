@@ -74,7 +74,7 @@ public class SourceInfoController extends BaseController {
         if (WebOptUtils.isTenantTopUnit(request)){
             searchColumn.put("topUnit", topUnit);
         }
-        JSONArray listObjects = databaseInfoMag.listObjectsAsJson(searchColumn, pageDesc);
+        JSONArray listObjects = databaseInfoMag.listDatabaseAsJson(searchColumn, pageDesc);
 
         return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, SourceInfo.class);
     }

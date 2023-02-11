@@ -52,7 +52,7 @@ public class MetaTableDao extends BaseDaoImpl<MetaTable, String> {
     /**
      * 根据optId过滤MetaTable数据
      * @param parameters parameters
-     * @return
+     * @return JSONArray
      */
     public JSONArray getMetaTableListWithTableOptRelation(Map<String, Object> parameters) {
         String sql = "SELECT A.ID, B.TABLE_ID, B.TABLE_LABEL_NAME, B.DATABASE_CODE, B.TABLE_NAME, B.TABLE_TYPE, B.ACCESS_TYPE, B.TABLE_COMMENT, B.WORKFLOW_OPT_TYPE AS WORK_FLOW_OPT_TYPE, B.RECORD_DATE,\n" +

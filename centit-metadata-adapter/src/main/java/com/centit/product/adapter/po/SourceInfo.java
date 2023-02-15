@@ -64,7 +64,6 @@ public class SourceInfo implements ISourceInfo, Serializable {
     @Column(name = "PASSWORD")
     @Length(max = 100, message = "字段长度不能大于{max}")
     @ApiModelProperty(value = "数据库密码", name = "password")
-    @JSONField(serialize = false)
     private String password;
 
     @Column(name = "DATABASE_DESC")

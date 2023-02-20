@@ -63,7 +63,7 @@ public class SourceInfoController extends BaseController {
         name = "pageDesc", value = "json格式，分页对象信息",
         paramType = "body", dataTypeClass = PageDesc.class)
     @RequestMapping(method = RequestMethod.GET)
-    @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
+    @WrapUpResponseBody(contentType = WrapUpContentType.BASE64)
     public PageQueryResult<Object> list(PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = BaseController.collectRequestParameters(request);
         String topUnit = WebOptUtils.getCurrentTopUnit(request);

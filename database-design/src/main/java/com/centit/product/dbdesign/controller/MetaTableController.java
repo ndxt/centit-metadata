@@ -270,7 +270,7 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "批量发布表元数据表")
     @RequestMapping(value = "/{databaseCode}/publish", method = {RequestMethod.POST})
-    @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
+    @WrapUpResponseBody
     public void publishDatabase(@PathVariable String databaseCode,
                                 HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);

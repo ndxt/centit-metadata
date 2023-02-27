@@ -8,7 +8,7 @@ import com.centit.support.database.orm.GeneratorCondition;
 import com.centit.support.database.orm.GeneratorTime;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
-import com.centit.support.security.AESSecurityUtils;
+import com.centit.support.security.SecurityOptUtils;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -28,8 +28,6 @@ import java.util.Date;
 @ApiModel(value = "集成资源库信息对象", description = "集成资源库信息对象 DatabaseInfo")
 public class SourceInfo implements ISourceInfo, Serializable {
     private static final long serialVersionUID = 1L;
-
-    public static final String DESKEY = AESSecurityUtils.AES_DEFAULT_KEY;
 
     @Id
     @Column(name = "DATABASE_CODE")
@@ -123,8 +121,7 @@ public class SourceInfo implements ISourceInfo, Serializable {
             if (pwd.startsWith("cipher:")) {
                 this.password = pwd;
             } else {
-                this.password = "cipher:" + AESSecurityUtils.encryptAndBase64(
-                    pwd, SourceInfo.DESKEY);
+                this.password = SecurityOptUtils.encodeSecurityString(pwd, "cipher");
             }
         }
     }
@@ -132,12 +129,7 @@ public class SourceInfo implements ISourceInfo, Serializable {
     @Override
     @JSONField(serialize = false)
     public String getClearPassword() {
-        if (this.password.startsWith("cipher:")) {
-            return AESSecurityUtils.decryptBase64String(
-                getPassword().substring(7), SourceInfo.DESKEY);
-        } else {
-            return this.password;
-        }
+        return SecurityOptUtils.decodeSecurityString(this.password);
     }
 
     @Override

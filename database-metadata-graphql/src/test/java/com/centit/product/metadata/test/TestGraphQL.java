@@ -1,6 +1,6 @@
 package com.centit.product.metadata.test;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.centit.framework.jdbc.config.JdbcConfig;
 import com.centit.product.metadata.graphql.GraphQLExecutor;
 import com.centit.product.metadata.service.MetaDataService;

@@ -1,6 +1,6 @@
 package com.centit.product.metadata.service;
 
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson2.JSONArray;
 import com.centit.product.adapter.po.MetaColumn;
 import com.centit.product.adapter.po.MetaRelation;
 import com.centit.product.adapter.po.MetaTable;

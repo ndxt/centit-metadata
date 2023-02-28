@@ -1,7 +1,7 @@
 package com.centit.product.metadata.service.impl;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.adapter.po.SourceInfo;
 import com.centit.product.metadata.dao.SourceInfoDao;

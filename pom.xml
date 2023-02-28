@@ -30,10 +30,6 @@
         <module>database-design</module>
     </modules>
 
-    <properties>
-        <fileserver.version>5.2-SNAPSHOT</fileserver.version>
-    </properties>
-
     <build>
         <plugins>
             <plugin>

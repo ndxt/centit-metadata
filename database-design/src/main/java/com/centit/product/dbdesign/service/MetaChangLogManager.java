@@ -1,6 +1,6 @@
 package com.centit.product.dbdesign.service;
 
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson2.JSONArray;
 import com.centit.framework.jdbc.service.BaseEntityManager;
 import com.centit.product.adapter.po.MetaChangLog;
 import com.centit.support.database.utils.PageDesc;

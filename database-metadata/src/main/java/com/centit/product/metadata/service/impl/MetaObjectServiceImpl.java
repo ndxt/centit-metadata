@@ -885,6 +885,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         List<DictionaryMapColumn> dictionaryMapColumns = new ArrayList<>(4);
         for (MetaColumn mc : tableInfo.getMdColumns()) {
             //dictionary; 解析 mc.getReferenceData() json
+            //引用类型 0：没有：1： 数据字典 2：JSON表达式 3：sql语句  4：复合数据字典
             if ("1".equals(mc.getReferenceType())) {
                 setDictionaryColumns(dictionaryMapColumns, mc, false);
             } else if ("2".equals(mc.getReferenceType())) {
@@ -907,7 +908,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 }
             } else if ("3".equals(mc.getReferenceType())) {
                 String sqlStr = mc.getReferenceData().trim();
-                String catalogCode = Md5Encoder.encodeBase64(sqlStr, true);
+                // catalogCode 不能仅仅以sql语句为标准，还需要添加上对应的数据库
+                String catalogCode = Md5Encoder.encodeBase64(tableInfo.getDatabaseCode() + sqlStr, true);
                 if (!CodeRepositoryUtil.hasExtendedDictionary(catalogCode)) {
                     CodeRepositoryUtil.registeExtendedCodeRepo(catalogCode,
                         new CachedObject<>(

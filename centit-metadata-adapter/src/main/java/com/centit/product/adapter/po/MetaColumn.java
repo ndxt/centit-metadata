@@ -113,9 +113,6 @@ public class MetaColumn implements TableField, java.io.Serializable {
     @Column(name = "PRIMARY_KEY")
     private Boolean primaryKey;
 
-    /**
-     * 引用类型 0：没有：1： 数据字典 2：JSON表达式 3：sql语句  Y：年份 M：月份
-     */
     @ApiModelProperty(value = "引用类型 0：没有：1： 数据字典 2：JSON表达式 3：sql语句  4：复合数据字典")
     @Column(name = "REFERENCE_TYPE")
     @Length(message = "字段长度不能大于{max}")

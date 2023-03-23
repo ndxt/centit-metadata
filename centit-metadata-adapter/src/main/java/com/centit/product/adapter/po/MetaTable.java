@@ -328,7 +328,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     public boolean hasGeneratedKeys(){
         for (MetaColumn c : mdColumns) {
-            if ("A".equals(c.getAutoCreateRule())) {
+            if ("A".equals(c.getAutoCreateRule()) && c.isPrimaryKey()) {
                 return true;
             }
         }
@@ -337,7 +337,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     public MetaColumn fetchGeneratedKey(){
         for (MetaColumn column : mdColumns) {
-            if ("A".equals(column.getAutoCreateRule())) {
+            if ("A".equals(column.getAutoCreateRule()) && column.isPrimaryKey()) {
                 return column ;
             }
         }

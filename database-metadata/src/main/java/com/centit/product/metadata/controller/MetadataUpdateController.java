@@ -6,6 +6,7 @@ import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.product.adapter.po.MetaColumn;
 import com.centit.product.adapter.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.FieldType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -58,6 +59,9 @@ public class MetadataUpdateController extends BaseController {
     public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode, @RequestBody MetaColumn metaColumn){
         metaColumn.setTableId(tableId);
         metaColumn.setColumnName(columnCode);
+        if("A".equals(metaColumn.getAutoCreateRule()) && !metaColumn.isPrimaryKey()){
+            throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR, "自动增长生成规则只能配置在主键上！");
+        }
         metaDataService.updateMetaColumn(metaColumn);
     }
 

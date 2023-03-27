@@ -76,10 +76,13 @@ public abstract class AbstractDruidConnectPools {
             dsDesc.getExtProp("timeBetweenEvictionRunsMillis"), 60000));
         ds.setMinEvictableIdleTimeMillis(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("minEvictableIdleTimeMillis"), 300000));
-        ds.setRemoveAbandoned(BooleanBaseOpt.castObjectToBoolean(
-            dsDesc.getExtProp("removeAbandoned"), true));
-        ds.setRemoveAbandonedTimeout(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("removeAbandonedTimeout"), 80));
+        boolean removeAbandoned = BooleanBaseOpt.castObjectToBoolean(
+            dsDesc.getExtProp("removeAbandoned"), true);
+        ds.setRemoveAbandoned(removeAbandoned);
+        if(removeAbandoned) {
+            ds.setRemoveAbandonedTimeout(NumberBaseOpt.castObjectToInteger(
+                dsDesc.getExtProp("removeAbandonedTimeout"), 900));
+        }
         ds.setLogAbandoned(BooleanBaseOpt.castObjectToBoolean(
             dsDesc.getExtProp("logAbandoned"), true));
         ds.setTestOnBorrow(BooleanBaseOpt.castObjectToBoolean(

@@ -115,7 +115,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             object.put(field.getPropertyName(), field.getAutoCreateParam());
                             break;
                         case "W": // Snowflake
-                            object.put(field.getPropertyName(), OrmUtils.SNOW_FLAKE_INSTANCE.nextId());
+                            object.put(field.getPropertyName(), OrmUtils.getDefaultSnowFlakeInstance().nextId());
                             break;
                         case "F": // formula
                             VariableFormula formula = new VariableFormula();

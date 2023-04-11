@@ -22,6 +22,7 @@ import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
 import com.centit.support.database.metadata.TableField;
+import com.centit.support.database.orm.OrmUtils;
 import com.centit.support.database.utils.*;
 import com.centit.support.security.Md5Encoder;
 import org.apache.commons.lang3.StringUtils;
@@ -112,6 +113,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             break;
                         case "C": // const
                             object.put(field.getPropertyName(), field.getAutoCreateParam());
+                            break;
+                        case "W": // Snowflake
+                            object.put(field.getPropertyName(), OrmUtils.SNOW_FLAKE_INSTANCE.nextId());
                             break;
                         case "F": // formula
                             VariableFormula formula = new VariableFormula();

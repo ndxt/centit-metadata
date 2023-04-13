@@ -10,6 +10,7 @@ import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.model.basedata.OperationLog;
+import com.centit.product.adapter.api.ISourceInfo;
 import com.centit.product.adapter.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
@@ -180,9 +181,11 @@ public class SourceInfoController extends BaseController {
         SourceInfo oldValue = new SourceInfo();
         BeanUtils.copyProperties(temp, oldValue);
         databaseInfoMag.mergeObject(databaseinfo);
-
+        //刷新连接池
+        if(ISourceInfo.DATABASE.equals(databaseinfo.getSourceType())) {
+            AbstractDruidConnectPools.refreshDataSource(databaseinfo);
+        }
         JsonResultUtils.writeBlankJson(response);
-
         /**********************log****************************/
         OperationLogCenter.logUpdateObject(request, optId, databaseCode, OperationLog.P_OPT_LOG_METHOD_U,
             "更新数据库信息", databaseinfo, oldValue);

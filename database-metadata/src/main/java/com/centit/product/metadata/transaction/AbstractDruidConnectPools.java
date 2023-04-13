@@ -29,7 +29,7 @@ public abstract class AbstractDruidConnectPools {
         throw new IllegalAccessError("Utility class");
     }
 
-    private static DruidDataSource mapDataSource(ISourceInfo dsDesc) {
+    private static DruidDataSource createDataSource(ISourceInfo dsDesc) {
         DruidDataSource ds = new DruidDataSource();
         //失败时是否进行重试连接    true:不进行重试   false：进行重试    设置为false时达蒙数据库会出现问题（会导致达蒙连接撑爆挂掉）
         ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(dsDesc.getExtProp("breakAfterAcquireFailure"),false));
@@ -94,10 +94,20 @@ public abstract class AbstractDruidConnectPools {
         return ds;
     }
 
+    public static void refreshDataSource(ISourceInfo dsDesc) {
+        if(DRUID_DATA_SOURCE_POOLS.containsKey(dsDesc)){ // 已经有连接池的情况下更换连接池
+            DruidDataSource ds = createDataSource(dsDesc);
+            DruidDataSource oldDs = DRUID_DATA_SOURCE_POOLS.put(dsDesc, ds);
+            if(oldDs!=null) {
+                oldDs.close();
+            }
+        }
+    }
+
     public static synchronized Connection getDbcpConnect(ISourceInfo dsDesc) throws SQLException {
         DruidDataSource ds = DRUID_DATA_SOURCE_POOLS.get(dsDesc);
         if (ds == null) {
-            ds = mapDataSource(dsDesc);
+            ds = createDataSource(dsDesc);
             DRUID_DATA_SOURCE_POOLS.put(dsDesc, ds);
         }
         Connection conn = ds.getConnection();
@@ -116,7 +126,7 @@ public abstract class AbstractDruidConnectPools {
     }
 
     public static void testConnect(SourceInfo sourceInfo) throws SQLException {
-        DruidDataSource ds =mapDataSource(sourceInfo);
+        DruidDataSource ds = createDataSource(sourceInfo);
         Connection conn=null;
         try  {
             conn = ds.getConnection();

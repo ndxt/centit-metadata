@@ -51,7 +51,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @ApiModelProperty(value = "字段名称", required = true)
     @Column(name = "FIELD_LABEL_NAME")
     @NotBlank(message = "字段不能为空")
-    @Length(max = 64, message = "字段长度不能大于{max}")
+    @Length(max = 200, message = "字段长度不能大于{max}")
     private String  fieldLabelName;
 
     @ApiModelProperty(value = "字段描述")

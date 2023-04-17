@@ -69,7 +69,7 @@ public class PendingMetaTable implements
     @ApiModelProperty(value = "表中文名", required = true)
     @Column(name = "TABLE_LABEL_NAME")
     @NotBlank(message = "字段不能为空")
-    @Length(max = 100, message = "字段长度不能大于{max}")
+    @Length(max = 200, message = "字段长度不能大于{max}")
     private String tableLabelName;
     /**
      * 表类型 T，V

@@ -96,7 +96,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
      */
     @Column(name = "TABLE_LABEL_NAME")
     @NotBlank(message = "字段不能为空")
-    @Length(max = 100, message = "字段长度不能大于{max}")
+    @Length(max = 200, message = "字段长度不能大于{max}")
     @ApiModelProperty(value = "表中文名")
     private String tableLabelName;
 

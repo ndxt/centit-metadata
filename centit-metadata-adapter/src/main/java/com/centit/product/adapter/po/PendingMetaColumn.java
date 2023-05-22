@@ -98,7 +98,6 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @Length(max = 8, message = "字段长度不能大于{max}")
     private String  recorder;
 
-
     @Transient
     private DBType databaseType;
     @Transient
@@ -115,10 +114,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
         this.columnName = columnName;
     }
 
-
-
     public PendingMetaColumn copy(PendingMetaColumn other){
-
 //        this.setCid(other.getCid());
         this.fieldLabelName= other.getFieldLabelName();
         this.columnComment= other.getColumnComment();
@@ -174,6 +170,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
         return this;
     }
+
     @Override
     public String getPropertyName() {
         return FieldType.mapPropName(getColumnName());

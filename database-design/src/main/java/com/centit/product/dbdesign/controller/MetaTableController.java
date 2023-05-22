@@ -381,7 +381,6 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "分页查询数据库表数据列表")
     @RequestMapping(value = "/{databaseId}/viewlist", method = RequestMethod.POST)
     @WrapUpResponseBody
-    @MetadataJdbcTransaction
     public JSONArray viewList(@PathVariable String databaseId, @RequestBody JSONObject sql) throws IOException, SQLException {
         return mdTableMag.viewList(databaseId, sql.getString("sql"));
     }
@@ -389,7 +388,6 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "根据中文名称翻译表名或者字段名")
     @RequestMapping(value = "/map/column", method = RequestMethod.GET)
     @WrapUpResponseBody
-    @MetadataJdbcTransaction
     public String mapLabelToColumn(@RequestParam("labelName") String labelName)  {
         return translateColumn.transLabelToColumn(labelName);
     }
@@ -397,8 +395,15 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "根据中文名称翻译属性名称")
     @RequestMapping(value = "/map/property", method = RequestMethod.GET)
     @WrapUpResponseBody
-    @MetadataJdbcTransaction
     public String mapLabelToProperty(@RequestParam("labelName") String labelName) {
         return translateColumn.transLabelToProperty(labelName);
+    }
+
+    @ApiOperation(value = "导入TableStore中导入表结构")
+    @RequestMapping(value = "/imoprt", method = RequestMethod.POST)
+    @WrapUpResponseBody
+    public void importFromTableStore(HttpServletRequest request) throws IOException{
+        Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
+
     }
 }

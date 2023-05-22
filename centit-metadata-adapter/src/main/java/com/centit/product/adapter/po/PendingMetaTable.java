@@ -137,8 +137,7 @@ public class PendingMetaTable implements
     @OneToMany(mappedBy = "mdTable", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "TABLE_ID", referencedColumnName = "TABLE_ID")
     private List<PendingMetaColumn> mdColumns;
-    @Transient
-    private List<PendingMetaColumn> columns;
+
     @Transient
     private DBType databaseType;
 

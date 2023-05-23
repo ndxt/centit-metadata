@@ -5,11 +5,17 @@ import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.product.adapter.po.MetaTable;
+import com.centit.product.adapter.po.PendingMetaTable;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
+import com.centit.support.database.metadata.TableField;
+import com.centit.support.database.orm.JpaMetadata;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -30,10 +36,15 @@ public class MetaTableDao extends BaseDaoImpl<MetaTable, String> {
     }
 
     public MetaTable getMetaTable(String databaseCode, String tableName) {
-        return super.getObjectByProperties(
-            CollectionsOpt.createHashMap("databaseCode",databaseCode,"tableName",tableName));
+        Pair<String, TableField[]> querySql =  GeneralJsonObjectDao.buildSelectSqlWithFields(
+            JpaMetadata.fetchTableMapInfo(this.getPoClass()),
+            null, false, "DATABASE_CODE = ? and TABLE_NAME = ?", false, null);
+        List<MetaTable> tables = this.listObjectsBySql(querySql.getLeft(),
+            new Object[] {databaseCode, tableName/*.toLowerCase()*/});
+        if(tables==null || tables.size()<1)
+            return null;
+        return tables.get(0);
     }
-
 
     /**
      * 根据osId过滤MetaTable数据

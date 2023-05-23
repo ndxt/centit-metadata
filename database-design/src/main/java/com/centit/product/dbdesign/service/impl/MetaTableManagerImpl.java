@@ -867,7 +867,7 @@ public class MetaTableManagerImpl
         //逐个保存 表信息
         for(PendingMetaTable table : tableList){
             PendingMetaTable dbTable = pendingMdTableDao.getTableByName(table.getTableName(), databaseCode);
-            if(dbTable == null){
+            if(dbTable != null){
                 tableIdMap.put(table.getTableId(), dbTable.getTableId());
                 dbTable.setTableType(table.getTableType());
                 //dbTable.setTableName(table.getTableName());

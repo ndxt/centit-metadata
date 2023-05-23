@@ -68,7 +68,7 @@ public abstract class TableStoreJsonUtils {
             for (Object obj : modules) {
                 if (obj instanceof JSONObject) {
                     JSONObject moduleJson = (JSONObject) obj;
-                    JSONArray relations = json.getJSONArray("relations");
+                    JSONArray relations = moduleJson.getJSONArray("relations");
                     if(relations != null && relations.size()>0){
                         for (Object relObj : relations) { // 内层模块的关联信息循环
                             if (relObj instanceof JSONObject) {

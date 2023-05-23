@@ -2,60 +2,18 @@ package com.centit.product.dbdesign.pdmutils;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.centit.product.adapter.po.MetaRelDetail;
 import com.centit.product.adapter.po.MetaRelation;
 import com.centit.product.adapter.po.PendingMetaColumn;
 import com.centit.product.adapter.po.PendingMetaTable;
 import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
-import com.centit.support.algorithm.UuidOpt;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.core.parameters.P;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class TableStoreJsonUtils {
 
-    /*
-    "tables": [
-    {
-      "tableInfo": {
-        "tableId": "",
-        "tableType": "",
-        "tableName": "",
-        "tableLabelName": "",
-        "tableComment": ""
-      },
-      // 下面的 columns、indexes 参见 matedataJson.json
-    "columns": [
-        {
-          "columnName": "字段名：代码",
-          "fieldLabelName": "字段中文名称，标签名称",
-          "columnType": "字段类型",
-          "fieldType": "业务类型，字段类型相互转换",
-          "maxLength": "最大长度",
-          "scale": "精度",
-          "precision" : "有效数据位数",
-          "mandatory": "是否必填 true/false",
-          "primaryKey": "是否为主键 true/false",
-          "columnComment": "字段说明"
-        }
-      ],
-      "indexes": [
-        {
-          "indexName": "索引名：代码",
-          "indexType": "缩影类型 B+、FBI、BITMAP、IOT、Cluster",
-          "indexComment": "索引说明",
-          "indexFields": [
-            "filedOne",
-            "filedTwo"
-          ]
-        }
-      ],
-      "viewSql" : "这个仅仅是视图的时有内容"
-    }
-  ]
-     */
     public static List<PendingMetaTable> fetchTables(JSONObject json){
         List<PendingMetaTable> tableList = new ArrayList<>();
         JSONArray tables = json.getJSONArray("tables");
@@ -104,7 +62,49 @@ public abstract class TableStoreJsonUtils {
     }
 
     public static List<MetaRelation> fetchRelations(JSONObject json){
-        return null;
+        List<MetaRelation> relationList = new ArrayList<>();
+        JSONArray modules = json.getJSONArray("modules");
+        if(modules!=null && modules.size()>0) { // 外层模块循环
+            for (Object obj : modules) {
+                if (obj instanceof JSONObject) {
+                    JSONObject moduleJson = (JSONObject) obj;
+                    JSONArray relations = json.getJSONArray("relations");
+                    if(relations != null && relations.size()>0){
+                        for (Object relObj : relations) { // 内层模块的关联信息循环
+                            if (relObj instanceof JSONObject) {
+                                JSONObject relationJson = (JSONObject) relObj;
+                                //获取 关联信息
+                                JSONObject relationInfo = relationJson.getJSONObject("info");
+                                if(relationInfo!=null){
+                                    MetaRelation relation = new MetaRelation();
+                                    relation.setRelationName(relationInfo.getString("relationsName"));
+                                    relation.setParentTableId(relationInfo.getString("parentTable"));
+                                    relation.setChildTableId(relationInfo.getString("chileTable"));
+                                    relation.setRelationComment(relationInfo.getString("relationsDesc"));
+
+                                    JSONArray refCols = json.getJSONArray("referenceColumns");
+                                    if (refCols != null && refCols.size() > 0) {
+                                        List<MetaRelDetail> relationDetails = new ArrayList<>();
+                                        for (Object colObj : refCols) { // 关联字段循环
+                                            if (colObj instanceof JSONObject) {
+                                                JSONObject columnJson = (JSONObject) colObj;
+                                                MetaRelDetail detail = new MetaRelDetail();
+                                                detail.setParentColumnCode(columnJson.getString("parentColumn"));
+                                                detail.setChildColumnCode(columnJson.getString("childColumn"));
+                                                relationDetails.add(detail);
+                                            }
+                                        }
+                                        relation.setRelationDetails(relationDetails);
+                                    }
+                                    relationList.add(relation);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return relationList;
     }
 
     public static void freshenTablesId(List<PendingMetaTable> tables, List<MetaRelation> relations){

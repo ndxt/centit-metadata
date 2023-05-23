@@ -6,11 +6,16 @@ import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.product.adapter.po.PendingMetaTable;
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
+import com.centit.support.database.metadata.TableField;
+import com.centit.support.database.orm.JpaMetadata;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -45,10 +50,6 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
         return filterField;
     }
 
-    public Long getNextKey() {
-        return DatabaseOptUtils.getSequenceNextValue(this, "seq_pendingtableid");
-    }
-
     /**
      * 根据osId过滤MPendingMetaTable数据
      *
@@ -81,7 +82,7 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
 
     /**
      *表是否存在
-     * @param tableName 表名
+     * @param tableName 表名 TODO 这个应该要忽略大小写，但是不同数据库需要区别对待
      * @param dataBaseCode 数据库code
      * @return boolean
      */
@@ -89,4 +90,17 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
         String sql = " SELECT COUNT(1) FROM F_PENDING_META_TABLE WHERE TABLE_NAME = ? AND DATABASE_CODE = ?  ";
         return NumberBaseOpt.castObjectToInteger(DatabaseOptUtils.getScalarObjectQuery(this, sql, new Object[]{tableName, dataBaseCode})) >0;
     }
+
+    //LOWER(TABLE_NAME)
+    public PendingMetaTable getTableByName(String tableName, String dataBaseCode) {
+        Pair<String, TableField[]> querySql =  GeneralJsonObjectDao.buildSelectSqlWithFields(
+            JpaMetadata.fetchTableMapInfo(this.getPoClass()),
+            null, false, "DATABASE_CODE = ? and TABLE_NAME = ?", false, null);
+        List<PendingMetaTable> tables = this.listObjectsBySql(querySql.getLeft(),
+            new Object[] {dataBaseCode, tableName/*.toLowerCase()*/});
+        if(tables==null || tables.size()<1)
+            return null;
+        return tables.get(0);
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.centit.product.dbdesign.service;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.centit.framework.jdbc.service.BaseEntityManager;
 import com.centit.product.adapter.po.*;
 import com.centit.support.database.utils.PageDesc;
@@ -86,4 +87,8 @@ public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
      * @return PendingMetaTable
      */
     PendingMetaTable initPendingMetaTable(String tableId, String userCode);
+
+    void importFromTableStore(String databaseCode, JSONObject jsonObject, String userCode);
+
+
 }

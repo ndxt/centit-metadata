@@ -17,11 +17,10 @@ import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.product.adapter.po.MetaChangLog;
 import com.centit.product.adapter.po.PendingMetaColumn;
 import com.centit.product.adapter.po.PendingMetaTable;
-import com.centit.product.dbdesign.pdmutils.PdmTableInfoUtils;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
 import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.dbdesign.service.TranslateColumn;
-import com.centit.product.metadata.transaction.MetadataJdbcTransaction;
+import com.centit.product.metadata.utils.PdmTableInfoUtils;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;
@@ -32,6 +31,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -65,15 +65,13 @@ public class MetaTableController extends BaseController {
     //private static final Log log = LogFactory.getLog(MetaTableController.class);
 
     @Resource
-    private MetaTableManager mdTableMag;
+    private MetaTableManager metaTableManager;
 
     @Resource
-    private MetaChangLogManager mdChangLogMag;
+    private MetaChangLogManager metaChangLogManager;
 
     @Resource
     private TranslateColumn translateColumn;
-
-
 
     @ApiOperation(value = "查询重构记录")
     @RequestMapping(value = "/{databaseCode}/log", method = RequestMethod.GET)
@@ -82,7 +80,7 @@ public class MetaTableController extends BaseController {
                                    HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> searchColumn = collectRequestParameters(request);
         searchColumn.put("databaseCode", databaseCode);
-        JSONArray listObjects = mdChangLogMag.listMdChangLogsAsJson(field, searchColumn, pageDesc);
+        JSONArray listObjects = metaChangLogManager.listMdChangLogsAsJson(field, searchColumn, pageDesc);
         if (ArrayUtils.isNotEmpty(field)) {
             return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, field, MetaChangLog.class);
         } else {
@@ -94,7 +92,7 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/log/{changeId}", method = {RequestMethod.GET})
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public MetaChangLog getMdTableLog(@PathVariable String changeId) {
-        return mdTableMag.getMetaChangLog(changeId);
+        return metaTableManager.getMetaChangLog(changeId);
     }
 
 
@@ -102,7 +100,7 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.GET})
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public PendingMetaTable getMdTableDraft(@PathVariable String tableId, HttpServletRequest request) {
-        PendingMetaTable mdTable = mdTableMag.getPendingMetaTable(tableId);
+        PendingMetaTable mdTable = metaTableManager.getPendingMetaTable(tableId);
         if (null != mdTable) {
             if (null == mdTable.getColumns()) {
                 mdTable.setMdColumns(new ArrayList<>());
@@ -110,7 +108,7 @@ public class MetaTableController extends BaseController {
             return mdTable;
         }
         //如果mdTable数据为空，重新用MetaTable数据初始化
-        mdTable = mdTableMag.initPendingMetaTable(tableId, WebOptUtils.getCurrentUserCode(request));
+        mdTable = metaTableManager.initPendingMetaTable(tableId, WebOptUtils.getCurrentUserCode(request));
         return mdTable;
     }
 
@@ -119,18 +117,18 @@ public class MetaTableController extends BaseController {
     public void createMdTable(PendingMetaTable mdTable, HttpServletRequest request,
                               HttpServletResponse response) {
 
-        boolean isExist = mdTableMag.isTableExist(mdTable.getTableName(), mdTable.getDatabaseCode());
+        boolean isExist = metaTableManager.isTableExist(mdTable.getTableName(), mdTable.getDatabaseCode());
         String userCode = WebOptUtils.getCurrentUserCode(request);
         mdTable.setRecorder(userCode);
         mdTable.setTableState("W");
         PendingMetaTable table = new PendingMetaTable();
         table.copyNotNullProperty(mdTable);
         if (!isExist) {
-            mdTableMag.saveNewPendingMetaTable(table);
+            metaTableManager.saveNewPendingMetaTable(table);
             JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
         } else {
             if ("V".equals(mdTable.getTableType())) {
-                mdTableMag.savePendingMetaTable(table);
+                metaTableManager.savePendingMetaTable(table);
                 JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
             } else {
                 JsonResultUtils.writeErrorMessageJson(800, mdTable.getTableName() + "已存在", response);
@@ -145,7 +143,7 @@ public class MetaTableController extends BaseController {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         metaTable.setTableId(tableId);
         metaTable.setRecorder(userCode);
-        mdTableMag.updateMetaTable(metaTable);
+        metaTableManager.updateMetaTable(metaTable);
     }
 
     @ApiOperation(value = "修改重构表字段")
@@ -154,7 +152,7 @@ public class MetaTableController extends BaseController {
     public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode, @RequestBody PendingMetaColumn metaColumn) {
         metaColumn.setTableId(tableId);
         metaColumn.setColumnName(columnCode);
-        mdTableMag.updateMetaColumn(metaColumn);
+        metaTableManager.updateMetaColumn(metaColumn);
     }
 
     @ApiOperation(value = "编辑重构表")
@@ -162,16 +160,16 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public void updateMdTable(@PathVariable String tableId, @RequestBody PendingMetaTable mdTable) {
         mdTable.setTableId(tableId);
-        List<String> alterSqls = mdTableMag.makeAlterTableSqlList(mdTable);
+        List<String> alterSqls = metaTableManager.makeAlterTableSqlList(mdTable);
         mdTable.setTableState(alterSqls.size() > 0 ? "W" : "S");
-        mdTableMag.savePendingMetaTable(mdTable);
+        metaTableManager.savePendingMetaTable(mdTable);
     }
 
     @ApiOperation(value = "删除重构表")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.DELETE})
     @WrapUpResponseBody
     public void deleteMdTable(@PathVariable String tableId) {
-        mdTableMag.deletePendingMetaTable(tableId);
+        metaTableManager.deletePendingMetaTable(tableId);
     }
 
     @ApiOperation(value = "查看发布重构表sql")
@@ -179,7 +177,7 @@ public class MetaTableController extends BaseController {
     @WrapUpResponseBody
     public ResponseData alertSqlBeforePublish(@PathVariable String pendingTableId,
                                               HttpServletRequest request, HttpServletResponse response) {
-        List<String> sqlList = mdTableMag.makeAlterTableSqlList(pendingTableId);
+        List<String> sqlList = metaTableManager.makeAlterTableSqlList(pendingTableId);
         if (null == sqlList) {
             return ResponseData.makeErrorMessage(601, "表字段不能为空");
         }
@@ -191,7 +189,7 @@ public class MetaTableController extends BaseController {
     public void publishMdTable(@PathVariable String pendingTableId,
                                HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        Pair<Integer, String> ret = mdTableMag.publishMetaTable(pendingTableId, userCode);
+        Pair<Integer, String> ret = metaTableManager.publishMetaTable(pendingTableId, userCode);
         JSONObject json = translatePublishMessage(ret);
         JsonResultUtils.writeSingleDataJson(json, response);
     }
@@ -264,7 +262,7 @@ public class MetaTableController extends BaseController {
             tables.add(o.toString());
         }
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        Pair<Integer, String> ret = mdTableMag.syncPdm(databaseCode, tempFilePath, tables, userCode);
+        Pair<Integer, String> ret = metaTableManager.syncPdm(databaseCode, tempFilePath, tables, userCode);
         JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
     }
 
@@ -274,7 +272,7 @@ public class MetaTableController extends BaseController {
     public void publishDatabase(@PathVariable String databaseCode,
                                 HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        Pair<Integer, String> ret = mdTableMag.publishDatabase(databaseCode, userCode);
+        Pair<Integer, String> ret = metaTableManager.publishDatabase(databaseCode, userCode);
         JSONObject json = translatePublishMessage(ret);
         JsonResultUtils.writeSingleDataJson(json, response);
     }
@@ -287,7 +285,7 @@ public class MetaTableController extends BaseController {
     @GetMapping(value = "/{tableId}/columns")
     @WrapUpResponseBody
     public PageQueryResult<PendingMetaColumn> listColumns(@PathVariable String tableId, PageDesc pageDesc) {
-        List<PendingMetaColumn> list = mdTableMag.listMetaColumns(tableId, pageDesc);
+        List<PendingMetaColumn> list = metaTableManager.listMetaColumns(tableId, pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }
 
@@ -299,7 +297,7 @@ public class MetaTableController extends BaseController {
     @GetMapping(value = "/{tableId}/column/{columnName}")
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
     public PendingMetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName) {
-        return mdTableMag.getMetaColumn(tableId, columnName);
+        return metaTableManager.getMetaColumn(tableId, columnName);
     }
 
 
@@ -318,7 +316,7 @@ public class MetaTableController extends BaseController {
         Map<String, Object> parameters = collectRequestParameters(request);
         String topUnit = WebOptUtils.getCurrentTopUnit(request);
         parameters.put("topUnit", topUnit);
-        List list = mdTableMag.listCombineTablesByProperty(parameters, pageDesc);
+        List list = metaTableManager.listCombineTablesByProperty(parameters, pageDesc);
         tableDictionaryMap(list);
         return PageQueryResult.createResult(list, pageDesc);
     }
@@ -330,9 +328,9 @@ public class MetaTableController extends BaseController {
     public ResponseData syncDb(@PathVariable String databaseCode, String[] tableNames, HttpServletRequest request) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         if (tableNames == null) {
-            mdTableMag.syncDb(databaseCode, userCode, null);
+            metaTableManager.syncDb(databaseCode, userCode, null);
         } else {
-            mdTableMag.syncDb(databaseCode, userCode, tableNames);
+            metaTableManager.syncDb(databaseCode, userCode, tableNames);
         }
         return ResponseData.makeSuccessResponse();
     }
@@ -382,7 +380,7 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/{databaseId}/viewlist", method = RequestMethod.POST)
     @WrapUpResponseBody
     public JSONArray viewList(@PathVariable String databaseId, @RequestBody JSONObject sql) throws IOException, SQLException {
-        return mdTableMag.viewList(databaseId, sql.getString("sql"));
+        return metaTableManager.viewList(databaseId, sql.getString("sql"));
     }
 
     @ApiOperation(value = "根据中文名称翻译表名或者字段名")
@@ -400,10 +398,21 @@ public class MetaTableController extends BaseController {
     }
 
     @ApiOperation(value = "导入TableStore中导入表结构")
-    @RequestMapping(value = "/imoprt", method = RequestMethod.POST)
+    @ApiImplicitParam(name = "databaseCode", type = "path", value = "数据库ID")
+       @RequestMapping(value = "/import/{databaseCode}", method = RequestMethod.POST)
     @WrapUpResponseBody
-    public void importFromTableStore(HttpServletRequest request) throws IOException{
+    public void importFromTableStore(@PathVariable String databaseCode,HttpServletRequest request) throws IOException{
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if(StringUtils.isBlank(userCode)){
+            throw new ObjectException(ResponseData.ERROR_FORBIDDEN, "用户没登录，或者session已失效！");
+        }
         Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
-
+        JSONObject jsonObject = JSON.parseObject(fileInfo.getRight());
+        if(jsonObject!=null && //检验json的合法性
+            jsonObject.containsKey("projectInfo") && jsonObject.containsKey("tables") && jsonObject.containsKey("modules")){
+            metaTableManager.importFromTableStore(databaseCode, jsonObject, userCode);
+        } else {
+            throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR, "文件中的json格式不正确！");
+        }
     }
 }

@@ -365,6 +365,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     @Override
     @ApiModelProperty(hidden = true)
+    @JSONField(serialize = false)
     public List<MetaColumn> getColumns() {
         return mdColumns;
     }

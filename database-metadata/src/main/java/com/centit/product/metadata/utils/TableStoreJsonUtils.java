@@ -1,4 +1,4 @@
-package com.centit.product.dbdesign.pdmutils;
+package com.centit.product.metadata.utils;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
@@ -107,7 +107,4 @@ public abstract class TableStoreJsonUtils {
         return relationList;
     }
 
-    public static void freshenTablesId(List<PendingMetaTable> tables, List<MetaRelation> relations){
-
-    }
 }

@@ -1,4 +1,4 @@
-package com.centit.product.dbdesign.pdmutils;
+package com.centit.product.metadata.utils;
 
 import com.centit.product.adapter.po.PendingMetaColumn;
 import com.centit.product.adapter.po.PendingMetaTable;

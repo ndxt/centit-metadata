@@ -1,5 +1,9 @@
 package com.centit.product.metadata.controller;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.centit.fileserver.utils.UploadDownloadUtils;
+import com.centit.framework.common.ResponseData;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
@@ -12,10 +16,14 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 @Api(value = "数据库元数据信息完善", tags = "元数据信息完善")
@@ -72,4 +80,22 @@ public class MetadataUpdateController extends BaseController {
         metaDataService.saveRelations(tableId, metaTable.getMdRelations());
     }
 
+    @ApiOperation(value = "导入TableStore中导入表结构")
+    @ApiImplicitParam(name = "databaseCode", type = "path", value = "数据库ID")
+    @RequestMapping(value = "/import/{databaseCode}", method = RequestMethod.POST)
+    @WrapUpResponseBody
+    public void importFromTableStore(@PathVariable String databaseCode, HttpServletRequest request) throws IOException {
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if(StringUtils.isBlank(userCode)){
+            throw new ObjectException(ResponseData.ERROR_FORBIDDEN, "用户没登录，或者session已失效！");
+        }
+        Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
+        JSONObject jsonObject = JSON.parseObject(fileInfo.getRight());
+        if(jsonObject!=null && //检验json的合法性
+            jsonObject.containsKey("projectInfo") && jsonObject.containsKey("tables") && jsonObject.containsKey("modules")){
+            metaDataService.importRelationFromTableStore(databaseCode, jsonObject, userCode);
+        } else {
+            throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR, "文件中的json格式不正确！");
+        }
+    }
 }

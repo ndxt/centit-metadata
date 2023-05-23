@@ -2,12 +2,12 @@ package com.centit.product.dbdesign.service.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
 import com.centit.product.adapter.po.*;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
-import com.centit.product.dbdesign.pdmutils.PdmTableInfoUtils;
 import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaTableDao;
@@ -15,6 +15,8 @@ import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
+import com.centit.product.metadata.utils.PdmTableInfoUtils;
+import com.centit.product.metadata.utils.TableStoreJsonUtils;
 import com.centit.support.algorithm.*;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.ddl.*;
@@ -43,8 +45,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
-
-;
 
 /**
  * MdTable  Service.
@@ -856,5 +856,53 @@ public class MetaTableManagerImpl
             return DatabaseAccess.findObjectsAsJSON(conn, sql, null, 1, 10);
         }
     }
+
+    @Override
+    @Transactional
+    public void importFromTableStore(String databaseCode, JSONObject jsonObject, String userCode) {
+        List<PendingMetaTable> tableList = TableStoreJsonUtils.fetchTables(jsonObject);
+        if(tableList==null || tableList.size()==0)
+            return ;
+        Map<String, String> tableIdMap = new HashMap<>();
+        //逐个保存 表信息
+        for(PendingMetaTable table : tableList){
+            PendingMetaTable dbTable = pendingMdTableDao.getTableByName(table.getTableName(), databaseCode);
+            if(dbTable == null){
+                tableIdMap.put(table.getTableId(), dbTable.getTableId());
+                dbTable.setTableType(table.getTableType());
+                //dbTable.setTableName(table.getTableName());
+                dbTable.setTableLabelName(table.getTableLabelName());
+                dbTable.setTableComment(table.getTableComment());
+                dbTable.setViewSql(table.getViewSql());
+                table.setTableType("W");
+                // 字段
+                List<PendingMetaColumn> columns = table.getMdColumns();
+                if(columns!=null && columns.size()>0){
+                    for(PendingMetaColumn col : columns){
+                        col.setTableId(dbTable.getTableId());
+                    }
+                }
+                dbTable.setMdColumns(columns);
+                pendingMdTableDao.updateObject(dbTable);
+                pendingMdTableDao.saveObjectReference(dbTable, "mdColumns");
+            } else {
+                String newTalbeId = UuidOpt.getUuidAsString22();
+                tableIdMap.put(table.getTableId(), newTalbeId);
+                table.setDatabaseCode(databaseCode);
+                table.setTableType("W");
+                table.setRecorder(userCode);
+                // 字段
+                List<PendingMetaColumn> columns = table.getMdColumns();
+                if(columns!=null && columns.size()>0){
+                    for(PendingMetaColumn col : columns){
+                        col.setTableId(newTalbeId);
+                    }
+                }
+                pendingMdTableDao.saveNewObject(table);
+                pendingMdTableDao.saveObjectReference(table, "mdColumns");
+            }
+        }
+    }
+
 }
 

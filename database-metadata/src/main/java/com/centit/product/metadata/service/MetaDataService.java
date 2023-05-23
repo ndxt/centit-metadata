@@ -1,6 +1,7 @@
 package com.centit.product.metadata.service;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.centit.product.adapter.po.MetaColumn;
 import com.centit.product.adapter.po.MetaRelation;
 import com.centit.product.adapter.po.MetaTable;
@@ -68,4 +69,5 @@ public interface MetaDataService {
 
     MetaTableCascade getMetaTableCascade(String databaseCode, String tableCode);
 
+    void importRelationFromTableStore(String databaseCode, JSONObject jsonObject, String userCode);
 }

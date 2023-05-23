@@ -1,6 +1,7 @@
 package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.centit.product.adapter.po.MetaColumn;
 import com.centit.product.adapter.po.MetaRelation;
 import com.centit.product.adapter.po.MetaTable;
@@ -11,6 +12,7 @@ import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
+import com.centit.product.metadata.utils.TableStoreJsonUtils;
 import com.centit.product.metadata.vo.MetaTableCascade;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.common.ObjectException;
@@ -478,4 +480,18 @@ public class MetaDataServiceImpl implements MetaDataService {
 
         return tableCascade;
     }
+
+
+    // 保存关联关系信息 TODO 这个逻辑有问题，保存关联关系只能在发布之后保存
+    @Override
+    @Transactional
+    public void importRelationFromTableStore(String databaseCode, JSONObject jsonObject, String userCode){
+        List<MetaRelation> refList = TableStoreJsonUtils.fetchRelations(jsonObject);
+        if(refList==null || refList.size()==0)
+            return ;
+        for(MetaRelation ref : refList){
+
+        }
+    }
+
 }

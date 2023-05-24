@@ -2,7 +2,6 @@ package com.centit.product.dbdesign.dao;
 
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
-import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.product.adapter.po.MetaChangLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,7 +41,4 @@ public class MetaChangLogDao extends BaseDaoImpl<MetaChangLog, String>
         return filterField;
     }
 
-    public Long getNextKey(){
-        return DatabaseOptUtils.getSequenceNextValue(this, "S_META_CHANGLOG_ID");
-    }
 }

@@ -79,7 +79,6 @@ public class PendingMetaTableDao extends BaseDaoImpl<PendingMetaTable, String> {
         return DatabaseOptUtils.listObjectsByParamsDriverSqlAsJson(this,sql,parameters);
     }
 
-
     /**
      *表是否存在
      * @param tableName 表名 TODO 这个应该要忽略大小写，但是不同数据库需要区别对待

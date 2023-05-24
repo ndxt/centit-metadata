@@ -874,7 +874,7 @@ public class MetaTableManagerImpl
                 dbTable.setTableLabelName(table.getTableLabelName());
                 dbTable.setTableComment(table.getTableComment());
                 dbTable.setViewSql(table.getViewSql());
-                table.setTableType("W");
+                dbTable.setTableState("W");
                 // 字段
                 List<PendingMetaColumn> columns = table.getMdColumns();
                 if(columns!=null && columns.size()>0){
@@ -889,7 +889,7 @@ public class MetaTableManagerImpl
                 String newTalbeId = UuidOpt.getUuidAsString22();
                 tableIdMap.put(table.getTableId(), newTalbeId);
                 table.setDatabaseCode(databaseCode);
-                table.setTableType("W");
+                table.setTableState("W");
                 table.setRecorder(userCode);
                 // 字段
                 List<PendingMetaColumn> columns = table.getMdColumns();

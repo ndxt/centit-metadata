@@ -30,7 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author zhf
@@ -476,9 +479,6 @@ public class MetaDataServiceImpl implements MetaDataService {
         return tableCascade;
     }
 
-
-    // 保存关联关系信息 TODO 这个逻辑有问题，保存关联关系只能在发布之后保存
-
     /**
      * @param databaseCode 数据库
      * @param jsonObject tableStore中的表
@@ -487,24 +487,18 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     @Transactional
     public void importRelationFromTableStore(String databaseCode, JSONObject jsonObject, String userCode){
-        List<PendingMetaTable> tableList = TableStoreJsonUtils.fetchTables(jsonObject);
-        if(tableList==null || tableList.size()==0)
-            return ;
-        Map<String, String> tableIdMap = new HashMap<>();
-        //获取表的对应关系
-        for(PendingMetaTable table : tableList){
-            MetaTable dbTable = metaTableDao.getMetaTable(table.getTableName(), databaseCode);
-            if(dbTable != null){
-                tableIdMap.put(table.getTableId(), dbTable.getTableId());
-            }
-        }
 
         List<MetaRelation> refList = TableStoreJsonUtils.fetchRelations(jsonObject);
         if(refList==null || refList.size()==0)
             return ;
         for(MetaRelation ref : refList){
-            String parentTableId = tableIdMap.get(ref.getParentTableId());
-            String childTableId = tableIdMap.get(ref.getChildTableId());
+            MetaTable parentTable = metaTableDao.getMetaTable(databaseCode, ref.getParentTableId());
+            if(parentTable==null) continue;
+            String parentTableId = parentTable.getTableId();
+            MetaTable childTable = metaTableDao.getMetaTable(databaseCode, ref.getChildTableId());
+            if(childTable==null) continue;
+            String childTableId = childTable.getTableId();
+
             if(StringUtils.isNotBlank(parentTableId) && StringUtils.isNotBlank(childTableId)) {
                 List<MetaRelation> relations = metaRelationDao.listRelationByTables(parentTableId, childTableId);
                 if(relations==null || relations.size()==0){ // saveNew

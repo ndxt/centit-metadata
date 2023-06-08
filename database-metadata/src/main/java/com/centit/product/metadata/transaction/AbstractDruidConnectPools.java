@@ -49,7 +49,7 @@ public abstract class AbstractDruidConnectPools {
         ds.setInitialSize(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("initialSize"), 5));
         ds.setMaxActive(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("maxActive"), 10));
+            dsDesc.getExtProp("maxActive"), 25));
         ds.setMaxWait(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("maxWaitMillis"), 10000));
         ds.setMinIdle(NumberBaseOpt.castObjectToInteger(

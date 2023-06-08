@@ -23,9 +23,9 @@ class SourceConnectThreadWrapper implements Serializable {
     }
 
     Connection fetchConnect(ISourceInfo description) throws SQLException {
-        if (StringBaseOpt.isNvl(description.getSourceType()) || ISourceInfo.DATABASE.equals(description.getSourceType())) {
+        if (ISourceInfo.DATABASE.equals(description.getSourceType())) {
             Connection conn = (Connection) connectPools.get(description);
-            if (conn == null ||conn.isClosed()) {
+            if (conn == null || conn.isClosed()) {
                 conn = AbstractDruidConnectPools.getDbcpConnect(description);
                 connectPools.put(description, conn);
             }
@@ -71,16 +71,15 @@ class SourceConnectThreadWrapper implements Serializable {
         return null;
     }
 
-
-
     void commitAllWork() throws SQLException {
         if (connectPools.size() == 0) {
             return;
         }
         for (Map.Entry<ISourceInfo, Object> map : connectPools.entrySet()) {
-            if (StringBaseOpt.isNvl(map.getKey().getSourceType()) || ISourceInfo.DATABASE.equals(map.getKey().getSourceType())) {
+            if (ISourceInfo.DATABASE.equals(map.getKey().getSourceType())) {
                 Connection conn = (Connection) map.getValue();
-                conn.commit();
+                if(!conn.isClosed())
+                    conn.commit();
             }
         }
     }
@@ -90,9 +89,10 @@ class SourceConnectThreadWrapper implements Serializable {
             return;
         }
         for (Map.Entry<ISourceInfo, Object> map : connectPools.entrySet()) {
-            if (StringBaseOpt.isNvl(map.getKey().getSourceType()) || ISourceInfo.DATABASE.equals(map.getKey().getSourceType())) {
+            if (ISourceInfo.DATABASE.equals(map.getKey().getSourceType())) {
                 Connection conn = (Connection) map.getValue();
-                conn.rollback();
+                if(!conn.isClosed())
+                    conn.rollback();
             }
         }
     }
@@ -102,8 +102,7 @@ class SourceConnectThreadWrapper implements Serializable {
             return;
         }
         for (Map.Entry<ISourceInfo, Object> map : connectPools.entrySet()) {
-            if (StringBaseOpt.isNvl(map.getKey().getSourceType()) || ISourceInfo.DATABASE.equals(map.getKey().getSourceType())) {
-
+            if (ISourceInfo.DATABASE.equals(map.getKey().getSourceType())) {
                 Connection conn = (Connection) map.getValue();
                 AbstractDruidConnectPools.closeConnect(conn);
             } /*else if (ISourceInfo.HTTP.equals(map.getKey().getSourceType())) {

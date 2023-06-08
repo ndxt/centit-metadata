@@ -1,12 +1,11 @@
 package com.centit.product.dbdesign.service.impl;
 
-
 import com.aliyun.alimt20181012.models.TranslateGeneralResponse;
 import com.centit.product.dbdesign.service.TranslateColumn;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.FieldType;
-import com.centit.support.security.AESSecurityUtils;
+import com.centit.support.security.SecurityOptUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -32,9 +31,9 @@ public class TranslateColumnImpl implements TranslateColumn {
         }
         com.aliyun.teaopenapi.models.Config config = new com.aliyun.teaopenapi.models.Config()
             // 您的 AccessKey ID
-            .setAccessKeyId(AESSecurityUtils.decryptParameterString(accessKeyId))
+            .setAccessKeyId(SecurityOptUtils.decodeSecurityString(accessKeyId))
             // 您的 AccessKey Secret
-            .setAccessKeySecret(AESSecurityUtils.decryptParameterString(accessKeySecret));
+            .setAccessKeySecret(SecurityOptUtils.decodeSecurityString(accessKeySecret));
         // 访问的域名
         config.endpoint = "mt.cn-hangzhou.aliyuncs.com";
         return new com.aliyun.alimt20181012.Client(config);

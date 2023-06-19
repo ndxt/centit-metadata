@@ -77,7 +77,7 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/{databaseCode}/log", method = RequestMethod.GET)
     @WrapUpResponseBody
     public PageQueryResult loglist(@PathVariable String databaseCode, String[] field, PageDesc pageDesc,
-                                   HttpServletRequest request, HttpServletResponse response) {
+                                   HttpServletRequest request) {
         Map<String, Object> searchColumn = collectRequestParameters(request);
         searchColumn.put("databaseCode", databaseCode);
         JSONArray listObjects = metaChangLogManager.listMdChangLogsAsJson(field, searchColumn, pageDesc);
@@ -149,7 +149,8 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "修改重构表字段")
     @PutMapping(value = "/column/{tableId}/{columnCode}")
     @WrapUpResponseBody
-    public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode, @RequestBody PendingMetaColumn metaColumn) {
+    public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode,
+                                  @RequestBody PendingMetaColumn metaColumn) {
         metaColumn.setTableId(tableId);
         metaColumn.setColumnName(columnCode);
         metaTableManager.updateMetaColumn(metaColumn);
@@ -175,8 +176,7 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "查看发布重构表sql")
     @RequestMapping(value = "/beforePublish/{pendingTableId}", method = {RequestMethod.POST})
     @WrapUpResponseBody
-    public ResponseData alertSqlBeforePublish(@PathVariable String pendingTableId,
-                                              HttpServletRequest request, HttpServletResponse response) {
+    public ResponseData alertSqlBeforePublish(@PathVariable String pendingTableId) {
         List<String> sqlList = metaTableManager.makeAlterTableSqlList(pendingTableId);
         if (null == sqlList) {
             return ResponseData.makeErrorMessage(601, "表字段不能为空");
@@ -401,11 +401,12 @@ public class MetaTableController extends BaseController {
     @ApiImplicitParam(name = "databaseCode", type = "path", value = "数据库ID")
        @RequestMapping(value = "/import/{databaseCode}", method = RequestMethod.POST)
     @WrapUpResponseBody
-    public void importFromTableStore(@PathVariable String databaseCode,HttpServletRequest request) throws IOException{
+    public void importFromTableStore(@PathVariable String databaseCode, HttpServletRequest request) throws IOException{
         String userCode = WebOptUtils.getCurrentUserCode(request);
         if(StringUtils.isBlank(userCode)){
-            throw new ObjectException(ResponseData.ERROR_FORBIDDEN, "用户没登录，或者session已失效！");
+            throw new ObjectException(ResponseData.ERROR_FORBIDDEN, "获取当前用户信息失败，原因可能是用户没登录，或者session已失效！");
         }
+
         Pair<String, InputStream> fileInfo = UploadDownloadUtils.fetchInputStreamFromMultipartResolver(request);
         JSONObject jsonObject = JSON.parseObject(fileInfo.getRight());
         if(jsonObject!=null && //检验json的合法性

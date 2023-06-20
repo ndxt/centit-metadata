@@ -225,6 +225,9 @@ public class SourceInfoController extends BaseController {
                                HttpServletRequest request, HttpServletResponse response) {
         SourceInfo sourceInfo = databaseInfoMag.getObjectById(databaseCode);
         databaseInfoMag.deleteObjectById(databaseCode);
+        if(ISourceInfo.DATABASE.equals(sourceInfo.getSourceType())) {
+            AbstractDruidConnectPools.delDataSource(sourceInfo);
+        }
         JsonResultUtils.writeBlankJson(response);
 
         /******************************log********************************/

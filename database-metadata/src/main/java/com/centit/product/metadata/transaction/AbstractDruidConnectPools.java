@@ -95,12 +95,21 @@ public abstract class AbstractDruidConnectPools {
     }
 
     public static void refreshDataSource(ISourceInfo dsDesc) {
-        if(DRUID_DATA_SOURCE_POOLS.containsKey(dsDesc)){ // 已经有连接池的情况下更换连接池
+        if(DRUID_DATA_SOURCE_POOLS.containsKey(dsDesc)){
             DruidDataSource ds = createDataSource(dsDesc);
             DruidDataSource oldDs = DRUID_DATA_SOURCE_POOLS.put(dsDesc, ds);
             if(oldDs!=null) {
                 oldDs.close();
             }
+        }
+    }
+    public static void delDataSource(ISourceInfo dsDesc) {
+        if(DRUID_DATA_SOURCE_POOLS.containsKey(dsDesc)){
+            DruidDataSource oldDs = DRUID_DATA_SOURCE_POOLS.get(dsDesc);
+            if(oldDs!=null) {
+                oldDs.close();
+            }
+            DRUID_DATA_SOURCE_POOLS.remove(dsDesc);
         }
     }
 

@@ -239,37 +239,31 @@ public class MetaColumn implements TableField, java.io.Serializable {
     }
 
     public Integer getColumnLength() {
-        if(FieldType.STRING.equalsIgnoreCase(this.fieldType) ||
-            FieldType.FLOAT.equalsIgnoreCase(this.fieldType) ||
-            FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
-            FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
-            FieldType.INTEGER.equalsIgnoreCase(this.fieldType)||
-            FieldType.LONG.equalsIgnoreCase(this.fieldType))
+        if(StringUtils.equalsAnyIgnoreCase(this.fieldType, FieldType.STRING,
+            FieldType.FLOAT, FieldType.DOUBLE, FieldType.MONEY, FieldType.INTEGER, FieldType.LONG))
             return columnLength == null ? 0 : columnLength;
         return 0;
+    }
+
+    @Override
+    @ApiModelProperty(hidden = true)
+    @JSONField(serialize = false)
+    public Integer getMaxLength() {
+        return this.getColumnLength();
     }
 
     public void setColumnLength(Integer columnLength){
         this.columnLength = columnLength;
     }
 
-
-    @Override
-    public Integer getPrecision() {
-        return getColumnLength();
-    }
-
     @Override
     @ApiModelProperty(hidden = true)
     public Integer getScale() {
-        if(FieldType.FLOAT.equalsIgnoreCase(this.fieldType) ||
-            FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
-            FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
-            FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
-            return scale == null ? 0 : scale;
+        if(StringUtils.equalsAnyIgnoreCase(this.fieldType,
+            FieldType.FLOAT, FieldType.DOUBLE, FieldType.MONEY))
+            return scale ==null ? 0 : scale;
         return 0;
     }
-
 
     @Override
     public String getColumnType() {
@@ -296,13 +290,6 @@ public class MetaColumn implements TableField, java.io.Serializable {
     @Override
     public boolean isLazyFetch() {
         return lazyFetch!=null && lazyFetch;
-    }
-
-    @Override
-    @ApiModelProperty(hidden = true)
-    @JSONField(serialize = false)
-    public Integer getMaxLength() {
-        return this.getColumnLength();
     }
 
     @Override

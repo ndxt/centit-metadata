@@ -200,27 +200,17 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     @Override
     public Integer getMaxLength() {
-        if(FieldType.STRING.equalsIgnoreCase(this.fieldType) ||
-            FieldType.FLOAT.equalsIgnoreCase(this.fieldType) ||
-            FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
-            FieldType.MONEY.equalsIgnoreCase(this.fieldType) ||
-            FieldType.INTEGER.equalsIgnoreCase(this.fieldType)||
-            FieldType.LONG.equalsIgnoreCase(this.fieldType))
-            return maxLength ==null?0: maxLength;
+        if(StringUtils.equalsAnyIgnoreCase(this.fieldType, FieldType.STRING,
+            FieldType.FLOAT, FieldType.DOUBLE, FieldType.MONEY, FieldType.INTEGER, FieldType.LONG))
+            return maxLength ==null ? 0: maxLength;
         return 0;
-    }
-    @Override
-    public Integer getPrecision() {
-        return getMaxLength();
     }
 
     @Override
     public Integer getScale() {
-        if(FieldType.FLOAT.equalsIgnoreCase(this.fieldType) ||
-            FieldType.DOUBLE.equalsIgnoreCase(this.fieldType)||
-            FieldType.MONEY.equalsIgnoreCase(this.fieldType)||
-            FieldType.INTEGER.equalsIgnoreCase(this.fieldType))
-            return scale ==null?0:scale;
+        if(StringUtils.equalsAnyIgnoreCase(this.fieldType,
+            FieldType.FLOAT, FieldType.DOUBLE, FieldType.MONEY))
+            return scale ==null ? 0 : scale;
         return 0;
     }
 

@@ -9,6 +9,7 @@ import com.centit.support.database.orm.GeneratorCondition;
 import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
 import com.centit.support.database.utils.DBType;
+import com.centit.support.security.DesensitizeOptUtils;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -18,9 +19,7 @@ import org.hibernate.validator.constraints.Length;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author codefan
@@ -383,4 +382,19 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         return this.tableLabelName;
     }
 
+    public Map<String, DesensitizeOptUtils.SensitiveTypeEnum> fetchDesensitizeOpt() {
+        Map<String, DesensitizeOptUtils.SensitiveTypeEnum> optMap = new HashMap<>();
+        if (mdColumns == null) {
+            return optMap;
+        }
+
+        for (MetaColumn c : mdColumns) {
+            DesensitizeOptUtils.SensitiveTypeEnum desenOpt = DesensitizeOptUtils.mapSensitiveType(c.getSensitiveType());
+            if(DesensitizeOptUtils.SensitiveTypeEnum.NONE != desenOpt){
+                optMap.put(c.getPropertyName(), desenOpt);
+            }
+        }
+
+        return optMap;
+    }
 }

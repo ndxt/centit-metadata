@@ -156,6 +156,13 @@ public class MetaColumn implements TableField, java.io.Serializable {
     private String autoCreateParam;
 
     /**
+     * 脱敏处理类型
+     */
+    @ApiModelProperty(value = "脱敏处理类型")
+    @Column(name = "SENSITIVE_TYPE")
+    @Length(max = 16, message = "字段长度不能大于{max}")
+    private String sensitiveType;
+    /**
      * 与流程中变量关联关系
      * 0: 不是流程变量 1：流程业务变量 2： 流程过程变量
      */

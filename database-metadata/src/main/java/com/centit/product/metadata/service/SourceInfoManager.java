@@ -1,14 +1,17 @@
 package com.centit.product.metadata.service;
 
 import com.alibaba.fastjson2.JSONArray;
-import com.centit.framework.jdbc.service.BaseEntityManager;
-import com.centit.product.adapter.po.SourceInfo;
+import com.centit.product.metadata.po.SourceInfo;
 import com.centit.support.database.utils.PageDesc;
 
 import java.util.List;
 import java.util.Map;
 
-public interface SourceInfoManager extends BaseEntityManager<SourceInfo,String> {
+public interface SourceInfoManager {
+
+    SourceInfo getObjectById(String databaseCode);
+
+    int deleteObjectById(String databaseCode);
 
     List<SourceInfo> listDatabase();
 

@@ -2,7 +2,7 @@ package com.centit.product.dbdesign.dao;
 
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
-import com.centit.product.adapter.po.PendingMetaColumn;
+import com.centit.product.metadata.po.PendingMetaColumn;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Repository;

@@ -3,7 +3,7 @@ package com.centit.product.metadata.controller;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
-import com.centit.product.adapter.po.MetaOptRelation;
+import com.centit.product.metadata.po.MetaOptRelation;
 import com.centit.product.metadata.service.MetaOptRelationService;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;

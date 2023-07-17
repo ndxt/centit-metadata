@@ -2,9 +2,8 @@ package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
-import com.centit.product.adapter.po.SourceInfo;
 import com.centit.product.metadata.dao.SourceInfoDao;
+import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.common.ObjectException;
@@ -21,8 +20,7 @@ import java.util.Map;
 
 @Service("databaseInfoManager")
 @Transactional
-public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, String, SourceInfoDao>
-        implements SourceInfoManager {
+public class SourceInfoManagerImpl implements SourceInfoManager {
 
     //private static final SysOptLog sysOptLog = SysOptLogFactoryImpl.getSysOptLog();
 
@@ -30,39 +28,45 @@ public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, Str
     @Autowired(required = false)
     private TenantManageService tenantManageService;
 
-    @Override
     @Autowired
-    public void setBaseDao(SourceInfoDao baseDao) {
-        super.baseDao = baseDao;
+    private SourceInfoDao sourceInfoDao;
+
+
+    @Override
+    public SourceInfo getObjectById(String databaseCode) {
+        return sourceInfoDao.getDatabaseInfoById(databaseCode);
     }
 
+    @Override
+    public int deleteObjectById(String databaseCode) {
+        return sourceInfoDao.deleteObjectById(databaseCode);
+    }
 
     @Override
     public List<SourceInfo> listDatabase() {
-        return baseDao.listDatabase();
+        return sourceInfoDao.listDatabase();
     }
 
     @Override
     public void saveNewObject(SourceInfo sourceInfo) {
         checkDatabaseNumberLimit(sourceInfo);
-        baseDao.saveNewObject(sourceInfo);
+        sourceInfoDao.saveNewObject(sourceInfo);
     }
 
     @Override
     public String getNextKey() {
-        return baseDao.getNextKey();
+        return sourceInfoDao.getNextKey();
     }
 
     @Override
     public void mergeObject(SourceInfo sourceInfo){
-
-        baseDao.mergeObject(sourceInfo);
+        sourceInfoDao.mergeObject(sourceInfo);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Map<String, SourceInfo> listDatabaseToDBRepo() {
-        List<SourceInfo> dbList=baseDao.listObjects();
+        List<SourceInfo> dbList = sourceInfoDao.listObjects();
         Map<String, SourceInfo> dbmap = new HashMap<>();
         if(dbList != null){
             for(SourceInfo db : dbList){
@@ -74,23 +78,23 @@ public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, Str
 
     @Override
     public List<SourceInfo> listObjects(Map<String, Object> map){
-        return baseDao.listObjectsByProperties(map);
+        return sourceInfoDao.listObjectsByProperties(map);
     }
 
     @Override
     public JSONArray listDatabaseAsJson(Map<String, Object> filterMap, PageDesc pageDesc){
-        return baseDao.listObjectsByPropertiesAsJson(filterMap, pageDesc);
+        return sourceInfoDao.listObjectsByPropertiesAsJson(filterMap, pageDesc);
     }
 
     @Override
     public JSONArray queryDatabaseAsJson(String databaseName, PageDesc pageDesc){
-        return baseDao.queryDatabaseAsJson(databaseName, pageDesc);
+        return sourceInfoDao.queryDatabaseAsJson(databaseName, pageDesc);
     }
 
     @Override
     @Transactional
     public List<SourceInfo> listDatabaseByOsId(String osId) {
-        return baseDao.listObjectsByProperties(
+        return sourceInfoDao.listObjectsByProperties(
             CollectionsOpt.createHashMap("osId",osId));
     }
 
@@ -122,7 +126,7 @@ public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, Str
         if (StringUtils.isNotBlank(sourceType)){
             params.put("sourceType",sourceType);
         }
-        return baseDao.countDataBase(params);
+        return sourceInfoDao.countDataBase(params);
     }
 }
 

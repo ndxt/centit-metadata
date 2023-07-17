@@ -1,7 +1,7 @@
 package com.centit.product.metadata.service;
 
 import com.alibaba.fastjson2.JSONArray;
-import com.centit.product.adapter.po.MetaTable;
+import com.centit.product.metadata.po.MetaTable;
 import com.centit.support.database.utils.PageDesc;
 
 import java.util.Collection;

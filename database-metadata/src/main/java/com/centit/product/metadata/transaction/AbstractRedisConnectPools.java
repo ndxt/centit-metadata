@@ -1,6 +1,6 @@
 package com.centit.product.metadata.transaction;
 
-import com.centit.product.adapter.api.ISourceInfo;
+import com.centit.product.metadata.api.ISourceInfo;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;

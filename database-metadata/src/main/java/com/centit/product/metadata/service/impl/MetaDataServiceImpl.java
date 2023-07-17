@@ -2,11 +2,11 @@ package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.centit.product.adapter.po.*;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
+import com.centit.product.metadata.po.*;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
 import com.centit.product.metadata.utils.TableStoreJsonUtils;

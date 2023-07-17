@@ -1,16 +1,14 @@
 package com.centit.product.metadata.graphql;
 
 
-import com.centit.product.adapter.po.MetaColumn;
-import com.centit.product.adapter.po.MetaRelation;
-import com.centit.product.adapter.po.MetaTable;
+import com.centit.product.metadata.po.MetaColumn;
+import com.centit.product.metadata.po.MetaRelation;
+import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.FieldType;
 import graphql.Scalars;
 import graphql.schema.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
@@ -30,7 +28,6 @@ import java.util.stream.Stream;
 public class GraphQLSchemaBuilder extends GraphQLSchema.Builder {
 
     public static final String PAGINATION_REQUEST_PARAM_NAME = "paginationRequest";
-    private static final Logger log = LoggerFactory.getLogger(GraphQLSchemaBuilder.class);
 
     private final MetaDataService metaDataService;
     private final DataSourceDescription dataSourceDesc;

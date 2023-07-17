@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.centit.product</groupId>
     <artifactId>centit-metadata</artifactId>
-    <version>5.3-SNAPSHOT</version>
+    <version>5.4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>com.centit.product:centit-metadata</name>
     <description>基于数据库元数据的功能类，它是 自定义表单，统计分析工具，数据交换平台的业务基础
@@ -24,10 +24,10 @@
 
     <modules>
         <module>database-metadata</module>
-<!--        <module>database-metadata-graphql</module>-->
         <module>centit-metadata-adapter</module>
-        <!--<module>database-webapp</module>-->
         <module>database-design</module>
+        <module>database-metadata-rmdb</module>
+        <module>database-metadata-json</module>
     </modules>
 
     <build>

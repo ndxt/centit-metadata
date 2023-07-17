@@ -1,9 +1,9 @@
 package com.centit.product.metadata.service.impl;
 
-import com.centit.product.adapter.api.MetadataManageService;
-import com.centit.product.adapter.po.MetaOptRelation;
+import com.centit.product.metadata.api.MetadataManageService;
 import com.centit.product.metadata.dao.MetaOptRelationDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
+import com.centit.product.metadata.po.MetaOptRelation;
 import com.centit.support.algorithm.CollectionsOpt;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

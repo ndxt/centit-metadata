@@ -1,7 +1,7 @@
 package com.centit.product.metadata.service.impl;
 
-import com.centit.product.adapter.po.MetaOptRelation;
 import com.centit.product.metadata.dao.MetaOptRelationDao;
+import com.centit.product.metadata.po.MetaOptRelation;
 import com.centit.product.metadata.service.MetaOptRelationService;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.database.utils.PageDesc;

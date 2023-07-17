@@ -1,6 +1,6 @@
 package com.centit.product.metadata.transaction;
 
-import com.centit.product.adapter.api.ISourceInfo;
+import com.centit.product.metadata.api.ISourceInfo;
 import com.centit.search.service.ESServerConfig;
 import com.centit.search.service.IndexerSearcherFactory;
 import com.centit.support.algorithm.NumberBaseOpt;

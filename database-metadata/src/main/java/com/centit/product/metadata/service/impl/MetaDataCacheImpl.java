@@ -1,9 +1,9 @@
 package com.centit.product.metadata.service.impl;
 
-import com.centit.product.adapter.po.MetaRelation;
-import com.centit.product.adapter.po.MetaTable;
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.dao.MetaTableDao;
+import com.centit.product.metadata.po.MetaRelation;
+import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.support.common.CachedMap;
 import org.apache.commons.lang3.tuple.MutablePair;

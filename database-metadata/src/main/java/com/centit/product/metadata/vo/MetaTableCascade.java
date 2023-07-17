@@ -1,8 +1,8 @@
 package com.centit.product.metadata.vo;
 
-import com.centit.product.adapter.po.MetaColumn;
-import com.centit.product.adapter.po.MetaRelDetail;
-import com.centit.product.adapter.po.MetaTable;
+import com.centit.product.metadata.po.MetaColumn;
+import com.centit.product.metadata.po.MetaRelDetail;
+import com.centit.product.metadata.po.MetaTable;
 import lombok.Data;
 
 import java.util.ArrayList;

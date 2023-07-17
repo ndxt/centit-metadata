@@ -1,6 +1,6 @@
 package com.centit.product.metadata.service;
 
-import com.centit.product.adapter.po.MetaOptRelation;
+import com.centit.product.metadata.po.MetaOptRelation;
 import com.centit.support.database.utils.PageDesc;
 
 import java.util.List;

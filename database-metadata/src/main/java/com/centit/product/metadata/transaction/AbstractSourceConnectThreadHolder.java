@@ -1,6 +1,6 @@
 package com.centit.product.metadata.transaction;
 
-import com.centit.product.adapter.api.ISourceInfo;
+import com.centit.product.metadata.api.ISourceInfo;
 import com.centit.support.network.HttpExecutorContext;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.elasticsearch.client.RestHighLevelClient;

@@ -1,7 +1,7 @@
 package com.centit.product.metadata.utils;
 
-import com.centit.product.adapter.po.PendingMetaColumn;
-import com.centit.product.adapter.po.PendingMetaTable;
+import com.centit.product.metadata.po.PendingMetaColumn;
+import com.centit.product.metadata.po.PendingMetaTable;
 import com.centit.support.database.metadata.PdmReader;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.SimpleTableInfo;

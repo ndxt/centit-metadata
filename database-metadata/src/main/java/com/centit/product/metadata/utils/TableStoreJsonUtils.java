@@ -2,10 +2,10 @@ package com.centit.product.metadata.utils;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.centit.product.adapter.po.MetaRelDetail;
-import com.centit.product.adapter.po.MetaRelation;
-import com.centit.product.adapter.po.PendingMetaColumn;
-import com.centit.product.adapter.po.PendingMetaTable;
+import com.centit.product.metadata.po.MetaRelDetail;
+import com.centit.product.metadata.po.MetaRelation;
+import com.centit.product.metadata.po.PendingMetaColumn;
+import com.centit.product.metadata.po.PendingMetaTable;
 import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 

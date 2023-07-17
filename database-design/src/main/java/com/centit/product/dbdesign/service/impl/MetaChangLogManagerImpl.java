@@ -2,9 +2,9 @@ package com.centit.product.dbdesign.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
-import com.centit.product.adapter.po.MetaChangLog;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.service.MetaChangLogManager;
+import com.centit.product.metadata.po.MetaChangLog;
 import com.centit.support.database.utils.PageDesc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

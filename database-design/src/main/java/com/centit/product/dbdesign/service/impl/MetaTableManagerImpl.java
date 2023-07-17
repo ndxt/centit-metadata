@@ -3,8 +3,6 @@ package com.centit.product.dbdesign.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.centit.framework.jdbc.service.BaseEntityManagerImpl;
-import com.centit.product.adapter.po.*;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
@@ -12,6 +10,7 @@ import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
+import com.centit.product.metadata.po.*;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
 import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
@@ -31,6 +30,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -56,12 +57,11 @@ import java.util.stream.Collectors;
  * 更新，可以更新
  */
 @Service
-public class MetaTableManagerImpl
-    extends BaseEntityManagerImpl<MetaTable, String, MetaTableDao>
-    implements MetaTableManager {
+public class MetaTableManagerImpl implements MetaTableManager {
 
     public static final String VIEW = "V";
-    //public static final Log logger = LogFactory.getLog(MetaTableManager.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(MetaTableManagerImpl.class);
     @Autowired
     private SourceInfoDao sourceInfoDao;
 
@@ -74,7 +74,6 @@ public class MetaTableManagerImpl
     @NotNull
     public void setMetaTableDao(MetaTableDao baseDao) {
         this.metaTableDao = baseDao;
-        setBaseDao(this.metaTableDao);
     }
 
     @Resource
@@ -102,7 +101,7 @@ public class MetaTableManagerImpl
         String[] fields,
         Map<String, Object> filterMap, PageDesc pageDesc) {
 
-        return baseDao.listObjectsByPropertiesAsJson(filterMap, pageDesc);
+        return metaTableDao.listObjectsByPropertiesAsJson(filterMap, pageDesc);
     }
 
     @Override
@@ -453,9 +452,8 @@ public class MetaTableManagerImpl
         String sql = "select * from F_META_COLUMN  t where t.table_id= :tableId " +
             "and t.column_name not in " +
             "(select f.column_name from m_model_data_field f join m_meta_form_model m" +
-            " on f.model_code=m.model_code and m.table_id=:tableId  )";
-        return metaColumnDao.listObjectsBySql(sql,
-            QueryUtils.createSqlParamsMap("tableId", tableId));
+            " on f.model_code=m.model_code and m.table_id = ?)";
+        return metaColumnDao.listObjectsBySql(sql, new Object[] {tableId});
     }
 
     @Override

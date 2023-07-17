@@ -2,8 +2,7 @@ package com.centit.product.dbdesign.service;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.centit.framework.jdbc.service.BaseEntityManager;
-import com.centit.product.adapter.po.*;
+import com.centit.product.metadata.po.*;
 import com.centit.support.database.utils.PageDesc;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -22,7 +21,7 @@ import java.util.Map;
  * 更新，可以更新
  */
 
-public interface MetaTableManager extends BaseEntityManager<MetaTable, String> {
+public interface MetaTableManager {
     JSONArray listMdTablesAsJson(
         String[] fields,
         Map<String, Object> filterMap, PageDesc pageDesc);

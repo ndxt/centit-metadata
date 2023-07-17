@@ -34,10 +34,15 @@
             <artifactId>framework-core-web</artifactId>
         </dependency>
 
-
         <dependency>
             <groupId>com.centit.product</groupId>
             <artifactId>database-metadata</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.centit.product</groupId>
+            <artifactId>database-metadata-rmdb</artifactId>
             <version>${project.version}</version>
         </dependency>
 

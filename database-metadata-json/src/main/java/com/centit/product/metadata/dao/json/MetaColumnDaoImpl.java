@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 
-@Repository
+@Repository("metaColumnDao")
 public class MetaColumnDaoImpl implements MetaColumnDao {
 
     @Override

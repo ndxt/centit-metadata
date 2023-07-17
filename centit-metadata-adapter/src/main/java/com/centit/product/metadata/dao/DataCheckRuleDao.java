@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.centit.product.metadata.po.DataCheckRule;
 import com.centit.support.database.utils.PageDesc;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,6 +20,8 @@ public interface DataCheckRuleDao {
     int updateObject(DataCheckRule checkRule);
 
     int deleteObjectById(Object ruleId);
+
+    List<DataCheckRule> listObjectsByProperties(Map<String, Object> properties);
 
     JSONArray listObjectsByPropertiesAsJson(Map<String, Object> properties, PageDesc pageDesc);
 }

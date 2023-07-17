@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Repository
+@Repository("metaTableDao")
 public class MetaTableDaoImpl extends BaseDaoImpl<MetaTable, String> implements MetaTableDao {
     @Override
     public Map<String, String> getFilterField() {

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 
-@Repository
+@Repository("metaOptRelationDao")
 public class MetaOptRelationDaoImpl implements MetaOptRelationDao {
     @Override
     public void saveNewObject(MetaOptRelation relation) {

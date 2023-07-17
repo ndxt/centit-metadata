@@ -8,8 +8,7 @@ import com.centit.support.database.utils.PageDesc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,6 +38,11 @@ public class DataCheckRuleServiceImpl implements DataCheckRuleService {
     @Override
     public int deleteObjectById(String ruleId) {
         return dataCheckRuleDao.deleteObjectById(ruleId);
+    }
+
+    @Override
+    public List<DataCheckRule> listObjectsByProperties(Map<String, Object> properties){
+        return dataCheckRuleDao.listObjectsByProperties(properties);
     }
 
     @Override

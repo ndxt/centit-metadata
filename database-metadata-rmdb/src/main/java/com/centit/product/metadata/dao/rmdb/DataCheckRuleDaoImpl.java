@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * @author tian_y
  */
-@Repository
+@Repository("dataCheckRuleDao")
 public class DataCheckRuleDaoImpl extends BaseDaoImpl<DataCheckRule, String> implements DataCheckRuleDao {
 
     @Override

@@ -21,44 +21,44 @@ public class MetaOptRelationServiceImpl implements MetaOptRelationService {
     protected Logger logger = LoggerFactory.getLogger(MetaOptRelationService.class);
 
     @Autowired
-    MetaOptRelationDao relationDao;
+    MetaOptRelationDao metaOptRelationDao;
 
     @Override
     public void createMetaOptRelation(MetaOptRelation relation) {
-        relationDao.saveNewObject(relation);
+        metaOptRelationDao.saveNewObject(relation);
     }
 
     @Override
     public void updateMetaOptRelation(MetaOptRelation relation) {
-        relationDao.updateObject(relation);
+        metaOptRelationDao.updateObject(relation);
     }
 
     @Override
     public void deleteMetaOptRelation(String id) {
-        relationDao.deleteObjectById(id);
+        metaOptRelationDao.deleteObjectById(id);
     }
 
     @Override
     public List<MetaOptRelation> listMetaOptRelation(Map<String, Object> params, PageDesc pageDesc) {
-        return relationDao.listObjectsByProperties(params,pageDesc);
+        return metaOptRelationDao.listObjectsByProperties(params,pageDesc);
     }
 
     @Override
     public MetaOptRelation getMetaOptRelation(String tableId) {
-        return relationDao.getObjectById(tableId);
+        return metaOptRelationDao.getObjectById(tableId);
     }
 
     @Override
     @Transactional
     public void batchAddOptRelation(List<MetaOptRelation> relations) {
         for (MetaOptRelation relation : relations) {
-            MetaOptRelation metaOptRelation = relationDao.getObjectByProperties(CollectionsOpt.createHashMap("optId", relation.getOptId(),
+            MetaOptRelation metaOptRelation = metaOptRelationDao.getObjectByProperties(CollectionsOpt.createHashMap("optId", relation.getOptId(),
                 "tableId", relation.getTableId()));
             if (null != metaOptRelation){
                 relation.setId(metaOptRelation.getId());
-                relationDao.updateObject(metaOptRelation);
+                metaOptRelationDao.updateObject(metaOptRelation);
             }else {
-                relationDao.saveNewObject(relation);
+                metaOptRelationDao.saveNewObject(relation);
             }
         }
     }

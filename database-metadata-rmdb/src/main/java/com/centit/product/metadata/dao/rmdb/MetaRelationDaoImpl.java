@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 
-@Repository
+@Repository("metaRelationDao")
 public class MetaRelationDaoImpl extends BaseDaoImpl<MetaRelation, Long> implements MetaRelationDao {
     @Override
     public Map<String, String> getFilterField() {

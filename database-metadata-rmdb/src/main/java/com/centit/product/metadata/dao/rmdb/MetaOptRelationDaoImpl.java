@@ -5,6 +5,6 @@ import com.centit.product.metadata.dao.MetaOptRelationDao;
 import com.centit.product.metadata.po.MetaOptRelation;
 import org.springframework.stereotype.Repository;
 
-@Repository
+@Repository("metaOptRelationDao")
 public class MetaOptRelationDaoImpl extends BaseDaoImpl<MetaOptRelation,String> implements MetaOptRelationDao {
 }

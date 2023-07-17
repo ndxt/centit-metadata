@@ -35,9 +35,9 @@ public class MetaDataCacheImpl implements MetaDataCache {
 
     @Override
     public MetaTable getTableInfo(String tableId){
-        //metaTableCache.setFreshData();
-        if (metaTableCache.getCachedValue(tableId)!=null) {
-            return metaTableCache.getCachedValue(tableId).getRight();
+        MutablePair<Integer, MetaTable> tableMutablePair = metaTableCache.getCachedValue(tableId);
+        if (tableMutablePair!=null) {
+            return tableMutablePair.getRight();
         } else{
             return null;
         }

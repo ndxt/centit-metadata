@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 
-@Repository
+@Repository("metaTableDao")
 public class MetaTableDaoImpl implements MetaTableDao {
 
     @Override

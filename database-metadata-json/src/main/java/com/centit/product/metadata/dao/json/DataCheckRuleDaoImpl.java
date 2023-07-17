@@ -6,14 +6,14 @@ import com.centit.product.metadata.po.DataCheckRule;
 import com.centit.support.database.utils.PageDesc;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Map;
 
 /**
  * @author tian_y
  */
-@Repository
+@Repository("dataCheckRuleDao")
 public class DataCheckRuleDaoImpl implements DataCheckRuleDao {
-
 
     @Override
     public DataCheckRule getObjectById(Object id) {
@@ -33,6 +33,11 @@ public class DataCheckRuleDaoImpl implements DataCheckRuleDao {
     @Override
     public int deleteObjectById(Object ruleId) {
         return 0;
+    }
+
+    @Override
+    public List<DataCheckRule> listObjectsByProperties(Map<String, Object> properties) {
+        return null;
     }
 
     @Override

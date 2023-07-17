@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Repository
+@Repository("sourceInfoDao")
 public class SourceInfoDaoImpl extends BaseDaoImpl<SourceInfo, String> implements SourceInfoDao{
 
     @Override

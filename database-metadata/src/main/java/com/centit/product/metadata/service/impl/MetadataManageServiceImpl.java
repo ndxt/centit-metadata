@@ -28,7 +28,7 @@ public class MetadataManageServiceImpl implements MetadataManageService {
     protected Logger logger = LoggerFactory.getLogger(MetadataManageService.class);
 
     @Autowired
-    MetaOptRelationDao relationDao;
+    MetaOptRelationDao metaOptRelationDao;
 
     @Override
     @Transactional
@@ -38,14 +38,14 @@ public class MetadataManageServiceImpl implements MetadataManageService {
             return 0;
         }
         List<MetaOptRelation> metaOptRelations =
-            relationDao.listObjectsByProperties(CollectionsOpt.createHashMap("optId", optId));
+            metaOptRelationDao.listObjectsByProperties(CollectionsOpt.createHashMap("optId", optId));
         if (CollectionUtils.isEmpty(metaOptRelations)) {
             logger.info("根据optId未查询到关联信息。optId:{}", optId);
             return 0;
         }
         Set<String> ids = metaOptRelations.stream().map(MetaOptRelation::getId).collect(Collectors.toSet());
         for (String id : ids) {
-            relationDao.deleteObjectById(id);
+            metaOptRelationDao.deleteObjectById(id);
         }
         return ids.size();
     }

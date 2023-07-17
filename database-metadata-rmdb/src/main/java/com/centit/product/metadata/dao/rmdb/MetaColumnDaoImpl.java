@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.io.Serializable;
 import java.util.Map;
 
-@Repository
+@Repository("metaColumnDao")
 public class MetaColumnDaoImpl extends BaseDaoImpl<MetaColumn, Serializable> implements MetaColumnDao {
     @Override
     public Map<String, String> getFilterField() {

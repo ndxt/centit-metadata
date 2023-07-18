@@ -257,7 +257,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 .getObjectById(ref);
             mainObj.put(md.getRelationName(),
                 DictionaryMapUtils.mapJsonObject(ja,
-                    this.fetchDictionaryMapColumns(sourceInfoDao, parentTableInfo)));
+                    this.fetchDictionaryMapColumns(parentTableInfo)));
         }
     }
 
@@ -280,7 +280,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         if (ref != null) {
             JSONArray ja = DictionaryMapUtils.mapJsonArray(
                 GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
-                    .listObjectsByProperties(ref), this.fetchDictionaryMapColumns(sourceInfoDao, subTableInfo));
+                    .listObjectsByProperties(ref), this.fetchDictionaryMapColumns(subTableInfo));
             mainObj.put(md.getRelationName(), ja);
         }
     }
@@ -295,7 +295,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 if (ref != null) {
                     JSONArray ja = GeneralJsonObjectDao.createJsonObjectDao(conn, subTableInfo)
                         .listObjectsByProperties(ref);
-                    ja = DictionaryMapUtils.mapJsonArray(ja, fetchDictionaryMapColumns(sourceInfoDao, subTableInfo));
+                    ja = DictionaryMapUtils.mapJsonArray(ja, fetchDictionaryMapColumns(subTableInfo));
                     if (withChildrenDeep > 1 && ja != null) {
                         for (Object subObject : ja) {
                             if (subObject instanceof Map) {
@@ -321,7 +321,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             mainObj = (fields != null && fields.length > 0) ?
                 innerGetObjectPartFieldsById(conn, tableInfo, pk, fields)
                 : innerGetObjectById(conn, tableInfo, pk);
-            mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(sourceInfoDao, tableInfo));
+            mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(tableInfo));
             return fetchObjectParentAndChildren(tableInfo, mainObj, parents, children);
         } catch (Exception e) {
             throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
@@ -366,7 +366,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Map<String, Object> mainObj;
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             mainObj = innerGetObjectById(conn, tableInfo, pk);
-            mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(sourceInfoDao, tableInfo));
+            mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(tableInfo));
             if (withChildrenDeep > 0 && mainObj != null) {
                 fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
             }
@@ -724,7 +724,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             JSONArray ja;
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             ja = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).listObjectsByProperties(filter);
-            return DictionaryMapUtils.mapJsonArray(ja, this.fetchDictionaryMapColumns(sourceInfoDao, tableInfo));
+            return DictionaryMapUtils.mapJsonArray(ja, this.fetchDictionaryMapColumns(tableInfo));
         } catch (Exception e) {
             throw new ObjectException(filter, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -834,7 +834,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             obj = DatabaseAccess.getScalarObjectQuery(conn,
                 sGetCountSql, params);
             pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
-            JSONArray ja = DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(sourceInfoDao, tableInfo));
+            JSONArray ja = DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(tableInfo));
             if ("C".equals(tableInfo.getTableType())) {
                 ja = mapListPoToDto(ja);
             }
@@ -870,7 +870,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 querySql, params, null, pageDesc.getPageNo(), pageDesc.getPageSize());
             pageDesc.setTotalRows(
                 NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, querySql, params)));
-            return DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(sourceInfoDao, tableInfo));
+            return DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(tableInfo));
         } catch (Exception e) {
             throw new ObjectException(params, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -882,7 +882,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return pageQueryObjects(tableId, qap.getQuery(), qap.getParams(), pageDesc);
     }
 
-    private List<DictionaryMapColumn> fetchDictionaryMapColumns(SourceInfoDao sourceInfoDao, MetaTable tableInfo) {
+    private List<DictionaryMapColumn> fetchDictionaryMapColumns(MetaTable tableInfo) {
         if (tableInfo.getMdColumns() == null || tableInfo.getMdColumns().size() == 0) {
             return null;
         }

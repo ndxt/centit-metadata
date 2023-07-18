@@ -26,7 +26,7 @@ public class SourceInfoDaoImpl implements SourceInfoDao{
 
     public CachedObject<List<SourceInfo>> sourceInfoRepo  =
         new CachedObject<>(this::loadAllSourceInfo,
-            CodeRepositoryCache.CACHE_EXPIRE_EVERY_DAY );
+            CodeRepositoryCache.CACHE_EXPIRE_EVERY_DAY);
 
     private List<SourceInfo> loadAllSourceInfo(){
         String ruleFile = appHome + File.separator + "config" + File.separator +  "resources.json";

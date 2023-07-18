@@ -2,6 +2,7 @@ package com.centit.product.metadata.dao.json;
 
 import com.centit.product.metadata.dao.MetaRelationDao;
 import com.centit.product.metadata.po.MetaRelation;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
 import org.springframework.stereotype.Repository;
 
@@ -13,66 +14,77 @@ public class MetaRelationDaoImpl implements MetaRelationDao {
 
     @Override
     public MetaRelation getObjectById(Object id) {
-        return null;
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
     }
 
     @Override
     public void saveNewObject(MetaRelation object) {
-
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
     }
 
     @Override
     public int deleteObject(MetaRelation object) {
-        return 0;
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
     }
 
     @Override
     public int updateObject(MetaRelation object) {
-        return 0;
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
     }
 
     @Override
     public int saveObjectReference(MetaRelation object, String columnName) {
-        return 0;
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
     }
 
     @Override
     public int saveObjectReferences(MetaRelation object) {
-        return 0;
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
     }
 
     @Override
     public int deleteObjectReference(MetaRelation object, String columnName) {
-        return 0;
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
     }
 
     @Override
     public MetaRelation getObjectByProperties(Map<String, Object> filterMap) {
-        return null;
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
     }
 
     @Override
     public List<MetaRelation> listRelationByTables(String parentTableId, String childTableId) {
-        return null;
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
     }
 
     @Override
     public List<MetaRelation> listObjectsByProperties(Map<String, Object> filterMap) {
-        return null;
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
     }
 
     @Override
     public List<MetaRelation> listObjectsByProperties(Map<String, Object> filterMap, PageDesc pageDesc) {
-        return null;
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
     }
 
     @Override
     public MetaRelation fetchObjectReference(MetaRelation object, String columnName) {
-        return null;
+        return object;
     }
 
     @Override
     public MetaRelation fetchObjectReferences(MetaRelation object) {
-        return null;
+        return object;
     }
 }

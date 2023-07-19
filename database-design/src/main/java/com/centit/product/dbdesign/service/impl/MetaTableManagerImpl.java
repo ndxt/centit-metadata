@@ -18,7 +18,8 @@ import com.centit.product.metadata.utils.PdmTableInfoUtils;
 import com.centit.product.metadata.utils.TableStoreJsonUtils;
 import com.centit.support.algorithm.*;
 import com.centit.support.common.ObjectException;
-import com.centit.support.database.ddl.*;
+import com.centit.support.database.ddl.DDLOperations;
+import com.centit.support.database.ddl.GeneralDDLOperations;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableField;
@@ -88,13 +89,6 @@ public class MetaTableManagerImpl implements MetaTableManager {
     @Resource
     private PendingMetaColumnDao pendingMetaColumnDao;
 
-    /*
-         @PostConstruct
-        public void init() {
-
-        }
-
-     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public JSONArray listMdTablesAsJson(
@@ -165,62 +159,14 @@ public class MetaTableManagerImpl implements MetaTableManager {
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(pendingMetaTable.getDatabaseCode());
         DBType dbType = DBType.mapDBType(sourceInfo.getDatabaseUrl());
         pendingMetaTable.setDatabaseType(dbType);
-        DDLOperations ddlOpt;
-        switch (dbType) {
-            case DB2:
-                ddlOpt = new DB2DDLOperations();
-                break;
-            case SqlServer:
-                ddlOpt = new SqlSvrDDLOperations();
-                break;
-            case MySql:
-                ddlOpt = new MySqlDDLOperations();
-                break;
-            case PostgreSql:
-                ddlOpt = new PostgreSqlDDLOperations();
-                break;
-            default:
-                ddlOpt = new OracleDDLOperations();
-                break;
-        }
+        DDLOperations ddlOpt = GeneralDDLOperations.createDDLOperations(dbType);
 
-        List<String> sqlList = new ArrayList<>();
+        List<String> sqlList;
         if (VIEW.equals(pendingMetaTable.getTableType())) {
+            sqlList = new ArrayList<>();
             sqlList.add(ddlOpt.makeCreateViewSql(pendingMetaTable.getViewSql(), pendingMetaTable.getTableName()));
         } else {
-            if (metaTable == null) {
-                sqlList.add(ddlOpt.makeCreateTableSql(pendingMetaTable));
-            } else {
-                metaTable.setDatabaseType(dbType);
-                for (PendingMetaColumn pendingMetaColumn : pendingMetaTable.getMdColumns()) {
-                    MetaColumn ocol = metaTable.findFieldByColumn(pendingMetaColumn.getColumnName());
-                    if (ocol == null) {
-                        sqlList.add(ddlOpt.makeAddColumnSql(
-                            pendingMetaTable.getTableName(), pendingMetaColumn));
-                    } else {
-                        if (StringUtils.equalsAnyIgnoreCase(pendingMetaColumn.getFieldType(), ocol.getFieldType())) {
-                            boolean exits = !GeneralAlgorithm.equals(pendingMetaColumn.getMaxLength(), ocol.getMaxLength()) ||
-                                !GeneralAlgorithm.equals(pendingMetaColumn.getScale(), ocol.getScale()) ||
-                                !GeneralAlgorithm.equals(BooleanBaseOpt.castObjectToBoolean(pendingMetaColumn.getMandatory(),false), ocol.getMandatory()) ||
-                                (!StringUtils.equals(pendingMetaColumn.getFieldLabelName(), ocol.getFieldLabelName())
-                                    && dbType.equals(DBType.MySql));
-                            if (exits) {
-                                sqlList.add(ddlOpt.makeModifyColumnSql(
-                                    pendingMetaTable.getTableName(), ocol, pendingMetaColumn));
-                            }
-                        } else {
-                            sqlList.addAll(ddlOpt.makeReconfigurationColumnSqls(
-                                pendingMetaTable.getTableName(), ocol.getColumnName(), pendingMetaColumn));
-                        }
-                    }
-                }
-                for (MetaColumn metaColumn : metaTable.getMdColumns()) {
-                    PendingMetaColumn pcol = pendingMetaTable.findFieldByColumn(metaColumn.getColumnName());
-                    if (pcol == null) {
-                        sqlList.add(ddlOpt.makeDropColumnSql(metaTable.getTableName(), metaColumn.getColumnName()));
-                    }
-                }
-            }
+            sqlList = DDLUtils.makeAlterTableSqlList(pendingMetaTable, metaTable, dbType, ddlOpt);
         }
         return sqlList;
     }
@@ -310,11 +256,8 @@ public class MetaTableManagerImpl implements MetaTableManager {
             MetaChangLog chgLog = new MetaChangLog();
             List<String> errors = new ArrayList<>();
             SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(pTable.getDatabaseCode());
-            DataSourceDescription dbc = new DataSourceDescription();
-            dbc.setDatabaseCode(mdb.getDatabaseCode());
-            dbc.setConnUrl(mdb.getDatabaseUrl());
-            dbc.setUsername(mdb.getUsername());
-            dbc.setPassword(mdb.getClearPassword());
+            DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
+
             DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
             pTable.setDatabaseType(databaseType);
             //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
@@ -579,6 +522,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
                 List<String> error = new ArrayList<>();
                 SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
                 DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
+
                 DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
                 metaTable.setDatabaseType(databaseType);
                 checkPendingMetaTable(metaTable, recorder);

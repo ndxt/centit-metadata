@@ -25,6 +25,9 @@ public abstract class PdmTableInfoUtils {
         if(!pdmReader.loadPdmFile(pdmFilePath))
             return null;
         SimpleTableInfo pdmTable = pdmReader.getTableMetadata(tableCode);
+        if(pdmTable==null){
+            return null;
+        }
         PendingMetaTable metaTable = new PendingMetaTable();
 
         metaTable.setDatabaseCode(databaseCode);
@@ -72,7 +75,9 @@ public abstract class PdmTableInfoUtils {
         List<Pair<String,String>> tabNames = pdmReader.getAllTableCode();
         for (Pair<String, String> tabName : tabNames) {
             SimpleTableInfo pdmTable = pdmReader.getTableMetadata(tabName.getKey());
-            pdmTables.add(pdmTable);
+            if(pdmTable!=null) {
+                pdmTables.add(pdmTable);
+            }
         }
         return pdmTables;
     }
@@ -84,7 +89,9 @@ public abstract class PdmTableInfoUtils {
         List<SimpleTableInfo> pdmTables = new ArrayList<>();
         for (String table : tables) {
             SimpleTableInfo pdmTable = pdmReader.getTableMetadata(table);
-            pdmTables.add(pdmTable);
+            if(pdmTable == null) {
+                pdmTables.add(pdmTable);
+            }
         }
         return pdmTables;
     }

@@ -147,7 +147,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             }
                             int pkCount = metaTable.countPkColumn();
                             if (pkCount < 2 || !field.isPrimaryKey()) {
-                                throw new ObjectException(PersistenceException.ORM_METADATA_EXCEPTION,
+                                throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
                                     "主键生成规则SUB_ORDER必须用于复合主键表中，并且只能用于整型字段！");
                             }
                             StringBuilder sqlBuilder = new StringBuilder("select max(");
@@ -243,7 +243,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return innerGetObjectById(conn, tableInfo, pk);
         } catch (Exception e) {
-            throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -324,7 +324,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(tableInfo));
             return fetchObjectParentAndChildren(tableInfo, mainObj, parents, children);
         } catch (Exception e) {
-            throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -354,7 +354,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             }
             return mainObj;
         } catch (Exception e) {
-            throw new ObjectException(mainObj, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(mainObj, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -373,7 +373,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             fetchObjectParents(conn, mainObj, tableInfo);
             return mainObj;
         } catch (Exception e) {
-            throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -398,7 +398,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             fetchObjectParents(conn, objectMap, tableInfo);
             return objectMap;
         } catch (Exception e) {
-            throw new ObjectException(objectMap, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(objectMap, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -444,7 +444,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(object);
         } catch (Exception e) {
-            throw new ObjectException(object, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(object, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -461,7 +461,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
             return dao.updateObjectsByProperties(fields, object, dao.makePkFieldMap(object));
         } catch (Exception e) {
-            throw new ObjectException(object, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(object, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -475,7 +475,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
                 .deleteObjectsByProperties(filterProperties);
         } catch (Exception e) {
-            throw new ObjectException(filterProperties, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(filterProperties, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -491,7 +491,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
                 .updateObjectsByProperties(fields, fieldValues, filterProperties);
         } catch (Exception e) {
-            throw new ObjectException(fieldValues, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(fieldValues, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -513,7 +513,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).deleteObjectById(pk);
         } catch (Exception e) {
-            throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -526,7 +526,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         if (!DatetimeOpt.equalOnSecond(DatetimeOpt.castObjectToDate(oldDate), DatetimeOpt.castObjectToDate(newDate))) {
             throw new ObjectException(CollectionsOpt.createHashMap(
                 "yourTimeStamp", newDate, "databaseTimeStamp", oldDate),
-                PersistenceException.DATABASE_OUT_SYNC_EXCEPTION, "更新数据对象时，数据版本不同步。");
+                ObjectException.DATABASE_OUT_SYNC_EXCEPTION, "更新数据对象时，数据版本不同步。");
         }
 
         object.put(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP, DatetimeOpt.currentSqlDate());
@@ -646,7 +646,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             }
             return 1;
         } catch (Exception e) {
-            throw new ObjectException(mainObj, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(mainObj, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -700,7 +700,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             }
             dao.deleteObjectById(pk);
         } catch (Exception e) {
-            throw new ObjectException(pk, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -726,7 +726,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             ja = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).listObjectsByProperties(filter);
             return DictionaryMapUtils.mapJsonArray(ja, this.fetchDictionaryMapColumns(tableInfo));
         } catch (Exception e) {
-            throw new ObjectException(filter, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(filter, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -840,7 +840,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             }
             return ja;
         } catch (Exception e) {
-            throw new ObjectException(params, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 
@@ -872,7 +872,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, querySql, params)));
             return DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(tableInfo));
         } catch (Exception e) {
-            throw new ObjectException(params, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+            throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 

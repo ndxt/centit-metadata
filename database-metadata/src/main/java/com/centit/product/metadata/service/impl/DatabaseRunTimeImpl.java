@@ -7,7 +7,6 @@ import com.centit.product.metadata.service.DatabaseRunTime;
 import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.DatabaseAccess;
-import com.centit.support.database.utils.PersistenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +34,7 @@ public class DatabaseRunTimeImpl implements DatabaseRunTime {
                 return DatabaseAccess.findObjectsAsJSON(conn, sql, params);
             }
         } catch (SQLException | IOException e) {
-            throw new ObjectException(PersistenceException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
+            throw new ObjectException(ObjectException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
         }
     }
 
@@ -46,7 +45,7 @@ public class DatabaseRunTimeImpl implements DatabaseRunTime {
                 return DatabaseAccess.findObjectsAsJSON(conn, sql);
             }
         } catch (SQLException | IOException e){
-            throw new ObjectException(PersistenceException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
+            throw new ObjectException(ObjectException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
         }
     }
 
@@ -56,7 +55,7 @@ public class DatabaseRunTimeImpl implements DatabaseRunTime {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(fetchDataSource(databaseId));
             return DatabaseAccess.doExecuteSql(conn, sql, params);
         } catch (SQLException e){
-            throw new ObjectException(PersistenceException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
+            throw new ObjectException(ObjectException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
         }
     }
 
@@ -66,7 +65,7 @@ public class DatabaseRunTimeImpl implements DatabaseRunTime {
              Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(fetchDataSource(databaseId));
              return DatabaseAccess.doExecuteSql(conn, sql) ? 1 : 0;
         } catch (SQLException e){
-            throw new ObjectException(PersistenceException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
+            throw new ObjectException(ObjectException.DATABASE_OPERATE_EXCEPTION, e.getMessage());
         }
     }
 }

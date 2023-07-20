@@ -169,7 +169,7 @@ public class MetadataQueryController extends BaseController {
                         return stringMap;
                     }
                 } catch (SQLException | IOException e) {
-                    throw new ObjectException(col, PersistenceException.DATABASE_OPERATE_EXCEPTION, e);
+                    throw new ObjectException(col, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
                 }
                 return null;
             case "Y": {

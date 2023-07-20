@@ -6,6 +6,7 @@ import com.centit.product.metadata.po.MetaRelation;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.support.common.CachedMap;
+import com.centit.support.common.ObjectException;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -66,7 +67,15 @@ public class MetaDataCacheImpl implements MetaDataCache {
     @Override
     public MetaTable getTableInfoWithRelations(String tableId){
         MutablePair<Integer, MetaTable> tablePair = metaTableCache.getCachedValue(tableId);
+        if(tablePair == null){
+            throw new ObjectException(ObjectException.DATA_NOT_FOUND_EXCEPTION,
+                "没有对应的表结构元数据：" + tableId);
+        }
         MetaTable metaTable = tablePair.getRight();
+        if(metaTable == null){
+            throw new ObjectException(ObjectException.DATA_NOT_FOUND_EXCEPTION,
+                "没有对应的表结构元数据：" + tableId);
+        }
         if(tablePair.getLeft() % 10 == 0){
             fetchTableRelations(metaTable);
             tablePair.setLeft(tablePair.getLeft() + 1);

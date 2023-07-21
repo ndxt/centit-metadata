@@ -564,6 +564,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
+            e.printStackTrace();
             return new ImmutablePair<>(-1, "批量发布失败!" + e.getMessage());
         }
     }

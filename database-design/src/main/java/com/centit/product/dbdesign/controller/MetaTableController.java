@@ -399,7 +399,7 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "导入TableStore中导入表结构")
     @ApiImplicitParam(name = "databaseCode", type = "path", value = "数据库ID")
-       @RequestMapping(value = "/import/{databaseCode}", method = RequestMethod.POST)
+    @RequestMapping(value = "/import/{databaseCode}", method = RequestMethod.POST)
     @WrapUpResponseBody
     public void importFromTableStore(@PathVariable String databaseCode, HttpServletRequest request) throws IOException{
         String userCode = WebOptUtils.getCurrentUserCode(request);

@@ -67,7 +67,12 @@ public abstract class AbstractDruidConnectPools {
             ds.setValidationQuery(validationQuery);
             ds.setTestWhileIdle(true);
         }
-
+        ds.setConnectTimeout(NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("connectTimeout"),10000));
+        ds.setSocketTimeout(NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("socketTimeout"),10000));
+        ds.setQueryTimeout(NumberBaseOpt.castObjectToInteger(
+                dsDesc.getExtProp("queryTimeout"),0));
         ds.setValidationQueryTimeout(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("validationQueryTimeout"), 1000 * 10));
         ds.setKeepAlive(BooleanBaseOpt.castObjectToBoolean(

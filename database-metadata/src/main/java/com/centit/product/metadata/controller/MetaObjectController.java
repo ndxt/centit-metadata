@@ -12,7 +12,7 @@ import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.framework.model.adapter.PlatformEnvironment;
-import com.centit.framework.model.basedata.IOsInfo;
+import com.centit.framework.model.basedata.OsInfo;
 import com.centit.framework.model.basedata.OperationLog;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
@@ -249,11 +249,11 @@ public class MetaObjectController extends BaseController {
             throw new ObjectException(ResponseData.ERROR_PRECONDITION_FAILED, "您还未加入任何租户!");
         }
 
-        List<? extends IOsInfo> osInfos = CodeRepositoryUtil.listOsInfo(topUnit);
+        List<OsInfo> osInfos = CodeRepositoryUtil.listOsInfo(topUnit);
         if (CollectionUtils.sizeIsEmpty(osInfos)) {
             throw new ObjectException(ResponseData.ERROR_PRECONDITION_FAILED, "您当前所在的租户还未创建任何应用!");
         }
-        String osIds = osInfos.stream().map(IOsInfo::getOsId).collect(Collectors.joining(","));
+        String osIds = osInfos.stream().map(OsInfo::getOsId).collect(Collectors.joining(","));
         if (!platformEnvironment.loginUserIsExistWorkGroup(osIds, userCode)) {
             throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您没有权限！");
         }

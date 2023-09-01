@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.centit.product</groupId>
         <artifactId>centit-metadata</artifactId>
-        <version>5.3-SNAPSHOT</version>
+        <version>5.4-SNAPSHOT</version>
     </parent>
 
     <groupId>com.centit.support</groupId>
@@ -15,16 +15,6 @@
     <packaging>war</packaging>
 
     <dependencies>
-        <dependency>
-            <groupId>com.centit.framework</groupId>
-            <artifactId>centit-ip-app-config</artifactId>
-        </dependency>
-
-        <!--<dependency>
-            <groupId>com.centit.framework</groupId>
-            <artifactId>framework-session</artifactId>
-        </dependency>-->
-
         <dependency>
             <groupId>com.centit.framework</groupId>
             <artifactId>framework-system-static</artifactId>
@@ -57,14 +47,22 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.shentong</groupId>
             <artifactId>shentongjdbc</artifactId>
             <version>4.0</version>
         </dependency>
+
         <dependency>
             <groupId>com.centit.framework</groupId>
             <artifactId>framework-config</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.centit.framework</groupId>
+            <artifactId>centit-ip-dubbo-client-config</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

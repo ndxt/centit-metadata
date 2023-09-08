@@ -369,7 +369,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             if (withChildrenDeep > 0 && mainObj != null) {
                 fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
             }
-            fetchObjectParents(conn, mainObj, tableInfo);
+            if(mainObj != null) {
+                fetchObjectParents(conn, mainObj, tableInfo);
+            }
             return mainObj;
         } catch (Exception e) {
             throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);

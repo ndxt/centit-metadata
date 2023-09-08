@@ -35,8 +35,6 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     public static final String OBJECT_AS_CLOB_ID_PROP = "objectId";
     public static final String OBJECT_AS_CLOB_FIELD = "OBJECT_JSON";
     public static final String OBJECT_AS_CLOB_PROP = "objectJson";
-    public static final String UPDATE_CHECK_TIMESTAMP_FIELD = "LAST_MODIFY_TIME";
-    public static final String UPDATE_CHECK_TIMESTAMP_PROP = "lastModifyTime";
     public static final String WORKFLOW_INST_ID_FIELD = "FLOW_INST_ID";
     public static final String WORKFLOW_INST_ID_PROP = "flowInstId";
     public static final String WORKFLOW_NODE_INST_ID_FIELD = "NODE_INST_ID";
@@ -134,12 +132,6 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @NotBlank(message = "字段不能为空[T/F]")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private Boolean writeOptLog;
-
-    //T/F 更新时是否校验时间戳 添加 lastModifyTime datetime
-    @Column(name = "UPDATE_CHECK_TIMESTAMP")
-    @NotBlank(message = "字段不能为空[T/F]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
-    private Boolean updateCheckTimeStamp;
 
     //添加逻辑删除 softdelete 标识字段
     @Column(name = "DELETE_TAG_FIELD")
@@ -262,15 +254,10 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         this.workFlowOptType = "0";
         this.fulltextSearch = false;
         this.writeOptLog = false;
-        this.updateCheckTimeStamp = false;
     }
 
     public boolean isWriteOptLog() {
         return writeOptLog != null && writeOptLog;
-    }
-
-    public boolean isUpdateCheckTimeStamp() {
-        return updateCheckTimeStamp != null && updateCheckTimeStamp;
     }
 
     public boolean isFulltextSearch() {

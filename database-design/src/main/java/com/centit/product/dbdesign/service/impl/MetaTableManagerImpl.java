@@ -172,18 +172,6 @@ public class MetaTableManagerImpl implements MetaTableManager {
     }
 
     public void checkPendingMetaTable(PendingMetaTable ptable, String currentUser) {
-        if (ptable.isUpdateCheckTimeStamp()) {
-            PendingMetaColumn col = ptable.findFieldByName(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
-            if (col == null) {
-                col = new PendingMetaColumn(ptable, MetaTable.UPDATE_CHECK_TIMESTAMP_FIELD);
-                col.setFieldLabelName("最新更新时间");
-                col.setColumnComment("最新更新时间");
-                col.setFieldType(FieldType.DATETIME);
-                col.setLastModifyDate(DatetimeOpt.currentUtilDate());
-                col.setRecorder(currentUser);
-                ptable.addMdColumn(col);
-            }
-        }
         if ("C".equals(ptable.getTableType())) {
             PendingMetaColumn col = ptable.findFieldByName(MetaTable.OBJECT_AS_CLOB_FIELD);
             if (col == null) {
@@ -317,7 +305,6 @@ public class MetaTableManagerImpl implements MetaTableManager {
         if (metaTable != null) {
             metaTable = metaTableDao.getObjectCascadeById(metaTable.getTableId());
             metaTable.setWorkFlowOptType(ptable.getWorkFlowOptType());
-            metaTable.setUpdateCheckTimeStamp(ptable.getUpdateCheckTimeStamp());
             metaTable.setRecorder(currentUser);
             metaTable.setRecordDate(new Date());
             metaTableDao.mergeObject(metaTable);

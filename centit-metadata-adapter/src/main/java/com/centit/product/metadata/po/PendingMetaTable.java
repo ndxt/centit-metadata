@@ -106,12 +106,6 @@ public class PendingMetaTable implements
     @Length(max = 1, message = "字段长度不能大于{max}")
     private String workFlowOptType;
 
-    //Y/N 更新时是否校验时间戳 添加 Last_modify_time datetime
-    @ApiModelProperty(value = "更新时是否校验时间戳")
-    @Column(name = "UPDATE_CHECK_TIMESTAMP")
-    @Length(max = 1, message = "字段长度不能大于{max}")
-    private Boolean updateCheckTimeStamp;
-
     /**
      * 更改时间 null
      */
@@ -159,10 +153,6 @@ public class PendingMetaTable implements
 
     }
 
-    public boolean isUpdateCheckTimeStamp() {
-        return updateCheckTimeStamp != null && updateCheckTimeStamp;
-    }
-
     public void addMdColumn(PendingMetaColumn mdColumn) {
         if (mdColumn == null)
             return;
@@ -183,7 +173,6 @@ public class PendingMetaTable implements
         this.tableState = other.getTableState();
         this.tableComment = other.getTableComment();
         this.workFlowOptType = other.getWorkFlowOptType();
-        this.updateCheckTimeStamp = other.getUpdateCheckTimeStamp();
         this.lastModifyDate = other.getLastModifyDate();
         this.recorder = other.getRecorder();
         return this;
@@ -207,8 +196,6 @@ public class PendingMetaTable implements
             this.tableComment = other.getTableComment();
         if (other.getWorkFlowOptType() != null)
             this.workFlowOptType = other.getWorkFlowOptType();
-        if (other.getUpdateCheckTimeStamp() != null)
-            this.updateCheckTimeStamp = other.getUpdateCheckTimeStamp();
         if (other.getLastModifyDate() != null)
             this.lastModifyDate = other.getLastModifyDate();
         if (other.getRecorder() != null)
@@ -229,7 +216,6 @@ public class PendingMetaTable implements
         this.tableState = null;
         this.tableComment = null;
         this.workFlowOptType = null;
-        this.updateCheckTimeStamp = null;
         this.lastModifyDate = null;
         this.recorder = null;
         return this;

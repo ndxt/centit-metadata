@@ -518,22 +518,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    private void checkUpdateTimeStamp(Map<String, Object> dbObject, Map<String, Object> object) {
-        Object oldDate = dbObject.get(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
-        Object newDate = object.get(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
-        if (newDate == null || oldDate == null) {
-            return;
-        }
-        if (!DatetimeOpt.equalOnSecond(DatetimeOpt.castObjectToDate(oldDate), DatetimeOpt.castObjectToDate(newDate))) {
-            throw new ObjectException(CollectionsOpt.createHashMap(
-                "yourTimeStamp", newDate, "databaseTimeStamp", oldDate),
-                ObjectException.DATABASE_OUT_SYNC_EXCEPTION, "更新数据对象时，数据版本不同步。");
-        }
-
-        object.put(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP, DatetimeOpt.currentSqlDate());
-    }
-
-
     @Override
     public int saveObject(String tableId, Map<String, Object> object) {
         return innerSaveObject(tableId, object, null, false, 0);
@@ -580,14 +564,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
         ///todo 添加规则判段
         checkFieldRule(tableInfo, mainObj);
-        if (tableInfo.isUpdateCheckTimeStamp()) {
-            if (isUpdate) {
-                Map<String, Object> dbObject = getObjectWithChildren(tableId, mainObj, 1);
-                checkUpdateTimeStamp(dbObject, mainObj);
-            } else {
-                mainObj.put(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP, DatetimeOpt.currentSqlDate());
-            }
-        }
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
@@ -740,9 +716,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             fieldSet.add(MetaTable.WORKFLOW_INST_ID_PROP);
             fieldSet.add(MetaTable.WORKFLOW_NODE_INST_ID_PROP);
         }
-        if (BooleanBaseOpt.castObjectToBoolean(tableInfo.getUpdateCheckTimeStamp(), false)) {
-            fieldSet.add(MetaTable.UPDATE_CHECK_TIMESTAMP_PROP);
-        }
+
         Collections.addAll(fieldSet, fields);
         return fieldSet;
     }

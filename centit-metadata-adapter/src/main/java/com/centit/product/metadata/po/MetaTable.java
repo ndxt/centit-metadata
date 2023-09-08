@@ -106,6 +106,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @Column(name = "TABLE_COMMENT")
     @Length(max = 256, message = "字段长度不能大于{max}")
     private String tableComment;
+
     /**
      * 与流程中业务关联关系
      * 0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联
@@ -139,6 +140,14 @@ public class MetaTable implements TableInfo, java.io.Serializable {
     @NotBlank(message = "字段不能为空[T/F]")
     @Length(max = 1, message = "字段长度不能大于{max}")
     private Boolean updateCheckTimeStamp;
+
+    //添加逻辑删除 softdelete 标识字段
+    @Column(name = "DELETE_TAG_FIELD")
+    private String deleteTagField;
+
+    //更新前版本检查 checkVersion 标识字段
+    @Column(name = "CHECK_VERSION_FIELD")
+    private String checkVersionField;
 
     /**
      * 更改时间

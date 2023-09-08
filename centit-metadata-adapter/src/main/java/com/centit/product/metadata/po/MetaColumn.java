@@ -140,6 +140,12 @@ public class MetaColumn implements TableField, java.io.Serializable {
     private JSONObject checkRuleParams;
 
     /**
+     * 自动创建时机 N: null,  A: always
+     */
+    @Column(name = "AUTO_CREATE_CONDITION")
+    private String autoCreateCondition;
+
+    /**
      * 自动生成规则   C 常量  U uuid S sequence
      */
     @ApiModelProperty(value = "自动生成规则 C 常量 U uuid S sequence F 函数 /*O order*/ A 自增长")

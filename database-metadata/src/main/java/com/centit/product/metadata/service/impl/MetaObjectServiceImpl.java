@@ -97,85 +97,84 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         throws SQLException, IOException {
 
         for (MetaColumn field : metaTable.getMdColumns()) {
-            if (StringUtils.equalsAny(field.getAutoCreateRule(), "C", "U", "S", "W", "F", "O")) {
-                //只有为空时才创建
-                if (object.get(field.getPropertyName()) == null) {
-                    switch (field.getAutoCreateRule()) {
-                        case "U": // uuid
-                            object.put(field.getPropertyName(), UuidOpt.getUuidAsString32());
-                            break;
-                        case "S": // sequence
-                            //GeneratorTime.READ 读取数据时不能用 SEQUENCE 生成值
-                            if (sqlDialect != null) {
-                                object.put(field.getPropertyName(),
-                                    sqlDialect.getSequenceNextValue(field.getAutoCreateParam()));
+            if (StringUtils.equalsAny(field.getAutoCreateRule(), "C", "U", "S", "W", "F", "O")
+               &&(object.get(field.getPropertyName()) == null || "A".equals(field.getAutoCreateCondition()))) {
+
+                switch (field.getAutoCreateRule()) {
+                    case "U": // uuid
+                        object.put(field.getPropertyName(), UuidOpt.getUuidAsString32());
+                        break;
+                    case "S": // sequence
+                        //GeneratorTime.READ 读取数据时不能用 SEQUENCE 生成值
+                        if (sqlDialect != null) {
+                            object.put(field.getPropertyName(),
+                                sqlDialect.getSequenceNextValue(field.getAutoCreateParam()));
+                        }
+                        break;
+                    case "C": // const
+                        object.put(field.getPropertyName(), field.getAutoCreateParam());
+                        break;
+                    case "W": // Snowflake
+                        object.put(field.getPropertyName(), OrmUtils.getDefaultSnowFlakeInstance().nextId());
+                        break;
+                    case "F": // formula
+                        VariableFormula formula = new VariableFormula();
+                        formula.addExtendFunc("getSequence", (a) -> {
+                            try {
+                                sqlDialect.getSequenceNextValue((String) a[0]);
+                            } catch (SQLException | IOException e) {
+                                e.printStackTrace();
                             }
+                            return null;
+                        });
+                        formula.setFormula(field.getAutoCreateParam());
+                        if (extParams != null) {
+                            Map<String, Object> objectMap = new HashMap<>(extParams.size() + object.size() + 2);
+                            objectMap.putAll(extParams);
+                            objectMap.putAll(object);
+                            formula.setTrans(new ObjectTranslate(objectMap));
+                            object.put(field.getPropertyName(),
+                                formula.calcFormula());
+                        } else {
+                            formula.setTrans(new ObjectTranslate(object));
+                            object.put(field.getPropertyName(),
+                                formula.calcFormula());
+                        }
+                        break;
+                    case "O": // order
+                        if (isGetObject) {
                             break;
-                        case "C": // const
-                            object.put(field.getPropertyName(), field.getAutoCreateParam());
-                            break;
-                        case "W": // Snowflake
-                            object.put(field.getPropertyName(), OrmUtils.getDefaultSnowFlakeInstance().nextId());
-                            break;
-                        case "F": // formula
-                            VariableFormula formula = new VariableFormula();
-                            formula.addExtendFunc("getSequence", (a) -> {
-                                try {
-                                    sqlDialect.getSequenceNextValue((String) a[0]);
-                                } catch (SQLException | IOException e) {
-                                    e.printStackTrace();
+                        }
+                        int pkCount = metaTable.countPkColumn();
+                        if (pkCount < 2 || !field.isPrimaryKey()) {
+                            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
+                                "主键生成规则SUB_ORDER必须用于复合主键表中，并且只能用于整型字段！");
+                        }
+                        StringBuilder sqlBuilder = new StringBuilder("select max(");
+                        sqlBuilder.append(field.getColumnName())
+                            .append(" ) as maxOrder from ")
+                            .append(metaTable.getTableName())
+                            .append(" where ");
+                        int pki = 0;
+                        Object[] pkValues = new Object[pkCount - 1];
+                        for (MetaColumn col : metaTable.getColumns()) {
+                            if (col.isPrimaryKey() &&
+                                !StringUtils.equals(col.getPropertyName(), field.getPropertyName())) {
+                                if (pki > 0) {
+                                    sqlBuilder.append(" and ");
                                 }
-                                return null;
-                            });
-                            formula.setFormula(field.getAutoCreateParam());
-                            if (extParams != null) {
-                                Map<String, Object> objectMap = new HashMap<>(extParams.size() + object.size() + 2);
-                                objectMap.putAll(extParams);
-                                objectMap.putAll(object);
-                                formula.setTrans(new ObjectTranslate(objectMap));
-                                object.put(field.getPropertyName(),
-                                    formula.calcFormula());
-                            } else {
-                                formula.setTrans(new ObjectTranslate(object));
-                                object.put(field.getPropertyName(),
-                                    formula.calcFormula());
+                                sqlBuilder.append(col.getColumnName()).append(" = ?");
+                                pkValues[pki] = object.get(col.getPropertyName());
+                                pki++;
                             }
-                            break;
-                        case "O": // order
-                            if (isGetObject) {
-                                break;
-                            }
-                            int pkCount = metaTable.countPkColumn();
-                            if (pkCount < 2 || !field.isPrimaryKey()) {
-                                throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
-                                    "主键生成规则SUB_ORDER必须用于复合主键表中，并且只能用于整型字段！");
-                            }
-                            StringBuilder sqlBuilder = new StringBuilder("select max(");
-                            sqlBuilder.append(field.getColumnName())
-                                .append(" ) as maxOrder from ")
-                                .append(metaTable.getTableName())
-                                .append(" where ");
-                            int pki = 0;
-                            Object[] pkValues = new Object[pkCount - 1];
-                            for (MetaColumn col : metaTable.getColumns()) {
-                                if (col.isPrimaryKey() &&
-                                    !StringUtils.equals(col.getPropertyName(), field.getPropertyName())) {
-                                    if (pki > 0) {
-                                        sqlBuilder.append(" and ");
-                                    }
-                                    sqlBuilder.append(col.getColumnName()).append(" = ?");
-                                    pkValues[pki] = object.get(col.getPropertyName());
-                                    pki++;
-                                }
-                            }
-                            Long pkSubOrder = NumberBaseOpt.castObjectToLong(
-                                DatabaseAccess.fetchScalarObject(
-                                    sqlDialect.findObjectsBySql(sqlBuilder.toString(), pkValues)));
-                            object.put(field.getPropertyName(), pkSubOrder == null ? pkOrder : pkSubOrder + pkOrder);
-                            break;
-                        default:
-                            break;
-                    }
+                        }
+                        Long pkSubOrder = NumberBaseOpt.castObjectToLong(
+                            DatabaseAccess.fetchScalarObject(
+                                sqlDialect.findObjectsBySql(sqlBuilder.toString(), pkValues)));
+                        object.put(field.getPropertyName(), pkSubOrder == null ? pkOrder : pkSubOrder + pkOrder);
+                        break;
+                    default:
+                        break;
                 }
             }
         }

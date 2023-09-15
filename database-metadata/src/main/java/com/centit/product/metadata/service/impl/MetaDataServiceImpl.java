@@ -18,10 +18,7 @@ import com.centit.support.database.metadata.*;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.PageDesc;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
+import org.apache.commons.lang3.tuple.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,11 +96,6 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public void syncDb(String databaseCode, String recorder, String[] tableNames) {
-        syncDb(databaseCode, recorder, tableNames, null);
-    }
-
-    @Override
-    public void syncDb(String databaseCode, String recorder, String[] tableNames, String tableId) {
         List<SimpleTableInfo> dbTables;
         List<MetaTable> metaTables;
         if (tableNames != null) {
@@ -115,17 +107,34 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
         Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple = compareMetaBetweenDbTables(metaTables, dbTables, comparator);
+
         if (triple.getLeft() != null && triple.getLeft().size() > 0) {
-            addSyncData(databaseCode, recorder, triple, tableId);
+            addSyncData(databaseCode, recorder, triple.getLeft());
         }
         if (triple.getRight() != null && triple.getRight().size() > 0) {
-            deleteSyncData(triple);
+            deleteSyncData(triple.getRight());
         }
         if (triple.getMiddle() != null && triple.getMiddle().size() > 0) {
-            updateSyncData(recorder, triple);
+            updateSyncData(recorder, triple.getMiddle());
         }
     }
 
+    @Override
+    public void syncSingleTable(String databaseCode, String recorder, String tableName, String tableId){
+        List<SimpleTableInfo> dbTables = getJdbcMetadata(databaseCode, true, new String[] {tableName});
+        List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableNames", new String[] {tableName}));
+        if (dbTables != null && dbTables.size() >0 ) {
+            if(metaTables != null && metaTables.size() >0 ){
+                updateSyncData(recorder, CollectionsOpt.createList(new MutablePair<>(metaTables.get(0), dbTables.get(0))));
+            } else {
+                addSyncSingleTable(databaseCode, recorder, dbTables.get(0), tableId);
+            }
+        } else {
+            if(metaTables != null && metaTables.size() >0 ){
+                deleteSyncData(metaTables);
+            }
+        }
+    }
 
     private List<SimpleTableInfo> getJdbcMetadata(String databaseCode, boolean withColumn, String[] tableNames) {
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
@@ -210,24 +219,26 @@ public class MetaDataServiceImpl implements MetaDataService {
         return new ImmutableTriple<>(insertList, updateList, delList);
     }
 
-    private void addSyncData(String databaseCode, String recorder, Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple, String tableId) {
-        for (SimpleTableInfo table : triple.getLeft()) {
-            //表
-            MetaTable metaTable = new MetaTable().convertFromDbTable(table);
-            metaTable.setDatabaseCode(databaseCode);
-            if (metaTable.getTableLabelName() == null || "".equals(metaTable.getTableLabelName())) {
-                metaTable.setTableLabelName(table.getTableName());
-            }
-            metaTable.setRecorder(recorder);
-            if (tableId != null) {
-                metaTable.setTableId(tableId);
-            }
-            metaTableDao.saveNewObject(metaTable);
-            //列
-            List<SimpleTableField> columns = table.getColumns();
-            for (SimpleTableField tableField : columns) {
-                addSyncSingleTableColumn(recorder, metaTable, tableField);
-            }
+    private void addSyncSingleTable(String databaseCode, String recorder, SimpleTableInfo insertNewTable, String tableId) {
+        MetaTable metaTable = new MetaTable().convertFromDbTable(insertNewTable);
+        metaTable.setDatabaseCode(databaseCode);
+        if (metaTable.getTableLabelName() == null || "".equals(metaTable.getTableLabelName())) {
+            metaTable.setTableLabelName(insertNewTable.getTableName());
+        }
+        metaTable.setRecorder(recorder);
+        if (tableId != null) {
+            metaTable.setTableId(tableId);
+        }
+        metaTableDao.saveNewObject(metaTable);
+        //列
+        List<SimpleTableField> columns = insertNewTable.getColumns();
+        for (SimpleTableField tableField : columns) {
+            addSyncSingleTableColumn(recorder, metaTable, tableField);
+        }
+    }
+    private void addSyncData(String databaseCode, String recorder, List<SimpleTableInfo> insertNewTables) {
+        for (SimpleTableInfo table : insertNewTables) {
+            addSyncSingleTable(databaseCode, recorder, table, null);
         }
     }
 
@@ -241,15 +252,15 @@ public class MetaDataServiceImpl implements MetaDataService {
         metaColumnDao.mergeObject(metaColumn);
     }
 
-    private void deleteSyncData(Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple) {
-        for (MetaTable table : triple.getRight()) {
+    private void deleteSyncData(List<MetaTable> deleteTables) {
+        for (MetaTable table : deleteTables) {
             metaTableDao.deleteObjectReferences(table);
             metaTableDao.deleteObject(table);
         }
     }
 
-    private void updateSyncData(String recorder, Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple) {
-        for (Pair<MetaTable, SimpleTableInfo> pair : triple.getMiddle()) {
+    private void updateSyncData(String recorder,  List<Pair<MetaTable, SimpleTableInfo>> updateTables) {
+        for (Pair<MetaTable, SimpleTableInfo> pair : updateTables) {
             MetaTable oldTable = pair.getLeft();
             oldTable.setRecorder(recorder);
             SimpleTableInfo newTable = pair.getRight();

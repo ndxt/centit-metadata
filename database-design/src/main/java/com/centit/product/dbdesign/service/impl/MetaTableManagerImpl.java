@@ -271,7 +271,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
                 pendingMdTableDao.saveObjectReferences(pTable);
                 if (sqlList.size() > 0) {
                     if (VIEW.equals(pTable.getTableType())) {
-                        metaDataService.syncDb(pTable.getDatabaseCode(), currentUser, new String[]{pTable.getTableName()}, pTable.getTableId());
+                        metaDataService.syncSingleTable(pTable.getDatabaseCode(), currentUser, pTable.getTableName(), pTable.getTableId());
                     } else {
                         pendingToMeta(currentUser, pTable);
                     }

@@ -23,8 +23,6 @@ public class MetaTableCascade {
     // 关联的表
     private List<Table> relationTable;
 
-
-
     public void setTableInfo(MetaTable metaTable){
         this.databaseCode = metaTable.getDatabaseCode();
         this.table = metaTable.getTableName();
@@ -66,6 +64,7 @@ public class MetaTableCascade {
             tableFields.add(column);
         }
     }
+
     @Data
     static
     class Table{

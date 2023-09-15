@@ -2,6 +2,7 @@ package com.centit.product.metadata.po;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
+import com.centit.support.compiler.Lexer;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.metadata.TableReference;
@@ -212,6 +213,44 @@ public class MetaTable implements TableInfo, java.io.Serializable {
         return res;
     }
 
+    public final List<String> extraVersionFields() {
+        if(StringUtils.isBlank(this.checkVersionField))
+            return null;
+        String[] ss = StringUtils.split(this.checkVersionField, ",");
+        if(ss == null)
+            return null;
+        List<String> fields = new ArrayList<>(ss.length+1);
+        for(String s : ss){
+            if(StringUtils.isNotBlank(s)){
+                fields.add(s.trim());
+            }
+        }
+        return fields;
+    }
+
+    public final Map<String, Object> extraDeleteTag() {
+        Map<String, Object> params = new HashMap<>();
+        Lexer lexer = new Lexer(this.deleteTagField);
+        String field = lexer.getAWord();
+        while(StringUtils.isNotBlank(field)){
+            String aWord = lexer.getAWord();
+            String defaultValue = "1";
+            if("=".equals(aWord)){
+                aWord = lexer.getAWord();
+                if(StringUtils.isNotBlank(aWord)){
+                    defaultValue = aWord;
+                    aWord = lexer.getAWord();
+                }
+            }
+            params.put(field, defaultValue);
+            if(StringUtils.equalsAny(aWord, ",","&")){
+                field = lexer.getAWord();
+            } else {
+                break;
+            }
+        }
+        return params;
+    }
     public List<MetaRelation> getParents() {
         if (this.parents == null) {
             this.parents = new ArrayList<>(4);

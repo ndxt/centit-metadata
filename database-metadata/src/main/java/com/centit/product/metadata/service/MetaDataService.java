@@ -14,6 +14,9 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 元数据维护信息
+ */
 public interface MetaDataService {
 
     /**

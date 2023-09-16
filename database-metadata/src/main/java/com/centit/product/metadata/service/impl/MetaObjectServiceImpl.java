@@ -562,7 +562,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     private int innerSaveObject(String tableId, Map<String, Object> mainObj, Map<String, Object> extParams, boolean isUpdate, int withChildrenDeep) {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
-        ///todo 添加规则判段
+        // 添加规则判段
         checkFieldRule(tableInfo, mainObj);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -642,6 +642,39 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return innerSaveObject(tableId, object, null, true, withChildrenDeep);
     }
 
+    /**
+     * 更新数据，包括数据的子表信息，更新前检查版本信息是否一致，不一致抛出异常
+     * @param tableId 表ID
+     * @param object 数据记录
+     * @param withChildrenDeep 子表层次
+     * @return 大于0成功
+     */
+    @Override
+    public int updateObjectWithChildrenCheckVersion(String tableId, Map<String, Object> object, int withChildrenDeep){
+        MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
+        List<String> fields = tableInfo.extraVersionFields();
+        if(fields == null || fields.size()==0){
+            throw new ObjectException(object, ObjectException.SYSTEM_CONFIG_ERROR, "元数据配置不完整，缺少更新版本标识信息：" + tableId);
+        }
+
+        try {
+            SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+            Map<String, Object> mainObj = dao.getObjectById(object);
+            for(String field : fields){
+                if(! GeneralAlgorithm.equals(mainObj.get(field), object.get(field))){
+                    throw new ObjectException(object, ObjectException.DATA_VALIDATE_ERROR,
+                        "跟新前版本校验失败，数据可能已经被其他业务更改：" + tableId);
+                }
+            }
+        } catch (SQLException | IOException e) {
+            throw new ObjectException(object, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+
+        return innerSaveObject(tableId, object, null, true, withChildrenDeep);
+    }
+
     @Override
     public void deleteObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep) {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
@@ -653,6 +686,46 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             if (null == mainObj || mainObj.size() == 0) {
                 return;
             }
+            if(withChildrenDeep > 0) {
+                List<MetaRelation> mds = tableInfo.getMdRelations();
+                if (mds != null) {
+                    for (MetaRelation md : mds) {
+                        MetaTable relTableInfo = metaDataCache.getTableInfo(md.getChildTableId());
+                        if ("T".equals(relTableInfo.getTableType())) {
+                            List<MetaRelation> mdChilds = relTableInfo.getMdRelations();
+                            if (mdChilds != null && withChildrenDeep > 1) {
+                                JSONArray children = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
+                                    .listObjectsByProperties(md.fetchChildFk(mainObj));
+                                if (children != null && children.size() > 0) {
+                                    for (Object obj : children) {
+                                        deleteObjectWithChildren(relTableInfo.getTableId(),
+                                            (Map<String, Object>) obj, withChildrenDeep - 1);
+                                    }
+                                }
+                            } else {
+                                GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
+                                    .deleteObjectsByProperties(md.fetchChildFk(mainObj));
+                            }
+                        }
+                    }
+                }
+            }
+            dao.deleteObjectById(pk);
+        } catch (SQLException | IOException e) {
+            throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
+
+    private void innerSoftDeleteObject(Connection conn, MetaTable tableInfo, Map<String, Object> pk, int withChildrenDeep)
+        throws SQLException, IOException {
+        GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+        Map<String, Object> mainObj = dao.getObjectById(pk);
+        if(StringUtils.isNotBlank(tableInfo.getDeleteTagField())){
+            Map<String, Object> deleteTag = tableInfo.extraDeleteTag();
+            mainObj.putAll(deleteTag);
+            dao.updateObject(deleteTag.keySet(), mainObj);
+        }
+        if(withChildrenDeep > 0) {
             List<MetaRelation> mds = tableInfo.getMdRelations();
             if (mds != null) {
                 for (MetaRelation md : mds) {
@@ -662,21 +735,42 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         if (mdChilds != null && withChildrenDeep > 1) {
                             JSONArray children = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
                                 .listObjectsByProperties(md.fetchChildFk(mainObj));
-                            if(children != null  && children.size()> 0){
-                                for(Object obj : children){
-                                    deleteObjectWithChildren(relTableInfo.getTableId(),
-                                        (Map<String, Object>)obj, withChildrenDeep - 1);
+                            if (children != null && children.size() > 0) {
+                                for (Object obj : children) {
+                                    innerSoftDeleteObject(conn, relTableInfo,
+                                        (Map<String, Object>) obj, withChildrenDeep - 1);
                                 }
                             }
                         } else {
-                            GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo)
-                                .deleteObjectsByProperties(md.fetchChildFk(mainObj));
+                            if(StringUtils.isNotBlank(relTableInfo.getDeleteTagField())) {
+                                Map<String, Object> deleteTag = relTableInfo.extraDeleteTag();
+                                GeneralJsonObjectDao subTableDao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
+                                subTableDao.updateObjectsByProperties(deleteTag.keySet(), deleteTag, md.fetchChildFk(mainObj));
+                            }
                         }
                     }
                 }
             }
-            dao.deleteObjectById(pk);
-        } catch (Exception e) {
+        }
+    }
+
+    /**
+     * 逻辑删除数据，包括数据的子表信息， 前提是元数据中保存了逻辑删除信息，如果没有将会抛出异常
+     * @param tableId 表ID
+     * @param pk 主键数据
+     * @param withChildrenDeep 子表层次
+     */
+    @Override
+    public void softDeleteObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep){
+        MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
+        if(StringUtils.isBlank(tableInfo.getDeleteTagField())){
+            throw new ObjectException(pk, ObjectException.SYSTEM_CONFIG_ERROR, "元数据配置不完整，缺少逻辑删除标记信息：" + tableId);
+        }
+        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        try {
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            innerSoftDeleteObject(conn, tableInfo, pk, withChildrenDeep);
+        } catch (SQLException | IOException e) {
             throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }

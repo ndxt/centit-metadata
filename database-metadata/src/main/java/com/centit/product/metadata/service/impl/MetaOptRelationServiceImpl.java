@@ -34,8 +34,8 @@ public class MetaOptRelationServiceImpl implements MetaOptRelationService {
     }
 
     @Override
-    public void deleteMetaOptRelation(String id) {
-        metaOptRelationDao.deleteObjectById(id);
+    public void deleteMetaOptRelation(String relationId) {
+        metaOptRelationDao.deleteObjectById(relationId);
     }
 
     @Override
@@ -44,8 +44,8 @@ public class MetaOptRelationServiceImpl implements MetaOptRelationService {
     }
 
     @Override
-    public MetaOptRelation getMetaOptRelation(String tableId) {
-        return metaOptRelationDao.getObjectById(tableId);
+    public MetaOptRelation getMetaOptRelation(String relationId) {
+        return metaOptRelationDao.getObjectById(relationId);
     }
 
     @Override

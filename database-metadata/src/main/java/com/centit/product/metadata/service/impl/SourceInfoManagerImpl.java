@@ -54,11 +54,6 @@ public class SourceInfoManagerImpl implements SourceInfoManager {
     }
 
     @Override
-    public String getNextKey() {
-        return sourceInfoDao.getNextKey();
-    }
-
-    @Override
     public void mergeObject(SourceInfo sourceInfo){
         sourceInfoDao.mergeObject(sourceInfo);
     }

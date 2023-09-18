@@ -6,17 +6,47 @@ import com.centit.support.database.utils.PageDesc;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 元数据与业务关联关系
+ */
 public interface MetaOptRelationService {
+    /**
+     * 创建关联关系
+     * @param relation 关联信息
+     */
     void createMetaOptRelation(MetaOptRelation relation);
 
+    /**
+     * 更新关联信息
+     * @param relation  关联信息
+     */
     void updateMetaOptRelation(MetaOptRelation relation);
 
-    void deleteMetaOptRelation(String id);
+    /**
+     * 删除关联关系
+     * @param relationId 关系id
+     */
+    void deleteMetaOptRelation(String relationId);
 
+    /**
+     * 查询元数据与业务的关联关系
+     * @param params 筛选条件
+     * @param pageDesc 分页信息
+     * @return 关联关系列表
+     */
     List<MetaOptRelation> listMetaOptRelation(Map<String, Object> params, PageDesc pageDesc);
 
-    MetaOptRelation getMetaOptRelation(String tableId);
+    /**
+     * 获取元数据关联关系
+     * @param relationId 关系id
+     * @return 关系信息
+     */
+    MetaOptRelation getMetaOptRelation(String relationId);
 
+    /**
+     * 批量保存关联关系
+     * @param relations 关联关系列表
+     */
     void batchAddOptRelation(List<MetaOptRelation> relations);
 
 }

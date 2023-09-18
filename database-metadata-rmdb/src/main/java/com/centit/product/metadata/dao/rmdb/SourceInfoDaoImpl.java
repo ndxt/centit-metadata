@@ -4,12 +4,10 @@ import com.alibaba.fastjson2.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.framework.jdbc.dao.DatabaseOptUtils;
-import com.centit.framework.jdbc.dao.JdbcTemplateUtils;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.SourceInfo;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
-import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.database.utils.QueryAndParams;
 import com.centit.support.database.utils.QueryUtils;
@@ -60,20 +58,13 @@ public class SourceInfoDaoImpl extends BaseDaoImpl<SourceInfo, String> implement
     }
 
     @Override
-    public String getNextKey() {
-        return StringBaseOpt.fillZeroForString(
-            String.valueOf(
-                JdbcTemplateUtils.getSequenceNextValue(
-                    this.jdbcTemplate, "S_DATABASECODE")), 10);
-    }
-
-    @Override
     public JSONArray queryDatabaseAsJson(String databaseName, PageDesc pageDesc) {
         if (StringUtils.isBlank(databaseName)) {
             return super.listObjectsByPropertiesAsJson(new HashMap<>(1), pageDesc);
         }
         String matchStr = QueryUtils.getMatchString(databaseName);
-        return super.listObjectsByFilterAsJson("where DATABASE_NAME like ? or DATABASE_URL like ?", new Object[]{matchStr, matchStr}, pageDesc);
+        return super.listObjectsByFilterAsJson("where DATABASE_NAME like ? or DATABASE_URL like ?",
+            new Object[]{matchStr, matchStr}, pageDesc);
     }
 
     /**

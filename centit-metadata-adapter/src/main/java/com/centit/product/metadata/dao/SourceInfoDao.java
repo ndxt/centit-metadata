@@ -16,9 +16,6 @@ public interface SourceInfoDao {
 
     SourceInfo getDatabaseInfoById(String databaseCode);
 
-    //jdbc
-    String getNextKey();
-
     JSONArray queryDatabaseAsJson(String databaseName, PageDesc pageDesc);
 
     /**

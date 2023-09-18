@@ -61,13 +61,6 @@ public class SourceInfoDaoImpl implements SourceInfoDao{
         return null;
     }
 
-
-    @Override
-    public String getNextKey() {
-        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
-    }
-
     @Override
     public JSONArray queryDatabaseAsJson(String databaseName, PageDesc pageDesc) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,

@@ -136,10 +136,12 @@ public class MetaTable implements TableInfo, java.io.Serializable {
 
     //添加逻辑删除 softdelete 标识字段
     @Column(name = "DELETE_TAG_FIELD")
+    @Length(max = 100, message = "字段长度不能大于{max}")
     private String deleteTagField;
 
     //更新前版本检查 checkVersion 标识字段
     @Column(name = "CHECK_VERSION_FIELD")
+    @Length(max = 100, message = "字段长度不能大于{max}")
     private String checkVersionField;
 
     /**

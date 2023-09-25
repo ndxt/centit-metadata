@@ -242,7 +242,10 @@ public class MetaTable implements TableInfo, java.io.Serializable {
                     aWord = lexer.getAWord();
                 }
             }
-            params.put(field, defaultValue);
+            MetaColumn mc = this.findFieldByColumn(field);
+            if(mc !=null) {
+                params.put(mc.getPropertyName(), defaultValue);
+            }
             if(StringUtils.equalsAny(aWord, ",","&")){
                 field = lexer.getAWord();
             } else {

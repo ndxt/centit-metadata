@@ -235,6 +235,11 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
+    public MetaTable fetchTableInfo(String tableId){
+        return metaDataCache.getTableInfo(tableId);
+    }
+
+    @Override
     public Map<String, Object> getObjectById(String tableId, Map<String, Object> pk) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());

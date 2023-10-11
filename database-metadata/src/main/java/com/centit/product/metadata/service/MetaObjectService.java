@@ -12,6 +12,7 @@ import java.util.Map;
  */
 public interface MetaObjectService {
 
+    MetaTable fetchTableInfo(String tableId);
     /**
      * 根据主键获取数据
      * @param tableId 表ID

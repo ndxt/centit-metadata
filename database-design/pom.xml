@@ -79,13 +79,6 @@
             <artifactId>alimt20181012</artifactId>
             <version>1.0.3</version>
         </dependency>
-        <!--<dependency>
-            <groupId>com.sun</groupId>
-            <artifactId>tools</artifactId>
-            <version>${jdk.version}</version>
-            <systemPath>${java.home}/../lib/tools.jar</systemPath>
-            <scope>system</scope>
-        </dependency>-->
 
         <dependency>
             <groupId>javax.servlet</groupId>

@@ -190,15 +190,17 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         if (pk.size() == 0) {
             throw new ObjectException(tableInfo.getTableName() + "没有传入主键");
         }
+        Map<String, Object> dbObject;
         if (dao.checkHasAllPkColumns(pk)) {
-            return dao.getObjectById(pk);
+            dbObject = dao.getObjectById(pk);
         } else if (pk.containsKey(MetaTable.WORKFLOW_INST_ID_PROP)) {
-            return dao.getObjectByProperties(pk);
+            dbObject = dao.getObjectByProperties(pk);
         } else {
             throw new ObjectException("表或者视图 " + tableInfo.getTableName()
                 + " 缺少对应主键:" + JSON.toJSONString(pk));
         }
-
+        //添加数据字典转换
+        return DictionaryMapUtils.mapJsonObject(dbObject, this.fetchDictionaryMapColumns(tableInfo));
     }
 
     private Map<String, Object> innerGetObjectPartFieldsById(final Connection conn, final MetaTable tableInfo,
@@ -908,11 +910,10 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             obj = DatabaseAccess.getScalarObjectQuery(conn,
                 sGetCountSql, params);
             pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
-            JSONArray ja = DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(tableInfo));
             if ("C".equals(tableInfo.getTableType())) {
-                ja = mapListPoToDto(ja);
+                objs = mapListPoToDto(objs);
             }
-            return ja;
+            return DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(tableInfo));
         } catch (Exception e) {
             throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
@@ -1009,7 +1010,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         return dictionaryMapColumns;
     }
 
-    private void setDictionaryColumns(List<DictionaryMapColumn> dictionaryMapColumns, MetaColumn mc, boolean isExpression) {
+    private static void setDictionaryColumns(List<DictionaryMapColumn> dictionaryMapColumns, MetaColumn mc, boolean isExpression) {
         if (mc.getReferenceData().startsWith("{")) {
             Object jsonObject = JSON.parse(mc.getReferenceData());
             if (jsonObject instanceof JSONObject) {

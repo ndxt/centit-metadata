@@ -56,18 +56,6 @@
             <version>1.18.2</version>
         </dependency>
 
-        <!--        <dependency>
-            <groupId>com.aliyun</groupId>
-            <artifactId>aliyun-java-sdk-core</artifactId>
-            <version>4.6.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.aliyun</groupId>
-            <artifactId>aliyun-java-sdk-alimt</artifactId>
-            <version>1.0.3</version>
-        </dependency>-->
-
         <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>tea-openapi</artifactId>

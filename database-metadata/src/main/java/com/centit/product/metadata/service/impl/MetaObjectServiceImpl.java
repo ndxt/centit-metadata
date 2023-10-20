@@ -93,13 +93,14 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     private static void makeObjectValueByGenerator(Map<String, Object> object, Map<String, Object> extParams,
                                                    MetaTable metaTable, JsonObjectDao sqlDialect,
-                                                   long pkOrder, boolean isGetObject)
+                                                   long pkOrder, boolean isGetObject,
+                                                   boolean createNew)
         throws SQLException, IOException {
 
         for (MetaColumn field : metaTable.getMdColumns()) {
             if (StringUtils.equalsAny(field.getAutoCreateRule(), "C", "U", "S", "W", "F", "O")
-               &&(object.get(field.getPropertyName()) == null || "A".equals(field.getAutoCreateCondition()))) {
-
+               && ( "A".equals(field.getAutoCreateCondition()) ||
+                    (createNew && object.get(field.getPropertyName()) == null))){
                 switch (field.getAutoCreateRule()) {
                     case "U": // uuid
                         object.put(field.getPropertyName(), UuidOpt.getUuidAsString32());
@@ -401,7 +402,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-            makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l, true);
+            makeObjectValueByGenerator(objectMap, extParams, tableInfo, dao, 1l, true, true);
 
             fetchObjectParents(conn, objectMap, tableInfo);
             return objectMap;
@@ -575,11 +576,13 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             if (isUpdate) {
+                GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
+                makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao, 1l, false, false);
                 prepareObjectForSave(mainObj, tableInfo);
-                GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(mainObj);
+                dao.updateObject(mainObj);
             } else {
                 GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
-                makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao, 1l, false);
+                makeObjectValueByGenerator(mainObj, extParams, tableInfo, dao, 1l, false, true);
                 prepareObjectForSave(mainObj, tableInfo);
                 if(tableInfo.hasGeneratedKeys()){
                     Map<String, Object> ids = dao.saveNewObjectAndFetchGeneratedKeys(mainObj);
@@ -645,8 +648,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public int updateObjectWithChildren(String tableId, Map<String, Object> object, int withChildrenDeep) {
-        return innerSaveObject(tableId, object, null, true, withChildrenDeep);
+    public int updateObjectWithChildren(String tableId, Map<String, Object> object, Map<String, Object> extParams, int withChildrenDeep) {
+        return innerSaveObject(tableId, object, extParams, true, withChildrenDeep);
     }
 
     /**
@@ -657,7 +660,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
      * @return 大于0成功
      */
     @Override
-    public int updateObjectWithChildrenCheckVersion(String tableId, Map<String, Object> object, int withChildrenDeep){
+    public int updateObjectWithChildrenCheckVersion(String tableId, Map<String, Object> object, Map<String, Object> extParams, int withChildrenDeep){
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
         List<String> fields = tableInfo.extraVersionFields();
         if(fields == null || fields.size()==0){
@@ -783,15 +786,15 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     }
 
     @Override
-    public int mergeObjectWithChildren(String tableId, Map<String, Object> object, int withChildrenDeep) {
+    public int mergeObjectWithChildren(String tableId, Map<String, Object> object, Map<String, Object> extParams, int withChildrenDeep) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         Map<String, Object> dbObjectPk = tableInfo.fetchObjectPk(object);
         Map<String, Object> dbObject = dbObjectPk == null ? null :
             getObjectById(tableId, dbObjectPk);
         if (dbObject == null) {
-            return saveObjectWithChildren(tableId, object, withChildrenDeep);
+            return saveObjectWithChildren(tableId, object, extParams, withChildrenDeep);
         }
-        return updateObjectWithChildren(tableId, object, withChildrenDeep);
+        return updateObjectWithChildren(tableId, object, extParams, withChildrenDeep);
     }
 
     @Override
@@ -1008,6 +1011,43 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             }
         }
         return dictionaryMapColumns;
+    }
+
+    @Override
+    public Map<String, String> fetchColumnRefData(String tableId, String columnCode, String topUnit, String lang) {
+        MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
+        MetaColumn mc = tableInfo.findFieldByColumn(columnCode);
+        //引用类型 0：没有：1： 数据字典 2：JSON表达式 3：sql语句  4：复合数据字典
+        if ("1".equals(mc.getReferenceType())) {
+            return CodeRepositoryUtil.getLabelValueMap(mc.getReferenceData(), topUnit, lang);
+        } else if ("2".equals(mc.getReferenceType())) {
+            String jsonStr = mc.getReferenceData().trim();
+            Object jsonObject = JSON.parse(jsonStr);
+            if(jsonObject instanceof JSONObject) {
+                return CollectionsOpt.objectMapToStringMap((Map)jsonObject);
+            }
+            return null;
+        } else if ("3".equals(mc.getReferenceType())) {
+            String sqlStr = mc.getReferenceData().trim();
+            SqlDictionaryMapSupplier mapSupplier= new SqlDictionaryMapSupplier(
+                sourceInfoDao.getDatabaseInfoById(tableInfo.getDatabaseCode()),
+                sqlStr);
+            return mapSupplier.get();
+        } else if ("4".equals(mc.getReferenceType())) {
+            Object jsonObject = JSON.parse(mc.getReferenceData());
+            Map<String, String> datamap = new HashMap<>(100);
+            if (jsonObject instanceof JSONObject) {
+                for (Map.Entry<String, Object> ent : ((JSONObject) jsonObject).entrySet()) {
+                    Map<String, String> dictMap = CodeRepositoryUtil.getLabelValueMap(
+                        StringBaseOpt.castObjectToString(ent.getValue()), topUnit, lang);
+
+                    if(dictMap!=null)
+                        datamap.putAll(dictMap);
+                }
+            }
+            return datamap;
+        }
+        return null;
     }
 
     private static void setDictionaryColumns(List<DictionaryMapColumn> dictionaryMapColumns, MetaColumn mc, boolean isExpression) {

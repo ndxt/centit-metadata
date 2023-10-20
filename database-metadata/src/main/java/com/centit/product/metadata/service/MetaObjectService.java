@@ -164,19 +164,21 @@ public interface MetaObjectService {
      * 更新数据，包括数据的子表信息
      * @param tableId 表ID
      * @param object 数据记录
+     * @param extParams 扩展数据，用于生成字段默认值
      * @param withChildrenDeep 子表层次
      * @return 大于0成功
      */
-    int updateObjectWithChildren(String tableId, Map<String, Object> object, int withChildrenDeep);
+    int updateObjectWithChildren(String tableId, Map<String, Object> object, Map<String, Object> extParams, int withChildrenDeep);
 
     /**
      * 更新数据，包括数据的子表信息，更新前检查版本信息是否一致，不一致抛出异常
      * @param tableId 表ID
      * @param object 数据记录
+     * @param extParams 扩展数据，用于生成字段默认值
      * @param withChildrenDeep 子表层次
      * @return 大于0成功
      */
-    int updateObjectWithChildrenCheckVersion(String tableId, Map<String, Object> object, int withChildrenDeep);
+    int updateObjectWithChildrenCheckVersion(String tableId, Map<String, Object> object, Map<String, Object> extParams, int withChildrenDeep);
 
     /**
      * 删除数据，包括数据的子表信息
@@ -198,10 +200,11 @@ public interface MetaObjectService {
      * 合并数据，包括数据的子表信息
      * @param tableId 表ID
      * @param object 数据记录
+     * @param extParams 扩展数据，用于生成字段默认值
      * @param withChildrenDeep 子表层次
      * @return 大于0成功
      */
-    int mergeObjectWithChildren(String tableId, Map<String, Object> object, int withChildrenDeep);
+    int mergeObjectWithChildren(String tableId, Map<String, Object> object, Map<String, Object> extParams, int withChildrenDeep);
 
     /**
      * 根据属性查询数据
@@ -261,4 +264,13 @@ public interface MetaObjectService {
      */
     JSONArray paramDriverPageQueryObjects(String tableId, String paramDriverSql, Map<String, Object> params, PageDesc pageDesc);
 
+    /**
+     * 获取数据字段的引用数据
+     * @param tableId 表的id
+     * @param columnCode 对应的字段
+     * @param topUnit 租户id
+     * @param lang 当前语言
+     * @return 数据字典map
+     */
+    Map<String, String> fetchColumnRefData(String tableId, String columnCode, String topUnit, String lang);
 }

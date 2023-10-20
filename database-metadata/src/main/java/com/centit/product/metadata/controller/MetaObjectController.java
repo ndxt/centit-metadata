@@ -14,14 +14,18 @@ import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.framework.model.adapter.PlatformEnvironment;
 import com.centit.framework.model.basedata.OperationLog;
 import com.centit.framework.model.basedata.OsInfo;
+import com.centit.product.metadata.po.DataCheckRule;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.product.metadata.transaction.MetadataJdbcTransaction;
+import com.centit.product.metadata.utils.SessionDataUtils;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -145,27 +150,29 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public List<Map<String, Object>> batchMergeObjectWithChildren(@PathVariable String tableId,
                                                                   @RequestBody String mergeArray,
-                                                                  Integer withChildrenDeep) {
+                                                                  Integer withChildrenDeep,
+                                                                  HttpServletRequest request) {
+        HashMap<String, Object> hashMap = SessionDataUtils.createSessionDataMap(WebOptUtils.getCurrentUserDetails(request));
         checkUserOptPower();
         JSONArray jsonArray = JSON.parseArray(mergeArray);
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         List<Map<String, Object>> list = new ArrayList<>();
         jsonArray.forEach(object -> {
-            innerMergeObject(tableId, tableInfo, (JSONObject) object, withChildrenDeep == null ? 1 : withChildrenDeep);
+            innerMergeObject(tableId, tableInfo, (JSONObject) object, hashMap, withChildrenDeep == null ? 1 : withChildrenDeep);
             Map<String, Object> primaryKey = tableInfo.fetchObjectPk((JSONObject) object);
             list.add(primaryKey);
         });
         return list;
     }
 
-    private void innerMergeObject(String tableId, MetaTable tableInfo, JSONObject object, Integer withChildrenDeep) {
+    private void innerMergeObject(String tableId, MetaTable tableInfo, JSONObject object, Map<String, Object> extParams, Integer withChildrenDeep) {
         Map<String, Object> dbObjectPk = tableInfo.fetchObjectPk(object);
         Map<String, Object> dbObject = dbObjectPk == null ? null :
             metaObjectService.getObjectById(tableId, dbObjectPk);
         if (dbObject == null) {
-            metaObjectService.saveObjectWithChildren(tableId, object, withChildrenDeep);
+            metaObjectService.saveObjectWithChildren(tableId, object, extParams, withChildrenDeep);
         } else {
-            metaObjectService.updateObjectWithChildren(tableId, object, withChildrenDeep);
+            metaObjectService.updateObjectWithChildren(tableId, object, extParams, withChildrenDeep);
         }
     }
 
@@ -187,7 +194,10 @@ public class MetaObjectController extends BaseController {
     public ResponseData updateObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                  @RequestBody String jsonString, HttpServletRequest request) {
         checkUserOptPower();
-        metaObjectService.updateObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
+        metaObjectService.updateObjectWithChildren(
+            tableId, JSON.parseObject(jsonString),
+            SessionDataUtils.createSessionDataMap(WebOptUtils.getCurrentUserDetails(request)),
+            withChildrenDeep == null ? 1 : withChildrenDeep);
         saveOperationLog(request, jsonString, tableId, "update");
         return ResponseData.makeSuccessResponse();
     }
@@ -257,5 +267,23 @@ public class MetaObjectController extends BaseController {
         if (!platformEnvironment.loginUserIsExistWorkGroup(osIds, userCode)) {
             throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您没有权限！");
         }
+    }
+
+    @ApiOperation(value = "获取表字段的参照引用数据")@ApiImplicitParams({
+        @ApiImplicitParam(
+            name = "tableId", value = "表id",
+            required = true, paramType = "path", dataType = "String"),
+        @ApiImplicitParam(
+            name = "columnCode", value = "字段代码",
+            required = true, paramType = "path", dataType = "String")
+    })
+    @RequestMapping(value = "/refData/{tableId}/{columnCode}", method = RequestMethod.GET)
+    @WrapUpResponseBody
+    @MetadataJdbcTransaction
+    public Map<String, String> getColumnRefDictionary(@PathVariable String tableId, @PathVariable String columnCode,
+                                               HttpServletRequest request) {
+        return metaObjectService.fetchColumnRefData(tableId, columnCode,
+            WebOptUtils.getCurrentTopUnit(request),
+            WebOptUtils.getCurrentLang(request));
     }
 }

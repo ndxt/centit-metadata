@@ -78,4 +78,13 @@ public class SourceInfoDaoImpl extends BaseDaoImpl<SourceInfo, String> implement
         QueryAndParams queryAndParams = QueryAndParams.createFromQueryAndNamedParams(QueryUtils.translateQuery(sql, params));
         return NumberBaseOpt.castObjectToInteger(DatabaseOptUtils.getScalarObjectQuery(this, queryAndParams.getQuery(),queryAndParams.getParams()));
     }
+
+    @Override
+    public JSONArray listRelativeOsInfo(String databaseId) {
+        String sqlSen = "select a.OS_ID, a.OS_NAME "+
+            "from m_application_resources b join F_OS_INFO a on (b.os_id = a.os_id) "+
+            "where b.database_id = ?";
+        return DatabaseOptUtils.listObjectsBySqlAsJson(this, sqlSen, new Object[]{databaseId});
+    }
+
 }

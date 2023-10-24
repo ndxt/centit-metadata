@@ -14,7 +14,6 @@ import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.framework.model.adapter.PlatformEnvironment;
 import com.centit.framework.model.basedata.OperationLog;
 import com.centit.framework.model.basedata.OsInfo;
-import com.centit.product.metadata.po.DataCheckRule;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;

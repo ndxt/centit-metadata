@@ -64,6 +64,7 @@ public interface SourceInfoManager {
      */
     JSONArray listDatabaseAsJson(Map<String, Object> filterMap, PageDesc pageDesc);
 
+    void appendRelativeOsInfo(JSONArray sourceInfoList);
     /**
      * 根据数据库名称 模糊查找数据源
      * @param databaseName 数据库名或者url中的信息

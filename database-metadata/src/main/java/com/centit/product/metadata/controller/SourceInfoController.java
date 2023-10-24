@@ -76,7 +76,8 @@ public class SourceInfoController extends BaseController {
             searchColumn.put("topUnit", topUnit);
         }
         JSONArray listObjects = databaseInfoMag.listDatabaseAsJson(searchColumn, pageDesc);
-
+        //附加关联的应用信息
+        databaseInfoMag.appendRelativeOsInfo(listObjects);
         return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, SourceInfo.class);
     }
 

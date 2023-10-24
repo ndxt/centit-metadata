@@ -82,6 +82,24 @@ public class SourceInfoManagerImpl implements SourceInfoManager {
     }
 
     @Override
+    @Transactional
+    public void appendRelativeOsInfo(JSONArray sourceInfoList){
+        if(sourceInfoList==null || sourceInfoList.size()==0)
+            return;
+
+        for(Object obj : sourceInfoList){
+            if(obj instanceof JSONObject){
+                JSONObject jsonObject = (JSONObject) obj;
+                String databaseCode = jsonObject.getString("databaseCode");
+                JSONArray osList = sourceInfoDao.listRelativeOsInfo(databaseCode);
+                if(osList!=null){
+                    jsonObject.put("relativeOs", osList);
+                }
+            }
+        }
+    }
+
+    @Override
     public JSONArray queryDatabaseAsJson(String databaseName, PageDesc pageDesc){
         return sourceInfoDao.queryDatabaseAsJson(databaseName, pageDesc);
     }

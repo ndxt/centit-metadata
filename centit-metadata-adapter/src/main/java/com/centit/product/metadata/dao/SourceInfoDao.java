@@ -37,4 +37,5 @@ public interface SourceInfoDao {
 
     List<SourceInfo> listObjects();
 
+    JSONArray listRelativeOsInfo(String databaseId);
 }

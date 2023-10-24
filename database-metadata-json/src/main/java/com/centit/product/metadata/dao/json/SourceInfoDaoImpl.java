@@ -110,4 +110,9 @@ public class SourceInfoDaoImpl implements SourceInfoDao{
     public List<SourceInfo> listObjects() {
         return sourceInfoRepo.getCachedTarget();
     }
+
+    @Override
+    public JSONArray listRelativeOsInfo(String databaseId) {
+        return null;
+    }
 }

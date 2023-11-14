@@ -2,16 +2,14 @@ package com.centit.product.metadata.controller;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
-import com.centit.product.metadata.po.MetaColumn;
-import com.centit.product.metadata.po.MetaRelation;
-import com.centit.product.metadata.po.MetaTable;
-import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.metadata.po.*;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
@@ -19,10 +17,7 @@ import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.SimpleTableInfo;
-import com.centit.support.database.utils.DatabaseAccess;
-import com.centit.support.database.utils.PageDesc;
-import com.centit.support.database.utils.QueryAndNamedParams;
-import com.centit.support.database.utils.QueryUtils;
+import com.centit.support.database.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -200,4 +195,61 @@ public class MetadataQueryController extends BaseController {
     public List<SimpleTableInfo> syncTables(@PathVariable String databaseCode){
         return metaDataService.listRealTablesWithoutColumn(databaseCode);
     }
+
+    @ApiOperation(value = "查询表的SQL向导元数据")
+    @GetMapping(value = "/sqlWizard/{tableId}/{aliasName}")
+    @WrapUpResponseBody
+    public JSONObject sqlWizardMateData(@PathVariable("tableId") String tableId,
+                   @PathVariable("aliasName") String aliasName, HttpServletRequest request) {
+        MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
+        SourceInfo sourceInfo = metaDataService.getDatabaseInfo(tableInfo.getDatabaseCode());
+        JSONObject json = new JSONObject();
+        json.put("databaseType", sourceInfo.getDBType().name());
+        JSONArray tableList = new JSONArray();
+        JSONObject tableJson = new JSONObject();
+        tableJson.put("table", tableInfo.getTableName());
+        tableJson.put("tableAlias", aliasName);
+        tableJson.put("title", tableInfo.getTableLabelName());
+        tableJson.put("tableId", tableInfo.getTableId());
+        tableList.add(tableJson);
+        List<MetaRelation> relations = tableInfo.getMdRelations();
+        if(relations != null){
+            int ind = 0;
+            for (MetaRelation relation : relations){
+                tableJson = new JSONObject();
+                MetaTable childTableInfo = metaDataCache.getTableInfo(relation.getChildTableId());
+                tableJson.put("table", childTableInfo.getTableName());
+                tableJson.put("tableAlias", aliasName+"_"+ind);
+                tableJson.put("title", childTableInfo.getTableLabelName());
+                tableJson.put("tableId", relation.getChildTableId());
+
+                JSONArray joinColumns = new JSONArray();
+                List<MetaRelDetail> relDetails = relation.getRelationDetails();
+                if(relDetails != null) {
+                    for(MetaRelDetail relDetail : relDetails){
+                        JSONObject relJson = new JSONObject();
+                        relJson.put("leftColumn", relDetail.getParentColumnCode());
+                        relJson.put("rightColumn", relDetail.getChildColumnCode());
+                        joinColumns.add(relJson);
+                    }
+                }
+                tableJson.put("joinColumns", joinColumns);
+                tableList.add(tableJson);
+                ind++;
+            }
+        }
+        json.put("tableList", tableList);
+
+        JSONArray tableFields = new JSONArray();
+        for(MetaColumn column : tableInfo.getMdColumns()){
+            JSONObject colJson = new JSONObject();
+            colJson.put("column", column.getColumnName());
+            colJson.put("tableAlias", aliasName);
+            colJson.put("title", column.getFieldLabelName());
+            tableFields.add(colJson);
+        }
+        json.put("tableFields", tableFields);
+        return json;
+    }
+
 }

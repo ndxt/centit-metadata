@@ -249,7 +249,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return innerGetObjectById(conn, tableInfo, pk);
-        } catch (Exception e) {
+        } catch (SQLException | IOException e) {
             throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -330,7 +330,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 : innerGetObjectById(conn, tableInfo, pk);
             mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(tableInfo));
             return fetchObjectParentAndChildren(tableInfo, mainObj, parents, children);
-        } catch (Exception e) {
+        } catch (SQLException | IOException e) {
             throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -360,7 +360,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 }
             }
             return mainObj;
-        } catch (Exception e) {
+        } catch (SQLException | IOException e) {
             throw new ObjectException(mainObj, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -381,7 +381,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 fetchObjectParents(conn, mainObj, tableInfo);
             }
             return mainObj;
-        } catch (Exception e) {
+        } catch (SQLException | IOException e) {
             throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -406,7 +406,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
             fetchObjectParents(conn, objectMap, tableInfo);
             return objectMap;
-        } catch (Exception e) {
+        } catch (SQLException | IOException e) {
             throw new ObjectException(objectMap, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -452,7 +452,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(object);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new ObjectException(object, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -469,7 +469,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
             return dao.updateObjectsByProperties(fields, object, dao.makePkFieldMap(object));
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new ObjectException(object, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -483,7 +483,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
                 .deleteObjectsByProperties(filterProperties);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new ObjectException(filterProperties, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -499,7 +499,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
                 .updateObjectsByProperties(fields, fieldValues, filterProperties);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new ObjectException(fieldValues, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -521,7 +521,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).deleteObjectById(pk);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new ObjectException(pk, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -597,6 +597,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     dao.saveNewObject(mainObj);
                 }
             }
+
             if(withChildrenDeep<1){
                 return 1;
             }
@@ -611,28 +612,30 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                             List<Map<String, Object>> subTable = null;
                             Map<String, Object> ref = md.fetchChildFk(mainObj);
 
-                            if (subObjects instanceof Map) {
-                                subTable = new ArrayList<Map<String, Object>>(2);
-                                ((Map<String, Object>) subObjects).putAll(ref);
-                                subTable.add((Map<String, Object>) subObjects);
-                            } else if (subObjects instanceof List) {
+                            if (subObjects instanceof List) {
                                 subTable = (List<Map<String, Object>>) subObjects;
                                 for (Map<String, Object> subObj : subTable) {
                                     subObj.putAll(ref);
                                 }
+                            } else if (subObjects instanceof Map) {
+                                subTable = new ArrayList<>(2);
+                                ((Map<String, Object>) subObjects).putAll(ref);
+                                subTable.add((Map<String, Object>) subObjects);
                             }
-                            //if(subTable!=null) {
-                                //List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
-                                GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
-                                this.replaceObjectsAsTabulation(dao, relTableInfo, subTable, extParams,
-                                    ref, withChildrenDeep - 1);
-                            //}
+
+                            if(subTable!=null) { // 给一个空的，把子对象全部删除
+                                subTable=new ArrayList<>(0);
+                            }
+                            //List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
+                            GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
+                            this.replaceObjectsAsTabulation(dao, relTableInfo, subTable, extParams,
+                                ref, withChildrenDeep - 1);
                         }
                     }
                 }
             }
             return 1;
-        } catch (Exception e) {
+        } catch (SQLException |IOException e) {
             throw new ObjectException(mainObj, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -806,7 +809,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             ja = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).listObjectsByProperties(filter);
             return DictionaryMapUtils.mapJsonArray(ja, this.fetchDictionaryMapColumns(tableInfo));
-        } catch (Exception e) {
+        } catch (SQLException | IOException e) {
             throw new ObjectException(filter, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -917,7 +920,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 objs = mapListPoToDto(objs);
             }
             return DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(tableInfo));
-        } catch (Exception e) {
+        } catch (SQLException | IOException e) {
             throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
@@ -949,7 +952,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             pageDesc.setTotalRows(
                 NumberBaseOpt.castObjectToInteger(DatabaseAccess.queryTotalRows(conn, querySql, params)));
             return DictionaryMapUtils.mapJsonArray(objs, this.fetchDictionaryMapColumns(tableInfo));
-        } catch (Exception e) {
+        } catch (SQLException | IOException e) {
             throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }

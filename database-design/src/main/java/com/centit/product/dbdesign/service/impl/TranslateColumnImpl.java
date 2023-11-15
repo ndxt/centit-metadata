@@ -39,7 +39,7 @@ public class TranslateColumnImpl implements TranslateColumn {
         return new com.aliyun.alimt20181012.Client(config);
     }
 
-    private String translate (String labelName)  throws Exception {
+    private String translate (String labelName) throws Exception {
         if(StringUtils.isBlank(labelName)){
             return null;
         }

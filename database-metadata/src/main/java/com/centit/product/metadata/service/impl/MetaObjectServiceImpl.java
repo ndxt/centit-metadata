@@ -52,33 +52,42 @@ public class MetaObjectServiceImpl implements MetaObjectService {
 
     private static Map<String, Object> prepareObjectForSave(Map<String, Object> object, MetaTable metaTable) {
         for (MetaColumn col : metaTable.getMdColumns()) {
-            Object fieldValue = object.get(col.getPropertyName());
+            String fieldName = col.getPropertyName();
+            Object fieldValue = object.get(fieldName);
+
+            if(fieldValue==null){
+                fieldName = col.getColumnName();
+                fieldValue = object.get(fieldName);
+            }
+
             if (fieldValue != null) {
                 switch (col.getFieldType()) {
                     case FieldType.DATE:
                         /*object.put(col.getPropertyName(), DatetimeOpt.castObjectToSqlDate(fieldValue));
                         break;*/
                     case FieldType.DATETIME:
+                        object.put(fieldName, DatetimeOpt.castObjectToDate(fieldValue));
+                        break;
                     case FieldType.TIMESTAMP:
-                        object.put(col.getPropertyName(), DatetimeOpt.castObjectToSqlTimestamp(fieldValue));
+                        object.put(fieldName, DatetimeOpt.castObjectToSqlTimestamp(fieldValue));
                         break;
                     case FieldType.INTEGER:
                     case FieldType.LONG:
-                        object.put(col.getPropertyName(), NumberBaseOpt.castObjectToLong(fieldValue));
+                        object.put(fieldName, NumberBaseOpt.castObjectToLong(fieldValue));
                         break;
                     case FieldType.MONEY:
-                        object.put(col.getPropertyName(), NumberBaseOpt.castObjectToBigDecimal(fieldValue));
+                        object.put(fieldName, NumberBaseOpt.castObjectToBigDecimal(fieldValue));
                         break;
                     case FieldType.FLOAT:
                     case FieldType.DOUBLE:
-                        object.put(col.getPropertyName(), NumberBaseOpt.castObjectToDouble(fieldValue));
+                        object.put(fieldName, NumberBaseOpt.castObjectToDouble(fieldValue));
                         break;
                     case FieldType.STRING:
                     case FieldType.TEXT:
-                        object.put(col.getPropertyName(), StringBaseOpt.castObjectToString(fieldValue));
+                        object.put(fieldName, StringBaseOpt.castObjectToString(fieldValue));
                         break;
                     case FieldType.BOOLEAN:
-                        object.put(col.getPropertyName(),
+                        object.put(fieldName,
                             BooleanBaseOpt.castObjectToBoolean(fieldValue, false) ?
                                 BooleanBaseOpt.ONE_CHAR_TRUE : BooleanBaseOpt.ONE_CHAR_FALSE);
                         break;

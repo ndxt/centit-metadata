@@ -39,8 +39,7 @@ public abstract class AbstractDBConnectPools {
         ds.setPassword(dsDesc.getClearPassword());
 
         ds.setJdbcUrl(dsDesc.getDatabaseUrl());
-        ds.setConnectionTimeout(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("maxWaitMillis"), 10000));
+
         ds.setMaximumPoolSize(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("maxActive"), 50));
         ds.setMaxLifetime(NumberBaseOpt.castObjectToInteger(

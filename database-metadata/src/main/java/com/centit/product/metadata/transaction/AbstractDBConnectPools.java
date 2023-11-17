@@ -47,8 +47,10 @@ public abstract class AbstractDBConnectPools {
             dsDesc.getExtProp("maxLifetime"), 180000));
         ds.setIdleTimeout(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("idleTimeout"), 6000));
-        ds.setValidationTimeout(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("validationTimeout"), 5000));
+
+        ds.setConnectionTimeout(NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("connectionTimeout"), 5000));
+
         ds.setMinimumIdle(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("minIdle"), 5));
 
@@ -56,6 +58,8 @@ public abstract class AbstractDBConnectPools {
         if(StringUtils.isBlank(validationQuery)){
             validationQuery = DBType.getDBValidationQuery(dbType);
         }
+        ds.setValidationTimeout(NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("validationTimeout"), 5000));
 
         boolean testWhileIdle = BooleanBaseOpt.castObjectToBoolean(
             dsDesc.getExtProp("testWhileIdle"), true);

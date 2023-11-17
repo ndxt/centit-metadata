@@ -101,6 +101,10 @@ public class SourceInfo implements ISourceInfo, Serializable {
     public SourceInfo() {
     }
 
+    public void setDatabaseUrl(String databaseUrl) {
+        this.databaseUrl = StringUtils.trim(databaseUrl);;
+    }
+
     public SourceInfo(String databaseCode, String databaseName) {
         this.databaseCode = databaseCode;
         this.databaseName = databaseName;
@@ -110,7 +114,7 @@ public class SourceInfo implements ISourceInfo, Serializable {
                       String username, String password, String dataDesc) {
         this.databaseCode = databaseCode;
         this.databaseName = databaseName;
-        this.databaseUrl = databaseUrl;
+        this.databaseUrl = StringUtils.trim(databaseUrl);
         this.username = username;
         this.password = password;
         this.databaseDesc = dataDesc;

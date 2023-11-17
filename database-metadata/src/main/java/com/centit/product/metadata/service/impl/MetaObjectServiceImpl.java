@@ -632,9 +632,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                 subTable.add((Map<String, Object>) subObjects);
                             }
 
-                            if(subTable!=null) { // 给一个空的，把子对象全部删除
-                                subTable=new ArrayList<>(0);
-                            }
                             //List<MetaRelation> mdchilds = relTableInfo.getMdRelations();
                             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, relTableInfo);
                             this.replaceObjectsAsTabulation(dao, relTableInfo, subTable, extParams,

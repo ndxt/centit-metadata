@@ -25,7 +25,7 @@ class SourceConnectThreadWrapper implements Serializable {
         if (ISourceInfo.DATABASE.equals(description.getSourceType())) {
             Connection conn = (Connection) connectPools.get(description);
             if (conn == null || conn.isClosed()) {
-                conn = AbstractDruidConnectPools.getDbcpConnect(description);
+                conn = AbstractDBConnectPools.getDbcpConnect(description);
                 connectPools.put(description, conn);
             }
             return conn;
@@ -103,7 +103,7 @@ class SourceConnectThreadWrapper implements Serializable {
         for (Map.Entry<ISourceInfo, Object> map : connectPools.entrySet()) {
             if (ISourceInfo.DATABASE.equals(map.getKey().getSourceType())) {
                 Connection conn = (Connection) map.getValue();
-                AbstractDruidConnectPools.closeConnect(conn);
+                AbstractDBConnectPools.closeConnect(conn);
             } /*else if (ISourceInfo.HTTP.equals(map.getKey().getSourceType())) {
                 AbstractHttpConnectPools.releaseHttp(map.getKey());
             } */ else if (ISourceInfo.REDIS.equals(map.getKey().getSourceType())) {

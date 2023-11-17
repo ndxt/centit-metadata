@@ -13,7 +13,7 @@ import com.centit.framework.model.basedata.OperationLog;
 import com.centit.product.metadata.api.ISourceInfo;
 import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
-import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
+import com.centit.product.metadata.transaction.AbstractDBConnectPools;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
@@ -143,7 +143,7 @@ public class SourceInfoController extends BaseController {
             }
         }
         try {
-            AbstractDruidConnectPools.testConnect(sourceInfo);
+            AbstractDBConnectPools.testConnect(sourceInfo);
             JsonResultUtils.writeSingleDataJson("连接测试成功", response);
         } catch (SQLException e) {
             JsonResultUtils.writeErrorMessageJson(e.getMessage(), response);
@@ -184,7 +184,7 @@ public class SourceInfoController extends BaseController {
         databaseInfoMag.mergeObject(databaseinfo);
         //刷新连接池
         if(ISourceInfo.DATABASE.equals(databaseinfo.getSourceType())) {
-            AbstractDruidConnectPools.refreshDataSource(databaseinfo);
+            AbstractDBConnectPools.refreshDataSource(databaseinfo);
         }
         JsonResultUtils.writeBlankJson(response);
         /**********************log****************************/
@@ -227,7 +227,7 @@ public class SourceInfoController extends BaseController {
         SourceInfo sourceInfo = databaseInfoMag.getObjectById(databaseCode);
         databaseInfoMag.deleteObjectById(databaseCode);
         if(ISourceInfo.DATABASE.equals(sourceInfo.getSourceType())) {
-            AbstractDruidConnectPools.delDataSource(sourceInfo);
+            AbstractDBConnectPools.delDataSource(sourceInfo);
         }
         JsonResultUtils.writeBlankJson(response);
 

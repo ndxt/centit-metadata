@@ -13,7 +13,7 @@ import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.*;
 import com.centit.product.metadata.service.MetaDataService;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
-import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
+import com.centit.product.metadata.transaction.AbstractDBConnectPools;
 import com.centit.product.metadata.utils.PdmTableInfoUtils;
 import com.centit.product.metadata.utils.TableStoreJsonUtils;
 import com.centit.support.algorithm.*;
@@ -782,7 +782,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
     @Override
     public JSONArray viewList(String databaseId, String sql) throws SQLException, IOException {
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseId);
-        try (Connection conn = AbstractDruidConnectPools.getDbcpConnect(sourceInfo)) {
+        try (Connection conn = AbstractDBConnectPools.getDbcpConnect(sourceInfo)) {
             return DatabaseAccess.findObjectsAsJSON(conn, sql, null, 1, 10);
         }
     }

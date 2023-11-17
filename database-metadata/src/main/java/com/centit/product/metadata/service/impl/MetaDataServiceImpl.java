@@ -8,7 +8,7 @@ import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.*;
 import com.centit.product.metadata.service.MetaDataService;
-import com.centit.product.metadata.transaction.AbstractDruidConnectPools;
+import com.centit.product.metadata.transaction.AbstractDBConnectPools;
 import com.centit.product.metadata.utils.TableStoreJsonUtils;
 import com.centit.product.metadata.vo.MetaTableCascade;
 import com.centit.support.algorithm.CollectionsOpt;
@@ -139,7 +139,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     private List<SimpleTableInfo> getJdbcMetadata(String databaseCode, boolean withColumn, String[] tableNames) {
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
-        try (Connection conn = AbstractDruidConnectPools.getDbcpConnect(sourceInfo)) {
+        try (Connection conn = AbstractDBConnectPools.getDbcpConnect(sourceInfo)) {
             jdbcMetadata.setDBConfig(conn);
             if (sourceInfo.getExtProps().containsKey(CONTAIN_SCHEMA)) {
                 jdbcMetadata.setDBSchema(sourceInfo.getExtProps().getString(CONTAIN_SCHEMA).toUpperCase());

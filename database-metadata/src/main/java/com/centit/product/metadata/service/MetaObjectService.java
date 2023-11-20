@@ -273,4 +273,24 @@ public interface MetaObjectService {
      * @return 数据字典map
      */
     Map<String, String> fetchColumnRefData(String tableId, String columnCode, String topUnit, String lang);
+
+    /**
+     * 根据sql查询条件语句返回查询结果
+     * @param databaseCode 数据库代码
+     * @param namedSql 条件语句，仅仅是条件部分
+     * @param params 过滤条件
+     * @return 查询结果
+     */
+    JSONArray queryDatas(String databaseCode, String namedSql, Map<String, Object> params);
+
+    /**
+     * 根据sql查询条件语句返回查询结果
+     * @param databaseCode 数据库代码
+     * @param namedSql 条件语句，仅仅是条件部分
+     * @param params 过滤条件
+     * @param pageDesc 分页信息
+     * @return 查询结果
+     */
+    JSONArray pageQueryDatas(String databaseCode, String namedSql, Map<String, Object> params, PageDesc pageDesc);
+
 }

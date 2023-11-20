@@ -6,6 +6,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.dao.DictionaryMapColumn;
 import com.centit.framework.core.dao.DictionaryMapUtils;
+import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.product.metadata.dao.DataCheckRuleDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.*;
@@ -30,6 +31,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -38,6 +40,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class MetaObjectServiceImpl implements MetaObjectService {
     //private Logger logger = LoggerFactory.getLogger(MetaObjectServiceImpl.class);
 
@@ -1081,6 +1084,49 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             );
             dictionaryMapColumn.setExpression(isExpression);
             dictionaryMapColumns.add(dictionaryMapColumn);
+        }
+    }
+
+    /**
+     * 根据sql查询条件语句返回查询结果
+     * @param databaseCode 数据库代码
+     * @param namedSql 条件语句，仅仅是条件部分
+     * @param params 过滤条件
+     * @return 查询结果
+     */
+    @Override
+    public JSONArray queryDatas(String databaseCode, String namedSql, Map<String, Object> params){
+        SourceInfo sourceInfo = fetchDatabaseInfo(databaseCode);
+        try {
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, namedSql, params);
+        } catch (SQLException | IOException e) {
+            throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
+        }
+    }
+
+    /**
+     * 根据sql查询条件语句返回查询结果
+     * @param databaseCode 数据库代码
+     * @param namedSql 条件语句，仅仅是条件部分
+     * @param params 过滤条件
+     * @param pageDesc 分页信息
+     * @return 查询结果
+     */
+    @Override
+    public JSONArray pageQueryDatas(String databaseCode, String namedSql, Map<String, Object> params, PageDesc pageDesc){
+        SourceInfo sourceInfo = fetchDatabaseInfo(databaseCode);
+        try {
+            Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
+            String sGetCountSql =  QueryUtils.buildGetCountSQL(namedSql);
+            Object obj = DatabaseAccess.getScalarObjectQuery(conn,
+                sGetCountSql, params);
+            pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(obj));
+
+            return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, namedSql, params, null,
+                pageDesc.getPageNo(), pageDesc.getPageSize());
+        } catch (SQLException | IOException e) {
+            throw new ObjectException(params, ObjectException.DATABASE_OPERATE_EXCEPTION, e);
         }
     }
 }

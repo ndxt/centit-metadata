@@ -10,7 +10,6 @@ import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
-import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.framework.model.adapter.PlatformEnvironment;
 import com.centit.framework.model.basedata.OperationLog;
 import com.centit.framework.model.basedata.OsInfo;
@@ -20,8 +19,10 @@ import com.centit.product.metadata.service.MetaObjectService;
 import com.centit.product.metadata.transaction.MetadataJdbcTransaction;
 import com.centit.product.metadata.utils.SessionDataUtils;
 import com.centit.support.algorithm.CollectionsOpt;
+import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
+import com.centit.support.security.SecurityOptUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -62,7 +63,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public PageQueryResult<Object> listObjects(@PathVariable String tableId, PageDesc pageDesc,
                                                String[] fields, HttpServletRequest request) {
-        checkUserOptPower();
+        checkUserOptPower(request,true);
         Map<String, Object> params = collectRequestParameters(request);
         JSONArray ja = metaObjectService.pageQueryObjects(
             tableId, params, pageDesc);
@@ -75,7 +76,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public Map<String, Object> getObject(@PathVariable String tableId,
                                          HttpServletRequest request) {
-        checkUserOptPower();
+        checkUserOptPower(request,true);
         Map<String, Object> parameters = collectRequestParameters(request);
         return metaObjectService.getObjectById(tableId, parameters);
     }
@@ -85,8 +86,8 @@ public class MetaObjectController extends BaseController {
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public ResponseData updateObject(@PathVariable String tableId,
-                                     @RequestBody String jsonString) {
-        checkUserOptPower();
+                                     @RequestBody String jsonString, HttpServletRequest request) {
+        checkUserOptPower(request,true);
         metaObjectService.updateObject(tableId, JSON.parseObject(jsonString));
         return ResponseData.makeSuccessResponse();
     }
@@ -97,7 +98,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData batchUpdateObject(@PathVariable String tableId,
                                           @RequestBody String fieldsObject, HttpServletRequest request) {
-        checkUserOptPower();
+        checkUserOptPower(request,true);
         Map<String, Object> params = collectRequestParameters(request);
         JSONObject object = JSON.parseObject(fieldsObject);
         int iReturn = metaObjectService.updateObjectsByProperties(tableId, object, params);
@@ -112,8 +113,10 @@ public class MetaObjectController extends BaseController {
     @RequestMapping(value = "/{tableId}/batchDelete", method = RequestMethod.PUT)
     @WrapUpResponseBody
     @MetadataJdbcTransaction
-    public ResponseData batchDeleteObject(@PathVariable String tableId, @RequestBody String primaryArray, Integer withChildrenDeep) {
-        checkUserOptPower();
+    public ResponseData batchDeleteObject(@PathVariable String tableId,
+                                          @RequestBody String primaryArray, Integer withChildrenDeep,
+                                          HttpServletRequest request) {
+        checkUserOptPower(request,true);
         JSONArray tempJsonArray = JSON.parseArray(primaryArray);
         tempJsonArray.forEach(object ->
             metaObjectService.deleteObjectWithChildren(tableId, CollectionsOpt.objectToMap(object), withChildrenDeep == null ? 1 : withChildrenDeep));
@@ -125,8 +128,8 @@ public class MetaObjectController extends BaseController {
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public ResponseData saveObject(@PathVariable String tableId,
-                                   @RequestBody String jsonString) {
-        checkUserOptPower();
+                                   @RequestBody String jsonString, HttpServletRequest request) {
+        checkUserOptPower(request,true);
         metaObjectService.saveObject(tableId, JSON.parseObject(jsonString));
         return ResponseData.makeSuccessResponse();
     }
@@ -137,7 +140,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData deleteObject(@PathVariable String tableId,
                                      HttpServletRequest request) {
-        checkUserOptPower();
+        checkUserOptPower(request,true);
         Map<String, Object> parameters = collectRequestParameters(request);
         metaObjectService.deleteObject(tableId, parameters);
         return ResponseData.makeSuccessResponse();
@@ -152,7 +155,7 @@ public class MetaObjectController extends BaseController {
                                                                   Integer withChildrenDeep,
                                                                   HttpServletRequest request) {
         HashMap<String, Object> hashMap = SessionDataUtils.createSessionDataMap(WebOptUtils.getCurrentUserDetails(request));
-        checkUserOptPower();
+        checkUserOptPower(request,true);
         JSONArray jsonArray = JSON.parseArray(mergeArray);
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         List<Map<String, Object>> list = new ArrayList<>();
@@ -181,7 +184,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public Map<String, Object> getObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                      HttpServletRequest request) {
-        checkUserOptPower();
+        checkUserOptPower(request,true);
         Map<String, Object> parameters = collectRequestParameters(request);
         return metaObjectService.getObjectWithChildren(tableId, parameters, withChildrenDeep == null ? 1 : withChildrenDeep);
     }
@@ -192,7 +195,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData updateObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                  @RequestBody String jsonString, HttpServletRequest request) {
-        checkUserOptPower();
+        checkUserOptPower(request,true);
         metaObjectService.updateObjectWithChildren(
             tableId, JSON.parseObject(jsonString),
             SessionDataUtils.createSessionDataMap(WebOptUtils.getCurrentUserDetails(request)),
@@ -207,7 +210,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData saveObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                @RequestBody String jsonString, HttpServletRequest request) {
-        checkUserOptPower();
+        checkUserOptPower(request,true);
         metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
         saveOperationLog(request, jsonString, tableId, "save");
         return ResponseData.makeSuccessResponse();
@@ -219,7 +222,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData deleteObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                  HttpServletRequest request) {
-        checkUserOptPower();
+        checkUserOptPower(request,true);
         Map<String, Object> parameters = collectRequestParameters(request);
         metaObjectService.deleteObjectWithChildren(tableId, parameters, withChildrenDeep == null ? 1 : withChildrenDeep);
         saveOperationLog(request, parameters, tableId, "delete");
@@ -244,8 +247,7 @@ public class MetaObjectController extends BaseController {
      * 4.登录人没有加入开发组没有权限
      *
      */
-    private void checkUserOptPower() {
-        HttpServletRequest request = RequestThreadLocal.getLocalThreadWrapperRequest();
+    private void checkUserOptPower(HttpServletRequest request, boolean checkInWorkGroup) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         if (StringUtils.isBlank(userCode)) {
             userCode = WebOptUtils.getRequestFirstOneParameter(request, "userCode");
@@ -262,9 +264,48 @@ public class MetaObjectController extends BaseController {
         if (CollectionUtils.sizeIsEmpty(osInfos)) {
             throw new ObjectException(ResponseData.ERROR_PRECONDITION_FAILED, "您当前所在的租户还未创建任何应用!");
         }
-        String osIds = osInfos.stream().map(OsInfo::getOsId).collect(Collectors.joining(","));
-        if (!platformEnvironment.loginUserIsExistWorkGroup(osIds, userCode)) {
-            throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您没有权限！");
+
+        if(checkInWorkGroup) {
+            String osIds = osInfos.stream().map(OsInfo::getOsId).collect(Collectors.joining(","));
+            if (!platformEnvironment.loginUserIsExistWorkGroup(osIds, userCode)) {
+                throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您没有权限！");
+            }
+        }
+    }
+
+    @ApiOperation(value = "根据自定义查询获取数据")
+    @RequestMapping(value = "/sqlQuery", method = RequestMethod.PUT)
+    @ApiImplicitParam(
+        name = "queryJson", value = "查询语句：属性 database 数据库id，sql 查询语句，以aescbc:开头 ，params 参数Map 如有是分页查询必须有参数 pageSize ",
+        required = true, paramType = "path", dataType = "String")
+    @WrapUpResponseBody
+    @MetadataJdbcTransaction
+    public JSONArray queryDatabaseBySql(@RequestBody String queryJson, HttpServletRequest request) {
+        checkUserOptPower(request, false);
+        JSONObject json = JSONObject.parseObject(queryJson);
+        String sqlSen = json.getString("sql");
+        if(StringUtils.isBlank(sqlSen) || !sqlSen.startsWith("aescbc:")) {
+            throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR, "查询语句格式不正确!");
+        }
+        sqlSen = SecurityOptUtils.decodeSecurityString(sqlSen);
+        if(!StringUtils.startsWithIgnoreCase(sqlSen, "select") ||
+            StringUtils.containsAnyIgnoreCase(sqlSen, ";",
+                "update", "delete", "insert", "drop", "create")) {
+            throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR, "查询语句格式不正确!");
+        }
+        String databaseCode = json.getString("database");
+        JSONObject params = json.getJSONObject("params");
+        PageDesc pageDesc = null;
+        Object pageSize = params.get("pageSize");
+        if(pageSize != null && NumberBaseOpt.castObjectToInteger(pageSize, -1)>0){
+            pageDesc = new PageDesc();
+            pageDesc.setPageSize(NumberBaseOpt.castObjectToInteger(pageSize, -1));
+            pageDesc.setPageNo(NumberBaseOpt.castObjectToInteger(params.get("pageNo"), 1));
+        }
+        if(pageDesc!=null){
+            return metaObjectService.pageQueryDatas(databaseCode, sqlSen, params, pageDesc);
+        } else {
+            return metaObjectService.queryDatas(databaseCode, sqlSen, params);
         }
     }
 

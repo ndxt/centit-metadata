@@ -80,11 +80,11 @@ public class MetadataUpdateController extends BaseController {
         metaDataService.saveRelations(tableId, metaTable.getMdRelations());
     }
 
-    @ApiOperation(value = "导入TableStore中导入表结构")
+    @ApiOperation(value = "导入TableStore中导入表关系")
     @ApiImplicitParam(name = "databaseCode", type = "path", value = "数据库ID")
     @RequestMapping(value = "/import/{databaseCode}", method = RequestMethod.POST)
     @WrapUpResponseBody
-    public void importFromTableStore(@PathVariable String databaseCode, HttpServletRequest request) throws IOException {
+    public void importRelationsFromTableStore(@PathVariable String databaseCode, HttpServletRequest request) throws IOException {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         if(StringUtils.isBlank(userCode)){
             throw new ObjectException(ResponseData.ERROR_FORBIDDEN, "用户没登录，或者session已失效！");

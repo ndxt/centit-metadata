@@ -3,6 +3,7 @@ package com.centit.product.metadata.controller;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.centit.fileserver.utils.UploadDownloadUtils;
 import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.controller.BaseController;
@@ -17,10 +18,7 @@ import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.SimpleTableInfo;
-import com.centit.support.database.utils.DatabaseAccess;
-import com.centit.support.database.utils.PageDesc;
-import com.centit.support.database.utils.QueryAndNamedParams;
-import com.centit.support.database.utils.QueryUtils;
+import com.centit.support.database.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -33,7 +31,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -253,6 +254,47 @@ public class MetadataQueryController extends BaseController {
         }
         json.put("tableFields", tableFields);
         return json;
+    }
+
+    @ApiOperation(value = "按TableStore格式导出数据库表结构信息", notes = "按TableStore格式导出数据库表结构信息")
+    @ApiImplicitParam(name = "moduleId", type = "path", value = "模块ID")
+    @GetMapping("/export/{databaseCode}")
+    public void exportDatabaseCode(@PathVariable String databaseCode, HttpServletRequest request, HttpServletResponse response)
+        throws IOException {
+        SourceInfo sourceInfo = metaDataService.getDatabaseInfo(databaseCode);
+
+        JSONObject project = new JSONObject();
+        JSONObject projectInfo = new JSONObject();
+        projectInfo.put("projectId", databaseCode);
+        projectInfo.put("projectName", sourceInfo.getDatabaseName());
+        projectInfo.put("projectDesc", sourceInfo.getDatabaseDesc());
+
+        project.put("projectInfo",projectInfo);
+
+        List<MetaTable> tables = metaDataService.listAllMetaTables(databaseCode);
+        project.put("modules", new JSONArray());
+
+        if(tables!=null && tables.size()>0) {
+            JSONArray jaTables = new JSONArray();
+            for (MetaTable table : tables) {
+                JSONObject tableJson = new JSONObject();
+                JSONObject tableInfo = new JSONObject();
+                tableInfo.put("tableId", table.getTableId());
+                tableInfo.put("tableType", table.getTableType());
+                tableInfo.put("tableName", table.getTableName());
+                tableInfo.put("tableLabelName", table.getTableLabelName());
+                tableInfo.put("tableComment", table.getTableComment());
+                //tableInfo.put("viewSql", table.getV());
+                tableJson.put("tableInfo", tableInfo);
+                tableJson.put("columns", table.getColumns());
+                jaTables.add(tableJson);
+            }
+            project.put("tables", jaTables);
+        }
+
+        String fileName = sourceInfo.getDatabaseName()+".json";
+        ByteArrayInputStream bis = new ByteArrayInputStream(project.toJSONString().getBytes(StandardCharsets.UTF_8));
+        UploadDownloadUtils.downloadFile(bis, fileName, request, response);
     }
 
 }

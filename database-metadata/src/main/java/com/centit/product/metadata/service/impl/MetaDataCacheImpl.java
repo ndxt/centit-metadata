@@ -37,11 +37,16 @@ public class MetaDataCacheImpl implements MetaDataCache {
     @Override
     public MetaTable getTableInfo(String tableId){
         MutablePair<Integer, MetaTable> tableMutablePair = metaTableCache.getCachedValue(tableId);
-        if (tableMutablePair!=null) {
-            return tableMutablePair.getRight();
-        } else{
-            return null;
+        if (tableMutablePair==null) {
+            throw new ObjectException(ObjectException.SYSTEM_CONFIG_ERROR,
+                "元数据配置不完整，缺少表信息：" + tableId);
         }
+        MetaTable metaTable = tableMutablePair.getRight();
+        if (metaTable==null) {
+            throw new ObjectException(ObjectException.SYSTEM_CONFIG_ERROR,
+                "元数据配置不完整，缺少表信息：" + tableId);
+        }
+        return metaTable;
     }
 
     private MetaTable fetchTableRelations(MetaTable metaTable){

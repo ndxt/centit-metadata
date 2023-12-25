@@ -19,8 +19,12 @@ public class MetaDataCacheImpl implements MetaDataCache {
      */
     private CachedMap<String, MutablePair<Integer, MetaTable>> metaTableCache =
         new CachedMap<>(
-            ( tableId )-> new MutablePair<>(0, this.getTableInfoWithColumns(tableId)),
-            10);
+            ( tableId )-> {
+                MetaTable metaTable = this.getTableInfoWithColumns(tableId);
+                if(metaTable==null) return null;
+                return new MutablePair<>(0, metaTable);
+            },
+            30);
 
     @Autowired
     private MetaTableDao metaTableDao;

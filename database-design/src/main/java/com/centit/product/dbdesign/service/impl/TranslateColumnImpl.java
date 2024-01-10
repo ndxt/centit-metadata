@@ -14,9 +14,9 @@ import java.util.Locale;
 @Service
 public class TranslateColumnImpl implements TranslateColumn {
 
-    @Value("${translate.service.aliyun.access.key:}")
+    @Value("${third.services.aliyun.access.key:}")
     private String accessKeyId;
-    @Value("${translate.service.aliyun.access.secret:}")
+    @Value("${third.services.aliyun.access.secret:}")
     private String accessKeySecret;
 
     /**

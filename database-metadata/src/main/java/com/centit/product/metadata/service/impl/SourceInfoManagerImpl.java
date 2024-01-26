@@ -2,13 +2,13 @@ package com.centit.product.metadata.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.centit.framework.model.adapter.PlatformEnvironment;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
-import com.centit.tenant.dubbo.adapter.TenantManageService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,8 +25,8 @@ public class SourceInfoManagerImpl implements SourceInfoManager {
     //private static final SysOptLog sysOptLog = SysOptLogFactoryImpl.getSysOptLog();
 
     //防止其他工程引用这个工程的同时没有配置dubbo客户端，导致启动报错
-    @Autowired(required = false)
-    private TenantManageService tenantManageService;
+    @Autowired
+    private PlatformEnvironment platformEnvironment;
 
     @Autowired
     private SourceInfoDao sourceInfoDao;
@@ -118,7 +118,7 @@ public class SourceInfoManagerImpl implements SourceInfoManager {
      * @param sourceInfo
      */
     private void checkDatabaseNumberLimit(SourceInfo sourceInfo) {
-        JSONObject tenantInfo = tenantManageService.getTenantInfoByTopUnit(sourceInfo.getTopUnit());
+        JSONObject tenantInfo = platformEnvironment.getTenantInfoByTopUnit(sourceInfo.getTopUnit());
         if (null == tenantInfo){
             throw new ObjectException("租户信息有误!");
         }
@@ -126,6 +126,7 @@ public class SourceInfoManagerImpl implements SourceInfoManager {
         if (countDataBase >= tenantInfo.getIntValue("databaseNumberLimit")){
             throw new ObjectException("数据库资源超过了限制!");
         }
+        //tenantInfo.put("databaseCount", countDataBase);
     }
 
     /**

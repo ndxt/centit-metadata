@@ -51,12 +51,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.shentong</groupId>
-            <artifactId>shentongjdbc</artifactId>
-            <version>4.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.centit.framework</groupId>
             <artifactId>framework-config</artifactId>
             <version>${revision}</version>
@@ -95,6 +89,12 @@
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.shentong</groupId>
+            <artifactId>shentongjdbc</artifactId>
+            <version>4.0</version>
         </dependency>
 
         <dependency>

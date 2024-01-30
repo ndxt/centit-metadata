@@ -4,13 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>framework-snapshot-dependencies</artifactId>
         <groupId>com.centit.framework</groupId>
-        <version>5.4-SNAPSHOT</version>
+        <artifactId>centit-project-bulid-parent</artifactId>
+        <version>5.5-SNAPSHOT</version>
     </parent>
+
     <groupId>com.centit.product</groupId>
     <artifactId>centit-metadata</artifactId>
-    <version>5.4-SNAPSHOT</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
     <name>com.centit.product:centit-metadata</name>
     <description>基于数据库元数据的功能类，它是 自定义表单，统计分析工具，数据交换平台的业务基础

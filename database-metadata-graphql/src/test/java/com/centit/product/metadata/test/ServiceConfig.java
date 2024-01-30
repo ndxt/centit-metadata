@@ -1,6 +1,7 @@
 package com.centit.product.metadata.test;
 
-import com.centit.framework.security.model.StandardPasswordEncoderImpl;
+
+import com.centit.framework.security.StandardPasswordEncoderImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

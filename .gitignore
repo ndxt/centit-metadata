@@ -3,3 +3,10 @@
 **/target/
 D:
 .attach*
+**/node_modules
+.mvn
+mvn*
+.settings
+**/~$*
+out.*
+.flattened-pom.xml

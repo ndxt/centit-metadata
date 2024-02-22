@@ -271,12 +271,13 @@ public class MetadataQueryController extends BaseController {
 
         project.put("projectInfo",projectInfo);
 
-        List<MetaTable> tables = metaDataService.listAllMetaTables(databaseCode);
+        List<MetaTable> tables = metaDataService.listAllMetaTablesWithDetail(databaseCode);
         project.put("modules", new JSONArray());
 
         if(tables!=null && tables.size()>0) {
             JSONArray jaTables = new JSONArray();
             for (MetaTable table : tables) {
+
                 JSONObject tableJson = new JSONObject();
                 JSONObject tableInfo = new JSONObject();
                 tableInfo.put("tableId", table.getTableId());

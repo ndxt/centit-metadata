@@ -155,7 +155,7 @@ public class MetaObjectController extends BaseController {
                                                                   Integer withChildrenDeep,
                                                                   HttpServletRequest request) {
         HashMap<String, Object> hashMap = SessionDataUtils.createSessionDataMap(
-            WebOptUtils.getCurrentUserDetails(request), request);
+            WebOptUtils.getCurrentUserDetails(request));
         checkUserOptPower(request,true);
         JSONArray jsonArray = JSON.parseArray(mergeArray);
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
@@ -199,7 +199,7 @@ public class MetaObjectController extends BaseController {
         checkUserOptPower(request,true);
         metaObjectService.updateObjectWithChildren(
             tableId, JSON.parseObject(jsonString),
-            SessionDataUtils.createSessionDataMap(WebOptUtils.getCurrentUserDetails(request), request),
+            SessionDataUtils.createSessionDataMap(WebOptUtils.getCurrentUserDetails(request)),
             withChildrenDeep == null ? 1 : withChildrenDeep);
         saveOperationLog(request, jsonString, tableId, "update");
         return ResponseData.makeSuccessResponse();

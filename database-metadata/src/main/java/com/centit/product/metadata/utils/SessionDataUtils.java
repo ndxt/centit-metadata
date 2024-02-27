@@ -1,14 +1,11 @@
 package com.centit.product.metadata.utils;
 
-import com.centit.framework.common.WebOptUtils;
-import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.framework.model.security.CentitUserDetails;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 
 public abstract class SessionDataUtils {
-    public static HashMap<String, Object> createSessionDataMap(CentitUserDetails userDetails, HttpServletRequest request) {
+    public static HashMap<String, Object> createSessionDataMap(CentitUserDetails userDetails) {
         if(userDetails==null)
             return null;
         HashMap<String, Object> hashMap = new HashMap<>(16);
@@ -24,17 +21,7 @@ public abstract class SessionDataUtils {
         hashMap.put("userRoles", userDetails.getUserRoles());
         /*CurrentUserContext context = new CurrentUserContext(userDetails.getUserInfo(), userDetails.getTopUnitCode(),
             userDetails.getCurrentUnitCode());*/
-        if(request == null){
-            request = RequestThreadLocal.getLocalThreadWrapperRequest();
-        }
-        if(request!=null) {
-            String remoteHost = request.getRemoteHost();
-            String loginIp = WebOptUtils.getRequestAddr(request);
-            if (!loginIp.startsWith(remoteHost)) {
-                loginIp = remoteHost + ":" + loginIp;
-            }
-            hashMap.put("loginIp", loginIp);
-        }
+        hashMap.put("loginIp", userDetails.getLoginIp());
         return hashMap;
     }
 }

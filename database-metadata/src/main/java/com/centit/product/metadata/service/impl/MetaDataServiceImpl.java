@@ -398,9 +398,9 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public List<MetaColumn> listMetaColumns(String tableId, PageDesc pageDesc) {
+    public List<MetaColumn> listMetaColumns(Map<String, Object> condition, PageDesc pageDesc) {
         return metaColumnDao.listObjectsByProperties(
-            CollectionsOpt.createHashMap("tableId", tableId), pageDesc);
+            condition, pageDesc);
     }
 
     @Override

@@ -102,8 +102,10 @@ public class MetadataQueryController extends BaseController {
     })
     @GetMapping(value = "/{tableId}/columns")
     @WrapUpResponseBody
-    public PageQueryResult<MetaColumn> listColumns(@PathVariable String tableId, PageDesc pageDesc) {
-        List<MetaColumn> list = metaDataService.listMetaColumns(tableId, pageDesc);
+    public PageQueryResult<MetaColumn> listColumns(@PathVariable String tableId, PageDesc pageDesc,HttpServletRequest request) {
+        Map<String, Object> searchColumn = collectRequestParameters(request);
+        searchColumn.put("tableId",tableId);
+        List<MetaColumn> list = metaDataService.listMetaColumns(searchColumn, pageDesc);
         return PageQueryResult.createResult(list, pageDesc);
     }
 

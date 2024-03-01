@@ -139,11 +139,11 @@ public interface MetaDataService {
 
     /**
      * 获取表的字段信息
-     * @param tableId 表id
+     * @param condition 查询条件
      * @param pageDesc 分页返回字段
      * @return 字段列表
      */
-    List<MetaColumn> listMetaColumns(String tableId, PageDesc pageDesc);
+    List<MetaColumn> listMetaColumns(Map<String, Object> condition, PageDesc pageDesc);
 
     /**
      * 获取表的字段信息

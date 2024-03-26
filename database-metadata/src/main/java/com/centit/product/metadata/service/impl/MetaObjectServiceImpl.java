@@ -6,7 +6,6 @@ import com.alibaba.fastjson2.JSONObject;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.dao.DictionaryMapColumn;
 import com.centit.framework.core.dao.DictionaryMapUtils;
-import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.product.metadata.dao.DataCheckRuleDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.*;

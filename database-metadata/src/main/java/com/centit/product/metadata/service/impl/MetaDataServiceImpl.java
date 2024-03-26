@@ -57,6 +57,10 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Autowired(required = false)
     private SyncDBPretreatment syncDBPretreatment;
 
+    public MetaDataServiceImpl(){
+        syncDBPretreatment = null;
+    }
+
     @Override
     public List<SourceInfo> listDatabase(String osId) {
         return sourceInfoDao.listObjectsByProperties(

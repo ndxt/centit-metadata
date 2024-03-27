@@ -29,7 +29,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-@Api(value = "数据库元数据信息完善", tags = "元数据信息完善")
+@Api(value = "数据库元数据信息完善", tags = "元数据信息维护")
 @RestController
 @RequestMapping(value = "update")
 public class MetadataUpdateController extends BaseController {

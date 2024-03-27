@@ -45,6 +45,8 @@ public interface MetaTableDao {
 
     List<MetaTable> listObjectsByFilter(String sqlWhere, Object[] params);
 
+    List<MetaTable> listObjectsByFilter(String sqlWhere, Map<String, Object> filterMap);
+
     int deleteObjectReferences(MetaTable object);
 
     int deleteObject(MetaTable object);

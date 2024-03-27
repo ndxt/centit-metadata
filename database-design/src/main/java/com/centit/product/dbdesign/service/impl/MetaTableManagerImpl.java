@@ -134,7 +134,6 @@ public class MetaTableManagerImpl implements MetaTableManager {
         pendingMdTableDao.saveObjectReferences(pmt);
     }
 
-
     /**
      * 对比pendingMetaTable和MetaTable中的字段信息，
      * 获取表结构差异对应的Sql语句
@@ -834,5 +833,58 @@ public class MetaTableManagerImpl implements MetaTableManager {
         }
     }
 
+    @Override
+    @Transactional
+    public List<PendingMetaTable> searchPendingMetaTable(JSONObject filter){
+        String filterType = filter.getString("filterType");
+        if("database".equals(filterType)){
+            String databaseCode = filter.getString("databaseCode");
+            return pendingMdTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode));
+        }
+        if("opt".equals(filterType)){
+            String optId = filter.getString("optId");
+            return pendingMdTableDao.listObjectsByFilter("where TABLE_ID in " +
+                    "(select table_id from f_table_opt_relation where OPT_ID = ?)",
+                new Object[]{optId});
+        }
+        if("select".equals(filterType)){
+            List<String> tableIds = filter.getList("tableIds", String.class);
+            return pendingMdTableDao.listObjectsByFilter("where TABLE_ID in (:tableIds)",
+                CollectionsOpt.createHashMap("tableIds", tableIds));
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public void updatePendingMetaColumn(PendingMetaTable metaTable, PendingMetaColumn metaColumn){
+        pendingMdTableDao.fetchObjectReferences(metaTable);
+        metaColumn.setTableId(metaTable.getTableId());
+        PendingMetaColumn dbColumn = metaTable.findFieldByColumn(metaColumn.getColumnName());
+        if(dbColumn == null){
+            metaTable.addMdColumn(metaColumn);
+            pendingMetaColumnDao.saveNewObject(metaColumn);
+        } else {
+            dbColumn.copyNotNullProperty(metaColumn);
+            pendingMetaColumnDao.updateObject(dbColumn);
+        }
+        List<String> alterSqls = this.makeAlterTableSqlList(metaTable);
+        metaTable.setTableState(alterSqls.size() > 0 ? "W" : "S");
+        pendingMdTableDao.updateObject(CollectionsOpt.createList("tableState"),  metaTable );
+    }
+
+    @Override
+    @Transactional
+    public void deletePendingMetaColumn(PendingMetaTable metaTable, String columnName){
+        pendingMdTableDao.fetchObjectReferences(metaTable);
+        PendingMetaColumn dbColumn = metaTable.findFieldByColumn(columnName);
+        if(dbColumn != null) {
+            pendingMetaColumnDao.deleteObject(dbColumn);
+            metaTable.getColumns().remove(dbColumn);
+            List<String> alterSqls = this.makeAlterTableSqlList(metaTable);
+            metaTable.setTableState(alterSqls.size() > 0 ? "W" : "S");
+            pendingMdTableDao.updateObject(CollectionsOpt.createList("tableState"), metaTable);
+        }
+    }
 }
 

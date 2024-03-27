@@ -95,7 +95,6 @@ public class MetaTableController extends BaseController {
         return metaTableManager.getMetaChangLog(changeId);
     }
 
-
     @ApiOperation(value = "查询单个表重构字段")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.GET})
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
@@ -194,7 +193,6 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeSingleDataJson(json, response);
     }
 
-
     @ApiOperation(value = "range")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.GET)
     @RequestMapping(value = "/range", method = {RequestMethod.GET})
@@ -277,8 +275,7 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeSingleDataJson(json, response);
     }
 
-
-    @ApiOperation(value = "查询列表元数据")
+    @ApiOperation(value = "查询表列数据元数据")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "tableId", value = "表ID")
     })
@@ -299,7 +296,6 @@ public class MetaTableController extends BaseController {
     public PendingMetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName) {
         return metaTableManager.getMetaColumn(tableId, columnName);
     }
-
 
     @ApiOperation(value = "查询列元数据,pending表与md表数据的组合,通过osId,dataBaseCode过滤,如果osId和dataBaseCode不传,后端根据topUnit过滤)")
     @ApiImplicitParams(value = {
@@ -414,6 +410,52 @@ public class MetaTableController extends BaseController {
             metaTableManager.importFromTableStore(databaseCode, jsonObject, userCode);
         } else {
             throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR, "文件中的json格式不正确！");
+        }
+    }
+
+    /* --- 批量操作接口 ：
+     ** 一 、设置某一个字段（字段属性名）的所有属性，包括：默认值生成规则、脱敏、校验、类型等等；
+     二、统一设置（添加或者修改）字段
+     三、统一删除字段
+     ** 四、统一设置表的属性，比如：逻辑删除等等
+     */
+    @ApiOperation(value = "批量修改表的属性，只能修改 逻辑删除标识、更新版本标识 、是否写入日志、是否全文检索 这四个属性")
+    @PutMapping(value = "/batchSetColumn")
+    @ApiImplicitParam(name = "formJsonString", paramType="body", value = "JSON中分两部分，一部分是查询条件，一部分是修改的属性")
+    @WrapUpResponseBody
+    public void batchUpdateTableProps(@RequestBody String formJsonString){
+        JSONObject formJson = JSONObject.parseObject(formJsonString);
+        JSONObject filter = formJson.getJSONObject("filter");
+        if(filter==null) return ;
+
+        JSONObject props = formJson.getJSONObject("props");
+        if(props==null || props.isEmpty()) return ;
+        String columnName = props.getString("columnName");
+        if(StringUtils.isNotBlank(columnName)) return;
+        PendingMetaColumn columnInfo = props.toJavaObject(PendingMetaColumn.class);
+        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter);
+        if(tables==null || tables.isEmpty()) return;
+        for(PendingMetaTable metaTable : tables){
+            metaTableManager.updatePendingMetaColumn(metaTable, columnInfo);
+        }
+    }
+
+    @ApiOperation(value = "批量修改表的字段属性；可以修改 生成规则、脱敏、校验、应用、应用、延时加载 和 必填 等属性")
+    @PutMapping(value = "/batchDeleteColumn")
+    @WrapUpResponseBody
+    public void batchUpdateTableColumns(@RequestBody String formJsonString){
+        JSONObject formJson = JSONObject.parseObject(formJsonString);
+        JSONObject filter = formJson.getJSONObject("filter");
+        if(filter==null) return ;
+
+        JSONObject props = formJson.getJSONObject("props");
+        if(props==null || props.isEmpty()) return ;
+        String columnName = props.getString("columnName");
+        if(StringUtils.isNotBlank(columnName)) return;
+        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter);
+        if(tables==null || tables.isEmpty()) return;
+        for(PendingMetaTable metaTable : tables){
+            metaTableManager.deletePendingMetaColumn(metaTable, columnName);
         }
     }
 }

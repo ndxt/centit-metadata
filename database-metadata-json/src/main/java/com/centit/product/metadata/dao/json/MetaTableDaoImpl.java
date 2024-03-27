@@ -141,6 +141,12 @@ public class MetaTableDaoImpl implements MetaTableDao {
     }
 
     @Override
+    public List<MetaTable> listObjectsByFilter(String sqlWhere, Map<String, Object> filterMap){
+        throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
+            "该方法在当前版本下没有实现，请联系研发人员!");
+    }
+
+    @Override
     public int deleteObjectReferences(MetaTable object) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
             "该方法在当前版本下没有实现，请联系研发人员!");

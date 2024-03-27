@@ -19,4 +19,5 @@ public class MetaColumnDaoImpl extends BaseDaoImpl<MetaColumn, Serializable> imp
     public MetaColumn getObjectById(MetaColumn id) {
         return super.getObjectById(id);
     }
+
 }

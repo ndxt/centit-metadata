@@ -37,7 +37,9 @@ public interface MetaTableManager {
     void savePendingMetaTable(PendingMetaTable pmt);
 
     List<String> makeAlterTableSqlList(String tableId);
+
     List<String> makeAlterTableSqlList(PendingMetaTable ptable);
+
     Pair<Integer, String> publishMetaTable(String tableId, String currentUser);
 
     JSONArray listDrafts(String[] fields, Map<String, Object> searchColumn, PageDesc pageDesc);
@@ -89,5 +91,9 @@ public interface MetaTableManager {
 
     void importFromTableStore(String databaseCode, JSONObject jsonObject, String userCode);
 
+    List<PendingMetaTable> searchPendingMetaTable(JSONObject filter);
 
+    void updatePendingMetaColumn(PendingMetaTable metaTable, PendingMetaColumn metaColumn);
+
+    void deletePendingMetaColumn(PendingMetaTable metaTable, String columnName);
 }

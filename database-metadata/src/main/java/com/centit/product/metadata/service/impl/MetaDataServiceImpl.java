@@ -487,7 +487,6 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     public void updateMetaColumn(MetaColumn metaColumn) {
         metaColumnDao.updateObject(metaColumn);
-
     }
 
     @Override
@@ -570,4 +569,28 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
     }
 
+    @Override
+    public List<MetaTable> searchMateTable(JSONObject filter){
+        // filterType: database opt select
+        // databaseCode
+        // optId
+        // tableIds []
+        String filterType = filter.getString("filterType");
+        if("database".equals(filterType)){
+            String databaseCode = filter.getString("databaseCode");
+            return metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode));
+        }
+        if("opt".equals(filterType)){
+            String optId = filter.getString("optId");
+            return metaTableDao.listObjectsByFilter("where TABLE_ID in " +
+                    "(select table_id from f_table_opt_relation where OPT_ID = ?)",
+                new Object[]{optId});
+        }
+        if("select".equals(filterType)){
+            List<String> tableIds = filter.getList("tableIds", String.class);
+            return metaTableDao.listObjectsByFilter("where TABLE_ID in (:tableIds)",
+                CollectionsOpt.createHashMap("tableIds", tableIds));
+        }
+        return null;
+    }
 }

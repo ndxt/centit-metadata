@@ -90,7 +90,7 @@ public class PendingMetaTable implements
     @Length(max = 256, message = "字段长度不能大于{max}")
     private String tableComment;
 
-    @ApiModelProperty(value = "表状态（待发布W、已发布S）", required = true)
+    @ApiModelProperty(value = "表状态（待发布 W、已发布 S）", required = true)
     @Column(name = "TABLE_STATE")
     @Length(message = "字段长度不能大于{max}")
     private String tableState;

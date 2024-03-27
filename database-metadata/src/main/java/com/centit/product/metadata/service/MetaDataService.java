@@ -215,4 +215,6 @@ public interface MetaDataService {
      * @param userCode 操作人员
      */
     void importRelationFromTableStore(String databaseCode, JSONObject jsonObject, String userCode);
+
+    List<MetaTable> searchMateTable(JSONObject filter);
 }

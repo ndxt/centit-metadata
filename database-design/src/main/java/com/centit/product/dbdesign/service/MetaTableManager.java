@@ -2,6 +2,7 @@ package com.centit.product.dbdesign.service;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.centit.framework.common.ResponseData;
 import com.centit.product.metadata.po.*;
 import com.centit.support.database.utils.PageDesc;
 import org.apache.commons.lang3.tuple.Pair;
@@ -40,7 +41,9 @@ public interface MetaTableManager {
 
     List<String> makeAlterTableSqlList(PendingMetaTable ptable);
 
-    Pair<Integer, String> publishMetaTable(String tableId, String currentUser);
+    ResponseData publishMetaTable(String tableId, String currentUser);
+
+    ResponseData batchPublishTables(List<PendingMetaTable> metaTables, String recorder);
 
     JSONArray listDrafts(String[] fields, Map<String, Object> searchColumn, PageDesc pageDesc);
 
@@ -58,9 +61,8 @@ public interface MetaTableManager {
 
     List<MetaColumn> listFields(String tableId);
 
-    Pair<Integer, String>  syncPdm(String databaseCode, String pdmFilePath, List<String> tables, String recorder);
+    Pair<Integer, String> syncPdm(String databaseCode, String pdmFilePath, List<String> tables, String recorder);
 
-    Pair<Integer, String>  publishDatabase(String databaseCode,String recorder);
 
     void updateMetaTable(PendingMetaTable metaTable);
 
@@ -91,7 +93,7 @@ public interface MetaTableManager {
 
     void importFromTableStore(String databaseCode, JSONObject jsonObject, String userCode);
 
-    List<PendingMetaTable> searchPendingMetaTable(JSONObject filter);
+    List<PendingMetaTable> searchPendingMetaTable(JSONObject filter, boolean canUpdateOnly);
 
     void updatePendingMetaColumn(PendingMetaTable metaTable, PendingMetaColumn metaColumn);
 

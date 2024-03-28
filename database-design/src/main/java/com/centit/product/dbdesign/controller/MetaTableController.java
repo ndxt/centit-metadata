@@ -185,25 +185,48 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "发布重构表")
     @RequestMapping(value = "/publish/{pendingTableId}", method = {RequestMethod.POST})
-    public void publishMdTable(@PathVariable String pendingTableId,
+    public ResponseData publishMdTable(@PathVariable String pendingTableId,
                                HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        Pair<Integer, String> ret = metaTableManager.publishMetaTable(pendingTableId, userCode);
-        JSONObject json = translatePublishMessage(ret);
-        JsonResultUtils.writeSingleDataJson(json, response);
+        return metaTableManager.publishMetaTable(pendingTableId, userCode);
     }
 
     @ApiOperation(value = "批量发布表元数据表")
     @RequestMapping(value = "/{databaseCode}/publish", method = {RequestMethod.POST})
     @WrapUpResponseBody
-    public void publishDatabase(@PathVariable String databaseCode,
-                                HttpServletRequest request, HttpServletResponse response) {
+    public ResponseData publishDatabase(@PathVariable String databaseCode,
+                                HttpServletRequest request) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        Pair<Integer, String> ret = metaTableManager.publishDatabase(databaseCode, userCode);
-        JSONObject json = translatePublishMessage(ret);
-        JsonResultUtils.writeSingleDataJson(json, response);
+        JSONObject filter = new JSONObject();
+        filter.put("filterType", "database");
+        filter.put("databaseCode", databaseCode);
+        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter, true);
+        if(tables==null || tables.isEmpty()) {
+            throw new ObjectException(ObjectException.DATA_NOT_FOUND_EXCEPTION, "没有要发布的表单");
+        }
+        return metaTableManager.batchPublishTables(tables, userCode);
     }
 
+    @ApiOperation(value = "批量发布表元数据表")
+    @PutMapping(value = "/batchPublishTable")
+    @WrapUpResponseBody
+    public ResponseData batchPublishTable( @RequestBody String formJsonString,
+                                HttpServletRequest request) {
+
+        JSONObject formJson = JSONObject.parseObject(formJsonString);
+        JSONObject filter = formJson.getJSONObject("filter");
+        if(filter==null) {
+            throw new ObjectException(ResponseData.ERROR_FIELD_INPUT_NOT_VALID, "输入的表单数据有错");
+        }
+
+        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter, true);
+        if(tables==null || tables.isEmpty()) {
+            throw new ObjectException(ObjectException.DATA_NOT_FOUND_EXCEPTION, "没有要发布的表单");
+        }
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        return metaTableManager.batchPublishTables(tables, userCode);
+
+    }
     @ApiOperation(value = "range")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.GET)
     @RequestMapping(value = "/range", method = {RequestMethod.GET})
@@ -259,7 +282,7 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "确认导入pdm修改表元数据表")
     @RequestMapping(value = "/{databaseCode}/confirm", method = {RequestMethod.POST})
     @WrapUpResponseBody
-    public void syncConfirm(@PathVariable String databaseCode, @RequestBody String data,
+    public ResponseData syncConfirm(@PathVariable String databaseCode, @RequestBody String data,
                             HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> params = collectRequestParameters(request);
         JSONObject object = JSON.parseObject(data);
@@ -272,7 +295,7 @@ public class MetaTableController extends BaseController {
         }
         String userCode = WebOptUtils.getCurrentUserCode(request);
         Pair<Integer, String> ret = metaTableManager.syncPdm(databaseCode, tempFilePath, tables, userCode);
-        JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
+        return ResponseData.makeErrorMessage(ret.getLeft(), ret.getRight());
     }
 
     @ApiOperation(value = "查询表列数据元数据")
@@ -352,26 +375,6 @@ public class MetaTableController extends BaseController {
         DictionaryMapUtils.mapJsonArray(list, dicMaps);
     }
 
-    /**
-     * 转换发布结果响应体
-     *
-     * @param ret
-     * @return
-     */
-    private JSONObject translatePublishMessage(Pair<Integer, String> ret) {
-        JSONObject json = new JSONObject();
-        json.put(ResponseData.RES_CODE_FILED, ret.getLeft());
-        if (ret.getLeft() == 1) {
-            json.put(ResponseData.RES_MSG_FILED, "发布失败");
-        } else if (ret.getLeft() == 0) {
-            json.put(ResponseData.RES_MSG_FILED, "发布成功");
-        } else {
-            json.put(ResponseData.RES_MSG_FILED, ret.getRight());
-        }
-        json.put(ResponseData.RES_DATA_FILED, ret.getRight());
-        return json;
-    }
-
     @ApiOperation(value = "分页查询数据库表数据列表")
     @RequestMapping(value = "/{databaseId}/viewlist", method = RequestMethod.POST)
     @WrapUpResponseBody
@@ -433,7 +436,7 @@ public class MetaTableController extends BaseController {
         String columnName = props.getString("columnName");
         if(StringUtils.isNotBlank(columnName)) return;
         PendingMetaColumn columnInfo = props.toJavaObject(PendingMetaColumn.class);
-        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter);
+        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter, false);
         if(tables==null || tables.isEmpty()) return;
         for(PendingMetaTable metaTable : tables){
             metaTableManager.updatePendingMetaColumn(metaTable, columnInfo);
@@ -452,7 +455,7 @@ public class MetaTableController extends BaseController {
         if(props==null || props.isEmpty()) return ;
         String columnName = props.getString("columnName");
         if(StringUtils.isNotBlank(columnName)) return;
-        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter);
+        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter, false);
         if(tables==null || tables.isEmpty()) return;
         for(PendingMetaTable metaTable : tables){
             metaTableManager.deletePendingMetaColumn(metaTable, columnName);

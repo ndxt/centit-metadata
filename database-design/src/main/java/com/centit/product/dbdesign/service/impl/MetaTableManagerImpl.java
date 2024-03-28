@@ -571,7 +571,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
             if (errors.isEmpty()) {
                 return ResponseData.makeErrorMessageWithData(success, 0, "批量发布失败成功！");
             } else {
-                return ResponseData.makeErrorMessageWithData(errors, 1, "批量发布失败!");
+                return ResponseData.makeErrorMessageWithData(errors, -1, "批量发布失败!");
             }
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -581,11 +581,22 @@ public class MetaTableManagerImpl implements MetaTableManager {
     }
 
     @Override
+    public ResponseData publishDatabase(String databaseCode, String recorder){
+        List<PendingMetaTable> metaTables = pendingMdTableDao.listObjectsByProperties(CollectionsOpt.createHashMap(
+            "databaseCode", databaseCode, "tableState", "W"));
+        if(metaTables==null || metaTables.isEmpty()){
+            return ResponseData.makeErrorMessageWithData("没有需要发布的表", 2, "没有需要发布的表");
+        }
+        return batchPublishTables(metaTables, recorder);
+    }
+    @Override
+    @Transactional
     public void updateMetaTable(PendingMetaTable metaTable) {
         pendingMdTableDao.updateObject(metaTable);
     }
 
     @Override
+    @Transactional
     public void updateMetaColumn(PendingMetaColumn metaColumn) {
         pendingMetaColumnDao.updateObject(metaColumn);
 
@@ -597,6 +608,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
     }
 
     @Override
+    @Transactional
     public List listCombineTablesByProperty(Map<String, Object> parameters, PageDesc pageDesc) {
         String databaseCode = MapUtils.getString(parameters, "databaseCode");
         String optId = MapUtils.getString(parameters, "optId");
@@ -646,6 +658,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
     }
 
     @Override
+    @Transactional
     public PendingMetaTable initPendingMetaTable(String tableId, String userCode) {
         MetaTable metaTable = this.getMetaTableWithReferences(tableId);
         if (null == metaTable) {

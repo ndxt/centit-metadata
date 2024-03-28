@@ -197,14 +197,7 @@ public class MetaTableController extends BaseController {
     public ResponseData publishDatabase(@PathVariable String databaseCode,
                                 HttpServletRequest request) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        JSONObject filter = new JSONObject();
-        filter.put("filterType", "database");
-        filter.put("databaseCode", databaseCode);
-        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter, true);
-        if(tables==null || tables.isEmpty()) {
-            throw new ObjectException(ObjectException.DATA_NOT_FOUND_EXCEPTION, "没有要发布的表单");
-        }
-        return metaTableManager.batchPublishTables(tables, userCode);
+        return metaTableManager.publishDatabase(databaseCode, userCode);
     }
 
     @ApiOperation(value = "批量发布表元数据表")

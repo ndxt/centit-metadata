@@ -45,6 +45,8 @@ public interface MetaTableManager {
 
     ResponseData batchPublishTables(List<PendingMetaTable> metaTables, String recorder);
 
+    ResponseData publishDatabase(String databaseCode, String recorder);
+
     JSONArray listDrafts(String[] fields, Map<String, Object> searchColumn, PageDesc pageDesc);
 
     JSONArray viewList(String databaseId,String sql) throws SQLException, IOException;
@@ -62,7 +64,6 @@ public interface MetaTableManager {
     List<MetaColumn> listFields(String tableId);
 
     Pair<Integer, String> syncPdm(String databaseCode, String pdmFilePath, List<String> tables, String recorder);
-
 
     void updateMetaTable(PendingMetaTable metaTable);
 

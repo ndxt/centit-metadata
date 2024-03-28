@@ -193,6 +193,17 @@ public class MetaTableController extends BaseController {
         JsonResultUtils.writeSingleDataJson(json, response);
     }
 
+    @ApiOperation(value = "批量发布表元数据表")
+    @RequestMapping(value = "/{databaseCode}/publish", method = {RequestMethod.POST})
+    @WrapUpResponseBody
+    public void publishDatabase(@PathVariable String databaseCode,
+                                HttpServletRequest request, HttpServletResponse response) {
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        Pair<Integer, String> ret = metaTableManager.publishDatabase(databaseCode, userCode);
+        JSONObject json = translatePublishMessage(ret);
+        JsonResultUtils.writeSingleDataJson(json, response);
+    }
+
     @ApiOperation(value = "range")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.GET)
     @RequestMapping(value = "/range", method = {RequestMethod.GET})
@@ -262,17 +273,6 @@ public class MetaTableController extends BaseController {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         Pair<Integer, String> ret = metaTableManager.syncPdm(databaseCode, tempFilePath, tables, userCode);
         JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
-    }
-
-    @ApiOperation(value = "批量发布表元数据表")
-    @RequestMapping(value = "/{databaseCode}/publish", method = {RequestMethod.POST})
-    @WrapUpResponseBody
-    public void publishDatabase(@PathVariable String databaseCode,
-                                HttpServletRequest request, HttpServletResponse response) {
-        String userCode = WebOptUtils.getCurrentUserCode(request);
-        Pair<Integer, String> ret = metaTableManager.publishDatabase(databaseCode, userCode);
-        JSONObject json = translatePublishMessage(ret);
-        JsonResultUtils.writeSingleDataJson(json, response);
     }
 
     @ApiOperation(value = "查询表列数据元数据")
@@ -419,7 +419,7 @@ public class MetaTableController extends BaseController {
      三、统一删除字段
      ** 四、统一设置表的属性，比如：逻辑删除等等
      */
-    @ApiOperation(value = "批量修改表的属性，只能修改 逻辑删除标识、更新版本标识 、是否写入日志、是否全文检索 这四个属性")
+    @ApiOperation(value = "批量添加或修改表的字段，和新建表字段一样")
     @PutMapping(value = "/batchSetColumn")
     @ApiImplicitParam(name = "formJsonString", paramType="body", value = "JSON中分两部分，一部分是查询条件，一部分是修改的属性")
     @WrapUpResponseBody
@@ -440,7 +440,7 @@ public class MetaTableController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "批量修改表的字段属性；可以修改 生成规则、脱敏、校验、应用、应用、延时加载 和 必填 等属性")
+    @ApiOperation(value = "批量删除表的字段")
     @PutMapping(value = "/batchDeleteColumn")
     @WrapUpResponseBody
     public void batchUpdateTableColumns(@RequestBody String formJsonString){

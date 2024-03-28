@@ -37,13 +37,13 @@ public class MetaOptRelation  implements Serializable {
 
     @ApiModelProperty(value = "业务编号")
     @Column(name = "OPT_ID")
-    @Length(max = 32, message = "字段长度不能大于{max}")
+    @Length(max = 32)
     private String optId;
 
 
     @ApiModelProperty(value = "应用id")
     @Column(name = "os_id")
-    @Length(max = 32, message = "字段长度不能大于{max}")
+    @Length(max = 32)
     private String osId;
 
 

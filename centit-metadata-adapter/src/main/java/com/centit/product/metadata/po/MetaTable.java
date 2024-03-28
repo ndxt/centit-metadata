@@ -66,26 +66,26 @@ public class MetaTable implements TableInfo, java.io.Serializable {
      * 类别 表 T table /视图 V view / C-大字段 目前只支持json格式
      */
     @Column(name = "TABLE_TYPE")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     @Pattern(regexp = "[TVC]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
+    @Length(max = 1)
     @ApiModelProperty(value = "表类别（T-表；V-视图；C-大字段）")
     @DictionaryMap(fieldName = "tableTypeText", value = "TableType")
     private String tableType;
 
     @ApiModelProperty(value = "表的存储类别  H：隐藏；R：只读；N：可读写)")
     @Column(name = "ACCESS_TYPE")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     @Pattern(regexp = "[HRCN]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
+    @Length(max = 1)
     private String accessType;
 
     /**
      * 表代码/表名
      */
     @Column(name = "TABLE_NAME")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 64, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 64)
     @ApiModelProperty(value = "表名")
     private String tableName;
 
@@ -93,8 +93,8 @@ public class MetaTable implements TableInfo, java.io.Serializable {
      * 表中文名称
      */
     @Column(name = "TABLE_LABEL_NAME")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 200, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 200)
     @ApiModelProperty(value = "表中文名")
     private String tableLabelName;
 
@@ -103,7 +103,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
      */
     @ApiModelProperty(value = "表描述")
     @Column(name = "TABLE_COMMENT")
-    @Length(max = 256, message = "字段长度不能大于{max}")
+    @Length(max = 256)
     private String tableComment;
 
     /**
@@ -111,14 +111,14 @@ public class MetaTable implements TableInfo, java.io.Serializable {
      * 0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联
      */
     @Column(name = "WORKFLOW_OPT_TYPE")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     @Pattern(regexp = "[0-2]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
+    @Length(max = 1)
     private String workFlowOptType;
 
     @Column(name = "FULLTEXT_SEARCH")
-    @NotBlank(message = "字段不能为空[T/F]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 1)
     private Boolean fulltextSearch;
 
     /**
@@ -126,22 +126,22 @@ public class MetaTable implements TableInfo, java.io.Serializable {
      */
     @ApiModelProperty(value = "对象标题模板，用于全文检索时的标题显示")
     @Column(name = "OBJECT_TITLE")
-    @Length(max = 500, message = "字段长度不能大于{max}")
+    @Length(max = 500)
     private String objectTitle;
 
     @Column(name = "WRITE_OPT_LOG")
-    @NotBlank(message = "字段不能为空[T/F]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 1)
     private Boolean writeOptLog;
 
     //添加逻辑删除 softdelete 标识字段
     @Column(name = "DELETE_TAG_FIELD")
-    @Length(max = 100, message = "字段长度不能大于{max}")
+    @Length(max = 100)
     private String deleteTagField;
 
     //更新前版本检查 checkVersion 标识字段
     @Column(name = "CHECK_VERSION_FIELD")
-    @Length(max = 100, message = "字段长度不能大于{max}")
+    @Length(max = 100)
     private String checkVersionField;
 
     /**
@@ -155,7 +155,7 @@ public class MetaTable implements TableInfo, java.io.Serializable {
      * 更改人员
      */
     @Column(name = "RECORDER")
-    @Length(max = 64, message = "字段长度不能大于{max}")
+    @Length(max = 64)
     @DictionaryMap(fieldName = "recorderName", value = "userCode")
     private String recorder;
 

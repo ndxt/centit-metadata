@@ -45,27 +45,27 @@ public class SourceInfo implements ISourceInfo, Serializable {
 
 
     @Column(name = "DATABASE_NAME")
-    @Length(max = 100, message = "字段长度不能大于{max}")
+    @Length(max = 100)
     @ApiModelProperty(value = "数据库名", name = "databaseName")
     private String databaseName;
 
     @Column(name = "DATABASE_URL")
-    @Length(max = 1000, message = "字段长度不能大于{max}")
+    @Length(max = 1000)
     @ApiModelProperty(value = "数据库地址", name = "databaseUrl")
     private String databaseUrl;
 
     @Column(name = "USERNAME")
-    @Length(max = 100, message = "字段长度不能大于{max}")
+    @Length(max = 100)
     @ApiModelProperty(value = "数据库用户名", name = "username")
     private String username;
 
     @Column(name = "PASSWORD")
-    @Length(max = 100, message = "字段长度不能大于{max}")
+    @Length(max = 100)
     @ApiModelProperty(value = "数据库密码", name = "password")
     private String password;
 
     @Column(name = "DATABASE_DESC")
-    @Length(max = 500, message = "字段长度不能大于{max}")
+    @Length(max = 500)
     @ApiModelProperty(value = "数据库描述信息", name = "databaseDesc")
     private String databaseDesc;
 
@@ -76,7 +76,7 @@ public class SourceInfo implements ISourceInfo, Serializable {
 
     @ApiModelProperty(value = "创建人", name = "CREATED")
     @Column(name = "CREATED")
-    @Length(max = 32, message = "字段长度不能大于{max}")
+    @Length(max = 32)
     @DictionaryMap(fieldName = "createUserName", value = "userCode")
     private String created;
 

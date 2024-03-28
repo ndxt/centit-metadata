@@ -36,24 +36,24 @@ public class MetaColumn implements TableField, java.io.Serializable {
     @ApiModelProperty(value = "表ID", hidden = true)
     @Id
     @Column(name = "TABLE_ID")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     private String tableId;
 
     @ApiModelProperty(value = "字段名", hidden = true)
     @Id
     @Column(name = "COLUMN_NAME")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     private String columnName;
 
     @ApiModelProperty(value = "字段显示名（可编辑）")
     @Column(name = "FIELD_LABEL_NAME")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 200, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 200)
     private String fieldLabelName;
 
     @ApiModelProperty(value = "字段描述（可编辑）")
     @Column(name = "COLUMN_COMMENT")
-    @Length(max = 256, message = "字段长度不能大于{max}")
+    @Length(max = 256)
     private String  columnComment;
 
     @OrderBy
@@ -63,14 +63,14 @@ public class MetaColumn implements TableField, java.io.Serializable {
 
     @ApiModelProperty(value = "字段类型", hidden = true)
     @Column(name = "COLUMN_TYPE")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 32, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 32)
     private String columnType;
 
     @ApiModelProperty(value = "字段类型", hidden = true)
     @Column(name = "FIELD_TYPE")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 32, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 32)
     private String fieldType;
 
     @ApiModelProperty(value = "字段长度", hidden = true)
@@ -87,9 +87,9 @@ public class MetaColumn implements TableField, java.io.Serializable {
      */
     @ApiModelProperty(value = "字段类别（可编辑）(字段类别.H：隐藏；R：只读；C：只能创建不能修改；N：可读写)")
     @Column(name = "ACCESS_TYPE")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     @Pattern(regexp = "[HRCN]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
+    @Length(max = 1)
     private String accessType;
 
     /**
@@ -103,7 +103,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
      */
     @ApiModelProperty(value = "是否必填", hidden = true)
     @Column(name = "MANDATORY")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     private Boolean mandatory;
 
     /**
@@ -115,28 +115,28 @@ public class MetaColumn implements TableField, java.io.Serializable {
 
     @ApiModelProperty(value = "引用类型 0：没有：1： 数据字典 2：JSON表达式 3：sql语句  4：复合数据字典")
     @Column(name = "REFERENCE_TYPE")
-    @Length(message = "字段长度不能大于{max}")
+    @Length(max = 2)
     private String referenceType;
     /**
      * 引用数据 根据paramReferenceType类型（1,2,3）填写对应值
      */
     @ApiModelProperty(value = "引用数据 根据paramReferenceType类型（1,2,3）填写对应值")
     @Column(name = "REFERENCE_DATA")
-    @Length(max = 1000, message = "字段长度不能大于{max}")
+    @Length(max = 1000)
     private String  referenceData;
     /**
      * 约束表达式 regex表达式
      */
     @ApiModelProperty(value = "约束表达式 regex表达式")
     @Column(name = "CHECK_RULE_ID")
-    @Length(max = 64, message = "字段长度不能大于{max}")
+    @Length(max = 64)
     private String  checkRuleId;
     /**
      * 约束提示 约束不通过提示信息
      */
     @ApiModelProperty(value = "约束提示 约束不通过提示信息")
     @Column(name = "CHECK_RULE_PARAMS")
-    @Length(max = 512, message = "字段长度不能大于{max}")
+    @Length(max = 512)
     private JSONObject checkRuleParams;
 
     /**
@@ -150,7 +150,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
      */
     @ApiModelProperty(value = "自动生成规则 C 常量 U uuid S sequence F 函数 /*O order*/ A 自增长")
     @Column(name = "AUTO_CREATE_RULE")
-    @Length(max = 1, message = "字段长度不能大于{max}")
+    @Length(max = 1)
     private String autoCreateRule;
 
     /**
@@ -158,7 +158,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
      */
     @ApiModelProperty(value = "自动生成参数")
     @Column(name = "AUTO_CREATE_PARAM")
-    @Length(max = 200, message = "字段长度不能大于{max}")
+    @Length(max = 200)
     private String autoCreateParam;
 
     /**
@@ -166,7 +166,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
      */
     @ApiModelProperty(value = "脱敏处理类型")
     @Column(name = "SENSITIVE_TYPE")
-    @Length(max = 16, message = "字段长度不能大于{max}")
+    @Length(max = 16)
     private String sensitiveType;
     /**
      * 与流程中变量关联关系
@@ -174,7 +174,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
      */
     @Column(name = "WORKFLOW_VARIABLE_TYPE")
     @Pattern(regexp = "[0-2]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
+    @Length(max = 1)
     private String workFlowVariableType;
 
     /**
@@ -189,7 +189,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
      */
     @ApiModelProperty(value = "更改人员", hidden = true)
     @Column(name = "RECORDER")
-    @Length(max = 8, message = "字段长度不能大于{max}")
+    @Length(max = 8)
     @DictionaryMap(fieldName = "recorderName", value = "userCode")
     private String recorder;
 
@@ -207,7 +207,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
         this.primaryKey = false;
     }
 
-    public MetaColumn(@NotBlank(message = "字段不能为空") String tableId, @NotBlank(message = "字段不能为空") String columnName) {
+    public MetaColumn(@NotBlank String tableId, @NotBlank String columnName) {
         this();
         this.tableId = tableId;
         this.columnName = columnName;

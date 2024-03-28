@@ -60,8 +60,8 @@ public class MetaRelation implements TableReference, java.io.Serializable {
      */
     @ApiModelProperty(value = "关联名称")
     @Column(name = "RELATION_NAME")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 64, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 64)
     private String relationName;
     /**
      * 关联类型
@@ -82,12 +82,12 @@ public class MetaRelation implements TableReference, java.io.Serializable {
      */
     @ApiModelProperty(value = "描述")
     @Column(name = "RELATION_COMMENT")
-    @Length(max = 256, message = "字段长度不能大于{max}")
+    @Length(max = 256)
     private String relationComment;
 
     @ApiModelProperty(value = "更改人员", hidden = true)
     @Column(name = "RECORDER")
-    @Length(max = 8, message = "字段长度不能大于{max}")
+    @Length(max = 8)
     @DictionaryMap(fieldName = "recorderName", value = "userCode")
     private String  recorder;
 

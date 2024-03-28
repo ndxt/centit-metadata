@@ -61,25 +61,25 @@ public class PendingMetaTable implements
      */
     @ApiModelProperty(value = "表代码", required = true)
     @Column(name = "TABLE_NAME")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 64, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 64)
     private String tableName;
     /**
      * 表名称 null
      */
     @ApiModelProperty(value = "表中文名", required = true)
     @Column(name = "TABLE_LABEL_NAME")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 200, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 200)
     private String tableLabelName;
     /**
      * 表类型 T，V
      */
     @ApiModelProperty(value = "表类型（T-表；V-视图）", required = true)
     @Column(name = "TABLE_TYPE")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     @Pattern(regexp = "[TV]")
-    @Length(max = 1, message = "字段长度不能大于{max}")
+    @Length(max = 1)
     @DictionaryMap(fieldName = "tableTypeText", value = "TableType")
     private String tableType = "T";
     /**
@@ -87,12 +87,12 @@ public class PendingMetaTable implements
      */
     @ApiModelProperty(value = "表描述")
     @Column(name = "TABLE_COMMENT")
-    @Length(max = 256, message = "字段长度不能大于{max}")
+    @Length(max = 256)
     private String tableComment;
 
     @ApiModelProperty(value = "表状态（待发布 W、已发布 S）", required = true)
     @Column(name = "TABLE_STATE")
-    @Length(message = "字段长度不能大于{max}")
+    @Length(max = 2)
     private String tableState;
 
     /**
@@ -103,7 +103,7 @@ public class PendingMetaTable implements
      */
     @ApiModelProperty(value = "与流程中业务关联关系(0: 不关联工作流 1：和流程业务关联 2： 和流程过程关联)", required = true)
     @Column(name = "WORKFLOW_OPT_TYPE")
-    @Length(max = 1, message = "字段长度不能大于{max}")
+    @Length(max = 1)
     private String workFlowOptType;
 
     /**
@@ -117,7 +117,7 @@ public class PendingMetaTable implements
      * 更改人员 null
      */
     @Column(name = "RECORDER")
-    @Length(max = 64, message = "字段长度不能大于{max}")
+    @Length(max = 64)
     @DictionaryMap(fieldName = "recorderName", value = "userCode")
     private String recorder;
 

@@ -60,7 +60,7 @@ public class DataCheckRule implements java.io.Serializable {
     @Column(name = "RULE_DESC")
     private String  ruleDesc;
     @Column(name = "SOURCE_ID")
-    @Length(max = 32, message = "字段长度不能大于{max}")
+    @Length(max = 32)
     @JSONField(serialize = false)
     private String sourceId;
 }

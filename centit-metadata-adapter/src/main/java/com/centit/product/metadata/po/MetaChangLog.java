@@ -60,7 +60,7 @@ public class MetaChangLog implements java.io.Serializable {
 
     @ApiModelProperty(value = "更改说明")
     @Column(name = "CHANGE_COMMENT")
-    @Length(max = 2048, message = "字段长度不能大于{max}")
+    @Length(max = 2048)
     private String  changeComment;
 
     @Transient

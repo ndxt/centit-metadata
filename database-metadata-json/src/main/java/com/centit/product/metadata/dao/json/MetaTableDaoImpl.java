@@ -85,31 +85,31 @@ public class MetaTableDaoImpl implements MetaTableDao {
     @Override
     public void saveNewObject(MetaTable tableInfo) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public MetaTable getMetaTable(String databaseCode, String tableName) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public JSONArray getMetaTableList(Map<String, Object> parameters) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public JSONArray getMetaTableListWithTableOptRelation(Map<String, Object> parameters) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public boolean isTableExist(String tableName, String dataBaseCode) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
@@ -125,48 +125,48 @@ public class MetaTableDaoImpl implements MetaTableDao {
     @Override
     public JSONArray listObjectsByPropertiesAsJson(Map<String, Object> filterMap, PageDesc pageDesc) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public List<MetaTable> listObjectsByProperties(Map<String, Object> filterMap) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public List<MetaTable> listObjectsByFilter(String sqlWhere, Object[] params) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public List<MetaTable> listObjectsByFilter(String sqlWhere, Map<String, Object> filterMap){
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public int deleteObjectReferences(MetaTable object) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public int deleteObject(MetaTable object) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public int updateObject(MetaTable object) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public int mergeObject(MetaTable object) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 }

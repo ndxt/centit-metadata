@@ -14,42 +14,42 @@ public class MetaOptRelationDaoImpl implements MetaOptRelationDao {
     @Override
     public void saveNewObject(MetaOptRelation relation) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public MetaOptRelation getObjectById(Object id) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public MetaOptRelation getObjectByProperties(Map<String, Object> filterMap) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public int updateObject(MetaOptRelation relation) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public int deleteObjectById(Object id) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public List<MetaOptRelation> listObjectsByProperties(Map<String, Object> filterMap) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 
     @Override
     public List<MetaOptRelation> listObjectsByProperties(Map<String, Object> filterMap, PageDesc pageDesc) {
         throw new ObjectException(ObjectException.FUNCTION_NOT_SUPPORT,
-            "该方法在当前版本下没有实现，请联系研发人员!");
+            "Runtime 运行时环境，不支持元数据的修改!");
     }
 }

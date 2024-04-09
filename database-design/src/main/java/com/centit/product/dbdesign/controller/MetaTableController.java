@@ -185,6 +185,7 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "发布重构表")
     @RequestMapping(value = "/publish/{pendingTableId}", method = {RequestMethod.POST})
+    @WrapUpResponseBody
     public ResponseData publishMdTable(@PathVariable String pendingTableId,
                                HttpServletRequest request, HttpServletResponse response) {
         String userCode = WebOptUtils.getCurrentUserCode(request);

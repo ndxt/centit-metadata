@@ -245,7 +245,7 @@ public class MetaTableController extends BaseController {
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.POST)
     @RequestMapping(value = "/range", method = {RequestMethod.POST})
     @WrapUpResponseBody(contentType = WrapUpContentType.RAW)
-    public Object syncPdm(String token, long size,
+    public JSONObject syncPdm(String token, long size,
                         HttpServletRequest request, HttpServletResponse response)
         throws IOException {
 
@@ -261,10 +261,10 @@ public class MetaTableController extends BaseController {
                 data.put("tempFilePath", token + "_" + size);
                 data.put("tables", PdmTableInfoUtils.getTableNameFromPdm(tempFilePath));
                 jsonObject.put("tables", data);
-                return ResponseData.makeResponseData(jsonObject);
+                return ResponseData.makeResponseData(jsonObject).toJSONObject();
             } else {
                 return UploadDownloadUtils.
-                    makeRangeUploadJson(uploadSize, token, token + "_" + size).toJSONString();
+                    makeRangeUploadJson(uploadSize, token, token + "_" + size);
             }
 
         } catch (ObjectException e) {

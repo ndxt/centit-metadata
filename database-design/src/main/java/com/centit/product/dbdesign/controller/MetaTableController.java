@@ -62,7 +62,7 @@ import java.util.Map;
 @RequestMapping("/mdtable")
 @Api(value = "数据重构", tags = "数据重构")
 public class MetaTableController extends BaseController {
-    //private static final Log log = LogFactory.getLog(MetaTableController.class);
+    //private static final Logger logger = LogFactory.getLog(MetaTableController.class);
 
     @Resource
     private MetaTableManager metaTableManager;
@@ -113,8 +113,8 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "新增重构表")
     @RequestMapping(method = {RequestMethod.POST})
-    public void createMdTable(PendingMetaTable mdTable, HttpServletRequest request,
-                              HttpServletResponse response) {
+    @WrapUpResponseBody
+    public String createMdTable(PendingMetaTable mdTable, HttpServletRequest request) {
 
         boolean isExist = metaTableManager.isTableExist(mdTable.getTableName(), mdTable.getDatabaseCode());
         String userCode = WebOptUtils.getCurrentUserCode(request);
@@ -124,13 +124,13 @@ public class MetaTableController extends BaseController {
         table.copyNotNullProperty(mdTable);
         if (!isExist) {
             metaTableManager.saveNewPendingMetaTable(table);
-            JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
+            return table.getTableId();
         } else {
             if ("V".equals(mdTable.getTableType())) {
                 metaTableManager.savePendingMetaTable(table);
-                JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
+                return table.getTableId();
             } else {
-                JsonResultUtils.writeErrorMessageJson(800, mdTable.getTableName() + "已存在", response);
+                throw new ObjectException(800, mdTable.getTableName() + "已存在");
             }
         }
     }
@@ -244,7 +244,8 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "导入pdm返回表数据")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.POST)
     @RequestMapping(value = "/range", method = {RequestMethod.POST})
-    public void syncPdm(String token, long size,
+    @WrapUpResponseBody(contentType = WrapUpContentType.RAW)
+    public Object syncPdm(String token, long size,
                         HttpServletRequest request, HttpServletResponse response)
         throws IOException {
 
@@ -260,16 +261,15 @@ public class MetaTableController extends BaseController {
                 data.put("tempFilePath", token + "_" + size);
                 data.put("tables", PdmTableInfoUtils.getTableNameFromPdm(tempFilePath));
                 jsonObject.put("tables", data);
-                JsonResultUtils.writeSingleDataJson(jsonObject, response);
+                return ResponseData.makeResponseData(jsonObject);
             } else {
-                JsonResultUtils.writeOriginalJson(UploadDownloadUtils.
-                    makeRangeUploadJson(uploadSize, token, token + "_" + size).toJSONString(), response);
+                return UploadDownloadUtils.
+                    makeRangeUploadJson(uploadSize, token, token + "_" + size).toJSONString();
             }
 
         } catch (ObjectException e) {
             logger.error(e.getMessage(), e);
-            JsonResultUtils.writeHttpErrorMessage(e.getExceptionCode(),
-                e.getMessage(), response);
+            throw new ObjectException(e.getExceptionCode(), e.getMessage());
         }
     }
 

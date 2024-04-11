@@ -38,12 +38,11 @@ public class MetadataUpdateController extends BaseController {
     private MetaDataService metaDataService;
 
     @ApiOperation(value = "获取所有业务数据类型Map")
-    @GetMapping(value = "/fieldType")
+    @GetMapping(value = {"/fieldType", "/no-auth/fieldType"})
     @WrapUpResponseBody
     public Map<String, String> listFieldType(){
         return FieldType.getAllTypeMap();
     }
-
 
     @ApiOperation(value = "修改表元数据")
     @ApiImplicitParams(value = {

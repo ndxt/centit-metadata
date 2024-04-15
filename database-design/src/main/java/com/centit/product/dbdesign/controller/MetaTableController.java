@@ -26,6 +26,7 @@ import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.file.FileIOOpt;
 import com.centit.support.file.FileSystemOpt;
+import com.centit.support.security.SecurityOptUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -149,7 +150,11 @@ public class MetaTableController extends BaseController {
     @PutMapping(value = "/column/{tableId}/{columnCode}")
     @WrapUpResponseBody
     public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode,
-                                  @RequestBody PendingMetaColumn metaColumn) {
+                                  @RequestBody String mcJsonStr) {
+        PendingMetaColumn metaColumn = JSONObject.parseObject(
+            SecurityOptUtils.decodeSecurityString(mcJsonStr),
+            PendingMetaColumn.class);
+
         metaColumn.setTableId(tableId);
         metaColumn.setColumnName(columnCode);
         metaTableManager.updateMetaColumn(metaColumn);

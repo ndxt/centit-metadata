@@ -157,7 +157,10 @@ public class MetadataUpdateController extends BaseController {
         JSONObject props = formJson.getJSONObject("props");
         if(props==null || props.isEmpty()) return ;
         String columnName = props.getString("columnName");
-        if(StringUtils.isNotBlank(columnName)) return;
+        if(StringUtils.isNotBlank(columnName)){
+            throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR,
+                "批量修改表的字段属性，必须指定字段名：columnName！");
+        }
 
         List<MetaTable> tables =  metaDataService.searchMateTable(filter);
         if(tables==null || tables.isEmpty()) return;

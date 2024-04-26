@@ -425,7 +425,7 @@ public class MetaTableController extends BaseController {
     @PutMapping(value = "/batchSetColumn")
     @ApiImplicitParam(name = "formJsonString", paramType="body", value = "JSON中分两部分，一部分是查询条件，一部分是修改的属性")
     @WrapUpResponseBody
-    public int batchUpdateTableProps(@RequestBody String formJsonString){
+    public int batchSetTableColumn(@RequestBody String formJsonString){
         JSONObject formJson = JSONObject.parseObject(formJsonString);
         JSONObject filter = formJson.getJSONObject("filter");
         if(filter==null) return 0;

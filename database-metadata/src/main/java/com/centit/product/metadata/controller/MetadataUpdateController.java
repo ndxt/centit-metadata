@@ -149,33 +149,31 @@ public class MetadataUpdateController extends BaseController {
     @ApiOperation(value = "批量修改表的字段属性；可以修改: 生成规则、脱敏、校验、应用、应用、延时加载 和 必填 等属性")
     @PutMapping(value = "/batchUpdateColumn")
     @WrapUpResponseBody
-    public void batchUpdateTableColumns(@RequestBody String formJsonString){
+    public int batchUpdateTableColumns(@RequestBody String formJsonString){
         JSONObject formJson = JSONObject.parseObject(formJsonString);
         JSONObject filter = formJson.getJSONObject("filter");
-        if(filter==null) return ;
+        if(filter==null) return 0;
 
         JSONObject props = formJson.getJSONObject("props");
-        if(props==null || props.isEmpty()) return ;
+        if(props==null || props.isEmpty()) return 0;
         String columnName = props.getString("columnName");
-        if(StringUtils.isNotBlank(columnName)){
+        if(StringUtils.isBlank(columnName)){
             throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR,
                 "批量修改表的字段属性，必须指定字段名：columnName！");
         }
 
         List<MetaTable> tables =  metaDataService.searchMateTable(filter);
-        if(tables==null || tables.isEmpty()) return;
+        if(tables==null || tables.isEmpty()) return 0;
         MetaColumn columnInfo = new MetaColumn();
-        // mandatory lazyFetch
-        // referenceType referenceData checkRuleId checkRuleParams
-        // autoCreateCondition  autoCreateRule autoCreateParam sensitiveType
+
         columnInfo.setColumnName(columnName);
-        String mandatory = props.getString("mandatory");
-        if(StringUtils.isNotBlank(mandatory)) {
-            columnInfo.setMandatory(BooleanBaseOpt.castObjectToBoolean(mandatory, false));
+        Object mandatory = props.get("mandatory");
+        if(mandatory != null) {
+            columnInfo.setMandatory(BooleanBaseOpt.castObjectToBoolean(mandatory, null));
         }
-        String lazyFetch = props.getString("lazyFetch");
-        if(StringUtils.isNotBlank(lazyFetch)) {
-            columnInfo.setLazyFetch(BooleanBaseOpt.castObjectToBoolean(lazyFetch, false));
+        Object lazyFetch = props.getString("lazyFetch");
+        if(lazyFetch != null) {
+            columnInfo.setLazyFetch(BooleanBaseOpt.castObjectToBoolean(lazyFetch, null));
         }
         columnInfo.setReferenceType(StringRegularOpt.trimStringBlankAsNull(props.getString("referenceType")));
         columnInfo.setReferenceData(StringRegularOpt.trimStringBlankAsNull(props.getString("referenceData")));
@@ -186,14 +184,16 @@ public class MetadataUpdateController extends BaseController {
         columnInfo.setAutoCreateRule(StringRegularOpt.trimStringBlankAsNull(props.getString("autoCreateRule")));
         columnInfo.setAutoCreateParam(StringRegularOpt.trimStringBlankAsNull(props.getString("autoCreateParam")));
         columnInfo.setSensitiveType(StringRegularOpt.trimStringBlankAsNull(props.getString("sensitiveType")));
-
+        int updated = 0;
         for(MetaTable metaTable : tables){
             MetaColumn column = metaDataService.getMetaColumn(metaTable.getTableId(), columnName);
             if(column!=null){
                 columnInfo.setTableId(metaTable.getTableId());
                 metaDataService.updateMetaColumn(columnInfo);
+                updated++;
             }
         }
+        return updated;
     }
 
 }

@@ -449,7 +449,7 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "批量删除表的字段")
     @PutMapping(value = "/batchDeleteColumn")
     @WrapUpResponseBody
-    public int batchUpdateTableColumns(@RequestBody String formJsonString){
+    public int batchDeleteTableColumns(@RequestBody String formJsonString){
         JSONObject formJson = JSONObject.parseObject(formJsonString);
         JSONObject filter = formJson.getJSONObject("filter");
         if(filter==null) return 0;

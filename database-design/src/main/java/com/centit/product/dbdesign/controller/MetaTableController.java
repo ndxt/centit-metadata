@@ -449,19 +449,23 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "批量删除表的字段")
     @PutMapping(value = "/batchDeleteColumn")
     @WrapUpResponseBody
-    public void batchUpdateTableColumns(@RequestBody String formJsonString){
+    public int batchUpdateTableColumns(@RequestBody String formJsonString){
         JSONObject formJson = JSONObject.parseObject(formJsonString);
         JSONObject filter = formJson.getJSONObject("filter");
-        if(filter==null) return ;
+        if(filter==null) return 0;
 
         JSONObject props = formJson.getJSONObject("props");
-        if(props==null || props.isEmpty()) return ;
+        if(props==null || props.isEmpty()) return 0;
         String columnName = props.getString("columnName");
-        if(StringUtils.isNotBlank(columnName)) return;
+        if(StringUtils.isBlank(columnName)){
+            throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR,
+                "批量修改表的字段属性，必须指定字段名：columnName！");
+        }
         List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter, false);
-        if(tables==null || tables.isEmpty()) return;
+        if(tables==null || tables.isEmpty()) return 0;
         for(PendingMetaTable metaTable : tables){
             metaTableManager.deletePendingMetaColumn(metaTable, columnName);
         }
+        return tables.size();
     }
 }

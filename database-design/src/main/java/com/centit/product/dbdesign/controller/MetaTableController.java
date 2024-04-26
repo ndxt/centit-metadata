@@ -425,21 +425,25 @@ public class MetaTableController extends BaseController {
     @PutMapping(value = "/batchSetColumn")
     @ApiImplicitParam(name = "formJsonString", paramType="body", value = "JSON中分两部分，一部分是查询条件，一部分是修改的属性")
     @WrapUpResponseBody
-    public void batchUpdateTableProps(@RequestBody String formJsonString){
+    public int batchUpdateTableProps(@RequestBody String formJsonString){
         JSONObject formJson = JSONObject.parseObject(formJsonString);
         JSONObject filter = formJson.getJSONObject("filter");
-        if(filter==null) return ;
+        if(filter==null) return 0;
 
         JSONObject props = formJson.getJSONObject("props");
-        if(props==null || props.isEmpty()) return ;
+        if(props==null || props.isEmpty()) return 0;
         String columnName = props.getString("columnName");
-        if(StringUtils.isNotBlank(columnName)) return;
+        if(StringUtils.isBlank(columnName)){
+            throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR,
+                "批量修改表的字段属性，必须指定字段名：columnName！");
+        }
         PendingMetaColumn columnInfo = props.toJavaObject(PendingMetaColumn.class);
         List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter, false);
-        if(tables==null || tables.isEmpty()) return;
+        if(tables==null || tables.isEmpty()) return 0;
         for(PendingMetaTable metaTable : tables){
             metaTableManager.updatePendingMetaColumn(metaTable, columnInfo);
         }
+        return tables.size();
     }
 
     @ApiOperation(value = "批量删除表的字段")

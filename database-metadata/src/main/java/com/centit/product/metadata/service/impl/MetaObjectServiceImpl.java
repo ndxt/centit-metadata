@@ -160,7 +160,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                         int pkCount = metaTable.countPkColumn();
                         if (pkCount < 2 || !field.isPrimaryKey()) {
                             throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
-                                "主键生成规则SUB_ORDER必须用于复合主键表中，并且只能用于整型字段！");
+                                "主键生成规则 SUB_ORDER 必须用于复合主键表中，并且只能用于整型字段！\n" +
+                                    "SUB_ORDER must be used in composite primary key table, and can only be used for integer fields!");
                         }
                         StringBuilder sqlBuilder = new StringBuilder("select max(");
                         sqlBuilder.append(field.getColumnName())
@@ -200,7 +201,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         throws IOException, SQLException {
         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
         if (pk.size() == 0) {
-            throw new ObjectException(tableInfo.getTableName() + "没有传入主键");
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
+                tableInfo.getTableName() + "没有传入主键,"+
+                    "\n Missing primary key.");
         }
         Map<String, Object> dbObject;
         if (dao.checkHasAllPkColumns(pk)) {
@@ -208,8 +211,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         } else if (pk.containsKey(MetaTable.WORKFLOW_INST_ID_PROP)) {
             dbObject = dao.getObjectByProperties(pk);
         } else {
-            throw new ObjectException("表或者视图 " + tableInfo.getTableName()
-                + " 缺少对应主键:" + JSON.toJSONString(pk));
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
+                 "表或者视图 " + tableInfo.getTableName()
+                + " 缺少对应主键:" + JSON.toJSONString(pk) + ", Missing primary key.");
         }
         //添加数据字典转换
         return DictionaryMapUtils.mapJsonObject(dbObject, this.fetchDictionaryMapColumns(tableInfo));
@@ -220,7 +224,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         throws IOException, SQLException {
 
         if (pk.size() == 0) {
-            throw new ObjectException(tableInfo.getTableName() + "没有传入主键");
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
+                tableInfo.getTableName() + "没有传入主键,\n Missing primary key.");
         }
         HashSet<String> fieldSet = collectPartFields(tableInfo, fields);
         Pair<String, TableField[]> q = GeneralJsonObjectDao.buildPartFieldSqlWithFields(tableInfo, fieldSet, null, false);
@@ -234,7 +239,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     MetaTable.WORKFLOW_NODE_INST_ID_PROP,
                     pk.get(MetaTable.WORKFLOW_NODE_INST_ID_PROP)));
         } else {
-            throw new ObjectException(tableInfo.getTableName() + "没有传入主键");
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
+                tableInfo.getTableName() + "没有传入主键,\n Missing primary key.");
         }
 
         String querySql = "select " + q.getLeft() +
@@ -675,7 +681,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
         List<String> fields = tableInfo.extraVersionFields();
         if(fields == null || fields.size()==0){
-            throw new ObjectException(object, ObjectException.SYSTEM_CONFIG_ERROR, "元数据配置不完整，缺少更新版本标识信息：" + tableId);
+            throw new ObjectException(object, ObjectException.SYSTEM_CONFIG_ERROR,
+                "元数据配置不完整，缺少更新版本标识信息：" + tableId+
+                "\n Metadata configuration incomplete, missing update version identifier information: " + tableId);
         }
 
         try {
@@ -686,7 +694,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             for(String field : fields){
                 if(! GeneralAlgorithm.equals(mainObj.get(field), object.get(field))){
                     throw new ObjectException(object, ObjectException.DATA_VALIDATE_ERROR,
-                        "跟新前版本校验失败，数据可能已经被其他业务更改：" + tableId);
+                        "跟新前版本校验失败，数据可能已经被其他业务更改：" + tableId +
+                        "\n Data version check failed before updating, data may have been changed by other business: " + tableId);
                 }
             }
         } catch (SQLException | IOException e) {
@@ -785,7 +794,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     public void softDeleteObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep){
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
         if(StringUtils.isBlank(tableInfo.getDeleteTagField())){
-            throw new ObjectException(pk, ObjectException.SYSTEM_CONFIG_ERROR, "元数据配置不完整，缺少逻辑删除标记信息：" + tableId);
+            throw new ObjectException(pk, ObjectException.SYSTEM_CONFIG_ERROR,
+                "元数据配置不完整，缺少逻辑删除标记信息：" + tableId+
+                "\n The metadata configuration is incomplete, missing logical deletion mark information: " + tableId);
         }
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {
@@ -879,7 +890,9 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                                       PageDesc pageDesc) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         if (tableInfo == null) {
-            throw new ObjectException("无此元数据表" + tableId);
+            throw new ObjectException(ObjectException.DATA_NOT_FOUND_EXCEPTION,
+                "无此元数据表" + tableId+
+                "\n There is no metadata table: " + tableId);
         }
         SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
         try {

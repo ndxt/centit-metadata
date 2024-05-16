@@ -197,7 +197,7 @@ public class MetaTableController extends BaseController {
         return metaTableManager.publishMetaTable(pendingTableId, userCode);
     }
 
-    @ApiOperation(value = "获取创建表结构数据")
+    @ApiOperation(value = "获取创建表结构DDL脚本")
     @RequestMapping(value = "/ddl/{pendingTableId}", method = {RequestMethod.GET})
     @WrapUpResponseBody
     public ResponseData makeTableDDL(@PathVariable String pendingTableId,

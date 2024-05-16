@@ -428,7 +428,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
     @Override
     @Transactional
     public ResponseData generateTableDDL(String tableId){
-        final PendingMetaTable pTable = pendingMdTableDao.getObjectById(tableId);
+        final PendingMetaTable pTable = pendingMdTableDao.getObjectWithReferences(tableId);
         ResponseMapData resp = new ResponseMapData();
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(pTable.getDatabaseCode());
         DBType dbType = DBType.mapDBType(sourceInfo.getDatabaseUrl());
@@ -438,7 +438,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
         if (VIEW.equals(pTable.getTableType())) {
             resp.addResponseData("ddl", ddlOpt.makeCreateViewSql(pTable.getViewSql(), pTable.getTableName()) );
         } else {
-            resp.addResponseData("ddl", ddlOpt.makeCreateTableSql(pTable));
+            resp.addResponseData("ddl", ddlOpt.makeCreateTableSql(pTable, true));
             MetaTable metaTable = metaTableDao.getMetaTable(pTable.getDatabaseCode(), pTable.getTableName());
             if (metaTable != null) {
                 metaTable = metaTableDao.fetchObjectReferences(metaTable);

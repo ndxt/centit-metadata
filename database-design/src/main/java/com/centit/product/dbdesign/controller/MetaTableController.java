@@ -192,9 +192,18 @@ public class MetaTableController extends BaseController {
     @RequestMapping(value = "/publish/{pendingTableId}", method = {RequestMethod.POST})
     @WrapUpResponseBody
     public ResponseData publishMdTable(@PathVariable String pendingTableId,
-                               HttpServletRequest request, HttpServletResponse response) {
+                               HttpServletRequest request) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         return metaTableManager.publishMetaTable(pendingTableId, userCode);
+    }
+
+    @ApiOperation(value = "获取创建表结构数据")
+    @RequestMapping(value = "/ddl/{pendingTableId}", method = {RequestMethod.GET})
+    @WrapUpResponseBody
+    public ResponseData makeTableDDL(@PathVariable String pendingTableId,
+                                       HttpServletRequest request) {
+        WebOptUtils.assertUserLogin(request);
+        return metaTableManager.generateTableDDL(pendingTableId);
     }
 
     @ApiOperation(value = "批量发布表元数据表")

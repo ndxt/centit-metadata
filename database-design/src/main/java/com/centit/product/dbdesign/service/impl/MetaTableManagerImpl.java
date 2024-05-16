@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.centit.framework.common.ResponseData;
+import com.centit.framework.common.ResponseMapData;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
@@ -168,6 +169,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
         } else {
             sqlList = DDLUtils.makeAlterTableSqlList(pendingMetaTable, metaTable, dbType, ddlOpt);
         }
+        //ddlOpt.makeCreateTableSql(pendingMetaTable)
         return sqlList;
     }
 
@@ -423,6 +425,30 @@ public class MetaTableManagerImpl implements MetaTableManager {
         }
     }
 
+    @Override
+    @Transactional
+    public ResponseData generateTableDDL(String tableId){
+        final PendingMetaTable pTable = pendingMdTableDao.getObjectById(tableId);
+        ResponseMapData resp = new ResponseMapData();
+        SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(pTable.getDatabaseCode());
+        DBType dbType = DBType.mapDBType(sourceInfo.getDatabaseUrl());
+        pTable.setDatabaseType(dbType);
+        DDLOperations ddlOpt = GeneralDDLOperations.createDDLOperations(dbType);
+
+        if (VIEW.equals(pTable.getTableType())) {
+            resp.addResponseData("ddl", ddlOpt.makeCreateViewSql(pTable.getViewSql(), pTable.getTableName()) );
+        } else {
+            resp.addResponseData("ddl", ddlOpt.makeCreateTableSql(pTable));
+            MetaTable metaTable = metaTableDao.getMetaTable(pTable.getDatabaseCode(), pTable.getTableName());
+            if (metaTable != null) {
+                metaTable = metaTableDao.fetchObjectReferences(metaTable);
+            }
+            List<String>  sqlList = DDLUtils.makeAlterTableSqlList(pTable, metaTable, dbType, ddlOpt);
+            resp.addResponseData("alter", sqlList);
+        }
+        return resp;
+    }
+
     /**
      * 对比pendingMetaTable和MetaTable中的字段信息，并对数据库中的表进行重构，
      * 重构成功后将对应的表结构信息同步到 MetaTable中，并在MetaChangeLog中记录信息
@@ -458,7 +484,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
             checkPendingMetaTable(pTable, currentUser);
             List<String> sqlList = TransactionHandler.executeInTransaction(dbc,
                 (conn) -> runDdlSql(pTable, errors, conn));
-            if (sqlList.size() > 0) {
+            if (!sqlList.isEmpty()) {
                 chgLog.setDatabaseCode(pTable.getDatabaseCode());
                 chgLog.setChangeScript(JSON.toJSONString(sqlList));
                 chgLog.setChangeComment(JSON.toJSONString(errors));

@@ -43,6 +43,8 @@ public interface MetaTableManager {
 
     ResponseData publishMetaTable(String tableId, String currentUser);
 
+    ResponseData generateTableDDL(String tableId);
+
     ResponseData batchPublishTables(List<PendingMetaTable> metaTables, String recorder);
 
     ResponseData publishDatabase(String databaseCode, String recorder);

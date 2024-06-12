@@ -13,6 +13,7 @@ import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.model.adapter.PlatformEnvironment;
 import com.centit.framework.model.basedata.OperationLog;
 import com.centit.framework.model.basedata.OsInfo;
+import com.centit.framework.model.basedata.WorkGroup;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
@@ -267,10 +268,13 @@ public class MetaObjectController extends BaseController {
         }
 
         if(checkInWorkGroup) {
-            String osIds = osInfos.stream().map(OsInfo::getOsId).collect(Collectors.joining(","));
-            if (!platformEnvironment.loginUserIsExistWorkGroup(osIds, userCode)) {
-                throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您没有权限！");
+            for(OsInfo osInfo : osInfos){
+                List<WorkGroup> userGroups = platformEnvironment.listWorkGroup(osInfo.getOsId(), userCode, null);
+                if(CollectionUtils.isNotEmpty(userGroups)){
+                    return;
+                }
             }
+            throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您没有权限！");
         }
     }
 

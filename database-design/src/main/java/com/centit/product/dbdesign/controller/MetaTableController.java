@@ -26,6 +26,7 @@ import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.file.FileIOOpt;
 import com.centit.support.file.FileSystemOpt;
+import com.centit.support.security.SecurityOptUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -62,7 +63,7 @@ import java.util.Map;
 @RequestMapping("/mdtable")
 @Api(value = "数据重构", tags = "数据重构")
 public class MetaTableController extends BaseController {
-    //private static final Log log = LogFactory.getLog(MetaTableController.class);
+    //private static final Logger logger = LogFactory.getLog(MetaTableController.class);
 
     @Resource
     private MetaTableManager metaTableManager;
@@ -95,7 +96,6 @@ public class MetaTableController extends BaseController {
         return metaTableManager.getMetaChangLog(changeId);
     }
 
-
     @ApiOperation(value = "查询单个表重构字段")
     @RequestMapping(value = "/{tableId}", method = {RequestMethod.GET})
     @WrapUpResponseBody(contentType = WrapUpContentType.MAP_DICT)
@@ -114,8 +114,8 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "新增重构表")
     @RequestMapping(method = {RequestMethod.POST})
-    public void createMdTable(PendingMetaTable mdTable, HttpServletRequest request,
-                              HttpServletResponse response) {
+    @WrapUpResponseBody
+    public String createMdTable(PendingMetaTable mdTable, HttpServletRequest request) {
 
         boolean isExist = metaTableManager.isTableExist(mdTable.getTableName(), mdTable.getDatabaseCode());
         String userCode = WebOptUtils.getCurrentUserCode(request);
@@ -125,13 +125,13 @@ public class MetaTableController extends BaseController {
         table.copyNotNullProperty(mdTable);
         if (!isExist) {
             metaTableManager.saveNewPendingMetaTable(table);
-            JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
+            return table.getTableId();
         } else {
             if ("V".equals(mdTable.getTableType())) {
                 metaTableManager.savePendingMetaTable(table);
-                JsonResultUtils.writeSingleDataJson(table.getTableId(), response);
+                return table.getTableId();
             } else {
-                JsonResultUtils.writeErrorMessageJson(800, mdTable.getTableName() + "已存在", response);
+                throw new ObjectException(800, mdTable.getTableName() + "已存在");
             }
         }
     }
@@ -150,7 +150,11 @@ public class MetaTableController extends BaseController {
     @PutMapping(value = "/column/{tableId}/{columnCode}")
     @WrapUpResponseBody
     public void updateMetaColumns(@PathVariable String tableId, @PathVariable String columnCode,
-                                  @RequestBody PendingMetaColumn metaColumn) {
+                                  @RequestBody String mcJsonStr) {
+        PendingMetaColumn metaColumn = JSONObject.parseObject(
+            SecurityOptUtils.decodeSecurityString(mcJsonStr),
+            PendingMetaColumn.class);
+
         metaColumn.setTableId(tableId);
         metaColumn.setColumnName(columnCode);
         metaTableManager.updateMetaColumn(metaColumn);
@@ -186,15 +190,51 @@ public class MetaTableController extends BaseController {
 
     @ApiOperation(value = "发布重构表")
     @RequestMapping(value = "/publish/{pendingTableId}", method = {RequestMethod.POST})
-    public void publishMdTable(@PathVariable String pendingTableId,
-                               HttpServletRequest request, HttpServletResponse response) {
+    @WrapUpResponseBody
+    public ResponseData publishMdTable(@PathVariable String pendingTableId,
+                               HttpServletRequest request) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        Pair<Integer, String> ret = metaTableManager.publishMetaTable(pendingTableId, userCode);
-        JSONObject json = translatePublishMessage(ret);
-        JsonResultUtils.writeSingleDataJson(json, response);
+        return metaTableManager.publishMetaTable(pendingTableId, userCode);
     }
 
+    @ApiOperation(value = "获取创建表结构DDL脚本")
+    @RequestMapping(value = "/ddl/{pendingTableId}", method = {RequestMethod.GET})
+    @WrapUpResponseBody
+    public ResponseData makeTableDDL(@PathVariable String pendingTableId,
+                                       HttpServletRequest request) {
+        WebOptUtils.assertUserLogin(request);
+        return metaTableManager.generateTableDDL(pendingTableId);
+    }
 
+    @ApiOperation(value = "批量发布表元数据表")
+    @RequestMapping(value = "/{databaseCode}/publish", method = {RequestMethod.POST})
+    @WrapUpResponseBody
+    public ResponseData publishDatabase(@PathVariable String databaseCode,
+                                HttpServletRequest request) {
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        return metaTableManager.publishDatabase(databaseCode, userCode);
+    }
+
+    @ApiOperation(value = "批量发布表元数据表")
+    @PutMapping(value = "/batchPublishTable")
+    @WrapUpResponseBody
+    public ResponseData batchPublishTable( @RequestBody String formJsonString,
+                                HttpServletRequest request) {
+
+        JSONObject formJson = JSONObject.parseObject(formJsonString);
+        JSONObject filter = formJson.getJSONObject("filter");
+        if(filter==null) {
+            throw new ObjectException(ResponseData.ERROR_FIELD_INPUT_NOT_VALID, "输入的表单数据有错");
+        }
+
+        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter, true);
+        if(tables==null || tables.isEmpty()) {
+            throw new ObjectException(ObjectException.DATA_NOT_FOUND_EXCEPTION, "没有要发布的表单");
+        }
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        return metaTableManager.batchPublishTables(tables, userCode);
+
+    }
     @ApiOperation(value = "range")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.GET)
     @RequestMapping(value = "/range", method = {RequestMethod.GET})
@@ -218,7 +258,8 @@ public class MetaTableController extends BaseController {
     @ApiOperation(value = "导入pdm返回表数据")
     @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 86400, methods = RequestMethod.POST)
     @RequestMapping(value = "/range", method = {RequestMethod.POST})
-    public void syncPdm(String token, long size,
+    @WrapUpResponseBody(contentType = WrapUpContentType.RAW)
+    public JSONObject syncPdm(String token, long size,
                         HttpServletRequest request, HttpServletResponse response)
         throws IOException {
 
@@ -234,23 +275,22 @@ public class MetaTableController extends BaseController {
                 data.put("tempFilePath", token + "_" + size);
                 data.put("tables", PdmTableInfoUtils.getTableNameFromPdm(tempFilePath));
                 jsonObject.put("tables", data);
-                JsonResultUtils.writeSingleDataJson(jsonObject, response);
+                return ResponseData.makeResponseData(jsonObject).toJSONObject();
             } else {
-                JsonResultUtils.writeOriginalJson(UploadDownloadUtils.
-                    makeRangeUploadJson(uploadSize, token, token + "_" + size).toJSONString(), response);
+                return UploadDownloadUtils.
+                    makeRangeUploadJson(uploadSize, token, token + "_" + size);
             }
 
         } catch (ObjectException e) {
             logger.error(e.getMessage(), e);
-            JsonResultUtils.writeHttpErrorMessage(e.getExceptionCode(),
-                e.getMessage(), response);
+            throw new ObjectException(e.getExceptionCode(), e.getMessage());
         }
     }
 
     @ApiOperation(value = "确认导入pdm修改表元数据表")
     @RequestMapping(value = "/{databaseCode}/confirm", method = {RequestMethod.POST})
     @WrapUpResponseBody
-    public void syncConfirm(@PathVariable String databaseCode, @RequestBody String data,
+    public ResponseData syncConfirm(@PathVariable String databaseCode, @RequestBody String data,
                             HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> params = collectRequestParameters(request);
         JSONObject object = JSON.parseObject(data);
@@ -263,22 +303,10 @@ public class MetaTableController extends BaseController {
         }
         String userCode = WebOptUtils.getCurrentUserCode(request);
         Pair<Integer, String> ret = metaTableManager.syncPdm(databaseCode, tempFilePath, tables, userCode);
-        JsonResultUtils.writeErrorMessageJson(ret.getLeft(), ret.getRight(), response);
+        return ResponseData.makeErrorMessage(ret.getLeft(), ret.getRight());
     }
 
-    @ApiOperation(value = "批量发布表元数据表")
-    @RequestMapping(value = "/{databaseCode}/publish", method = {RequestMethod.POST})
-    @WrapUpResponseBody
-    public void publishDatabase(@PathVariable String databaseCode,
-                                HttpServletRequest request, HttpServletResponse response) {
-        String userCode = WebOptUtils.getCurrentUserCode(request);
-        Pair<Integer, String> ret = metaTableManager.publishDatabase(databaseCode, userCode);
-        JSONObject json = translatePublishMessage(ret);
-        JsonResultUtils.writeSingleDataJson(json, response);
-    }
-
-
-    @ApiOperation(value = "查询列表元数据")
+    @ApiOperation(value = "查询表列数据元数据")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "tableId", value = "表ID")
     })
@@ -299,7 +327,6 @@ public class MetaTableController extends BaseController {
     public PendingMetaColumn getColumn(@PathVariable String tableId, @PathVariable String columnName) {
         return metaTableManager.getMetaColumn(tableId, columnName);
     }
-
 
     @ApiOperation(value = "查询列元数据,pending表与md表数据的组合,通过osId,dataBaseCode过滤,如果osId和dataBaseCode不传,后端根据topUnit过滤)")
     @ApiImplicitParams(value = {
@@ -356,26 +383,6 @@ public class MetaTableController extends BaseController {
         DictionaryMapUtils.mapJsonArray(list, dicMaps);
     }
 
-    /**
-     * 转换发布结果响应体
-     *
-     * @param ret
-     * @return
-     */
-    private JSONObject translatePublishMessage(Pair<Integer, String> ret) {
-        JSONObject json = new JSONObject();
-        json.put(ResponseData.RES_CODE_FILED, ret.getLeft());
-        if (ret.getLeft() == 1) {
-            json.put(ResponseData.RES_MSG_FILED, "发布失败");
-        } else if (ret.getLeft() == 0) {
-            json.put(ResponseData.RES_MSG_FILED, "发布成功");
-        } else {
-            json.put(ResponseData.RES_MSG_FILED, ret.getRight());
-        }
-        json.put(ResponseData.RES_DATA_FILED, ret.getRight());
-        return json;
-    }
-
     @ApiOperation(value = "分页查询数据库表数据列表")
     @RequestMapping(value = "/{databaseId}/viewlist", method = RequestMethod.POST)
     @WrapUpResponseBody
@@ -415,5 +422,59 @@ public class MetaTableController extends BaseController {
         } else {
             throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR, "文件中的json格式不正确！");
         }
+    }
+
+    /* --- 批量操作接口 ：
+     ** 一 、设置某一个字段（字段属性名）的所有属性，包括：默认值生成规则、脱敏、校验、类型等等；
+     二、统一设置（添加或者修改）字段
+     三、统一删除字段
+     ** 四、统一设置表的属性，比如：逻辑删除等等
+     */
+    @ApiOperation(value = "批量添加或修改表的字段，和新建表字段一样")
+    @PutMapping(value = "/batchSetColumn")
+    @ApiImplicitParam(name = "formJsonString", paramType="body", value = "JSON中分两部分，一部分是查询条件，一部分是修改的属性")
+    @WrapUpResponseBody
+    public int batchSetTableColumn(@RequestBody String formJsonString){
+        JSONObject formJson = JSONObject.parseObject(formJsonString);
+        JSONObject filter = formJson.getJSONObject("filter");
+        if(filter==null) return 0;
+
+        JSONObject props = formJson.getJSONObject("props");
+        if(props==null || props.isEmpty()) return 0;
+        String columnName = props.getString("columnName");
+        if(StringUtils.isBlank(columnName)){
+            throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR,
+                "批量修改表的字段属性，必须指定字段名：columnName！");
+        }
+        PendingMetaColumn columnInfo = props.toJavaObject(PendingMetaColumn.class);
+        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter, false);
+        if(tables==null || tables.isEmpty()) return 0;
+        for(PendingMetaTable metaTable : tables){
+            metaTableManager.updatePendingMetaColumn(metaTable, columnInfo);
+        }
+        return tables.size();
+    }
+
+    @ApiOperation(value = "批量删除表的字段")
+    @PutMapping(value = "/batchDeleteColumn")
+    @WrapUpResponseBody
+    public int batchDeleteTableColumns(@RequestBody String formJsonString){
+        JSONObject formJson = JSONObject.parseObject(formJsonString);
+        JSONObject filter = formJson.getJSONObject("filter");
+        if(filter==null) return 0;
+
+        JSONObject props = formJson.getJSONObject("props");
+        if(props==null || props.isEmpty()) return 0;
+        String columnName = props.getString("columnName");
+        if(StringUtils.isBlank(columnName)){
+            throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR,
+                "批量修改表的字段属性，必须指定字段名：columnName！");
+        }
+        List<PendingMetaTable> tables =  metaTableManager.searchPendingMetaTable(filter, false);
+        if(tables==null || tables.isEmpty()) return 0;
+        for(PendingMetaTable metaTable : tables){
+            metaTableManager.deletePendingMetaColumn(metaTable, columnName);
+        }
+        return tables.size();
     }
 }

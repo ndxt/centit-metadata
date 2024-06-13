@@ -8,6 +8,7 @@ import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.*;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.product.metadata.service.SyncDBPretreatment;
 import com.centit.product.metadata.transaction.AbstractDBConnectPools;
 import com.centit.product.metadata.utils.TableStoreJsonUtils;
 import com.centit.product.metadata.vo.MetaTableCascade;
@@ -53,6 +54,12 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Autowired
     private MetaRelationDao metaRelationDao;
 
+    @Autowired(required = false)
+    private SyncDBPretreatment syncDBPretreatment;
+
+    public MetaDataServiceImpl(){
+        syncDBPretreatment = null;
+    }
 
     @Override
     public List<SourceInfo> listDatabase(String osId) {
@@ -105,8 +112,11 @@ public class MetaDataServiceImpl implements MetaDataService {
             dbTables = getJdbcMetadata(databaseCode, true, null);
             metaTables = metaTableDao.listObjectsByFilter("where DATABASE_CODE = ?", new Object[]{databaseCode});
         }
-        Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
-        Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple = compareMetaBetweenDbTables(metaTables, dbTables, comparator);
+        Comparator<TableInfo> comparator = (o1, o2) ->
+            StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
+
+        Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple =
+            compareMetaBetweenDbTables(metaTables, dbTables, comparator);
 
         if (triple.getLeft() != null && triple.getLeft().size() > 0) {
             addSyncData(databaseCode, recorder, triple.getLeft());
@@ -122,7 +132,8 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     public void syncSingleTable(String databaseCode, String recorder, String tableName, String tableId){
         List<SimpleTableInfo> dbTables = getJdbcMetadata(databaseCode, true, new String[] {tableName});
-        List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableNames", new String[] {tableName}));
+        List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap(
+            "databaseCode", databaseCode, "tableNames", new String[] {tableName}));
         if (dbTables != null && dbTables.size() >0 ) {
             if(metaTables != null && metaTables.size() >0 ){
                 updateSyncData(recorder, CollectionsOpt.createList(new MutablePair<>(metaTables.get(0), dbTables.get(0))));
@@ -229,8 +240,12 @@ public class MetaDataServiceImpl implements MetaDataService {
         if (tableId != null) {
             metaTable.setTableId(tableId);
         }
+        //列 添加 自动填充插件
+        if(syncDBPretreatment!=null){
+            syncDBPretreatment.pretreatmentTable(metaTable);
+        }
         metaTableDao.saveNewObject(metaTable);
-        //列
+
         List<SimpleTableField> columns = insertNewTable.getColumns();
         for (SimpleTableField tableField : columns) {
             addSyncSingleTableColumn(recorder, metaTable, tableField);
@@ -246,8 +261,13 @@ public class MetaDataServiceImpl implements MetaDataService {
         MetaColumn metaColumn = new MetaColumn().convertFromTableField(tableField);
         metaColumn.setTableId(oldTable.getTableId());
         metaColumn.setRecorder(recorder);
+
         if (metaColumn.getFieldLabelName() == null || "".equals(metaColumn.getFieldLabelName())) {
             metaColumn.setFieldLabelName(metaColumn.getColumnName());
+        }
+        // 添加 自动填充插件
+        if(syncDBPretreatment!=null){
+            syncDBPretreatment.pretreatmentColumn(metaColumn);
         }
         metaColumnDao.mergeObject(metaColumn);
     }
@@ -270,14 +290,16 @@ public class MetaDataServiceImpl implements MetaDataService {
             List<SimpleTableField> newColumns = newTable.getColumns();
             Comparator<TableField> columnComparator = (o1, o2) -> StringUtils.compare(o1.getColumnName().toUpperCase(), o2.getColumnName().toUpperCase());
             Triple<List<SimpleTableField>, List<Pair<MetaColumn, SimpleTableField>>, List<MetaColumn>> columnCompared = compareMetaBetweenDbTables(oldColumns, newColumns, columnComparator);
-            if (columnCompared.getLeft() != null && columnCompared.getLeft().size() > 0) {
+            if (columnCompared.getLeft() != null && !columnCompared.getLeft().isEmpty()) {
+                //添加 自动填充插件
                 addSyncSingleTableColumns(recorder, oldTable, columnCompared);
             }
-            if (columnCompared.getRight() != null && columnCompared.getRight().size() > 0) {
+            if (columnCompared.getRight() != null && !columnCompared.getRight().isEmpty()) {
                 deleteSyncSingleTableColumns(columnCompared);
             }
-            if (columnCompared.getMiddle() != null && columnCompared.getMiddle().size() > 0) {
-                updateSyncSingleTableColumns(recorder, columnCompared);
+            if (columnCompared.getMiddle() != null && !columnCompared.getMiddle().isEmpty()) {
+                //添加 自动填充插件
+                updateSyncSingleTableColumns(recorder, columnCompared.getMiddle());
             }
         }
     }
@@ -294,12 +316,17 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
     }
 
-    private void updateSyncSingleTableColumns(String recorder, Triple<List<SimpleTableField>, List<Pair<MetaColumn, SimpleTableField>>, List<MetaColumn>> columnCompared) {
-        for (Pair<MetaColumn, SimpleTableField> columnPair : columnCompared.getMiddle()) {
+    private void updateSyncSingleTableColumns(String recorder,  List<Pair<MetaColumn, SimpleTableField>>  needUpdateColumns) {
+        for (Pair<MetaColumn, SimpleTableField> columnPair : needUpdateColumns) {
             MetaColumn oldColumn = columnPair.getLeft();
             oldColumn.setRecorder(recorder);
             SimpleTableField newColumn = columnPair.getRight();
-            metaColumnDao.updateObject(oldColumn.convertFromTableField(newColumn));
+            oldColumn.convertFromTableField(newColumn);
+            //添加 自动填充插件
+            if(syncDBPretreatment!=null){
+                syncDBPretreatment.pretreatmentColumn(oldColumn);
+            }
+            metaColumnDao.updateObject(oldColumn);
         }
     }
 
@@ -460,7 +487,6 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     public void updateMetaColumn(MetaColumn metaColumn) {
         metaColumnDao.updateObject(metaColumn);
-
     }
 
     @Override
@@ -543,4 +569,28 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
     }
 
+    @Override
+    public List<MetaTable> searchMateTable(JSONObject filter){
+        // filterType: database opt select
+        // databaseCode
+        // optId
+        // tableIds []
+        String filterType = filter.getString("filterType");
+        if("database".equals(filterType)){
+            String databaseCode = filter.getString("databaseCode");
+            return metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode));
+        }
+        if("opt".equals(filterType)){
+            String optId = filter.getString("optId");
+            return metaTableDao.listObjectsByFilter("where TABLE_ID in " +
+                    "(select table_id from f_table_opt_relation where OPT_ID = ?)",
+                new Object[]{optId});
+        }
+        if("select".equals(filterType)){
+            List<String> tableIds = filter.getList("tableIds", String.class);
+            return metaTableDao.listObjectsByFilter("where TABLE_ID in (:tableIds)",
+                CollectionsOpt.createHashMap("tableIds", tableIds));
+        }
+        return null;
+    }
 }

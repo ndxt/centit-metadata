@@ -35,7 +35,7 @@ public class MetaRelDetail implements java.io.Serializable {
      */
     @Id
     @Column(name = "PARENT_COLUMN_CODE")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     @ApiModelProperty(value = "父表列名")
     private String parentColumnCode;
 
@@ -44,9 +44,9 @@ public class MetaRelDetail implements java.io.Serializable {
      */
     @Id
     @Column(name = "CHILD_COLUMN_CODE")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     @ApiModelProperty(value = "子表列名")
-    @Length(max = 32, message = "字段长度不能大于{max}")
+    @Length(max = 32)
     private String childColumnCode;
 
     public MetaRelDetail copy(MetaRelDetail other) {

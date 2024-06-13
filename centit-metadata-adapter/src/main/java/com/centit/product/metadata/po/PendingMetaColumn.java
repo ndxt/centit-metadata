@@ -39,30 +39,30 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
     @ApiModelProperty(value = "表ID", hidden = true)
     @Id
     @Column(name = "TABLE_ID")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     private String  tableId;
 
     @ApiModelProperty(value = "字段代码", required = true)
     @Id
     @Column(name = "COLUMN_NAME")
-    @NotBlank(message = "字段不能为空")
+    @NotBlank
     private String  columnName;
 
     @ApiModelProperty(value = "字段名称", required = true)
     @Column(name = "FIELD_LABEL_NAME")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 200, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 200)
     private String  fieldLabelName;
 
     @ApiModelProperty(value = "字段描述")
     @Column(name = "COLUMN_COMMENT")
-    @Length(max = 256, message = "字段长度不能大于{max}")
+    @Length(max = 256)
     private String  columnComment;
 
     @ApiModelProperty(value = "字段类型", required = true)
     @Column(name = "FIELD_TYPE")
-    @NotBlank(message = "字段不能为空")
-    @Length(max = 32, message = "字段长度不能大于{max}")
+    @NotBlank
+    @Length(max = 32)
     private String fieldType;
 
     @ApiModelProperty(value = "字段长度")
@@ -80,12 +80,12 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     @ApiModelProperty(value = "是否必填")
     @Column(name = "MANDATORY")
-    @Length(max=1, message = "字段长度不能大于{max}")
+    @Length(max=1)
     private Boolean  mandatory=false;
 
     @ApiModelProperty(value = "是否为主键")
     @Column(name = "PRIMARY_KEY")
-    @Length(max=1, message = "字段长度不能大于{max}")
+    @Length(max=1)
     private Boolean primaryKey=false;
 
     @ApiModelProperty(value = "更改时间", hidden = true)
@@ -95,7 +95,7 @@ public class PendingMetaColumn implements TableField, java.io.Serializable {
 
     @ApiModelProperty(value = "更改人员")
     @Column(name = "RECORDER")
-    @Length(max = 8, message = "字段长度不能大于{max}")
+    @Length(max = 8)
     private String  recorder;
 
     @Transient

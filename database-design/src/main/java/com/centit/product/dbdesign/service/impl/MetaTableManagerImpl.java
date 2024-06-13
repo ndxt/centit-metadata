@@ -3,6 +3,8 @@ package com.centit.product.dbdesign.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.centit.framework.common.ResponseData;
+import com.centit.framework.common.ResponseMapData;
 import com.centit.product.dbdesign.dao.MetaChangLogDao;
 import com.centit.product.dbdesign.dao.PendingMetaColumnDao;
 import com.centit.product.dbdesign.dao.PendingMetaTableDao;
@@ -134,7 +136,6 @@ public class MetaTableManagerImpl implements MetaTableManager {
         pendingMdTableDao.saveObjectReferences(pmt);
     }
 
-
     /**
      * 对比pendingMetaTable和MetaTable中的字段信息，
      * 获取表结构差异对应的Sql语句
@@ -168,6 +169,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
         } else {
             sqlList = DDLUtils.makeAlterTableSqlList(pendingMetaTable, metaTable, dbType, ddlOpt);
         }
+        //ddlOpt.makeCreateTableSql(pendingMetaTable)
         return sqlList;
     }
 
@@ -214,76 +216,6 @@ public class MetaTableManagerImpl implements MetaTableManager {
                 col.setRecorder(currentUser);
                 ptable.addMdColumn(col);
             }
-        }
-    }
-
-    /**
-     * 对比pendingMetaTable和MetaTable中的字段信息，并对数据库中的表进行重构，
-     * 重构成功后将对应的表结构信息同步到 MetaTable中，并在MetaChangeLog中记录信息
-     *
-     * @return 返回错误编号 和 错误说明， 编号为0表示成功
-     */
-    @Override
-    @Transactional
-    public Pair<Integer, String> publishMetaTable(String tableId, String currentUser) {
-        try {
-            final PendingMetaTable pTable = pendingMdTableDao.getObjectById(tableId);
-            pendingMdTableDao.fetchObjectReferences(pTable);
-            Pair<Integer, String> ret;
-            if (VIEW.equals(pTable.getTableType())) {
-                ret = GeneralDDLOperations.checkViewWellDefined(pTable);
-                if (StringBaseOpt.isNvl(pTable.getViewSql())) {
-                    ret = new ImmutablePair<>(-1, "视图" + pTable.getTableName() + "没有定义sql！");
-                }
-            } else {
-                ret = GeneralDDLOperations.checkTableWellDefined(pTable);
-            }
-            if (ret.getLeft() != 0) {
-                return ret;
-            }
-            MetaChangLog chgLog = new MetaChangLog();
-            List<String> errors = new ArrayList<>();
-            SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(pTable.getDatabaseCode());
-            DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
-
-            DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
-            pTable.setDatabaseType(databaseType);
-            //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
-            checkPendingMetaTable(pTable, currentUser);
-            List<String> sqlList = TransactionHandler.executeInTransaction(dbc,
-                (conn) -> runDdlSql(pTable, errors, conn));
-            if (sqlList.size() > 0) {
-                chgLog.setDatabaseCode(pTable.getDatabaseCode());
-                chgLog.setChangeScript(JSON.toJSONString(sqlList));
-                chgLog.setChangeComment(JSON.toJSONString(errors));
-                chgLog.setTableID(pTable.getTableId());
-                chgLog.setChanger(currentUser);
-                metaChangLogDao.saveNewObject(chgLog);
-            }
-            if (sqlList.size() == 0) {
-                return new ImmutablePair<>(2, "信息未变更，无需发布");
-            }
-            if (errors.size() == 0) {
-                pTable.setRecorder(currentUser);
-                pTable.setTableState("S");
-                pTable.setLastModifyDate(new Date());
-                pendingMdTableDao.mergeObject(pTable);
-                pendingMdTableDao.saveObjectReferences(pTable);
-                if (sqlList.size() > 0) {
-                    if (VIEW.equals(pTable.getTableType())) {
-                        metaDataService.syncSingleTable(pTable.getDatabaseCode(), currentUser, pTable.getTableName(), pTable.getTableId());
-                    } else {
-                        pendingToMeta(currentUser, pTable);
-                    }
-                }
-                return new ImmutablePair<>(0, chgLog.getChangeId());
-            } else {
-                return new ImmutablePair<>(-1, "发布失败!"+JSON.toJSONString(errors));
-            }
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            logger.error(e.getMessage());
-            return new ImmutablePair<>(-1, "发布失败!" + e.getMessage());
         }
     }
 
@@ -495,73 +427,202 @@ public class MetaTableManagerImpl implements MetaTableManager {
 
     @Override
     @Transactional
-    public Pair<Integer, String> publishDatabase(String databaseCode, String recorder) {
-        try {
-            List<PendingMetaTable> metaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ? and table_state='W'", new Object[]{databaseCode});
-            List<String> success = new ArrayList<>();
-            List<String> errors = new ArrayList<>();
-            for (PendingMetaTable metaTable : metaTables) {
-                metaTable = pendingMdTableDao.fetchObjectReferences(metaTable);
-                Pair<Integer, String> ret = GeneralDDLOperations.checkTableWellDefined(metaTable);
-                if (ret.getLeft() != 0) {
-                    return ret;
-                }
-                List<String> error = new ArrayList<>();
-                SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
-                DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
+    public ResponseData generateTableDDL(String tableId){
+        final PendingMetaTable pTable = pendingMdTableDao.getObjectWithReferences(tableId);
+        ResponseMapData resp = new ResponseMapData();
+        SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(pTable.getDatabaseCode());
+        DBType dbType = DBType.mapDBType(sourceInfo.getDatabaseUrl());
+        pTable.setDatabaseType(dbType);
+        DDLOperations ddlOpt = GeneralDDLOperations.createDDLOperations(dbType);
 
-                DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
-                metaTable.setDatabaseType(databaseType);
-                checkPendingMetaTable(metaTable, recorder);
-                PendingMetaTable finalMetaTable = metaTable;
-                List<String> sqls = TransactionHandler.executeInTransaction(dbc,
-                    (conn) -> runDdlSql(finalMetaTable, error, conn));
-                if (sqls.size() > 0) {
-                    success.add(sqls.toString());
+        if (VIEW.equals(pTable.getTableType())) {
+            resp.addResponseData("ddl", ddlOpt.makeCreateViewSql(pTable.getViewSql(), pTable.getTableName()) );
+        } else {
+            resp.addResponseData("ddl", ddlOpt.makeCreateTableSql(pTable, true));
+            MetaTable metaTable = metaTableDao.getMetaTable(pTable.getDatabaseCode(), pTable.getTableName());
+            if (metaTable != null) {
+                metaTable = metaTableDao.fetchObjectReferences(metaTable);
+            }
+            List<String>  sqlList = DDLUtils.makeAlterTableSqlList(pTable, metaTable, dbType, ddlOpt);
+            resp.addResponseData("alter", sqlList);
+        }
+        return resp;
+    }
+
+    /**
+     * 对比pendingMetaTable和MetaTable中的字段信息，并对数据库中的表进行重构，
+     * 重构成功后将对应的表结构信息同步到 MetaTable中，并在MetaChangeLog中记录信息
+     *
+     * @return 返回错误编号 和 错误说明， 编号为0表示成功
+     */
+    @Override
+    @Transactional
+    public ResponseData publishMetaTable(String tableId, String currentUser) {
+        try {
+            final PendingMetaTable pTable = pendingMdTableDao.getObjectById(tableId);
+            pendingMdTableDao.fetchObjectReferences(pTable);
+            Pair<Integer, String> ret;
+            if (VIEW.equals(pTable.getTableType())) {
+                ret = GeneralDDLOperations.checkViewWellDefined(pTable);
+                if (StringBaseOpt.isNvl(pTable.getViewSql())) {
+                    ret = new ImmutablePair<>(-1, "视图" + pTable.getTableName() + "没有定义sql！");
                 }
-                if (error.size() == 0) {
-                    metaTable.setRecorder(recorder);
-                    metaTable.setTableState("S");
-                    metaTable.setLastModifyDate(new Date());
-                    pendingMdTableDao.mergeObject(metaTable);
-                    pendingMdTableDao.saveObjectReferences(metaTable);
-                    if (sqls.size() > 0) {
-                        pendingToMeta(recorder, metaTable);
-                    }
-                } else {
-                    errors.add(error.toString());
-                }
+            } else {
+                ret = GeneralDDLOperations.checkTableWellDefined(pTable);
+            }
+            if (ret.getLeft() != 0) {
+                return ResponseData.makeErrorMessageWithData(ret.getRight() ,ret.getLeft(), ret.getRight());
             }
             MetaChangLog chgLog = new MetaChangLog();
-            if (success.size() > 0) {
-                chgLog.setDatabaseCode(databaseCode);
-                chgLog.setChangeScript(JSON.toJSONString(success));
+            List<String> errors = new ArrayList<>();
+            SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(pTable.getDatabaseCode());
+            DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
+
+            DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
+            pTable.setDatabaseType(databaseType);
+            //检查字段定义一致性，包括：检查是否有时间戳、是否和工作流关联
+            checkPendingMetaTable(pTable, currentUser);
+            List<String> sqlList = TransactionHandler.executeInTransaction(dbc,
+                (conn) -> runDdlSql(pTable, errors, conn));
+            if (!sqlList.isEmpty()) {
+                chgLog.setDatabaseCode(pTable.getDatabaseCode());
+                chgLog.setChangeScript(JSON.toJSONString(sqlList));
                 chgLog.setChangeComment(JSON.toJSONString(errors));
-                chgLog.setChanger(recorder);
+                chgLog.setTableID(pTable.getTableId());
+                chgLog.setChanger(currentUser);
                 metaChangLogDao.saveNewObject(chgLog);
             }
-            if (success.size() == 0) {
-                return new ImmutablePair<>(2, "信息未变更，无需批量发布");
+            if (sqlList.isEmpty()) {
+                return ResponseData.makeErrorMessageWithData("信息未变更，无需发布", 2, "信息未变更，无需发布");
             }
-            if (errors.size() == 0) {
-                return new ImmutablePair<>(0, chgLog.getChangeId());
+            if (errors.isEmpty()) {
+                pTable.setRecorder(currentUser);
+                pTable.setTableState("S");
+                pTable.setLastModifyDate(new Date());
+                pendingMdTableDao.mergeObject(pTable);
+                pendingMdTableDao.saveObjectReferences(pTable);
+                if (!sqlList.isEmpty()) {
+                    if (VIEW.equals(pTable.getTableType())) {
+                        metaDataService.syncSingleTable(pTable.getDatabaseCode(), currentUser, pTable.getTableName(), pTable.getTableId());
+                    } else {
+                        pendingToMeta(currentUser, pTable);
+                    }
+                }
+                return ResponseData.makeErrorMessageWithData(chgLog.getChangeId(), 0, "发布成功!");
             } else {
-                return new ImmutablePair<>(1, chgLog.getChangeId());
+                return ResponseData.makeErrorMessageWithData(errors, 1, "发布失败!");
             }
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error(e.getMessage());
-            e.printStackTrace();
-            return new ImmutablePair<>(-1, "批量发布失败!" + e.getMessage());
+            return ResponseData.makeErrorMessageWithData(e.getMessage(), 1, "发布失败!" + e.getMessage());
         }
     }
 
     @Override
+    @Transactional
+    public ResponseData batchPublishTables(List<PendingMetaTable> metaTables, String recorder) {
+        try {
+            //List<PendingMetaTable> metaTables = pendingMdTableDao.listObjectsByFilter("where DATABASE_CODE = ? and table_state='W'", new Object[]{databaseCode});
+            Set<String> databases = new HashSet<>();
+            Map<String, List<String>> success = new HashMap<>();
+            Map<String, List<String>> errors = new HashMap<>();
+            for (PendingMetaTable metaTable : metaTables) {
+                metaTable = pendingMdTableDao.fetchObjectReferences(metaTable);
+                Pair<Integer, String> ret = GeneralDDLOperations.checkTableWellDefined(metaTable);
+                List<String> error = new ArrayList<>();
+                if (ret.getLeft() != 0) {
+                    error.add(ret.getRight());
+                } else {
+                    SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
+                    DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
+
+                    DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
+                    metaTable.setDatabaseType(databaseType);
+                    checkPendingMetaTable(metaTable, recorder);
+                    PendingMetaTable finalMetaTable = metaTable;
+                    List<String> sqls = TransactionHandler.executeInTransaction(dbc,
+                        (conn) -> runDdlSql(finalMetaTable, error, conn));
+
+                    databases.add(metaTable.getDatabaseCode());
+                    if (!sqls.isEmpty()) {
+                        List<String> sqlLogs = success.get(metaTable.getDatabaseCode());
+                        if (sqlLogs == null) {
+                            sqlLogs = new ArrayList<>();
+                            sqlLogs.add(sqls.toString());
+                            success.put(metaTable.getDatabaseCode(), sqlLogs);
+                        } else {
+                            sqlLogs.add(sqls.toString());
+                        }
+                    }
+                    if (error.isEmpty()) {
+                        metaTable.setRecorder(recorder);
+                        metaTable.setTableState("S");
+                        metaTable.setLastModifyDate(new Date());
+                        pendingMdTableDao.mergeObject(metaTable);
+                        pendingMdTableDao.saveObjectReferences(metaTable);
+                        if (!sqls.isEmpty()) {
+                            pendingToMeta(recorder, metaTable);
+                        }
+                    }
+                }
+                if(!error.isEmpty()) {
+                    List<String> errLogs = errors.get(metaTable.getDatabaseCode());
+                    if(errLogs==null){
+                        errLogs = new ArrayList<>();
+                        errLogs.add(error.toString());
+                        errors.put(metaTable.getDatabaseCode(), errLogs);
+                    }else {
+                        errLogs.add(error.toString());
+                    }
+                }
+            }
+            for(String dbcode : databases) {
+                MetaChangLog chgLog = new MetaChangLog();
+                List<String> sqlLogs = success.get(dbcode);
+                List<String> errLogs = errors.get(dbcode);
+                if (sqlLogs !=null || errLogs!=null) {
+                    chgLog.setDatabaseCode(dbcode);
+                    if(sqlLogs!=null)
+                        chgLog.setChangeScript(JSON.toJSONString(sqlLogs));
+                    if(errLogs!=null)
+                        chgLog.setChangeComment(JSON.toJSONString(errLogs));
+                    chgLog.setChanger(recorder);
+                    metaChangLogDao.saveNewObject(chgLog);
+                }
+            }
+            if (success.isEmpty() && errors.isEmpty()) {
+                return ResponseData.makeErrorMessageWithData("信息未变更，无需批量发布", 2, "信息未变更，无需批量发布");
+            }
+            if (errors.isEmpty()) {
+                return ResponseData.makeErrorMessageWithData(success, 0, "批量发布失败成功！");
+            } else {
+                return ResponseData.makeErrorMessageWithData(errors, -1, "批量发布失败!");
+            }
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            logger.error(e.getMessage());
+            return ResponseData.makeErrorMessageWithData(e.getMessage(), -1, "批量发布失败!" + e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseData publishDatabase(String databaseCode, String recorder){
+        List<PendingMetaTable> metaTables = pendingMdTableDao.listObjectsByProperties(CollectionsOpt.createHashMap(
+            "databaseCode", databaseCode, "tableState", "W"));
+        if(metaTables==null || metaTables.isEmpty()){
+            return ResponseData.makeErrorMessageWithData("没有需要发布的表", 2, "没有需要发布的表");
+        }
+        return batchPublishTables(metaTables, recorder);
+    }
+    @Override
+    @Transactional
     public void updateMetaTable(PendingMetaTable metaTable) {
         pendingMdTableDao.updateObject(metaTable);
     }
 
     @Override
+    @Transactional
     public void updateMetaColumn(PendingMetaColumn metaColumn) {
         pendingMetaColumnDao.updateObject(metaColumn);
 
@@ -573,6 +634,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
     }
 
     @Override
+    @Transactional
     public List listCombineTablesByProperty(Map<String, Object> parameters, PageDesc pageDesc) {
         String databaseCode = MapUtils.getString(parameters, "databaseCode");
         String optId = MapUtils.getString(parameters, "optId");
@@ -622,6 +684,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
     }
 
     @Override
+    @Transactional
     public PendingMetaTable initPendingMetaTable(String tableId, String userCode) {
         MetaTable metaTable = this.getMetaTableWithReferences(tableId);
         if (null == metaTable) {
@@ -834,5 +897,70 @@ public class MetaTableManagerImpl implements MetaTableManager {
         }
     }
 
+    @Override
+    @Transactional
+    public List<PendingMetaTable> searchPendingMetaTable(JSONObject filter, boolean canUpdateOnly){
+        String filterType = filter.getString("filterType");
+        if("database".equals(filterType)){
+            String databaseCode = filter.getString("databaseCode");
+            if(canUpdateOnly)
+                return pendingMdTableDao.listObjectsByProperties(CollectionsOpt.createHashMap(
+                    "databaseCode", databaseCode, "tableState", "W"));
+            return pendingMdTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode));
+        }
+
+        if("opt".equals(filterType)){
+            String optId = filter.getString("optId");
+            if(canUpdateOnly)
+                return pendingMdTableDao.listObjectsByFilter("where TABLE_STATE = 'W' and TABLE_ID in " +
+                        "(select table_id from f_table_opt_relation where OPT_ID = ?)",
+                    new Object[]{optId});
+            return pendingMdTableDao.listObjectsByFilter("where TABLE_ID in " +
+                    "(select table_id from f_table_opt_relation where OPT_ID = ?)",
+                new Object[]{optId});
+        }
+
+        if("select".equals(filterType)){
+            List<String> tableIds = filter.getList("tableIds", String.class);
+            if(canUpdateOnly)
+                return pendingMdTableDao.listObjectsByFilter("where TABLE_STATE = 'W' and TABLE_ID in (:tableIds)",
+                    CollectionsOpt.createHashMap("tableIds", tableIds));
+            return pendingMdTableDao.listObjectsByFilter("where TABLE_ID in (:tableIds)",
+                CollectionsOpt.createHashMap("tableIds", tableIds));
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public void updatePendingMetaColumn(PendingMetaTable metaTable, PendingMetaColumn metaColumn){
+        pendingMdTableDao.fetchObjectReferences(metaTable);
+        metaColumn.setTableId(metaTable.getTableId());
+        PendingMetaColumn dbColumn = metaTable.findFieldByColumn(metaColumn.getColumnName());
+        if(dbColumn == null){
+            metaTable.addMdColumn(metaColumn);
+            pendingMetaColumnDao.saveNewObject(metaColumn);
+        } else {
+            dbColumn.copyNotNullProperty(metaColumn);
+            pendingMetaColumnDao.updateObject(dbColumn);
+        }
+        List<String> alterSqls = this.makeAlterTableSqlList(metaTable);
+        metaTable.setTableState(alterSqls.size() > 0 ? "W" : "S");
+        pendingMdTableDao.updateObject(CollectionsOpt.createList("tableState"),  metaTable );
+    }
+
+    @Override
+    @Transactional
+    public void deletePendingMetaColumn(PendingMetaTable metaTable, String columnName){
+        pendingMdTableDao.fetchObjectReferences(metaTable);
+        PendingMetaColumn dbColumn = metaTable.findFieldByColumn(columnName);
+        if(dbColumn != null) {
+            pendingMetaColumnDao.deleteObject(dbColumn);
+            metaTable.getColumns().remove(dbColumn);
+            List<String> alterSqls = this.makeAlterTableSqlList(metaTable);
+            metaTable.setTableState(alterSqls.size() > 0 ? "W" : "S");
+            pendingMdTableDao.updateObject(CollectionsOpt.createList("tableState"), metaTable);
+        }
+    }
 }
 

@@ -9,6 +9,7 @@ public abstract class SessionDataUtils {
         if(userDetails==null)
             return null;
         HashMap<String, Object> hashMap = new HashMap<>(16);
+        // @Deprecated 者已经废弃，请使用 topUnitCode
         hashMap.put("topUnit", userDetails.getTopUnitCode());
         //当前用户信息
         hashMap.put("currentUser", userDetails.getUserInfo());

@@ -11,9 +11,9 @@ import com.centit.product.dbdesign.dao.PendingMetaTableDao;
 import com.centit.product.dbdesign.service.MetaTableManager;
 import com.centit.product.metadata.dao.MetaColumnDao;
 import com.centit.product.metadata.dao.MetaTableDao;
-import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.*;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.service.impl.MetaDataServiceImpl;
 import com.centit.product.metadata.transaction.AbstractDBConnectPools;
 import com.centit.product.metadata.utils.PdmTableInfoUtils;
@@ -65,8 +65,9 @@ public class MetaTableManagerImpl implements MetaTableManager {
     public static final String VIEW = "V";
 
     private static final Logger logger = LoggerFactory.getLogger(MetaTableManagerImpl.class);
+
     @Autowired
-    private SourceInfoDao sourceInfoDao;
+    private SourceInfoMetadata sourceInfoMetadata;
 
     @Autowired
     private MetaDataService metaDataService;
@@ -157,7 +158,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
         if (metaTable != null) {
             metaTable = metaTableDao.fetchObjectReferences(metaTable);
         }
-        SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(pendingMetaTable.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(pendingMetaTable.getDatabaseCode());
         DBType dbType = DBType.mapDBType(sourceInfo.getDatabaseUrl());
         pendingMetaTable.setDatabaseType(dbType);
         DDLOperations ddlOpt = GeneralDDLOperations.createDDLOperations(dbType);
@@ -430,7 +431,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
     public ResponseData generateTableDDL(String tableId){
         final PendingMetaTable pTable = pendingMdTableDao.getObjectWithReferences(tableId);
         ResponseMapData resp = new ResponseMapData();
-        SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(pTable.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(pTable.getDatabaseCode());
         DBType dbType = DBType.mapDBType(sourceInfo.getDatabaseUrl());
         pTable.setDatabaseType(dbType);
         DDLOperations ddlOpt = GeneralDDLOperations.createDDLOperations(dbType);
@@ -475,7 +476,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
             }
             MetaChangLog chgLog = new MetaChangLog();
             List<String> errors = new ArrayList<>();
-            SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(pTable.getDatabaseCode());
+            SourceInfo mdb = sourceInfoMetadata.fetchSourceInfo(pTable.getDatabaseCode());
             DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
 
             DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
@@ -534,7 +535,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
                 if (ret.getLeft() != 0) {
                     error.add(ret.getRight());
                 } else {
-                    SourceInfo mdb = sourceInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
+                    SourceInfo mdb = sourceInfoMetadata.fetchSourceInfo(metaTable.getDatabaseCode());
                     DataSourceDescription dbc = DataSourceDescription.valueOf(mdb);
 
                     DBType databaseType = DBType.mapDBType(mdb.getDatabaseUrl());
@@ -844,7 +845,7 @@ public class MetaTableManagerImpl implements MetaTableManager {
 
     @Override
     public JSONArray viewList(String databaseId, String sql) throws SQLException, IOException {
-        SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseId);
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(databaseId);
         try (Connection conn = AbstractDBConnectPools.getDbcpConnect(sourceInfo)) {
             return DatabaseAccess.findObjectsAsJSON(conn, sql, null, 1, 10);
         }

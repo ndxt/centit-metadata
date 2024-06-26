@@ -7,10 +7,10 @@ import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.dao.DictionaryMapColumn;
 import com.centit.framework.core.dao.DictionaryMapUtils;
 import com.centit.product.metadata.dao.DataCheckRuleDao;
-import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.*;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
+import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
 import com.centit.product.metadata.utils.DataCheckResult;
 import com.centit.support.algorithm.*;
@@ -44,7 +44,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     //private Logger logger = LoggerFactory.getLogger(MetaObjectServiceImpl.class);
 
     @Autowired
-    private SourceInfoDao sourceInfoDao;
+    private SourceInfoMetadata sourceInfoMetadata;
 
     @Autowired
     private MetaDataCache metaDataCache;
@@ -193,10 +193,6 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    private SourceInfo fetchDatabaseInfo(String databaseCode) {
-        return sourceInfoDao.getDatabaseInfoById(databaseCode);
-    }
-
     private Map<String, Object> innerGetObjectById(final Connection conn, final MetaTable tableInfo, final Map<String, Object> pk)
         throws IOException, SQLException {
         GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
@@ -262,7 +258,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public Map<String, Object> getObjectById(String tableId, Map<String, Object> pk) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return innerGetObjectById(conn, tableInfo, pk);
@@ -338,7 +334,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     public Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, String[] fields,
                                                      String[] parents, String[] children) {
         MetaTable tableInfo = metaDataCache.getTableInfoAll(tableId);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Map<String, Object> mainObj;
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
@@ -355,7 +351,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public Map<String, Object> fetchObjectParentAndChildren(MetaTable tableInfo, Map<String, Object> mainObj,
                                                             String[] parents, String[] children) {
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             if (parents != null && parents.length > 0) {
@@ -385,7 +381,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public Map<String, Object> getObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep) {
         MetaTable tableInfo = metaDataCache.getTableInfoAll(tableId);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Map<String, Object> mainObj;
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
@@ -415,7 +411,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 }
             }
         }
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
@@ -465,7 +461,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         checkFieldRule(tableInfo, object);
         prepareObjectForSave(object, tableInfo);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).updateObject(object);
@@ -480,7 +476,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         checkFieldRule(tableInfo, object);
         prepareObjectForSave(object, tableInfo);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             GeneralJsonObjectDao dao;
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
@@ -495,7 +491,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     public int deleteObjectsByProperties(String tableId,
                                          final Map<String, Object> filterProperties) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
@@ -511,7 +507,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         checkFieldRule(tableInfo, fieldValues);
         prepareObjectForSave(fieldValues, tableInfo);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo)
@@ -534,7 +530,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     public void deleteObject(String tableId, Map<String, Object> pk) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
         //prepareObjectForSave(pk, tableInfo);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo).deleteObjectById(pk);
@@ -589,7 +585,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
         // 添加规则判段
         checkFieldRule(tableInfo, mainObj);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             if (isUpdate) {
@@ -687,7 +683,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
 
         try {
-            SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+            SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
             Map<String, Object> mainObj = dao.getObjectById(object);
@@ -708,7 +704,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public void deleteObjectWithChildren(String tableId, Map<String, Object> pk, int withChildrenDeep) {
         MetaTable tableInfo = metaDataCache.getTableInfoWithRelations(tableId);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             GeneralJsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(conn, tableInfo);
@@ -798,7 +794,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 "元数据配置不完整，缺少逻辑删除标记信息：" + tableId+
                 "\n The metadata configuration is incomplete, missing logical deletion mark information: " + tableId);
         }
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             innerSoftDeleteObject(conn, tableInfo, pk, withChildrenDeep);
@@ -822,7 +818,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public JSONArray listObjectsByProperties(String tableId, Map<String, Object> filter) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             JSONArray ja;
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
@@ -894,7 +890,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                 "无此元数据表" + tableId+
                 "\n There is no metadata table: " + tableId);
         }
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         try {
             JSONArray objs;
             Object obj;
@@ -959,7 +955,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
     @Override
     public JSONArray pageQueryObjects(String tableId, String namedSql, Map<String, Object> params, PageDesc pageDesc) {
         MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
-        SourceInfo sourceInfo = fetchDatabaseInfo(tableInfo.getDatabaseCode());
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
         String orderBy = GeneralJsonObjectDao.fetchSelfOrderSql(namedSql, params);
         final String querySql = StringUtils.isBlank(orderBy) ? namedSql
             : QueryUtils.removeOrderBy(namedSql) + " order by "
@@ -1023,7 +1019,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     CodeRepositoryUtil.registeExtendedCodeRepo(catalogCode,
                         new CachedObject<>(
                             new SqlDictionaryMapSupplier(
-                                sourceInfoDao.getDatabaseInfoById(tableInfo.getDatabaseCode()),
+                                sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode()),
                                 sqlStr),
                             ICachedObject.KEEP_FRESH_PERIOD * 3));
                 }
@@ -1057,7 +1053,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         } else if ("3".equals(mc.getReferenceType())) {
             String sqlStr = mc.getReferenceData().trim();
             SqlDictionaryMapSupplier mapSupplier= new SqlDictionaryMapSupplier(
-                sourceInfoDao.getDatabaseInfoById(tableInfo.getDatabaseCode()),
+                sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode()),
                 sqlStr);
             return mapSupplier.get();
         } else if ("4".equals(mc.getReferenceType())) {
@@ -1111,7 +1107,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
      */
     @Override
     public JSONArray queryDatas(String databaseCode, String namedSql, Map<String, Object> params){
-        SourceInfo sourceInfo = fetchDatabaseInfo(databaseCode);
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(databaseCode);
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, namedSql, params);
@@ -1130,7 +1126,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
      */
     @Override
     public JSONArray pageQueryDatas(String databaseCode, String namedSql, Map<String, Object> params, PageDesc pageDesc){
-        SourceInfo sourceInfo = fetchDatabaseInfo(databaseCode);
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(databaseCode);
         try {
             Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo);
             String sGetCountSql =  QueryUtils.buildGetCountSQL(namedSql);

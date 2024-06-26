@@ -13,6 +13,7 @@ import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.product.metadata.po.*;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.transaction.AbstractSourceConnectThreadHolder;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.StringBaseOpt;
@@ -49,6 +50,9 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "query")
 public class MetadataQueryController extends BaseController {
+
+    @Autowired
+    private SourceInfoMetadata sourceInfoMetadata;
 
     @Autowired
     private MetaDataService metaDataService;
@@ -158,7 +162,7 @@ public class MetadataQueryController extends BaseController {
             case "3":
                 Map<String, Object> searchColumn = collectRequestParameters(request);
                 MetaTable tableInfo = metaDataCache.getTableInfo(tableId);
-                SourceInfo sourceInfo = metaDataService.getDatabaseInfo(tableInfo.getDatabaseCode());
+                SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(tableInfo.getDatabaseCode());
                 try {
                     List<Object[]> objects;
                     try (Connection conn = AbstractSourceConnectThreadHolder.fetchConnect(sourceInfo)) {
@@ -274,7 +278,7 @@ public class MetadataQueryController extends BaseController {
         projectInfo.put("projectName", sourceInfo.getDatabaseName());
         projectInfo.put("projectDesc", sourceInfo.getDatabaseDesc());
 
-        project.put("projectInfo",projectInfo);
+        project.put("projectInfo", projectInfo);
 
         List<MetaTable> tables = metaDataService.listAllMetaTablesWithDetail(databaseCode);
         project.put("modules", new JSONArray());

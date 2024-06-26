@@ -8,6 +8,7 @@ import com.centit.product.metadata.dao.MetaTableDao;
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.*;
 import com.centit.product.metadata.service.MetaDataService;
+import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.service.SyncDBPretreatment;
 import com.centit.product.metadata.transaction.AbstractDBConnectPools;
 import com.centit.product.metadata.utils.TableStoreJsonUtils;
@@ -42,8 +43,12 @@ public class MetaDataServiceImpl implements MetaDataService {
     private static final Logger logger = LoggerFactory.getLogger(MetaDataServiceImpl.class);
     private static final String CONTAIN_SCHEMA = "schema";
     private static final String CONTAIN_ORACLE = "oracle";
+
     @Autowired
     private SourceInfoDao sourceInfoDao;
+
+    @Autowired
+    private SourceInfoMetadata sourceInfoMetadata;
 
     @Autowired
     private MetaTableDao metaTableDao;
@@ -148,7 +153,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     private List<SimpleTableInfo> getJdbcMetadata(String databaseCode, boolean withColumn, String[] tableNames) {
-        SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(databaseCode);
         JdbcMetadata jdbcMetadata = new JdbcMetadata();
         try (Connection conn = AbstractDBConnectPools.getDbcpConnect(sourceInfo)) {
             jdbcMetadata.setDBConfig(conn);
@@ -497,7 +502,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         tableCascade.setTableInfo(metaTable);
         String tableToken = StringUtils.isBlank(token) ? "T" : token;
 
-        SourceInfo dbInfo = sourceInfoDao.getDatabaseInfoById(metaTable.getDatabaseCode());
+        SourceInfo dbInfo = sourceInfoMetadata.fetchSourceInfo(metaTable.getDatabaseCode());
         DBType dbType = DBType.mapDBType(dbInfo.getDatabaseUrl());
         tableCascade.setDatabaseType(dbType.toString());
         tableCascade.setTableAlias(tableToken);

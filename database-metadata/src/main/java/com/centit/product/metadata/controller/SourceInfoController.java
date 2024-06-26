@@ -13,6 +13,7 @@ import com.centit.framework.model.basedata.OperationLog;
 import com.centit.product.metadata.api.ISourceInfo;
 import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
+import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.transaction.AbstractDBConnectPools;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
@@ -48,6 +49,9 @@ public class SourceInfoController extends BaseController {
 
     @Autowired
     private SourceInfoManager databaseInfoMag;
+
+    @Autowired
+    private SourceInfoMetadata sourceInfoMetadata;
 
     private String optId = "DATABASE";
 
@@ -134,7 +138,7 @@ public class SourceInfoController extends BaseController {
     public void testConnect(@Valid SourceInfo sourceInfo, HttpServletResponse response) {
         sourceInfo.setDatabaseUrl(HtmlFormUtils.htmlString(sourceInfo.getDatabaseUrl()));
         if (sourceInfo.getDatabaseCode() != null) {
-            SourceInfo dataBaseSourceInfo = databaseInfoMag.getObjectById(sourceInfo.getDatabaseCode());
+            SourceInfo dataBaseSourceInfo = sourceInfoMetadata.fetchSourceInfo(sourceInfo.getDatabaseCode());
             if (dataBaseSourceInfo != null) {
                 sourceInfo.setExtProps(dataBaseSourceInfo.getExtProps());
             }
@@ -206,7 +210,6 @@ public class SourceInfoController extends BaseController {
     @RequestMapping(value = "/{databaseCode}", method = {RequestMethod.GET})
     public void getDatabaseInhfo(@PathVariable String databaseCode, HttpServletResponse response) {
         SourceInfo sourceInfo = databaseInfoMag.getObjectById(databaseCode);
-
         JsonResultUtils.writeSingleDataJson(sourceInfo, response);
     }
 

@@ -26,6 +26,7 @@ public class SourceInfoMetadataImpl implements SourceInfoMetadata {
         this.sourceInfoCache = new CachedMap<>(this::loadSourceInfo, CachedObject.DEFAULT_REFRESH_PERIOD);
     }
 
+    @Override
     public void setPropertyConvertor(PropertyConvertor propertyConvertor) {
         this.propertyConvertor = propertyConvertor;
     }

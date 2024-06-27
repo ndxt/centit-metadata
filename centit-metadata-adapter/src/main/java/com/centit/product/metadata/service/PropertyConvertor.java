@@ -2,7 +2,7 @@ package com.centit.product.metadata.service;
 
 import com.centit.product.metadata.po.SourceInfo;
 
-public interface SourceInfoPretreatment {
+public interface PropertyConvertor {
 
-    SourceInfo pretreatment(SourceInfo sourceInfo);
+    SourceInfo convertSourceInfo(SourceInfo sourceInfo);
 }

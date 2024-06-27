@@ -988,7 +988,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         for (MetaColumn mc : tableInfo.getMdColumns()) {
             //dictionary; 解析 mc.getReferenceData() json
             //引用类型 0：没有：1： 数据字典 2：JSON表达式 3：sql语句  4：复合数据字典
-            if(StringBaseOpt.isNvl(mc.getReferenceData())) {
+            if(StringUtils.isBlank(mc.getReferenceData())) {
                 continue;
             }
             if ("1".equals(mc.getReferenceType())) {

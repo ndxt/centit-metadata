@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Service("databaseInfoManager")
+@Service("sourceInfoManager")
 @Transactional
 public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, String, SourceInfoDao>
         implements SourceInfoManager {
@@ -44,10 +44,6 @@ public class SourceInfoManagerImpl extends BaseEntityManagerImpl<SourceInfo, Str
         baseDao.saveNewObject(sourceInfo);
     }
 
-    @Override
-    public String getNextKey() {
-        return baseDao.getNextKey();
-    }
 
     @Override
     public void mergeObject(SourceInfo sourceInfo){

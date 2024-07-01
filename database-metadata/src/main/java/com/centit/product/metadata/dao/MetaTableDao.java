@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
 import java.util.Map;
-
 @Repository
 public class MetaTableDao extends BaseDaoImpl<MetaTable, String> {
     @Override

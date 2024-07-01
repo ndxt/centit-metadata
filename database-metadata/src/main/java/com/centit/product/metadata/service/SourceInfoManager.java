@@ -17,8 +17,6 @@ public interface SourceInfoManager extends BaseEntityManager<SourceInfo,String> 
 
     void mergeObject(SourceInfo sourceInfo);
 
-    String getNextKey();
-
     Map<String, SourceInfo> listDatabaseToDBRepo();
 
     List<SourceInfo> listObjects(Map<String, Object> map);

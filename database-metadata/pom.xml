@@ -13,9 +13,20 @@
     <description>数据库元数据</description>
 
     <dependencies>
+
+        <dependency>
+            <groupId>com.centit.framework</groupId>
+            <artifactId>centit-persistence-core</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.centit.framework</groupId>
             <artifactId>centit-persistence-extend</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.centit.framework</groupId>
+            <artifactId>centit-persistence-config</artifactId>
         </dependency>
 
         <dependency>
@@ -37,6 +48,11 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
         </dependency>
 
         <dependency>

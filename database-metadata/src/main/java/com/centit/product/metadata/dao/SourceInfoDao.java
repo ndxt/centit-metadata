@@ -3,9 +3,7 @@ package com.centit.product.metadata.dao;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
-import com.centit.framework.jdbc.dao.JdbcTemplateUtils;
 import com.centit.product.metadata.po.SourceInfo;
-import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.database.utils.QueryUtils;
@@ -53,12 +51,12 @@ public class SourceInfoDao extends BaseDaoImpl<SourceInfo, String> {
     }
 
     //jdbc
-    public String getNextKey() {
+   /* public String getNextKey() {
         return StringBaseOpt.fillZeroForString(
             String.valueOf(
                 JdbcTemplateUtils.getSequenceNextValue(
                     this.jdbcTemplate, "S_DATABASECODE")), 10);
-    }
+    }*/
 
     public JSONArray queryDatabaseAsJson(String databaseName, PageDesc pageDesc) {
         if (StringUtils.isBlank(databaseName)) {

@@ -122,10 +122,11 @@ public class SourceInfo implements ISourceInfo, Serializable {
 
     public void setPassword(String pwd) {
         if (StringUtils.isNotBlank(pwd)) {
-            if (pwd.startsWith("cipher:")) {
+            if (pwd.startsWith("cipher:") || pwd.startsWith("aescbc:") || pwd.startsWith("sm4cbc:")) {
                 this.password = pwd;
             } else {
-                this.password = SecurityOptUtils.encodeSecurityString(pwd, "cipher");
+                this.password = SecurityOptUtils.encodeSecurityString(
+                    SecurityOptUtils.decodeSecurityString(pwd), "cipher");
             }
         }
     }

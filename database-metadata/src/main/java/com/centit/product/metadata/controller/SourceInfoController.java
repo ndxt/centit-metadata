@@ -183,8 +183,6 @@ public class SourceInfoController extends BaseController {
             }
         }
 
-        SourceInfo oldValue = new SourceInfo();
-        BeanUtils.copyProperties(temp, oldValue);
         databaseInfoMag.mergeObject(databaseinfo);
         //刷新连接池
         if(ISourceInfo.DATABASE.equals(databaseinfo.getSourceType())) {
@@ -193,7 +191,7 @@ public class SourceInfoController extends BaseController {
         JsonResultUtils.writeBlankJson(response);
         /**********************log****************************/
         OperationLogCenter.logUpdateObject(request, optId, databaseCode, OperationLog.P_OPT_LOG_METHOD_U,
-            "更新数据库信息", databaseinfo, oldValue);
+            "更新数据库信息", databaseinfo, temp);
         /**********************log****************************/
     }
 

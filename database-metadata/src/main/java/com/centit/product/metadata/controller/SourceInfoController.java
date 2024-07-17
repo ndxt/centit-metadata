@@ -114,7 +114,7 @@ public class SourceInfoController extends BaseController {
         }
         databaseinfo.setCreated(WebOptUtils.getCurrentUserCode(request));
         databaseInfoMag.saveNewObject(databaseinfo);
-
+        sourceInfoMetadata.refreshCache();
         JsonResultUtils.writeSingleDataJson(databaseinfo.getDatabaseCode(),response);
 
 
@@ -184,6 +184,7 @@ public class SourceInfoController extends BaseController {
         }
 
         databaseInfoMag.mergeObject(databaseinfo);
+        sourceInfoMetadata.refreshCache();
         //刷新连接池
         if(ISourceInfo.DATABASE.equals(databaseinfo.getSourceType())) {
             AbstractDBConnectPools.refreshDataSource(databaseinfo);

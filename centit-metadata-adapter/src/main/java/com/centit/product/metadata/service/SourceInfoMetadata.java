@@ -7,4 +7,6 @@ public interface SourceInfoMetadata {
     void setPropertyConvertor(PropertyConvertor propertyConvertor);
 
     SourceInfo fetchSourceInfo(String databaseCode);
+
+    void refreshCache();
 }

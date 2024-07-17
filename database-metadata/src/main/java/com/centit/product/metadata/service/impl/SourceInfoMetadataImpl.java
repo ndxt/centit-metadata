@@ -42,4 +42,9 @@ public class SourceInfoMetadataImpl implements SourceInfoMetadata {
     public SourceInfo fetchSourceInfo(String databaseCode) {
         return sourceInfoCache.getCachedValue(databaseCode);
     }
+
+    @Override
+    public void refreshCache() {
+        sourceInfoCache.evictCache();
+    }
 }

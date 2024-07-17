@@ -33,7 +33,7 @@ public class SourceInfoMetadataImpl implements SourceInfoMetadata {
 
     protected SourceInfo loadSourceInfo(String databaseCode) {
         SourceInfo sourceInfo = sourceInfoDao.getDatabaseInfoById(databaseCode);
-        if(sourceInfo==null || this.propertyConvertor ==null)
+        if(this.propertyConvertor ==null || sourceInfo==null)
             return sourceInfo;
         return this.propertyConvertor.convertSourceInfo(sourceInfo);
     }
@@ -41,6 +41,13 @@ public class SourceInfoMetadataImpl implements SourceInfoMetadata {
     @Override
     public SourceInfo fetchSourceInfo(String databaseCode) {
         return sourceInfoCache.getCachedValue(databaseCode);
+    }
+
+    @Override
+    public SourceInfo convertorSourceInfo(SourceInfo sourceInfo){
+        if(this.propertyConvertor ==null || sourceInfo==null)
+            return sourceInfo;
+        return this.propertyConvertor.convertSourceInfo(sourceInfo);
     }
 
     @Override

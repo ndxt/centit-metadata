@@ -15,7 +15,6 @@ import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.transaction.AbstractDBConnectPools;
-import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.network.HtmlFormUtils;
@@ -24,7 +23,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -137,13 +135,15 @@ public class SourceInfoController extends BaseController {
     @RequestMapping(value = "/testConnect", method = {RequestMethod.POST})
     public void testConnect(@Valid SourceInfo sourceInfo, HttpServletResponse response) {
         sourceInfo.setDatabaseUrl(HtmlFormUtils.htmlString(sourceInfo.getDatabaseUrl()));
+        sourceInfo = sourceInfoMetadata.convertorSourceInfo(sourceInfo);
+
         if (sourceInfo.getDatabaseCode() != null) {
             sourceInfoMetadata.refreshCache(sourceInfo.getDatabaseCode());
             SourceInfo dataBaseSourceInfo = sourceInfoMetadata.fetchSourceInfo(sourceInfo.getDatabaseCode());
-            if (dataBaseSourceInfo != null) {
+            /*if (dataBaseSourceInfo != null) {
                 sourceInfo.setExtProps(dataBaseSourceInfo.getExtProps());
-            }
-            if(StringBaseOpt.isNvl(sourceInfo.getPassword())){
+            }*/
+            if(StringUtils.isBlank(sourceInfo.getPassword())){
                 sourceInfo.setPassword(dataBaseSourceInfo.getPassword());
             }
         }

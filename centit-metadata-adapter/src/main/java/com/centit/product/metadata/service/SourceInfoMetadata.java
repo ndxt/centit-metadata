@@ -8,6 +8,8 @@ public interface SourceInfoMetadata {
 
     SourceInfo fetchSourceInfo(String databaseCode);
 
+    SourceInfo convertorSourceInfo(SourceInfo sourceInfo);
+
     void refreshCache();
 
     void refreshCache(String databaseCode);

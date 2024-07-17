@@ -138,6 +138,7 @@ public class SourceInfoController extends BaseController {
     public void testConnect(@Valid SourceInfo sourceInfo, HttpServletResponse response) {
         sourceInfo.setDatabaseUrl(HtmlFormUtils.htmlString(sourceInfo.getDatabaseUrl()));
         if (sourceInfo.getDatabaseCode() != null) {
+            sourceInfoMetadata.refreshCache();
             SourceInfo dataBaseSourceInfo = sourceInfoMetadata.fetchSourceInfo(sourceInfo.getDatabaseCode());
             if (dataBaseSourceInfo != null) {
                 sourceInfo.setExtProps(dataBaseSourceInfo.getExtProps());

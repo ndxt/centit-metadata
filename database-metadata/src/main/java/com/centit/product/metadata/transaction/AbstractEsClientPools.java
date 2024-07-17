@@ -22,7 +22,7 @@ public abstract class AbstractEsClientPools {
         throw new IllegalAccessError("Utility class");
     }
 
-    private static GenericObjectPool<RestHighLevelClient> fetchClientPool(ISourceInfo dsDesc, boolean createNew) {
+    private static synchronized GenericObjectPool<RestHighLevelClient> fetchClientPool(ISourceInfo dsDesc, boolean createNew) {
         ESServerConfig config = new ESServerConfig();
         String[] hostAndIp = dsDesc.getDatabaseUrl().split(":");
         config.setServerHostIp(hostAndIp[0]);
@@ -44,12 +44,12 @@ public abstract class AbstractEsClientPools {
     }
 
     public static synchronized RestHighLevelClient fetchESClient(ISourceInfo dsDesc) throws Exception {
-        GenericObjectPool<RestHighLevelClient> clientPool =  fetchClientPool(dsDesc, true);
+        GenericObjectPool<RestHighLevelClient> clientPool = fetchClientPool(dsDesc, true);
         return clientPool.borrowObject();
     }
 
-    public static void returnClient(ISourceInfo dsDesc , RestHighLevelClient client) {
-        GenericObjectPool<RestHighLevelClient> clientPool =  fetchClientPool(dsDesc, false);
+    public static synchronized void returnClient(ISourceInfo dsDesc , RestHighLevelClient client) {
+        GenericObjectPool<RestHighLevelClient> clientPool = fetchClientPool(dsDesc, false);
         if(clientPool!=null) {
             clientPool.returnObject(client);
         }

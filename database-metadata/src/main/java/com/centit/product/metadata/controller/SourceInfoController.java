@@ -114,7 +114,7 @@ public class SourceInfoController extends BaseController {
         }
         databaseinfo.setCreated(WebOptUtils.getCurrentUserCode(request));
         databaseInfoMag.saveNewObject(databaseinfo);
-        sourceInfoMetadata.refreshCache();
+        // sourceInfoMetadata.refreshCache(databaseinfo.getDatabaseCode());
         JsonResultUtils.writeSingleDataJson(databaseinfo.getDatabaseCode(),response);
 
 
@@ -138,7 +138,7 @@ public class SourceInfoController extends BaseController {
     public void testConnect(@Valid SourceInfo sourceInfo, HttpServletResponse response) {
         sourceInfo.setDatabaseUrl(HtmlFormUtils.htmlString(sourceInfo.getDatabaseUrl()));
         if (sourceInfo.getDatabaseCode() != null) {
-            sourceInfoMetadata.refreshCache();
+            sourceInfoMetadata.refreshCache(sourceInfo.getDatabaseCode());
             SourceInfo dataBaseSourceInfo = sourceInfoMetadata.fetchSourceInfo(sourceInfo.getDatabaseCode());
             if (dataBaseSourceInfo != null) {
                 sourceInfo.setExtProps(dataBaseSourceInfo.getExtProps());
@@ -185,7 +185,7 @@ public class SourceInfoController extends BaseController {
         }
 
         databaseInfoMag.mergeObject(databaseinfo);
-        sourceInfoMetadata.refreshCache();
+        sourceInfoMetadata.refreshCache(databaseinfo.getDatabaseCode());
         //刷新连接池
         if(ISourceInfo.DATABASE.equals(databaseinfo.getSourceType())) {
             AbstractDBConnectPools.refreshDataSource(databaseinfo);

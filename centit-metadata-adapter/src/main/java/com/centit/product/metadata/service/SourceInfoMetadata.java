@@ -9,4 +9,6 @@ public interface SourceInfoMetadata {
     SourceInfo fetchSourceInfo(String databaseCode);
 
     void refreshCache();
+
+    void refreshCache(String databaseCode);
 }

@@ -26,7 +26,8 @@ public class SourceInfoDaoImpl extends BaseDaoImpl<SourceInfo, String> implement
         Map<String, String> filterField = new HashMap<>();
         filterField.put("databaseName", CodeBook.LIKE_HQL_ID);
         filterField.put("databaseCode", CodeBook.EQUAL_HQL_ID);
-        filterField.put("osId", CodeBook.EQUAL_HQL_ID);
+        filterField.put("osId", "database_code in (select database_code from m_application_resources " +
+            "where os_id=:osId)");
         filterField.put("databaseType", CodeBook.LIKE_HQL_ID);
         filterField.put("hostPort", CodeBook.LIKE_HQL_ID);
         filterField.put("databaseUrl", CodeBook.LIKE_HQL_ID);

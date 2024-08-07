@@ -2,6 +2,7 @@ package com.centit.product.metadata.po;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.centit.framework.core.dao.DictionaryMap;
+import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableInfo;
@@ -240,7 +241,8 @@ public class MetaTable implements TableInfo, java.io.Serializable {
             if("=".equals(aWord)){
                 aWord = lexer.getAWord();
                 if(StringUtils.isNotBlank(aWord)){
-                    defaultValue = aWord;
+                    //去掉 字符串常量的 引号
+                    defaultValue = StringRegularOpt.trimString(aWord);
                     aWord = lexer.getAWord();
                 }
             }

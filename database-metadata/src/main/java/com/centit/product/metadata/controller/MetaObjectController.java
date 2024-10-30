@@ -287,7 +287,7 @@ public class MetaObjectController extends BaseController {
     @WrapUpResponseBody
     @MetadataJdbcTransaction
     public JSONArray queryDatabaseBySql(@RequestBody String queryJson, HttpServletRequest request) {
-        checkUserOptPower(request, false);
+        checkUserOptPower(request, true);
         JSONObject json = JSONObject.parseObject(queryJson);
         String sqlSen = json.getString("sql");
         if(StringUtils.isBlank(sqlSen) || !sqlSen.startsWith("aescbc:")) {
@@ -328,6 +328,8 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public Map<String, String> getColumnRefDictionary(@PathVariable String tableId, @PathVariable String columnCode,
                                                HttpServletRequest request) {
+
+        checkUserOptPower(request, true);
         return metaObjectService.fetchColumnRefData(tableId, columnCode,
             WebOptUtils.getCurrentTopUnit(request),
             WebOptUtils.getCurrentLang(request));

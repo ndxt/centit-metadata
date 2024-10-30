@@ -16,10 +16,8 @@ import com.centit.framework.model.basedata.OsInfo;
 import com.centit.framework.model.basedata.WorkGroup;
 import com.centit.product.metadata.po.MetaOptRelation;
 import com.centit.product.metadata.po.MetaTable;
-import com.centit.product.metadata.service.MetaDataCache;
-import com.centit.product.metadata.service.MetaDataService;
-import com.centit.product.metadata.service.MetaObjectService;
-import com.centit.product.metadata.service.MetaOptRelationService;
+import com.centit.product.metadata.po.SourceInfo;
+import com.centit.product.metadata.service.*;
 import com.centit.product.metadata.transaction.MetadataJdbcTransaction;
 import com.centit.product.metadata.utils.SessionDataUtils;
 import com.centit.support.algorithm.CollectionsOpt;
@@ -60,7 +58,7 @@ public class MetaObjectController extends BaseController {
     private MetaDataCache metaDataCache;
 
     @Autowired
-    private MetaDataService metaDataService;
+    private SourceInfoMetadata sourceInfoMetadata;
 
     @Autowired
     private MetaOptRelationService metaOptRelationService;
@@ -262,12 +260,7 @@ public class MetaObjectController extends BaseController {
     public JSONArray queryDatabaseBySql(@RequestBody String queryJson, HttpServletRequest request) {
         JSONObject json = JSONObject.parseObject(queryJson);
         String databaseCode = json.getString("database");
-        String tableName = json.getString("tableName");
-        MetaTable tableInfo = metaDataService.getMetaTable(databaseCode, tableName);
-        if (tableInfo == null) {
-            throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您没有权限！");
-        }
-        checkUserOptPower(request, tableInfo.getTableId());
+        checkUserOptPowerByDB(request, databaseCode);
         String sqlSen = json.getString("sql");
         if(StringUtils.isBlank(sqlSen) || !sqlSen.startsWith("aescbc:")) {
             throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR, "查询语句格式不正确!");
@@ -354,4 +347,20 @@ public class MetaObjectController extends BaseController {
             throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您没有权限！");
         }
     }
+
+    private void checkUserOptPowerByDB(HttpServletRequest request, String databaseCode) {
+        String topUnit = WebOptUtils.getCurrentTopUnit(request);
+        if (StringUtils.isBlank(topUnit)) {
+            throw new ObjectException(ResponseData.ERROR_PRECONDITION_FAILED, "您还未加入任何租户!");
+        }
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if (StringUtils.isBlank(userCode)) {
+            throw new ObjectException(ResponseData.ERROR_USER_NOT_LOGIN, "您未登录!");
+        }
+        SourceInfo sourceInfo = sourceInfoMetadata.fetchSourceInfo(databaseCode);
+        if(sourceInfo == null || !StringUtils.equals(topUnit, sourceInfo.getTopUnit())){
+            throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您没有权限！");
+        }
+    }
+
 }

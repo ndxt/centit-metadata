@@ -8,7 +8,6 @@ import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.components.OperationLogCenter;
 import com.centit.framework.core.controller.BaseController;
-import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
 import com.centit.framework.model.adapter.PlatformEnvironment;
 import com.centit.framework.model.basedata.OperationLog;
@@ -17,21 +16,14 @@ import com.centit.framework.model.basedata.WorkGroup;
 import com.centit.product.metadata.po.MetaTable;
 import com.centit.product.metadata.service.MetaDataCache;
 import com.centit.product.metadata.service.MetaObjectService;
-import com.centit.product.metadata.transaction.MetadataJdbcTransaction;
 import com.centit.product.metadata.utils.SessionDataUtils;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.security.SecurityOptUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -44,25 +36,26 @@ import java.util.Map;
  * <p>
  * 对外公开的应该式自定义数据库表对应的额接口
  */
-@RestController
-@RequestMapping(value = "object")
-@Api(value = "基于元数据的数据访问服务", tags = "数据访问")
+//@Deprecated
+//@RestController
+//@RequestMapping(value = "object")
+//@Api(value = "基于元数据的数据访问服务", tags = "数据访问")
 public class MetaObjectController extends BaseController {
 
-    @Autowired
+    //@Autowired
     private MetaObjectService metaObjectService;
 
-    @Autowired
+    //@Autowired
     private MetaDataCache metaDataCache;
 
-    @Autowired
+    //@Autowired
     private PlatformEnvironment platformEnvironment;
 
-    @ApiOperation(value = "分页查询数据库表数据列表")
-    @RequestMapping(value = "/{tableId}/list", method = RequestMethod.GET)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public PageQueryResult<Object> listObjects(@PathVariable String tableId, PageDesc pageDesc,
+    //@ApiOperation(value = "分页查询数据库表数据列表")
+    //@RequestMapping(value = "/{tableId}/list", method = RequestMethod.GET)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public PageQueryResult<Object> listObjects(/*@PathVariable*/ String tableId, PageDesc pageDesc,
                                                String[] fields, HttpServletRequest request) {
         checkUserOptPower(request,true);
         Map<String, Object> params = collectRequestParameters(request);
@@ -71,34 +64,34 @@ public class MetaObjectController extends BaseController {
         return PageQueryResult.createJSONArrayResult(ja, pageDesc, fields);
     }
 
-    @ApiOperation(value = "获取一个数据，主键作为参数以key-value形式提交")
-    @RequestMapping(value = "/{tableId}", method = RequestMethod.GET)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public Map<String, Object> getObject(@PathVariable String tableId,
+    //@ApiOperation(value = "获取一个数据，主键作为参数以key-value形式提交")
+    //@RequestMapping(value = "/{tableId}", method = RequestMethod.GET)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public Map<String, Object> getObject(/*@PathVariable*/ String tableId,
                                          HttpServletRequest request) {
         checkUserOptPower(request,true);
         Map<String, Object> parameters = collectRequestParameters(request);
         return metaObjectService.getObjectById(tableId, parameters);
     }
 
-    @ApiOperation(value = "修改数据库表数据")
-    @RequestMapping(value = "/{tableId}", method = RequestMethod.PUT)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public ResponseData updateObject(@PathVariable String tableId,
-                                     @RequestBody String jsonString, HttpServletRequest request) {
+    //@ApiOperation(value = "修改数据库表数据")
+    //@RequestMapping(value = "/{tableId}", method = RequestMethod.PUT)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public ResponseData updateObject(/*@PathVariable*/ String tableId,
+                                     /*@RequestBody*/ String jsonString, HttpServletRequest request) {
         checkUserOptPower(request,true);
         metaObjectService.updateObject(tableId, JSON.parseObject(jsonString));
         return ResponseData.makeSuccessResponse();
     }
 
-    @ApiOperation(value = "根据属性修改数据库表数据")
-    @RequestMapping(value = "/{tableId}/batch", method = RequestMethod.PUT)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public ResponseData batchUpdateObject(@PathVariable String tableId,
-                                          @RequestBody String fieldsObject, HttpServletRequest request) {
+    //@ApiOperation(value = "根据属性修改数据库表数据")
+    //@RequestMapping(value = "/{tableId}/batch", method = RequestMethod.PUT)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public ResponseData batchUpdateObject(/*@PathVariable*/ String tableId,
+                                          /*@RequestBody*/ String fieldsObject, HttpServletRequest request) {
         checkUserOptPower(request,true);
         Map<String, Object> params = collectRequestParameters(request);
         JSONObject object = JSON.parseObject(fieldsObject);
@@ -110,12 +103,12 @@ public class MetaObjectController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "批量删除数据库表数据")
-    @RequestMapping(value = "/{tableId}/batchDelete", method = RequestMethod.PUT)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public ResponseData batchDeleteObject(@PathVariable String tableId,
-                                          @RequestBody String primaryArray, Integer withChildrenDeep,
+    //@ApiOperation(value = "批量删除数据库表数据")
+    //@RequestMapping(value = "/{tableId}/batchDelete", method = RequestMethod.PUT)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public ResponseData batchDeleteObject(/*@PathVariable*/ String tableId,
+                                          /*@RequestBody*/ String primaryArray, Integer withChildrenDeep,
                                           HttpServletRequest request) {
         checkUserOptPower(request,true);
         JSONArray tempJsonArray = JSON.parseArray(primaryArray);
@@ -124,22 +117,22 @@ public class MetaObjectController extends BaseController {
         return ResponseData.makeSuccessResponse("成功删除" + tempJsonArray.size() + "条");
     }
 
-    @ApiOperation(value = "新增数据库表数据")
-    @RequestMapping(value = "/{tableId}", method = RequestMethod.POST)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public ResponseData saveObject(@PathVariable String tableId,
-                                   @RequestBody String jsonString, HttpServletRequest request) {
+    //@ApiOperation(value = "新增数据库表数据")
+    //@RequestMapping(value = "/{tableId}", method = RequestMethod.POST)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public ResponseData saveObject(/*@PathVariable*/ String tableId,
+                                   /*@RequestBody*/ String jsonString, HttpServletRequest request) {
         checkUserOptPower(request,true);
         metaObjectService.saveObject(tableId, JSON.parseObject(jsonString));
         return ResponseData.makeSuccessResponse();
     }
 
-    @ApiOperation(value = "删除数据库表数据")
-    @RequestMapping(value = "/{tableId}", method = RequestMethod.DELETE)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public ResponseData deleteObject(@PathVariable String tableId,
+    //@ApiOperation(value = "删除数据库表数据")
+    //@RequestMapping(value = "/{tableId}", method = RequestMethod.DELETE)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public ResponseData deleteObject(/*@PathVariable*/ String tableId,
                                      HttpServletRequest request) {
         checkUserOptPower(request,true);
         Map<String, Object> parameters = collectRequestParameters(request);
@@ -147,12 +140,12 @@ public class MetaObjectController extends BaseController {
         return ResponseData.makeSuccessResponse();
     }
 
-    @ApiOperation(value = "批量merge数据带子表")
-    @RequestMapping(value = "/{tableId}/batchMerge", method = RequestMethod.POST)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public List<Map<String, Object>> batchMergeObjectWithChildren(@PathVariable String tableId,
-                                                                  @RequestBody String mergeArray,
+    //@ApiOperation(value = "批量merge数据带子表")
+    //@RequestMapping(value = "/{tableId}/batchMerge", method = RequestMethod.POST)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public List<Map<String, Object>> batchMergeObjectWithChildren(/*@PathVariable*/ String tableId,
+                                                                  /*@RequestBody*/ String mergeArray,
                                                                   Integer withChildrenDeep,
                                                                   HttpServletRequest request) {
         HashMap<String, Object> hashMap = SessionDataUtils.createSessionDataMap(
@@ -180,23 +173,23 @@ public class MetaObjectController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "获取一个数据带子表，主键作为参数以key-value形式提交")
-    @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.GET)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public Map<String, Object> getObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
+    //@ApiOperation(value = "获取一个数据带子表，主键作为参数以key-value形式提交")
+    //@RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.GET)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public Map<String, Object> getObjectWithChildren(/*@PathVariable*/ String tableId, Integer withChildrenDeep,
                                                      HttpServletRequest request) {
         checkUserOptPower(request,true);
         Map<String, Object> parameters = collectRequestParameters(request);
         return metaObjectService.getObjectWithChildren(tableId, parameters, withChildrenDeep == null ? 1 : withChildrenDeep);
     }
 
-    @ApiOperation(value = "修改数据库表数据带子表")
-    @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.PUT)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public ResponseData updateObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
-                                                 @RequestBody String jsonString, HttpServletRequest request) {
+    //@ApiOperation(value = "修改数据库表数据带子表")
+    //@RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.PUT)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public ResponseData updateObjectWithChildren(/*@PathVariable*/ String tableId, Integer withChildrenDeep,
+                                                 /*@RequestBody*/ String jsonString, HttpServletRequest request) {
         checkUserOptPower(request,true);
         metaObjectService.updateObjectWithChildren(
             tableId, JSON.parseObject(jsonString),
@@ -206,23 +199,23 @@ public class MetaObjectController extends BaseController {
         return ResponseData.makeSuccessResponse();
     }
 
-    @ApiOperation(value = "新增数据库表数据带子表")
-    @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.POST)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public ResponseData saveObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
-                                               @RequestBody String jsonString, HttpServletRequest request) {
+    //@ApiOperation(value = "新增数据库表数据带子表")
+    //@RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.POST)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public ResponseData saveObjectWithChildren(/*@PathVariable*/ String tableId, Integer withChildrenDeep,
+                                               /*@RequestBody*/ String jsonString, HttpServletRequest request) {
         checkUserOptPower(request,true);
         metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
         saveOperationLog(request, jsonString, tableId, "save");
         return ResponseData.makeSuccessResponse();
     }
 
-    @ApiOperation(value = "删除数据库表数据带子表")
-    @RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.DELETE)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public ResponseData deleteObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
+    //@ApiOperation(value = "删除数据库表数据带子表")
+    //@RequestMapping(value = "/{tableId}/withChildren", method = RequestMethod.DELETE)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public ResponseData deleteObjectWithChildren(/*@PathVariable*/ String tableId, Integer withChildrenDeep,
                                                  HttpServletRequest request) {
         checkUserOptPower(request,true);
         Map<String, Object> parameters = collectRequestParameters(request);
@@ -278,14 +271,14 @@ public class MetaObjectController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "根据自定义查询获取数据")
-    @RequestMapping(value = "/sqlQuery", method = RequestMethod.PUT)
-    @ApiImplicitParam(
-        name = "queryJson", value = "查询语句：属性 database 数据库id，sql 查询语句，以aescbc:开头 ，params 参数Map 如有是分页查询必须有参数 pageSize ",
-        required = true, paramType = "path", dataType = "String")
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public JSONArray queryDatabaseBySql(@RequestBody String queryJson, HttpServletRequest request) {
+    //@ApiOperation(value = "根据自定义查询获取数据")
+    //@RequestMapping(value = "/sqlQuery", method = RequestMethod.PUT)
+    //@ApiImplicitParam(
+    //    name = "queryJson", value = "查询语句：属性 database 数据库id，sql 查询语句，以aescbc:开头 ，params 参数Map 如有是分页查询必须有参数 pageSize ",
+    //    required = true, paramType = "path", dataType = "String")
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public JSONArray queryDatabaseBySql(/*@RequestBody*/ String queryJson, HttpServletRequest request) {
         checkUserOptPower(request, false);
         JSONObject json = JSONObject.parseObject(queryJson);
         String sqlSen = json.getString("sql");
@@ -314,18 +307,18 @@ public class MetaObjectController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "获取表字段的参照引用数据")@ApiImplicitParams({
-        @ApiImplicitParam(
-            name = "tableId", value = "表id",
-            required = true, paramType = "path", dataType = "String"),
-        @ApiImplicitParam(
-            name = "columnCode", value = "字段代码",
-            required = true, paramType = "path", dataType = "String")
-    })
-    @RequestMapping(value = "/refData/{tableId}/{columnCode}", method = RequestMethod.GET)
-    @WrapUpResponseBody
-    @MetadataJdbcTransaction
-    public Map<String, String> getColumnRefDictionary(@PathVariable String tableId, @PathVariable String columnCode,
+    //@ApiOperation(value = "获取表字段的参照引用数据")//@ApiImplicitParams({
+        //@ApiImplicitParam(
+    //        name = "tableId", value = "表id",
+    //        required = true, paramType = "path", dataType = "String"),
+        //@ApiImplicitParam(
+    //        name = "columnCode", value = "字段代码",
+    //        required = true, paramType = "path", dataType = "String")
+    // })
+    //@RequestMapping(value = "/refData/{tableId}/{columnCode}", method = RequestMethod.GET)
+    //@WrapUpResponseBody
+    //@MetadataJdbcTransaction
+    public Map<String, String> getColumnRefDictionary(/*@PathVariable*/ String tableId, /*@PathVariable*/ String columnCode,
                                                HttpServletRequest request) {
         return metaObjectService.fetchColumnRefData(tableId, columnCode,
             WebOptUtils.getCurrentTopUnit(request),

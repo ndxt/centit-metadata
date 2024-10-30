@@ -33,6 +33,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.simpl.HostnameInstanceIdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -334,14 +335,13 @@ public class MetaObjectController extends BaseController {
         if (StringUtils.isBlank(topUnit)) {
             throw new ObjectException(ResponseData.ERROR_PRECONDITION_FAILED, "您还未加入任何租户!");
         }
-
-        List<OsInfo> osInfos = CodeRepositoryUtil.listOsInfo(topUnit);
-        if (CollectionUtils.sizeIsEmpty(osInfos)) {
-            throw new ObjectException(ResponseData.ERROR_PRECONDITION_FAILED, "您当前所在的租户还未创建任何应用!");
-        }
         String osId = request.getParameter("osId");
         if (StringUtils.isBlank(osId)) {
             throw new ObjectException(ResponseData.ERROR_PRECONDITION_FAILED, "缺少权限相关的参数!");
+        }
+        OsInfo osInfo = CodeRepositoryUtil.getOsInfo(topUnit, osId);
+        if (osInfo == null) {
+            throw new ObjectException(ResponseData.ERROR_PRECONDITION_FAILED, "当前应用归属租户和您的租户不一致!");
         }
         // 判断当前用户 是否在开发组中
         List<WorkGroup> userGroups = platformEnvironment.listWorkGroup(osId, userCode, null);

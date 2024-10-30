@@ -251,9 +251,10 @@ public class MetaObjectController extends BaseController {
      */
     private void checkUserOptPower(HttpServletRequest request, boolean checkInWorkGroup) {
         String userCode = WebOptUtils.getCurrentUserCode(request);
-        if (StringUtils.isBlank(userCode)) {
+        //不允许在 url中绑定用户信息，避免安全漏洞
+        /*if (StringUtils.isBlank(userCode)) {
             userCode = WebOptUtils.getRequestFirstOneParameter(request, "userCode");
-        }
+        }*/
         if (StringUtils.isBlank(userCode)) {
             throw new ObjectException(ResponseData.ERROR_USER_NOT_LOGIN, "您未登录!");
         }

@@ -72,7 +72,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public PageQueryResult<Object> listObjects(@PathVariable String tableId, PageDesc pageDesc,
                                                String[] fields, HttpServletRequest request) {
-        checkUserOptPower(request,tableId);
+        checkUserOptPower(request, tableId);
         Map<String, Object> params = collectRequestParameters(request);
         JSONArray ja = metaObjectService.pageQueryObjects(
             tableId, params, pageDesc);
@@ -85,7 +85,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public Map<String, Object> getObject(@PathVariable String tableId,
                                          HttpServletRequest request) {
-        checkUserOptPower(request,tableId);
+        checkUserOptPower(request, tableId);
         Map<String, Object> parameters = collectRequestParameters(request);
         return metaObjectService.getObjectById(tableId, parameters);
     }
@@ -96,7 +96,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData updateObject(@PathVariable String tableId,
                                      @RequestBody String jsonString, HttpServletRequest request) {
-        checkUserOptPower(request,tableId);
+        checkUserOptPower(request, tableId);
         metaObjectService.updateObject(tableId, JSON.parseObject(jsonString));
         return ResponseData.makeSuccessResponse();
     }
@@ -107,7 +107,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData batchUpdateObject(@PathVariable String tableId,
                                           @RequestBody String fieldsObject, HttpServletRequest request) {
-        checkUserOptPower(request,tableId);
+        checkUserOptPower(request, tableId);
         Map<String, Object> params = collectRequestParameters(request);
         JSONObject object = JSON.parseObject(fieldsObject);
         int iReturn = metaObjectService.updateObjectsByProperties(tableId, object, params);
@@ -125,7 +125,7 @@ public class MetaObjectController extends BaseController {
     public ResponseData batchDeleteObject(@PathVariable String tableId,
                                           @RequestBody String primaryArray, Integer withChildrenDeep,
                                           HttpServletRequest request) {
-        checkUserOptPower(request,tableId);
+        checkUserOptPower(request, tableId);
         JSONArray tempJsonArray = JSON.parseArray(primaryArray);
         tempJsonArray.forEach(object ->
             metaObjectService.deleteObjectWithChildren(tableId, CollectionsOpt.objectToMap(object), withChildrenDeep == null ? 1 : withChildrenDeep));
@@ -205,7 +205,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData updateObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                  @RequestBody String jsonString, HttpServletRequest request) {
-        checkUserOptPower(request,tableId);
+        checkUserOptPower(request, tableId);
         metaObjectService.updateObjectWithChildren(
             tableId, JSON.parseObject(jsonString),
             SessionDataUtils.createSessionDataMap(WebOptUtils.getCurrentUserDetails(request)),
@@ -220,7 +220,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData saveObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                @RequestBody String jsonString, HttpServletRequest request) {
-        checkUserOptPower(request,tableId);
+        checkUserOptPower(request, tableId);
         metaObjectService.saveObjectWithChildren(tableId, JSON.parseObject(jsonString), withChildrenDeep == null ? 1 : withChildrenDeep);
         saveOperationLog(request, jsonString, tableId, "save");
         return ResponseData.makeSuccessResponse();
@@ -232,7 +232,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public ResponseData deleteObjectWithChildren(@PathVariable String tableId, Integer withChildrenDeep,
                                                  HttpServletRequest request) {
-        checkUserOptPower(request,tableId);
+        checkUserOptPower(request, tableId);
         Map<String, Object> parameters = collectRequestParameters(request);
         metaObjectService.deleteObjectWithChildren(tableId, parameters, withChildrenDeep == null ? 1 : withChildrenDeep);
         saveOperationLog(request, parameters, tableId, "delete");
@@ -271,7 +271,6 @@ public class MetaObjectController extends BaseController {
                 "update", "delete", "insert", "drop", "create")) {
             throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR, "查询语句格式不正确!");
         }
-
         JSONObject params = json.getJSONObject("params");
         PageDesc pageDesc = null;
         Object pageSize = params.get("pageSize");
@@ -300,8 +299,7 @@ public class MetaObjectController extends BaseController {
     @MetadataJdbcTransaction
     public Map<String, String> getColumnRefDictionary(@PathVariable String tableId, @PathVariable String columnCode,
                                                HttpServletRequest request) {
-
-        checkUserOptPower(request,  tableId);
+        checkUserOptPower(request, tableId);
         return metaObjectService.fetchColumnRefData(tableId, columnCode,
             WebOptUtils.getCurrentTopUnit(request),
             WebOptUtils.getCurrentLang(request));

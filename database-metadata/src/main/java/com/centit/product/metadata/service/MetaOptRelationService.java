@@ -43,6 +43,7 @@ public interface MetaOptRelationService {
      */
     MetaOptRelation getMetaOptRelation(String relationId);
 
+    MetaOptRelation getMetaOptRelation(String osId, String tableId);
     /**
      * 批量保存关联关系
      * @param relations 关联关系列表

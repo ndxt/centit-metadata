@@ -49,6 +49,13 @@ public class MetaOptRelationServiceImpl implements MetaOptRelationService {
     }
 
     @Override
+    public MetaOptRelation getMetaOptRelation(String osId, String tableId){
+        return metaOptRelationDao.getObjectByProperties(
+            CollectionsOpt.createHashMap("osId", osId, "tableId", tableId)
+        );
+    }
+
+    @Override
     @Transactional
     public void batchAddOptRelation(List<MetaOptRelation> relations) {
         for (MetaOptRelation relation : relations) {

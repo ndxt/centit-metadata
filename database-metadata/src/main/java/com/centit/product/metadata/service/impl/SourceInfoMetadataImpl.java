@@ -2,8 +2,8 @@ package com.centit.product.metadata.service.impl;
 
 import com.centit.product.metadata.dao.SourceInfoDao;
 import com.centit.product.metadata.po.SourceInfo;
-import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.service.PropertyConvertor;
+import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.support.common.CachedMap;
 import com.centit.support.common.CachedObject;
 import org.springframework.beans.factory.annotation.Autowired;

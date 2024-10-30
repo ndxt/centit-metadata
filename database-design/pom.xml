@@ -63,6 +63,12 @@
             <groupId>com.aliyun</groupId>
             <artifactId>tea-openapi</artifactId>
             <version>0.2.5</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>bcpkix-jdk15on</artifactId>
+                    <groupId>org.bouncycastle</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

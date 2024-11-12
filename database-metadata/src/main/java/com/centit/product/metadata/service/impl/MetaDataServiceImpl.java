@@ -252,8 +252,9 @@ public class MetaDataServiceImpl implements MetaDataService {
         metaTableDao.saveNewObject(metaTable);
 
         List<SimpleTableField> columns = insertNewTable.getColumns();
+        long colOrder = 0;
         for (SimpleTableField tableField : columns) {
-            addSyncSingleTableColumn(recorder, metaTable, tableField);
+            addSyncSingleTableColumn(recorder, metaTable, tableField, ++colOrder);
         }
     }
     private void addSyncData(String databaseCode, String recorder, List<SimpleTableInfo> insertNewTables) {
@@ -262,10 +263,11 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
     }
 
-    private void addSyncSingleTableColumn(String recorder, MetaTable oldTable, SimpleTableField tableField) {
+    private void addSyncSingleTableColumn(String recorder, MetaTable oldTable, SimpleTableField tableField, long colOrder) {
         MetaColumn metaColumn = new MetaColumn().convertFromTableField(tableField);
         metaColumn.setTableId(oldTable.getTableId());
         metaColumn.setRecorder(recorder);
+        metaColumn.setColumnOrder(colOrder);
 
         if (metaColumn.getFieldLabelName() == null || "".equals(metaColumn.getFieldLabelName())) {
             metaColumn.setFieldLabelName(metaColumn.getColumnName());
@@ -310,8 +312,9 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     private void addSyncSingleTableColumns(String recorder, MetaTable oldTable, Triple<List<SimpleTableField>, List<Pair<MetaColumn, SimpleTableField>>, List<MetaColumn>> columnCompared) {
+        long colOrder =oldTable.getColumns() == null? 0: oldTable.getColumns().size();
         for (SimpleTableField tableField : columnCompared.getLeft()) {
-            addSyncSingleTableColumn(recorder, oldTable, tableField);
+            addSyncSingleTableColumn(recorder, oldTable, tableField, ++colOrder);
         }
     }
 
@@ -322,6 +325,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     private void updateSyncSingleTableColumns(String recorder,  List<Pair<MetaColumn, SimpleTableField>>  needUpdateColumns) {
+
         for (Pair<MetaColumn, SimpleTableField> columnPair : needUpdateColumns) {
             MetaColumn oldColumn = columnPair.getLeft();
             oldColumn.setRecorder(recorder);

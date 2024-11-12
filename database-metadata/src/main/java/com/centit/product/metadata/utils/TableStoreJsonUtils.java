@@ -32,6 +32,7 @@ public abstract class TableStoreJsonUtils {
                     }
                     table1.setViewSql(tableJson.getString("viewSql") );
                     JSONArray columnsJson = tableJson.getJSONArray("columns");
+                    long nColNo = 0;
                     if(columnsJson!=null && columnsJson.size()>0){
                         List<PendingMetaColumn> mdColumns = new ArrayList<>();
                         for(Object col : columnsJson){
@@ -48,7 +49,7 @@ public abstract class TableStoreJsonUtils {
                                 column.setMandatory(BooleanBaseOpt.castObjectToBoolean(colJson.get("mandatory"),false));
                                 column.setPrimaryKey(BooleanBaseOpt.castObjectToBoolean(colJson.get("primaryKey"),false));
                                 column.setColumnComment(colJson.getString("columnComment"));
-
+                                column.setColumnOrder(++nColNo);
                                 mdColumns.add(column);
                             }
                         }

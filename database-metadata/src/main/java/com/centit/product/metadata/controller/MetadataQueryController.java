@@ -63,16 +63,14 @@ public class MetadataQueryController extends BaseController {
     @ApiOperation(value = "数据库列表")
     @GetMapping(value = "/databases")
     @WrapUpResponseBody
-    public List<SourceInfo> databases(String osId, HttpServletRequest request) {
+    public List<SourceInfo> databases(HttpServletRequest request) {
         Map<String, Object> parameters = collectRequestParameters(request);
         String topUnit = WebOptUtils.getCurrentTopUnit(request);
         //如果用户还未加入到任何租户，不进行数据查询操作
         if (StringUtils.isBlank(topUnit)){
             return Collections.emptyList();
         }
-        if (WebOptUtils.isTenantTopUnit(request)) {
-            parameters.put("topUnit", WebOptUtils.getCurrentTopUnit(request));
-        }
+        parameters.put("topUnit", WebOptUtils.getCurrentTopUnit(request));
         return metaDataService.listDatabase(parameters);
     }
 

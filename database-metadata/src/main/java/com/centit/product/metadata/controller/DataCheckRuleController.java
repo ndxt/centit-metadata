@@ -56,12 +56,12 @@ public class DataCheckRuleController extends BaseController {
         if (StringUtils.isBlank(topUnit)) {
             searchColumn.put("topUnit", "system");
         }
-        if (WebOptUtils.isTenantTopUnit(request)) {
-            String[] strArry = new String[2];
-            strArry[0] = topUnit;
-            strArry[1] = "system";
-            searchColumn.put("topUnit", strArry);
-        }
+
+        String[] strArry = new String[2];
+        strArry[0] = topUnit;
+        strArry[1] = "system";
+        searchColumn.put("topUnit", strArry);
+
         JSONArray listObjects = dataCheckRuleService.listObjectsByPropertiesAsJson(searchColumn, pageDesc);
         return PageQueryResult.createJSONArrayResult(listObjects, pageDesc, DataCheckRule.class);
     }

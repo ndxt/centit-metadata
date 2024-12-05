@@ -74,9 +74,7 @@ public class SourceInfoController extends BaseController {
         if (StringUtils.isBlank(topUnit)){
             return PageQueryResult.createResult(Collections.emptyList(), pageDesc);
         }
-        if (WebOptUtils.isTenantTopUnit(request)){
-            searchColumn.put("topUnit", topUnit);
-        }
+        searchColumn.put("topUnit", topUnit);
         JSONArray listObjects = databaseInfoMag.listDatabaseAsJson(searchColumn, pageDesc);
         //附加关联的应用信息
         databaseInfoMag.appendRelativeOsInfo(listObjects);

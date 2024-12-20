@@ -108,11 +108,11 @@ public class SourceInfoController extends BaseController {
         if (StringUtils.isNotBlank(databaseinfo.getPassword())) {
             databaseinfo.setPassword(databaseinfo.getPassword());
         }
+
         databaseinfo.setCreated(WebOptUtils.getCurrentUserCode(request));
         databaseInfoMag.saveNewObject(databaseinfo);
         // sourceInfoMetadata.refreshCache(databaseinfo.getDatabaseCode());
         JsonResultUtils.writeSingleDataJson(databaseinfo.getDatabaseCode(),response);
-
 
         /**********************log************************/
         OperationLogCenter.logNewObject(request, optId, databaseinfo.getDatabaseCode(), OperationLog.P_OPT_LOG_METHOD_C,
@@ -178,7 +178,14 @@ public class SourceInfoController extends BaseController {
         SourceInfo temp = databaseInfoMag.getObjectById(databaseCode);
         if (StringUtils.isNotBlank(databaseinfo.getPassword())) {
             if (!databaseinfo.getPassword().equals(temp.getPassword())) {
+                // 更新时确保密码正确
                 databaseinfo.setPassword(databaseinfo.getPassword());
+                try {
+                    AbstractDBConnectPools.testConnect(databaseinfo);
+                } catch (SQLException e) {
+                    throw new ObjectException(ObjectException.SYSTEM_CONFIG_ERROR,
+                        "数据库链接测试失败："+ e.getMessage(), e);
+                }
             }
         }
 

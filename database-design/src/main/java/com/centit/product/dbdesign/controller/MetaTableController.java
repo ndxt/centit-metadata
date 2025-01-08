@@ -25,6 +25,7 @@ import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.file.FileIOOpt;
 import com.centit.support.file.FileSystemOpt;
+import com.centit.support.network.HtmlFormUtils;
 import com.centit.support.security.SecurityOptUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -120,6 +121,7 @@ public class MetaTableController extends BaseController {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         mdTable.setRecorder(userCode);
         mdTable.setTableState("W");
+        mdTable.setViewSql(HtmlFormUtils.htmlString(mdTable.getViewSql()));
         PendingMetaTable table = new PendingMetaTable();
         table.copyNotNullProperty(mdTable);
         if (!isExist) {
@@ -142,6 +144,7 @@ public class MetaTableController extends BaseController {
         String userCode = WebOptUtils.getCurrentUserCode(request);
         metaTable.setTableId(tableId);
         metaTable.setRecorder(userCode);
+        metaTable.setViewSql(HtmlFormUtils.htmlString(metaTable.getViewSql()));
         metaTableManager.updateMetaTable(metaTable);
     }
 

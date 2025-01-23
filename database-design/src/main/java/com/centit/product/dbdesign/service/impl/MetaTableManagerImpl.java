@@ -222,16 +222,15 @@ public class MetaTableManagerImpl implements MetaTableManager {
 
     private List<String> runDdlSql(PendingMetaTable pendingMetaTable, List<String> errors, Connection conn) throws SQLException {
         List<String> sqlList = makeAlterTableSqlList(pendingMetaTable);
-        if(!sqlList.isEmpty()) {
+        /*if(!sqlList.isEmpty()) { // 这个不能添加，也有可能表的结构没有变化
             errors.add("表或者视图："+pendingMetaTable.getTableName() +" 配置信息不完整，无法生成对应的DDL语句。");
-        } else {
-            for (String sql : sqlList) {
-                try {
-                    DatabaseAccess.doExecuteSql(conn, sql);
-                } catch (SQLException se) {
-                    errors.add(se.getMessage());
-                    logger.error("执行sql失败:" + sql, se);
-                }
+        } else {*/
+        for (String sql : sqlList) {
+            try {
+                DatabaseAccess.doExecuteSql(conn, sql);
+            } catch (SQLException se) {
+                errors.add(se.getMessage());
+                logger.error("执行sql失败:" + sql, se);
             }
         }
         return sqlList;

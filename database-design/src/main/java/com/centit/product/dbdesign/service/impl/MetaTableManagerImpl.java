@@ -166,7 +166,9 @@ public class MetaTableManagerImpl implements MetaTableManager {
         List<String> sqlList;
         if (VIEW.equals(pendingMetaTable.getTableType())) {
             sqlList = new ArrayList<>();
-            sqlList.add(ddlOpt.makeCreateViewSql(pendingMetaTable.getViewSql(), pendingMetaTable.getTableName()));
+            if(StringUtils.isNotBlank(pendingMetaTable.getViewSql())) {
+                sqlList.add(ddlOpt.makeCreateViewSql(pendingMetaTable.getViewSql(), pendingMetaTable.getTableName()));
+            }
         } else {
             sqlList = DDLUtils.makeAlterTableSqlList(pendingMetaTable, metaTable, dbType, ddlOpt);
         }
@@ -175,19 +177,17 @@ public class MetaTableManagerImpl implements MetaTableManager {
     }
 
     public void checkPendingMetaTable(PendingMetaTable ptable, String currentUser) {
-        if ("C".equals(ptable.getTableType())) {
+        if ("C".equals(ptable.getTableType())) { // 大字段对象， 这个应该已经废弃了，
             PendingMetaColumn col = ptable.findFieldByName(MetaTable.OBJECT_AS_CLOB_FIELD);
             if (col == null) {
                 col = new PendingMetaColumn(ptable, MetaTable.OBJECT_AS_CLOB_FIELD);
-                col.setFieldLabelName("流程实例ID");
-                col.setColumnComment("业务对应的工作流程实例ID");
+                col.setFieldLabelName("对象JSON数据");
+                col.setColumnComment("对象JSON数据");
                 col.setFieldType(FieldType.JSON_OBJECT);
-                col.setMaxLength(32);
+                col.setMaxLength(32000);
                 col.setLastModifyDate(DatetimeOpt.currentUtilDate());
                 col.setRecorder(currentUser);
                 ptable.addMdColumn(col);
-            } else { //检查类型 string text FieldType.JSON_OBJECT
-
             }
         }
 
@@ -222,12 +222,16 @@ public class MetaTableManagerImpl implements MetaTableManager {
 
     private List<String> runDdlSql(PendingMetaTable pendingMetaTable, List<String> errors, Connection conn) throws SQLException {
         List<String> sqlList = makeAlterTableSqlList(pendingMetaTable);
-        for (String sql : sqlList) {
-            try {
-                DatabaseAccess.doExecuteSql(conn, sql);
-            } catch (SQLException se) {
-                errors.add(se.getMessage());
-                logger.error("执行sql失败:" + sql, se);
+        if(!sqlList.isEmpty()) {
+            errors.add("表或者视图："+pendingMetaTable.getTableName() +" 配置信息不完整，无法生成对应的DDL语句。");
+        } else {
+            for (String sql : sqlList) {
+                try {
+                    DatabaseAccess.doExecuteSql(conn, sql);
+                } catch (SQLException se) {
+                    errors.add(se.getMessage());
+                    logger.error("执行sql失败:" + sql, se);
+                }
             }
         }
         return sqlList;

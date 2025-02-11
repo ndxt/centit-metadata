@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.SQLTransientConnectionException;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -88,15 +89,19 @@ public abstract class AbstractDBConnectPools {
         }
     }
 
-    public static synchronized Connection getDbcpConnect(ISourceInfo dsDesc) throws SQLException {
+    public static synchronized Connection getDbcpConnect(ISourceInfo dsDesc) throws SQLException, InterruptedException {
         HikariDataSource ds = DATABASE_SOURCE_POOLS.get(dsDesc);
         if (ds == null) {
             ds = createDataSource(dsDesc);
             DATABASE_SOURCE_POOLS.put(dsDesc, ds);
         }
-        Connection conn = ds.getConnection();
-        conn.setAutoCommit(false);
-        return conn;
+        try {
+            Connection conn = ds.getConnection();
+            conn.setAutoCommit(false);
+            return conn;
+        }catch (SQLException e) {
+            throw e;
+        }
     }
 
     public static void closeConnect(Connection conn) {

@@ -89,7 +89,7 @@ public abstract class AbstractDBConnectPools {
         }
     }
 
-    public static synchronized Connection getDbcpConnect(ISourceInfo dsDesc) throws SQLException, InterruptedException {
+    public static synchronized Connection getDbcpConnect(ISourceInfo dsDesc) throws SQLException {
         HikariDataSource ds = DATABASE_SOURCE_POOLS.get(dsDesc);
         if (ds == null) {
             ds = createDataSource(dsDesc);
@@ -100,7 +100,20 @@ public abstract class AbstractDBConnectPools {
             conn.setAutoCommit(false);
             return conn;
         }catch (SQLException e) {
-            throw e;
+            if (e instanceof SQLTransientConnectionException) {
+                // 可以选择重试或记录日志后抛出异常
+                logger.error("Failed to get connection, retrying...", e);
+                try {
+                    Thread.sleep(5000); // 等待一段时间后重试
+                }catch (InterruptedException e1){
+                    logger.error(e.getMessage(), e1);
+                }
+                Connection conn = ds.getConnection();
+                conn.setAutoCommit(false);
+                return conn;
+            } else {
+                throw e;
+            }
         }
     }
 

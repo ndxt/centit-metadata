@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.SQLTransientConnectionException;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -94,9 +95,26 @@ public abstract class AbstractDBConnectPools {
             ds = createDataSource(dsDesc);
             DATABASE_SOURCE_POOLS.put(dsDesc, ds);
         }
-        Connection conn = ds.getConnection();
-        conn.setAutoCommit(false);
-        return conn;
+        try {
+            Connection conn = ds.getConnection();
+            conn.setAutoCommit(false);
+            return conn;
+        }catch (SQLException e) {
+            if (e instanceof SQLTransientConnectionException) {
+                // 可以选择重试或记录日志后抛出异常
+                logger.error("Failed to get connection, retrying...", e);
+                try {
+                    Thread.sleep(5000); // 等待一段时间后重试
+                }catch (InterruptedException e1){
+                    logger.error(e.getMessage(), e1);
+                }
+                Connection conn = ds.getConnection();
+                conn.setAutoCommit(false);
+                return conn;
+            } else {
+                throw e;
+            }
+        }
     }
 
     public static void closeConnect(Connection conn) {

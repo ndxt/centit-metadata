@@ -164,7 +164,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                 jdbcMetadata.setDBSchema(sourceInfo.getUsername().toUpperCase());
             }
             return jdbcMetadata.listTables(withColumn, tableNames);
-        } catch (SQLException e) {
+        } catch (SQLException  e) {
             logger.error("连接数据库【{}】出错", sourceInfo.getDatabaseName());
             throw new ObjectException("连接数据库出错" + e.getMessage());
         }

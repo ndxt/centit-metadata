@@ -10,7 +10,6 @@ import com.centit.product.metadata.vo.MetaTableCascade;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.PageDesc;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -83,7 +82,7 @@ public interface MetaDataService {
      * @param tableName 同步的表格
      * @param tableId 指定ID，这个是可选的
      */
-    void syncSingleTable(String databaseCode, String recorder, String tableName, @Nullable String tableId);
+    void syncSingleTable(String databaseCode, String recorder, String tableName, String tableId);
 
     /**
      * 更新元数据信息

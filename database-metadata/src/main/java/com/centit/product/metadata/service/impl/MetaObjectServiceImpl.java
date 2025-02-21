@@ -293,7 +293,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    private void fetchObjectRefrence(Connection conn, Map<String, Object> mainObj,
+    private void fetchObjectReference(Connection conn, Map<String, Object> mainObj,
                                      MetaRelation md) throws SQLException, IOException {
         MetaTable subTableInfo = metaDataCache.getTableInfoWithRelations(md.getChildTableId());
         Map<String, Object> ref = md.fetchChildFk(mainObj);
@@ -305,7 +305,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
         }
     }
 
-    private void fetchObjectRefrences(Connection conn, Map<String, Object> mainObj,
+    private void fetchObjectReferences(Connection conn, Map<String, Object> mainObj,
                                       MetaTable tableInfo, int withChildrenDeep) throws SQLException, IOException {
         List<MetaRelation> mds = tableInfo.getMdRelations();
         if (mds != null) {
@@ -319,7 +319,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     if (withChildrenDeep > 1 && ja != null) {
                         for (Object subObject : ja) {
                             if (subObject instanceof Map) {
-                                fetchObjectRefrences(conn, (Map<String, Object>) subObject,
+                                fetchObjectReferences(conn, (Map<String, Object>) subObject,
                                     subTableInfo, withChildrenDeep - 1);
                             }
                         }
@@ -368,7 +368,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             if (mds != null) {
                 for (MetaRelation md : mds) {
                     if (StringUtils.equalsAny(md.getReferenceName(), children) && md.getRelationDetails() != null) {
-                        fetchObjectRefrence(conn, mainObj, md);
+                        fetchObjectReference(conn, mainObj, md);
                     }
                 }
             }
@@ -388,7 +388,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             mainObj = innerGetObjectById(conn, tableInfo, pk);
             mainObj = DictionaryMapUtils.mapJsonObject(mainObj, this.fetchDictionaryMapColumns(tableInfo));
             if (withChildrenDeep > 0 && mainObj != null) {
-                fetchObjectRefrences(conn, mainObj, tableInfo, withChildrenDeep);
+                fetchObjectReferences(conn, mainObj, tableInfo, withChildrenDeep);
             }
             if(mainObj != null) {
                 fetchObjectParents(conn, mainObj, tableInfo);

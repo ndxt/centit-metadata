@@ -188,6 +188,10 @@ public class MetaRelation implements TableReference, java.io.Serializable {
                 return null;
             }
             fk.put(FieldType.mapPropName(mrd.getChildColumnCode()), fkValue);
+            /*if(Lexer.isConstValue(mrd.getParentColumnCode())){
+                fk.put(FieldType.mapPropName(mrd.getChildColumnCode()),
+                    Lexer.toConstValue(mrd.getParentColumnCode()));
+            }*/
         }
         return fk;
     }

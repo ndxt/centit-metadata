@@ -215,5 +215,10 @@ public interface MetaDataService {
      */
     void importRelationFromTableStore(String databaseCode, JSONObject jsonObject, String userCode);
 
+    /**
+     *  查询符合条件的表
+     * @param filter 过滤条件
+     * @return 符合条件表
+     */
     List<MetaTable> searchMateTable(JSONObject filter);
 }

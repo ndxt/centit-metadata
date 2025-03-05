@@ -68,6 +68,17 @@ public abstract class AbstractSourceConnectThreadHolder {
         conn.commit();
     }
 
+    public static void rollbackAll() throws SQLException {
+        SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
+        wrapper.rollbackAllWork();
+    }
+
+    public static void rollback(ISourceInfo description) throws SQLException {
+        SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
+        Connection conn = wrapper.fetchConnect(description);
+        conn.rollback();
+    }
+
     public static void rollbackAndRelease() throws SQLException {
         SourceConnectThreadWrapper wrapper = getConnectThreadWrapper();
         try {

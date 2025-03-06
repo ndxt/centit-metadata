@@ -51,6 +51,7 @@ public abstract class AbstractEsClientPools {
     public static synchronized void returnClient(ISourceInfo dsDesc , RestHighLevelClient client) {
         GenericObjectPool<RestHighLevelClient> clientPool = fetchClientPool(dsDesc, false);
         if(clientPool!=null) {
+            //client.close();
             clientPool.returnObject(client);
         }
     }

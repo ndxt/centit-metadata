@@ -17,6 +17,8 @@ import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.transaction.AbstractDBConnectPools;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
+import com.centit.support.file.FileIOOpt;
+import com.centit.support.file.FileSystemOpt;
 import com.centit.support.network.HtmlFormUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -24,6 +26,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +36,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
@@ -50,6 +55,8 @@ public class SourceInfoController extends BaseController {
 
     @Autowired
     private SourceInfoMetadata sourceInfoMetadata;
+    @Value("${app.home:./}")
+    private String appHome;
 
     private String optId = "DATABASE";
 
@@ -119,7 +126,56 @@ public class SourceInfoController extends BaseController {
             "新增数据库", databaseinfo);
         /**********************log************************/
     }
-
+    /**
+     * 新增数据库信息
+     *
+     * @param osId 应用id
+     * @param request      HttpServletRequest
+     * @param response     HttpServletResponse
+     */
+    @ApiOperation(value = "新增文件数据库", notes = "新增文件数据库。")
+    @ApiImplicitParam(
+        name = "h2", value = "json格式，数据库对象信息", required = true,
+        paramType = "body", dataTypeClass = SourceInfo.class)
+    @RequestMapping(value="/createH2",method = {RequestMethod.POST})
+    public void createH2DatabaseInfo(String osId,
+                                 HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (StringUtils.isBlank(WebOptUtils.getCurrentUserCode(request))){
+            throw new ObjectException(ResponseData.ERROR_USER_NOT_LOGIN,"您未登录!");
+        }
+        String topUnit = WebOptUtils.getCurrentTopUnit(request);
+        if (StringUtils.isBlank(topUnit)){
+            throw new ObjectException(ResponseData.ERROR_INTERNAL_SERVER_ERROR,"您还未加入租户!");
+        }
+        if (StringUtils.isBlank(osId)){
+            throw new ObjectException(ResponseData.ERROR_INTERNAL_SERVER_ERROR,"缺少应用相关的参数!");
+        }
+        String url="";
+        if(appHome.endsWith("/") || appHome.endsWith("\\")) {
+            url = appHome + "h2/" + osId;
+        } else {
+            url =appHome + File.separatorChar + "h2/" + osId;
+        }
+        if(FileSystemOpt.existFile(url+".mv.db")){
+            throw new ObjectException(ResponseData.ERROR_INTERNAL_SERVER_ERROR,"此应用已创建过文件数据库，不能再次创建!");
+        }
+        url = "jdbc:h2:file:"+url;
+        SourceInfo databaseinfo = new SourceInfo();
+        databaseinfo.setTopUnit(topUnit);
+        databaseinfo.setDatabaseUrl(url);
+        databaseinfo.setDatabaseName(osId);
+        databaseinfo.setSourceType("D");
+        databaseinfo.setCreated(WebOptUtils.getCurrentUserCode(request));
+        try {
+            AbstractDBConnectPools.testConnect(databaseinfo);
+            databaseInfoMag.saveNewObject(databaseinfo);
+            JsonResultUtils.writeSingleDataJson(databaseinfo.getDatabaseCode(),response);
+        } catch (SQLException e) {
+            JsonResultUtils.writeErrorMessageJson(e.getMessage(), response);
+        }
+        OperationLogCenter.logNewObject(request, optId, databaseinfo.getDatabaseCode(), OperationLog.P_OPT_LOG_METHOD_C,
+            "新增数据库", databaseinfo);
+    }
     /**
      * 连接测试
      *

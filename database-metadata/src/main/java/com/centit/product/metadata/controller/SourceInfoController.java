@@ -9,7 +9,10 @@ import com.centit.framework.core.controller.BaseController;
 import com.centit.framework.core.controller.WrapUpContentType;
 import com.centit.framework.core.controller.WrapUpResponseBody;
 import com.centit.framework.core.dao.PageQueryResult;
+import com.centit.framework.model.adapter.PlatformEnvironment;
 import com.centit.framework.model.basedata.OperationLog;
+import com.centit.framework.model.basedata.OsInfo;
+import com.centit.framework.model.basedata.WorkGroup;
 import com.centit.product.metadata.api.ISourceInfo;
 import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
@@ -17,13 +20,13 @@ import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.transaction.AbstractDBConnectPools;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
-import com.centit.support.file.FileIOOpt;
 import com.centit.support.file.FileSystemOpt;
 import com.centit.support.network.HtmlFormUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,8 +59,10 @@ public class SourceInfoController extends BaseController {
 
     @Autowired
     private SourceInfoMetadata sourceInfoMetadata;
-    @Value("${app.home:./}")
-    private String appHome;
+    @Value("${os.file.base.dir:./}")
+    private String osFileDir;
+    @Autowired
+    private PlatformEnvironment platformEnvironment;
 
     private String optId = "DATABASE";
 
@@ -140,7 +146,8 @@ public class SourceInfoController extends BaseController {
     @RequestMapping(value="/createH2",method = {RequestMethod.POST})
     public void createH2DatabaseInfo(String osId,
                                  HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (StringUtils.isBlank(WebOptUtils.getCurrentUserCode(request))){
+        String userCode = WebOptUtils.getCurrentUserCode(request);
+        if (StringUtils.isBlank(userCode)){
             throw new ObjectException(ResponseData.ERROR_USER_NOT_LOGIN,"您未登录!");
         }
         String topUnit = WebOptUtils.getCurrentTopUnit(request);
@@ -150,22 +157,33 @@ public class SourceInfoController extends BaseController {
         if (StringUtils.isBlank(osId)){
             throw new ObjectException(ResponseData.ERROR_INTERNAL_SERVER_ERROR,"缺少应用相关的参数!");
         }
-        String url="";
-        if(appHome.endsWith("/") || appHome.endsWith("\\")) {
-            url = appHome + "h2/" + osId;
-        } else {
-            url =appHome + File.separatorChar + "h2/" + osId;
+        List<WorkGroup> userGroups = platformEnvironment.listWorkGroup(osId, userCode, null);
+        if (userGroups == null || CollectionUtils.isEmpty(userGroups)) {
+            throw new ObjectException(ResponseData.HTTP_NON_AUTHORITATIVE_INFORMATION, "您不在该应用开发组中！");
         }
-        if(FileSystemOpt.existFile(url+".mv.db")){
+
+        if(databaseInfoMag.getObjectById(osId)!=null){
             throw new ObjectException(ResponseData.ERROR_INTERNAL_SERVER_ERROR,"此应用已创建过文件数据库，不能再次创建!");
+        }
+        String url="";
+        if(osFileDir.endsWith("/") || osFileDir.endsWith("\\")) {
+            url = osFileDir + "h2/" + osId;
+        } else {
+            url = osFileDir + File.separatorChar + "h2/" + osId;
         }
         url = "jdbc:h2:file:"+url;
         SourceInfo databaseinfo = new SourceInfo();
         databaseinfo.setTopUnit(topUnit);
         databaseinfo.setDatabaseUrl(url);
-        databaseinfo.setDatabaseName(osId);
+        OsInfo osInfo = platformEnvironment.getOsInfo(osId);
+        if(osInfo!=null){
+            databaseinfo.setDatabaseName(osInfo.getOsName()+"【内置文件数据库】");
+        }else {
+            databaseinfo.setDatabaseName(osId);
+        }
         databaseinfo.setSourceType("D");
-        databaseinfo.setCreated(WebOptUtils.getCurrentUserCode(request));
+        databaseinfo.setCreated(userCode);
+        databaseinfo.setDatabaseCode(osId);
         try {
             AbstractDBConnectPools.testConnect(databaseinfo);
             databaseInfoMag.saveNewObject(databaseinfo);

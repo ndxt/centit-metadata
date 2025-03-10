@@ -279,6 +279,14 @@ public class MetadataQueryController extends BaseController {
         project.put("projectInfo", projectInfo);
 
         List<MetaTable> tables = metaDataService.listAllMetaTablesWithDetail(databaseCode);
+        /*JSONArray modules = new JSONArray();
+        JSONObject jm = new JSONObject();
+        JSONObject moduleInfo = new JSONObject();
+        moduleInfo.put("moduleId", UuidOpt.getUuidAsString22());
+        moduleInfo.put("moduleName", "默认模块");
+        moduleInfo.put("moduleDesc", "从元数据中导出的表之间的关系，没有布局设计。");
+        jm.put("moduleInfo", moduleInfo);
+        modules.add(jm);*/
         project.put("modules", new JSONArray());
 
         if(tables!=null && tables.size()>0) {

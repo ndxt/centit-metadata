@@ -20,14 +20,17 @@ import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.transaction.AbstractDBConnectPools;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
-import com.centit.support.file.FileSystemOpt;
+import com.centit.support.network.SoapWsdlParser;
 import com.centit.support.network.HtmlFormUtils;
+import com.centit.support.network.HttpExecutor;
+import com.centit.support.network.HttpExecutorContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.dom4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -39,12 +42,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author zhf
@@ -77,7 +79,7 @@ public class SourceInfoController extends BaseController {
     @ApiOperation(value = "所有数据库列表信息", notes = "所有数据库列表信息。增加databaseCode")
     @ApiImplicitParam(
         name = "pageDesc", value = "json格式，分页对象信息",
-        paramType = "body", dataTypeClass = PageDesc.class)
+        paramType = "query", dataTypeClass = PageDesc.class)
     @RequestMapping(method = RequestMethod.GET)
     @WrapUpResponseBody(contentType = WrapUpContentType.BASE64)
     public PageQueryResult<Object> list(PageDesc pageDesc, HttpServletRequest request, HttpServletResponse response) {
@@ -319,4 +321,66 @@ public class SourceInfoController extends BaseController {
         /******************************log********************************/
     }
 
+    @ApiOperation(value = "获取SOAP的 namespace", notes = "根据url获取soap的namespace")
+    @ApiImplicitParam(
+        name = "url", value = "Http服务的url 仅限于soap协议",
+        paramType = "query", dataTypeClass = PageDesc.class)
+    @RequestMapping(path = "soapnamespace", method = RequestMethod.GET)
+    @WrapUpResponseBody
+    public String getSoapNameSpace(String url) {
+        try {
+            String wsdl = HttpExecutor.simpleGet(HttpExecutorContext.create(), url + "?wsdl");
+            Document doc = DocumentHelper.parseText(wsdl);
+            return SoapWsdlParser.getSoapNameSpace(doc.getRootElement());
+        } catch (IOException| DocumentException e) {
+            return "error:" + e.getMessage();
+        }
+    }
+
+    @ApiOperation(value = "获取SOAP的方法列表", notes = "根据服务id（databaseCode）获取soap的方法类别")
+    @ApiImplicitParam(
+        name = "httpServicesId", value = "Http服务的资源id：databaseCode",
+        paramType = "query", dataTypeClass = PageDesc.class)
+    @RequestMapping(path = "soapactions", method = RequestMethod.GET)
+    @WrapUpResponseBody
+    public List<String> getSoapActionList(String httpServicesId) {
+        List<String> methods = new ArrayList<>();
+        SourceInfo sourceInfo = databaseInfoMag.getObjectById(httpServicesId);
+        if(sourceInfo == null) return methods;
+        try {
+            String wsdl = HttpExecutor.simpleGet(HttpExecutorContext.create(), sourceInfo.getDatabaseUrl() + "?wsdl");
+            Document doc = DocumentHelper.parseText(wsdl);
+            return SoapWsdlParser.getSoapActionList(doc.getRootElement());
+        } catch (IOException| DocumentException e) {
+            logger.error(e.getMessage());
+        }
+        return methods;
+    }
+
+
+
+    @ApiOperation(value = "获取SOAP的 方法参数", notes = "根据url获取soap的namespace")
+    @ApiImplicitParams({
+    @ApiImplicitParam(
+        name = "httpServicesId", value = "Http服务的资源id：databaseCode",
+        paramType = "query", dataTypeClass = PageDesc.class),
+    @ApiImplicitParam(
+        name = "httpServicesId", value = "Http服务的资源id：databaseCode",
+        paramType = "query", dataTypeClass = PageDesc.class) })
+    @RequestMapping(path = "soapactionparams", method = RequestMethod.GET)
+    @WrapUpResponseBody
+    public Map<String, String> getSoapActionParams(String httpServicesId, String actionName) {
+        Map<String, String> params = new HashMap<>();
+        SourceInfo sourceInfo = databaseInfoMag.getObjectById(httpServicesId);
+        if(sourceInfo == null) return params;
+        try {
+            String wsdl = HttpExecutor.simpleGet(HttpExecutorContext.create(),
+                sourceInfo.getDatabaseUrl() + "?wsdl");
+            Document doc = DocumentHelper.parseText(wsdl);
+            return SoapWsdlParser.getSoapActionParams(doc.getRootElement(), actionName);
+        } catch (IOException| DocumentException e) {
+            logger.error(e.getMessage());
+        }
+        return params;
+    }
 }

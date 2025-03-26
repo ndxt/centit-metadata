@@ -358,8 +358,6 @@ public class SourceInfoController extends BaseController {
         return methods;
     }
 
-
-
     @ApiOperation(value = "获取SOAP的 方法参数", notes = "根据url获取soap的namespace")
     @ApiImplicitParams({
     @ApiImplicitParam(

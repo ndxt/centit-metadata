@@ -18,6 +18,7 @@ import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.transaction.AbstractDBConnectPools;
+import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.network.HtmlFormUtils;
@@ -344,14 +345,23 @@ public class SourceInfoController extends BaseController {
         paramType = "query", dataTypeClass = PageDesc.class)
     @RequestMapping(path = "soapactions", method = RequestMethod.GET)
     @WrapUpResponseBody
-    public List<String> getSoapActionList(String httpServicesId) {
+    public List<String> getSoapActionList(String httpServicesId, String withInputName) {
         List<String> methods = new ArrayList<>();
         SourceInfo sourceInfo = databaseInfoMag.getObjectById(httpServicesId);
         if(sourceInfo == null) return methods;
         try {
             String wsdl = HttpExecutor.simpleGet(HttpExecutorContext.create(), sourceInfo.getDatabaseUrl() + "?wsdl");
             Document doc = DocumentHelper.parseText(wsdl);
-            return SoapWsdlParser.getSoapActionList(doc.getRootElement());
+            List<String> actiontsName = SoapWsdlParser.getSoapActionList(doc.getRootElement());
+            if(BooleanBaseOpt.castObjectToBoolean(withInputName, false)){
+                List<String> methodWithInputName = new ArrayList<>();
+                for(String actName : actiontsName){
+                    methodWithInputName.add(actName + ":" +
+                        SoapWsdlParser.getSoapActionInputName(doc.getRootElement(), actName ));
+                }
+                return methodWithInputName;
+            }
+            return actiontsName;
         } catch (IOException| DocumentException e) {
             logger.error(e.getMessage());
         }
@@ -376,6 +386,10 @@ public class SourceInfoController extends BaseController {
             String wsdl = HttpExecutor.simpleGet(HttpExecutorContext.create(),
                 sourceInfo.getDatabaseUrl() + "?wsdl");
             Document doc = DocumentHelper.parseText(wsdl);
+            int p = actionName.indexOf(":");
+            if(p>0){
+                actionName = actionName.substring(0, p);
+            }
             return SoapWsdlParser.getSoapActionParams(doc.getRootElement(), actionName);
         } catch (IOException| DocumentException e) {
             logger.error(e.getMessage());

@@ -443,8 +443,8 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             Map<String, String> param = new HashMap<>();
             param.put(DataCheckRule.CHECK_VALUE_TAG, columnName);
             checkParam.forEach((key, value) -> {
-                Map<String, Object> checkRouleInfo = CollectionsOpt.objectToMap(value);
-                String checkValue = StringBaseOpt.castObjectToString(checkRouleInfo.get("value"));
+                Map<String, Object> checkRuleInfo = CollectionsOpt.objectToMap(value);
+                String checkValue = StringBaseOpt.castObjectToString(checkRuleInfo.get("value"));
                 if (StringUtils.isNotBlank(checkValue)) {
                     param.put(key, checkValue);
                 }

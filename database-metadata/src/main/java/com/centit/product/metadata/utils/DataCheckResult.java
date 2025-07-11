@@ -59,8 +59,8 @@ public class DataCheckResult {
         return new DataCheckResult();
     }
 
-    public DataCheckResult runCkeckRule(DataCheckRule rule, Map<String, Object> realParams,
-                                     boolean makeErrorMessage, boolean nullAsTrue){
+    public DataCheckResult runCheckRule(DataCheckRule rule, Map<String, Object> realParams,
+                                        boolean makeErrorMessage, boolean nullAsTrue){
         Object checkValue = realParams.get(DataCheckRule.CHECK_VALUE_TAG);
         if(checkValue==null){
             if(!nullAsTrue) {
@@ -97,7 +97,7 @@ public class DataCheckResult {
             }
         }
 
-       return runCkeckRule(rule, realPparam, makeErrorMessage, nullAsTrue);
+       return runCheckRule(rule, realPparam, makeErrorMessage, nullAsTrue);
     }
 
     public DataCheckResult checkData(Object data, DataCheckRule rule, Map<String, String> param){

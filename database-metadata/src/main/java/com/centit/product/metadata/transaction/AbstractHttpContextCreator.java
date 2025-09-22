@@ -48,7 +48,7 @@ public abstract class AbstractHttpContextCreator {
             loginOpt(dsDesc, context, httpClient);
             context.setCookieStore(cookieStore);
             String connection = StringBaseOpt.castObjectToString(dsDesc.getExtProps().get("Connection"),"close");
-            int timeout = NumberBaseOpt.castObjectToInteger(dsDesc.getExtProps().get("timeout"), 60000);
+            int timeout = NumberBaseOpt.castObjectToInteger(dsDesc.getExtProps().get("timeout"), 10000);
             return HttpExecutorContext.create(httpClient).context(context).header("Connection", connection).timout(timeout);
         }
     }

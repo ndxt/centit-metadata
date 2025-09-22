@@ -3,6 +3,8 @@ package com.centit.product.metadata.transaction;
 
 import com.centit.product.metadata.api.ISourceInfo;
 import com.centit.support.algorithm.BooleanBaseOpt;
+import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.network.HttpExecutor;
 import com.centit.support.network.HttpExecutorContext;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -45,7 +47,9 @@ public abstract class AbstractHttpContextCreator {
             CloseableHttpClient httpClient = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
             loginOpt(dsDesc, context, httpClient);
             context.setCookieStore(cookieStore);
-            return HttpExecutorContext.create(httpClient).context(context).header("Connection", "close").timout(60000);
+            String connection = StringBaseOpt.castObjectToString(dsDesc.getExtProps().get("Connection"),"close");
+            int timeout = NumberBaseOpt.castObjectToInteger(dsDesc.getExtProps().get("timeout"), 60000);
+            return HttpExecutorContext.create(httpClient).context(context).header("Connection", connection).timout(timeout);
         }
     }
 

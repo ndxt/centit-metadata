@@ -45,7 +45,7 @@ public abstract class AbstractHttpContextCreator {
             CloseableHttpClient httpClient = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
             loginOpt(dsDesc, context, httpClient);
             context.setCookieStore(cookieStore);
-            return HttpExecutorContext.create(httpClient).context(context).header("Connection", "close").timout(10000);
+            return HttpExecutorContext.create(httpClient).context(context).header("Connection", "close").timout(60000);
         }
     }
 

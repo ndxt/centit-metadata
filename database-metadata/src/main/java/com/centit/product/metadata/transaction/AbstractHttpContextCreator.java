@@ -11,6 +11,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,11 +44,16 @@ public abstract class AbstractHttpContextCreator {
             return HttpExecutorContext.create(keepSessionHttpsClient);
         }else {
             HttpClientContext context = HttpClientContext.create();
+            PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+            int maxTotal = NumberBaseOpt.castObjectToInteger(dsDesc.getExtProps().get("maxTotal"), 200);
+            int maxPerRoute = NumberBaseOpt.castObjectToInteger(dsDesc.getExtProps().get("maxPerRoute"), 20);
+            connectionManager.setMaxTotal(maxTotal);           // 最大连接数
+            connectionManager.setDefaultMaxPerRoute(maxPerRoute);
             BasicCookieStore cookieStore = new BasicCookieStore();
-            CloseableHttpClient httpClient = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+            CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).setDefaultCookieStore(cookieStore).build();
             loginOpt(dsDesc, context, httpClient);
             context.setCookieStore(cookieStore);
-            String connection = StringBaseOpt.castObjectToString(dsDesc.getExtProps().get("Connection"),"close");
+            String connection = StringBaseOpt.castObjectToString(dsDesc.getExtProps().get("connection"),"close");
             int timeout = NumberBaseOpt.castObjectToInteger(dsDesc.getExtProps().get("timeout"), 10000);
             return HttpExecutorContext.create(httpClient).context(context).header("Connection", connection).timout(timeout);
         }

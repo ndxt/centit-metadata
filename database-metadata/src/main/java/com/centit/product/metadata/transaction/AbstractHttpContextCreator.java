@@ -3,12 +3,15 @@ package com.centit.product.metadata.transaction;
 
 import com.centit.product.metadata.api.ISourceInfo;
 import com.centit.support.algorithm.BooleanBaseOpt;
+import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.network.HttpExecutor;
 import com.centit.support.network.HttpExecutorContext;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +44,18 @@ public abstract class AbstractHttpContextCreator {
             return HttpExecutorContext.create(keepSessionHttpsClient);
         }else {
             HttpClientContext context = HttpClientContext.create();
+            PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+            int maxTotal = NumberBaseOpt.castObjectToInteger(dsDesc.getExtProps().get("maxTotal"), 200);
+            int maxPerRoute = NumberBaseOpt.castObjectToInteger(dsDesc.getExtProps().get("maxPerRoute"), 20);
+            connectionManager.setMaxTotal(maxTotal);           // 最大连接数
+            connectionManager.setDefaultMaxPerRoute(maxPerRoute);
             BasicCookieStore cookieStore = new BasicCookieStore();
-            CloseableHttpClient httpClient = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+            CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).setDefaultCookieStore(cookieStore).build();
             loginOpt(dsDesc, context, httpClient);
             context.setCookieStore(cookieStore);
-            return HttpExecutorContext.create(httpClient).context(context).header("Connection", "close").timout(10000);
+            String connection = StringBaseOpt.castObjectToString(dsDesc.getExtProps().get("connection"),"close");
+            int timeout = NumberBaseOpt.castObjectToInteger(dsDesc.getExtProps().get("timeout"), 10000);
+            return HttpExecutorContext.create(httpClient).context(context).header("Connection", connection).timout(timeout);
         }
     }
 

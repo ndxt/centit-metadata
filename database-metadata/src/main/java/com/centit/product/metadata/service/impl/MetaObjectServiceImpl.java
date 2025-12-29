@@ -452,7 +452,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
             result.checkData(object, dataCheckRule, param);
         }
         if (!result.getResult()) {
-            throw new ObjectException(StringBaseOpt.castObjectToString(result.getErrorMsgs()));
+            throw new ObjectException(StringBaseOpt.castObjectToString(result.getErrorMsgList()));
         }
     }
 

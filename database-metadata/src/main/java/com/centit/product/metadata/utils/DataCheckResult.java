@@ -23,12 +23,14 @@ public class DataCheckResult {
     /**
      * 验证错误消息提示
      */
-    private List<String> errorMsgs;
+    private List<String> errorMsgList;
 
     public static final  Map<String, Function<Object[], Object>> extraFunc = new HashMap<>();
     static {
         extraFunc.put("checkIdCardNo",
             (d) -> DataCheckUtils.checkIdCardNo(StringBaseOpt.castObjectToString(d[0])));
+        extraFunc.put("inDictionary",
+            DataCheckUtils::inDictionary);
     }
 
     /**
@@ -39,7 +41,7 @@ public class DataCheckResult {
             return null;
         }
         StringBuilder sb = new StringBuilder();
-        for(String msg : errorMsgs){
+        for(String msg : errorMsgList){
             sb.append(msg).append("\r\n");
         }
         return sb.toString();
@@ -47,12 +49,12 @@ public class DataCheckResult {
 
     public DataCheckResult(){
         result = true;
-        errorMsgs = new ArrayList<>(4);
+        errorMsgList = new ArrayList<>(4);
     }
 
     public void reset(){
         result = true;
-        errorMsgs.clear();
+        errorMsgList.clear();
     }
 
     public static DataCheckResult create(){
@@ -66,14 +68,14 @@ public class DataCheckResult {
             if(!nullAsTrue) {
                 result = false;
                 if (makeErrorMessage) {
-                    errorMsgs.add(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams));
+                    errorMsgList.add(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams));
                 }
             }
         } else if(!BooleanBaseOpt.castObjectToBoolean(
             VariableFormula.calculate(rule.getRuleFormula(), new ObjectTranslate(realParams), extraFunc), false)){
             result = false;
             if(makeErrorMessage) {
-                errorMsgs.add(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams));
+                errorMsgList.add(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams));
             }
         }
         return this;

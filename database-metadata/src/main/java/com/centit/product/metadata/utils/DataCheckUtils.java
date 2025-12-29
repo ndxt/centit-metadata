@@ -1,6 +1,13 @@
 package com.centit.product.metadata.utils;
 
+import com.centit.framework.common.GlobalConstValue;
+import com.centit.framework.common.WebOptUtils;
+import com.centit.framework.components.CodeRepositoryUtil;
+import com.centit.framework.filter.RequestThreadLocal;
+import com.centit.support.algorithm.StringBaseOpt;
 import org.apache.commons.lang3.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
 
 public abstract class DataCheckUtils {
     /**
@@ -52,4 +59,16 @@ public abstract class DataCheckUtils {
                 year > 1900 && year< 2100 && month>0 && month<13 && day>0 && day<32;
     }
 
+    public static boolean inDictionary(Object[] params) {
+        if (params.length<2) {
+            return false;
+        }
+        String data = StringBaseOpt.castObjectToString(params[0]);
+        String dict = StringBaseOpt.castObjectToString(params[1]);
+        HttpServletRequest request = RequestThreadLocal.getLocalThreadWrapperRequest();
+        return CodeRepositoryUtil.getValue(dict, data,
+            request == null ? GlobalConstValue.NO_TENANT_TOP_UNIT : WebOptUtils.getCurrentTopUnit(request),
+            request == null ? "zh_CN" : WebOptUtils.getCurrentLang(request), null
+        ) != null;
+    }
 }

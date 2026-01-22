@@ -254,7 +254,7 @@ public class SourceInfoController extends BaseController {
                                    HttpServletRequest request, HttpServletResponse response) {
         databaseinfo.setDatabaseUrl(HtmlFormUtils.htmlString((databaseinfo.getDatabaseUrl())));
         SourceInfo temp = databaseInfoMag.getObjectById(databaseCode);
-        if (StringUtils.isNotBlank(databaseinfo.getPassword())) {
+        if (StringUtils.isNotBlank(databaseinfo.getPassword()) && "D".equals(databaseinfo.getSourceType())) {
             if (!databaseinfo.getPassword().equals(temp.getPassword())) {
                 // 更新时确保密码正确
                 databaseinfo.setPassword(databaseinfo.getPassword());

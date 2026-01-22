@@ -18,6 +18,7 @@ import com.centit.product.metadata.po.SourceInfo;
 import com.centit.product.metadata.service.SourceInfoManager;
 import com.centit.product.metadata.service.SourceInfoMetadata;
 import com.centit.product.metadata.transaction.AbstractDBConnectPools;
+import com.centit.product.metadata.transaction.AbstractEsClientPools;
 import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
@@ -254,7 +255,7 @@ public class SourceInfoController extends BaseController {
                                    HttpServletRequest request, HttpServletResponse response) {
         databaseinfo.setDatabaseUrl(HtmlFormUtils.htmlString((databaseinfo.getDatabaseUrl())));
         SourceInfo temp = databaseInfoMag.getObjectById(databaseCode);
-        if (StringUtils.isNotBlank(databaseinfo.getPassword()) && "D".equals(databaseinfo.getSourceType())) {
+        if (StringUtils.isNotBlank(databaseinfo.getPassword()) && ISourceInfo.DATABASE.equals(databaseinfo.getSourceType())) {
             if (!databaseinfo.getPassword().equals(temp.getPassword())) {
                 // 更新时确保密码正确
                 databaseinfo.setPassword(databaseinfo.getPassword());

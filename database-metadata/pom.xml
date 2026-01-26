@@ -53,10 +53,11 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
         </dependency>
-
+        <!--添加版本号，避免和spring-boot冲突-->
         <dependency>
             <groupId>io.lettuce</groupId>
             <artifactId>lettuce-core</artifactId>
+            <version>6.1.8.RELEASE</version>
         </dependency>
 
          <dependency>

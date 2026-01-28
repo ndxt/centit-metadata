@@ -449,7 +449,7 @@ public class MetaObjectServiceImpl implements MetaObjectService {
                     param.put(key, checkValue);
                 }
             });
-            result.checkData(object, dataCheckRule, param);
+            result.checkData(object, dataCheckRule, param, true, true);
         }
         if (!result.getResult()) {
             throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR,

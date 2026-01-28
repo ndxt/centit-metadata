@@ -58,18 +58,10 @@ public class DataCheckResult {
     private void runCheckRule(String fieldName, DataCheckRule rule, Map<String, Object> realParams,
                                         boolean makeErrorMessage, boolean nullAsTrue){
         Object checkValue = realParams.get(DataCheckRule.CHECK_VALUE_TAG);
-        if(checkValue==null){
-            if(!nullAsTrue) {
-                result = false;
-                if (makeErrorMessage) {
-                    if(errorMsg.length()>0){
-                        errorMsg.append("\r\n");
-                    }
-                    errorMsg.append(fieldName).append(":")
-                        .append(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams));
-                }
-            }
-        } else if(!BooleanBaseOpt.castObjectToBoolean(
+        if(checkValue == null && nullAsTrue){
+            return;
+        }
+        if(!BooleanBaseOpt.castObjectToBoolean(
             VariableFormula.calculate(rule.getRuleFormula(), new ObjectTranslate(realParams), extraFunc), false)){
             result = false;
             if(makeErrorMessage) {
@@ -113,7 +105,4 @@ public class DataCheckResult {
         runCheckRule(checkFieldName, rule, realParams, makeErrorMessage, nullAsTrue);
     }
 
-    public void checkData(Object data, DataCheckRule rule, Map<String, String> param){
-         checkData( data, rule, param, true, true);
-    }
 }

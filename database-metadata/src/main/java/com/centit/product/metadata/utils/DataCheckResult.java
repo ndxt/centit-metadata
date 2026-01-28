@@ -55,7 +55,7 @@ public class DataCheckResult {
         return new DataCheckResult();
     }
 
-    private DataCheckResult runCheckRule(String fieldName, DataCheckRule rule, Map<String, Object> realParams,
+    private void runCheckRule(String fieldName, DataCheckRule rule, Map<String, Object> realParams,
                                         boolean makeErrorMessage, boolean nullAsTrue){
         Object checkValue = realParams.get(DataCheckRule.CHECK_VALUE_TAG);
         if(checkValue==null){
@@ -74,7 +74,6 @@ public class DataCheckResult {
                     .append(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams)).append("\r\n");
             }
         }
-        return this;
     }
     /**
      * 规则校验
@@ -83,22 +82,32 @@ public class DataCheckResult {
      * @param param 校验参数，key 包括： checkValue， param1， param2， param3,
      * @param makeErrorMessage 不符合规范时返回的错误信息
      * @param nullAsTrue checkValue 是null的时候 忽略规则
-     * @return 是否符合规则，和不符合错误提示
      */
-    public DataCheckResult checkData(Object data, DataCheckRule rule, Map<String, String> param,
+    public void checkData(Object data, DataCheckRule rule, Map<String, String> param,
                                      boolean makeErrorMessage, boolean nullAsTrue){
-        String fieldName = param.get(DataCheckRule.CHECK_VALUE_TAG);
+        String checkFieldName = param.get(DataCheckRule.CHECK_VALUE_TAG);
         Map<String, Object> realParams = new HashMap<>();
         if(!param.isEmpty()){
             for(Map.Entry<String, String> ent : param.entrySet()){
+                String fieldName = ent.getValue();
+                if(fieldName.startsWith("f:")){
+                    realParams.put(ent.getKey(), VariableFormula.calculate(fieldName.substring(2), data));
+                } else if(DataCheckRule.CHECK_VALUE_TAG.equals(ent.getKey())){
+                    realParams.put(ent.getKey(), VariableFormula.calculate(fieldName, data));
+                } else {
+                    Object value = VariableFormula.calculate(fieldName, data);
+                    if (value == null) {
+                        value = fieldName;
+                    }
+                    realParams.put(ent.getKey(), value);
+                }
                 realParams.put(ent.getKey(), VariableFormula.calculate(ent.getValue(), data));
             }
         }
-
-       return runCheckRule(fieldName, rule, realParams, makeErrorMessage, nullAsTrue);
+        runCheckRule(checkFieldName, rule, realParams, makeErrorMessage, nullAsTrue);
     }
 
-    public DataCheckResult checkData(Object data, DataCheckRule rule, Map<String, String> param){
-        return checkData( data, rule, param, true, true);
+    public void checkData(Object data, DataCheckRule rule, Map<String, String> param){
+         checkData( data, rule, param, true, true);
     }
 }

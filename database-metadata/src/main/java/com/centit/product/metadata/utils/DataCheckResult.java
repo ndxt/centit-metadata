@@ -22,6 +22,10 @@ public class DataCheckResult {
      * 验证错误消息提示
      */
     private StringBuilder errorMsg;
+    /**
+     * 最新的错误
+     */
+    private String lastError;
 
     public static final  Map<String, Function<Object[], Object>> extraFunc = new HashMap<>();
     static {
@@ -43,11 +47,13 @@ public class DataCheckResult {
 
     public DataCheckResult(){
         result = true;
+        lastError = null;
         errorMsg = new StringBuilder();
     }
 
     public void reset(){
         result = true;
+        lastError = null;
         errorMsg.setLength(0);
     }
 
@@ -68,8 +74,8 @@ public class DataCheckResult {
                 if(errorMsg.length()>0){
                     errorMsg.append("\r\n");
                 }
-                errorMsg.append(fieldName).append(":")
-                    .append(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams));
+                lastError = Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams);
+                errorMsg.append(fieldName).append(":").append(lastError);
             }
             return false;
         }

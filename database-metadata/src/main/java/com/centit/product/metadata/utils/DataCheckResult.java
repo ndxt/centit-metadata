@@ -55,11 +55,11 @@ public class DataCheckResult {
         return new DataCheckResult();
     }
 
-    private void runCheckRule(String fieldName, DataCheckRule rule, Map<String, Object> realParams,
+    private boolean runCheckRule(String fieldName, DataCheckRule rule, Map<String, Object> realParams,
                                         boolean makeErrorMessage, boolean nullAsTrue){
         Object checkValue = realParams.get(DataCheckRule.CHECK_VALUE_TAG);
         if(checkValue == null && nullAsTrue){
-            return;
+            return true;
         }
         if(!BooleanBaseOpt.castObjectToBoolean(
             VariableFormula.calculate(rule.getRuleFormula(), new ObjectTranslate(realParams), extraFunc), false)){
@@ -71,7 +71,9 @@ public class DataCheckResult {
                 errorMsg.append(fieldName).append(":")
                     .append(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams));
             }
+            return false;
         }
+        return true;
     }
     /**
      * 规则校验
@@ -81,7 +83,7 @@ public class DataCheckResult {
      * @param makeErrorMessage 不符合规范时返回的错误信息
      * @param nullAsTrue checkValue 是null的时候 忽略规则
      */
-    public void checkData(Object data, DataCheckRule rule, Map<String, String> param,
+    public boolean checkData(Object data, DataCheckRule rule, Map<String, String> param,
                                      boolean makeErrorMessage, boolean nullAsTrue){
         String checkFieldName = param.get(DataCheckRule.CHECK_VALUE_TAG);
         Map<String, Object> realParams = new HashMap<>();
@@ -102,7 +104,7 @@ public class DataCheckResult {
                 realParams.put(ent.getKey(), VariableFormula.calculate(ent.getValue(), data));
             }
         }
-        runCheckRule(checkFieldName, rule, realParams, makeErrorMessage, nullAsTrue);
+        return runCheckRule(checkFieldName, rule, realParams, makeErrorMessage, nullAsTrue);
     }
 
 }

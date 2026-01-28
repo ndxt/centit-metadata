@@ -62,16 +62,22 @@ public class DataCheckResult {
             if(!nullAsTrue) {
                 result = false;
                 if (makeErrorMessage) {
+                    if(errorMsg.length()>0){
+                        errorMsg.append("\r\n");
+                    }
                     errorMsg.append(fieldName).append(":")
-                        .append(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams)).append("\r\n");
+                        .append(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams));
                 }
             }
         } else if(!BooleanBaseOpt.castObjectToBoolean(
             VariableFormula.calculate(rule.getRuleFormula(), new ObjectTranslate(realParams), extraFunc), false)){
             result = false;
             if(makeErrorMessage) {
+                if(errorMsg.length()>0){
+                    errorMsg.append("\r\n");
+                }
                 errorMsg.append(fieldName).append(":")
-                    .append(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams)).append("\r\n");
+                    .append(Pretreatment.mapTemplateString(rule.getFaultMessage(), realParams));
             }
         }
     }

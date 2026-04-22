@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * 对数据库进行简单的增删改查，这个接口不能对外公开
@@ -268,9 +269,8 @@ public class MetaObjectController extends BaseController {
             throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR, "查询语句格式不正确!");
         }
         sqlSen = SecurityOptUtils.decodeSecurityString(sqlSen);
-        if(!StringUtils.startsWithIgnoreCase(sqlSen, "select") ||
-            StringUtils.containsAnyIgnoreCase(sqlSen, ";",
-                "update", "delete", "insert", "drop", "create")) {
+        if (!Pattern.compile("(?i)^select\\b").matcher(sqlSen).find()
+            || Pattern.compile("(?i)\\b(;|update|delete|insert|drop|create|alter)\\b").matcher(sqlSen).find()) {
             throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR, "查询语句格式不正确!");
         }
         JSONObject params = json.getJSONObject("params");

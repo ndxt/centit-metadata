@@ -159,8 +159,7 @@ public class MetaDataServiceImpl implements MetaDataService {
             jdbcMetadata.setDBConfig(conn);
             if (sourceInfo.getExtProps().containsKey(CONTAIN_SCHEMA)) {
                 jdbcMetadata.setDBSchema(sourceInfo.getExtProps().getString(CONTAIN_SCHEMA).toUpperCase());
-            }
-            if (sourceInfo.getDatabaseUrl().contains(CONTAIN_ORACLE)) {
+            } else if (sourceInfo.getDatabaseUrl().contains(CONTAIN_ORACLE)) {
                 jdbcMetadata.setDBSchema(sourceInfo.getUsername().toUpperCase());
             }
             return jdbcMetadata.listTables(withColumn, tableNames);

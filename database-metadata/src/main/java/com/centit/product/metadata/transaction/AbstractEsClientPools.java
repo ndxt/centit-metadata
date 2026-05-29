@@ -51,7 +51,6 @@ public abstract class AbstractEsClientPools {
             }
             //env.getProperty("elasticsearch.server.cluster")
             config.setClusterName(StringBaseOpt.castObjectToString(dsDesc.getExtProp("cluster")));
-            config.setOsId(dsDesc.getOsId());
             config.setUsername(dsDesc.getUsername());
             config.setPassword(dsDesc.getClearPassword());
             //"elasticsearch.filter.minScore
@@ -99,7 +98,7 @@ public abstract class AbstractEsClientPools {
             poolConfig.setMinEvictableIdleTimeMillis(minEvictableIdleTimeMillis);
 
             logger.debug("Elasticsearch client pool config for source {}: maxTotal={}, maxIdle={}, minIdle={}, maxWaitMillis={}",
-                dsDesc.getOsId(), maxTotal, maxIdle, minIdle, maxWaitMillis);
+                dsDesc.getDatabaseName(), maxTotal, maxIdle, minIdle, maxWaitMillis);
 
             // 创建连接池
             GenericObjectPool<RestHighLevelClient> clientPool = IndexerSearcherFactory.obtainclientPool(config, createNew);
@@ -108,23 +107,23 @@ public abstract class AbstractEsClientPools {
             if (clientPool != null && createNew) {
                 try {
                     clientPool.setConfig(poolConfig);
-                    logger.info("Successfully applied custom pool config for source: {}", dsDesc.getOsId());
+                    logger.info("Successfully applied custom pool config for source: {}", dsDesc.getDatabaseName());
                 } catch (Exception configEx) {
                     logger.warn("Failed to apply custom pool config for source: {}, using default config. Error: {}",
-                        dsDesc.getOsId(), configEx.getMessage());
+                        dsDesc.getDatabaseName(), configEx.getMessage());
                 }
             }
 
             return clientPool;
         } catch (Exception e) {
             logger.error("Failed to create Elasticsearch client pool for source: {}. Error: {}",
-                dsDesc.getOsId(), e.getMessage(), e);
+                dsDesc.getDatabaseName(), e.getMessage(), e);
             return null;
         }
     }
 
     public static synchronized RestHighLevelClient fetchESClient(ISourceInfo dsDesc) throws Exception {
-        String sourceId = dsDesc.getOsId();
+        String sourceId = dsDesc.getDatabaseCode();
         try {
             GenericObjectPool<RestHighLevelClient> clientPool = fetchClientPool(dsDesc, true);
             if (clientPool == null) {
@@ -201,7 +200,7 @@ public abstract class AbstractEsClientPools {
     }
 
     public static synchronized void returnClient(ISourceInfo dsDesc, RestHighLevelClient client) {
-        String sourceId = dsDesc.getOsId();
+        String sourceId = dsDesc.getDatabaseCode();
         if (client == null) {
             logger.warn("Attempted to return null client for source: {}", sourceId);
             return;
@@ -209,6 +208,11 @@ public abstract class AbstractEsClientPools {
 
         try {
             GenericObjectPool<RestHighLevelClient> clientPool = fetchClientPool(dsDesc, false);
+            if (clientPool == null) {
+                // 池不存在时尝试创建新池再归还，避免直接 close() 导致 I/O Reactor STOPPED
+                logger.warn("Client pool not found for source: {}, trying to create new pool", sourceId);
+                clientPool = fetchClientPool(dsDesc, true);
+            }
             if (clientPool != null) {
                 // 记录归还次数
                 RETURN_COUNT_MAP.computeIfAbsent(sourceId, k -> new AtomicLong(0)).incrementAndGet();
@@ -216,29 +220,17 @@ public abstract class AbstractEsClientPools {
                 // 归还前检查池状态
                 int beforeReturn = clientPool.getNumActive();
 
-                //client.close();
                 clientPool.returnObject(client);
 
                 // 记录归还成功
                 logger.debug("Client returned to pool for source: {}. Active before: {}, after: {}",
                     sourceId, beforeReturn, clientPool.getNumActive());
             } else {
-                logger.warn("Client pool not found for source: {}, closing client directly", sourceId);
-                try {
-                    client.close();
-                } catch (Exception e) {
-                    logger.error("Error closing Elasticsearch client for source: {}", sourceId, e);
-                }
+                logger.error("Unable to find or create ES client pool for source: {}. Client may leak.", sourceId);
             }
         } catch (Exception e) {
             logger.error("Failed to return Elasticsearch client to pool for source: {}. Error: {}",
                 sourceId, e.getMessage(), e);
-            // 如果返回失败，尝试直接关闭客户端
-            try {
-                client.close();
-            } catch (Exception closeEx) {
-                logger.error("Error closing Elasticsearch client after failed return for source: {}", sourceId, closeEx);
-            }
         }
     }
 

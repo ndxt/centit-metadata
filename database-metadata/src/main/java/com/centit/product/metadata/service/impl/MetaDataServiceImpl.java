@@ -237,7 +237,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     private void addSyncSingleTable(String databaseCode, String recorder, SimpleTableInfo insertNewTable, String tableId) {
         // 检查表是否已存在，避免重复同步导致重复记录
         List<MetaTable> existingTables = metaTableDao.listObjectsByProperties(
-            CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableName", insertNewTable.getTableName()));
+            CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableName_eq", insertNewTable.getTableName()));
         if (existingTables != null && !existingTables.isEmpty()) {
             logger.warn("表 {} 已存在于数据库 {} 中，跳过重复添加", insertNewTable.getTableName(), databaseCode);
             return;

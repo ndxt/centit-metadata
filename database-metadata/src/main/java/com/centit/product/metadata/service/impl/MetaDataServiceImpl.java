@@ -123,13 +123,13 @@ public class MetaDataServiceImpl implements MetaDataService {
         Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple =
             compareMetaBetweenDbTables(metaTables, dbTables, comparator);
 
-        if (triple.getLeft() != null && triple.getLeft().size() > 0) {
+        if (triple.getLeft() != null && !triple.getLeft().isEmpty()) {
             addSyncData(databaseCode, recorder, triple.getLeft());
         }
-        if (triple.getRight() != null && triple.getRight().size() > 0) {
+        if (triple.getRight() != null && !triple.getRight().isEmpty()) {
             deleteSyncData(triple.getRight());
         }
-        if (triple.getMiddle() != null && triple.getMiddle().size() > 0) {
+        if (triple.getMiddle() != null && !triple.getMiddle().isEmpty()) {
             updateSyncData(recorder, triple.getMiddle());
         }
     }
@@ -138,15 +138,15 @@ public class MetaDataServiceImpl implements MetaDataService {
     public void syncSingleTable(String databaseCode, String recorder, String tableName, String tableId){
         List<SimpleTableInfo> dbTables = getJdbcMetadata(databaseCode, true, new String[] {tableName});
         List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap(
-            "databaseCode", databaseCode, "tableNames", new String[] {tableName}));
-        if (dbTables != null && dbTables.size() >0 ) {
-            if(metaTables != null && metaTables.size() >0 ){
+            "databaseCode", databaseCode, "tableName_eq", tableName));
+        if (dbTables != null && !dbTables.isEmpty()) {
+            if(metaTables != null && !metaTables.isEmpty()){
                 updateSyncData(recorder, CollectionsOpt.createList(new MutablePair<>(metaTables.get(0), dbTables.get(0))));
             } else {
                 addSyncSingleTable(databaseCode, recorder, dbTables.get(0), tableId);
             }
         } else {
-            if(metaTables != null && metaTables.size() >0 ){
+            if(metaTables != null && !metaTables.isEmpty()){
                 deleteSyncData(metaTables);
             }
         }
@@ -177,7 +177,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         List<MetaTable> metaTables = metaTableDao.listObjectsByProperties(CollectionsOpt.createHashMap("databaseCode", databaseCode));
         Comparator<TableInfo> comparator = (o1, o2) -> StringUtils.compare(o1.getTableName().toUpperCase(), o2.getTableName().toUpperCase());
         Triple<List<SimpleTableInfo>, List<Pair<MetaTable, SimpleTableInfo>>, List<MetaTable>> triple = compareMetaBetweenDbTables(metaTables, dbTableInfo, comparator);
-        if (triple.getRight() != null && triple.getRight().size() > 0) {
+        if (triple.getRight() != null && !triple.getRight().isEmpty()) {
             for (MetaTable metaTable : triple.getRight()) {
                 SimpleTableInfo simpleTableInfo = new SimpleTableInfo();
                 simpleTableInfo.setTableName(metaTable.getTableName());
@@ -188,13 +188,13 @@ public class MetaDataServiceImpl implements MetaDataService {
         return dbTableInfo;
     }
 
-    public static <K, V> Triple<List<K>, List<Pair<V, K>>, List<V>>
-    compareMetaBetweenDbTables(List<V> metaTables, List<K> simpleTableInfos, Comparator comparator) {
-        if (metaTables == null || metaTables.size() == 0) {
+    public static <B, K extends B, V extends B> Triple<List<K>, List<Pair<V, K>>, List<V>>
+    compareMetaBetweenDbTables(List<V> metaTables, List<K> simpleTableInfos, Comparator<B> comparator) {
+        if (metaTables == null || metaTables.isEmpty()) {
             return new ImmutableTriple<>(
                 simpleTableInfos, null, null);
         }
-        if (simpleTableInfos == null || simpleTableInfos.size() == 0) {
+        if (simpleTableInfos == null || simpleTableInfos.isEmpty()) {
             return new ImmutableTriple<>(
                 null, null, metaTables);
         }
@@ -235,14 +235,6 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     private void addSyncSingleTable(String databaseCode, String recorder, SimpleTableInfo insertNewTable, String tableId) {
-        // 检查表是否已存在，避免重复同步导致重复记录
-        List<MetaTable> existingTables = metaTableDao.listObjectsByProperties(
-            CollectionsOpt.createHashMap("databaseCode", databaseCode, "tableName_eq", insertNewTable.getTableName()));
-        if (existingTables != null && !existingTables.isEmpty()) {
-            logger.warn("表 {} 已存在于数据库 {} 中，跳过重复添加", insertNewTable.getTableName(), databaseCode);
-            return;
-        }
-
         MetaTable metaTable = new MetaTable().convertFromDbTable(insertNewTable);
         metaTable.setDatabaseCode(databaseCode);
         if (metaTable.getTableLabelName() == null || "".equals(metaTable.getTableLabelName())) {
@@ -276,7 +268,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         metaColumn.setRecorder(recorder);
         metaColumn.setColumnOrder(colOrder);
 
-        if (metaColumn.getFieldLabelName() == null || "".equals(metaColumn.getFieldLabelName())) {
+        if (metaColumn.getFieldLabelName() == null || metaColumn.getFieldLabelName().isEmpty()) {
             metaColumn.setFieldLabelName(metaColumn.getColumnName());
         }
         // 添加 自动填充插件
@@ -542,7 +534,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     public void importRelationFromTableStore(String databaseCode, JSONObject jsonObject, String userCode){
 
         List<MetaRelation> refList = TableStoreJsonUtils.fetchRelations(jsonObject);
-        if(refList==null || refList.size()==0)
+        if(refList.isEmpty())
             return ;
         for(MetaRelation ref : refList){
             MetaTable parentTable = metaTableDao.getMetaTable(databaseCode, ref.getParentTableId());
@@ -554,13 +546,13 @@ public class MetaDataServiceImpl implements MetaDataService {
 
             if(StringUtils.isNotBlank(parentTableId) && StringUtils.isNotBlank(childTableId)) {
                 List<MetaRelation> relations = metaRelationDao.listRelationByTables(parentTableId, childTableId);
-                if(relations==null || relations.size()==0){ // saveNew
+                if(relations==null || relations.isEmpty()){ // saveNew
                     String relationId = UuidOpt.getUuidAsString22();
                     ref.setRelationId(relationId);
                     ref.setParentTableId(parentTableId);
                     ref.setChildTableId(childTableId);
                     List<MetaRelDetail> details = ref.getRelationDetails();
-                    if(details!=null && details.size()>0) {
+                    if(details!=null && !details.isEmpty()) {
                         for (MetaRelDetail detail : details) {
                             detail.setRelationId(relationId);
                         }
@@ -573,7 +565,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                     dbRelation.setRelationComment(ref.getRelationComment());
                     metaRelationDao.updateObject(dbRelation);
                     List<MetaRelDetail> details = ref.getRelationDetails();
-                    if(details!=null && details.size()>0) {
+                    if(details!=null && !details.isEmpty()) {
                         for (MetaRelDetail detail : details) {
                             detail.setRelationId(dbRelation.getRelationId());
                         }

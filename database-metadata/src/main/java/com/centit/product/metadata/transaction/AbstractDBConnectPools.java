@@ -7,13 +7,13 @@ import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.utils.DBType;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariPoolMXBean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.SQLTransientConnectionException;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -89,31 +89,47 @@ public abstract class AbstractDBConnectPools {
         }
     }
 
-    public static synchronized Connection getDbcpConnect(ISourceInfo dsDesc) throws SQLException {
-        HikariDataSource ds = DATABASE_SOURCE_POOLS.get(dsDesc);
-        if (ds == null) {
-            ds = createDataSource(dsDesc);
-            DATABASE_SOURCE_POOLS.put(dsDesc, ds);
-        }
+    public static Connection getDbcpConnect(ISourceInfo dsDesc) throws SQLException {
+        // 使用 computeIfAbsent 保证池的懒创建线程安全，无需 synchronized 全局锁。
+        // 之前的 synchronized 会让所有数据源、所有线程串行获取连接，一旦某个线程因池耗尽而
+        // 阻塞（最长 connectionTimeout），其余线程全部被锁死，引发雪崩式超时。
+        HikariDataSource ds = DATABASE_SOURCE_POOLS.computeIfAbsent(dsDesc, AbstractDBConnectPools::createDataSource);
         try {
             Connection conn = ds.getConnection();
             conn.setAutoCommit(false);
             return conn;
-        }catch (SQLException e) {
-            if (e instanceof SQLTransientConnectionException) {
-                // 可以选择重试或记录日志后抛出异常
-                logger.error("Failed to get connection, retrying...", e);
-                try {
-                    Thread.sleep(5000); // 等待一段时间后重试
-                }catch (InterruptedException e1){
-                    logger.error(e.getMessage(), e1);
-                }
-                Connection conn = ds.getConnection();
-                conn.setAutoCommit(false);
-                return conn;
-            } else {
-                throw e;
+        } catch (SQLException e) {
+            // 池耗尽时快速失败并打印池状态，便于定位是连接泄漏还是慢查询。
+            // 不再 sleep+重试：池耗尽期间重试只会再次阻塞 connectionTimeout，
+            // 且原先重试发生在 synchronized 方法内，归还连接的线程也进不来，雪崩被锁死。
+            logPoolStatus(dsDesc, ds, e);
+            throw e;
+        }
+    }
+
+    /**
+     * 打印 HikariCP 池状态，用于连接获取失败时的诊断。
+     */
+    private static void logPoolStatus(ISourceInfo dsDesc, HikariDataSource ds, SQLException e) {
+        try {
+            if (ds.isClosed()) {
+                logger.error("获取数据库连接失败，数据源 [{}] 的连接池已关闭: {}",
+                    dsDesc.getDatabaseCode(), e.getMessage(), e);
+                return;
             }
+            // getHikariPoolMXBean 在池启动后才可用
+            HikariPoolMXBean mxBean = ds.getHikariPoolMXBean();
+            if (mxBean != null) {
+                logger.error("获取数据库连接失败，数据源 [{}] 池状态: active={}, idle={}, 等待线程数={}, 总连接={}, max={}, 错误: {}",
+                    dsDesc.getDatabaseCode(),
+                    mxBean.getActiveConnections(), mxBean.getIdleConnections(),
+                    mxBean.getThreadsAwaitingConnection(), mxBean.getTotalConnections(),
+                    ds.getMaximumPoolSize(), e.getMessage(), e);
+            } else {
+                logger.error("获取数据库连接失败，数据源 [{}]: {}", dsDesc.getDatabaseCode(), e.getMessage(), e);
+            }
+        } catch (Exception ignore) {
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -128,18 +144,9 @@ public abstract class AbstractDBConnectPools {
     }
 
     public static void testConnect(SourceInfo sourceInfo) throws SQLException {
-        HikariDataSource ds = createDataSource(sourceInfo);
-        Connection conn=null;
-        try  {
-            conn = ds.getConnection();
-            conn.close();
-            ds.close();
-        }
-        finally {
-            if(conn!=null) {
-                conn.close();
-            }
-            ds.close();
+        // 测试能否成功获取连接：获取成功即视为连通性正常，由 try-with-resources 自动关闭
+        try (HikariDataSource ds = createDataSource(sourceInfo);
+             Connection conn = ds.getConnection()) {
         }
     }
 

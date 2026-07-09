@@ -22,6 +22,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class AbstractDBConnectPools {
     private static final Logger logger = LoggerFactory.getLogger(AbstractDBConnectPools.class);
+
+    /** connectionTimeout 保护上限：Hikari 的 borrow 循环在 elapsed >= connectionTimeout 时才抛超时，
+     *  若被配成几十万毫秒（常见于把秒当毫秒），单次获取连接即可把业务线程挂死十几分钟。
+     *  超过此值视为配置错误，夹紧到上限并告警。 */
+    private static final int MAX_CONNECTION_TIMEOUT_MS = 60000;
+
     private static final
     ConcurrentHashMap<ISourceInfo, HikariDataSource> DATABASE_SOURCE_POOLS
         = new ConcurrentHashMap<>();
@@ -48,16 +54,16 @@ public abstract class AbstractDBConnectPools {
         ds.setIdleTimeout(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("idleTimeout"), 6000));
 
-        ds.setConnectionTimeout(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("connectionTimeout"), 5000));
+        ds.setConnectionTimeout(resolveConnectionTimeout(dsDesc));
 
         ds.setMinimumIdle(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("minIdle"), 5));
 
+        // 不再按 dbType 自动填默认 validationQuery：HikariCP 在未设置 connectionTestQuery 时
+        // 会用 JDBC4 Connection.isValid(validationTimeout) 校验，这是官方推荐路径；且 isValid 通常
+        // 能正确遵守 validationTimeout，避免在僵尸连接上靠 Statement.setQueryTimeout 限时被驱动忽略而挂死。
+        // 仅当用户在 extProp 显式配置了 validationQuery 时才作为测试查询（给怪驱动留 override 口子）。
         String validationQuery = StringBaseOpt.castObjectToString(dsDesc.getExtProp("validationQuery"));
-        if(StringUtils.isBlank(validationQuery)){
-            validationQuery = DBType.getDBValidationQuery(dbType);
-        }
         ds.setValidationTimeout(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("validationTimeout"), 5000));
 
@@ -68,6 +74,21 @@ public abstract class AbstractDBConnectPools {
             ds.setConnectionTestQuery(validationQuery);
         }
         return ds;
+    }
+
+    /**
+     * 解析 connectionTimeout，并对异常大的值做夹紧保护。
+     */
+    private static int resolveConnectionTimeout(ISourceInfo dsDesc) {
+        int configured = NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("connectionTimeout"), 5000);
+        if (configured > MAX_CONNECTION_TIMEOUT_MS) {
+            logger.warn("数据源 [{}] 的 connectionTimeout 配置为 {}ms，超过保护上限 {}ms，已夹紧为上限。" +
+                    "过大的 connectionTimeout 会让单次获取连接挂住线程数分钟，请检查是否把秒当成了毫秒。",
+                dsDesc.getDatabaseCode(), configured, MAX_CONNECTION_TIMEOUT_MS);
+            return MAX_CONNECTION_TIMEOUT_MS;
+        }
+        return configured;
     }
 
     public static void refreshDataSource(ISourceInfo dsDesc) {

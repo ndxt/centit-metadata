@@ -252,10 +252,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
     }
 
     public Integer getColumnLength() {
-        if(StringUtils.equalsAnyIgnoreCase(this.fieldType, FieldType.STRING,
-            FieldType.FLOAT, FieldType.DOUBLE, FieldType.MONEY, FieldType.INTEGER, FieldType.LONG))
-            return columnLength == null ? 0 : columnLength;
-        return 0;
+        return columnLength == null ? 0 : columnLength;
     }
 
     @Override
@@ -272,10 +269,7 @@ public class MetaColumn implements TableField, java.io.Serializable {
     @Override
     @ApiModelProperty(hidden = true)
     public Integer getScale() {
-        if(StringUtils.equalsAnyIgnoreCase(this.fieldType,
-            FieldType.FLOAT, FieldType.DOUBLE, FieldType.MONEY))
-            return scale ==null ? 0 : scale;
-        return 0;
+        return scale ==null ? 0 : scale;
     }
 
     @Override

@@ -45,14 +45,22 @@ public abstract class AbstractDBConnectPools {
         ds.setUsername(dsDesc.getUsername());
         ds.setPassword(dsDesc.getClearPassword());
 
-        ds.setJdbcUrl(dsDesc.getDatabaseUrl());
+        int socketTimeoutMs = NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("socketTimeout"), 30000);
+        int connectTimeoutMs = NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("jdbcConnectTimeout"), 5000);
+        ds.setJdbcUrl(buildJdbcUrlWithTimeout(dsDesc.getDatabaseUrl(), dbType, socketTimeoutMs, connectTimeoutMs));
+        if (dbType == DBType.Oracle || dbType == DBType.DM || dbType == DBType.Oscar) {
+            ds.addDataSourceProperty("oracle.net.CONNECT_TIMEOUT", String.valueOf(connectTimeoutMs));
+            ds.addDataSourceProperty("oracle.jdbc.ReadTimeout", String.valueOf(socketTimeoutMs));
+        }
 
         ds.setMaximumPoolSize(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("maxActive"), 50));
         ds.setMaxLifetime(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("maxLifetime"), 180000));
         ds.setIdleTimeout(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("idleTimeout"), 6000));
+            dsDesc.getExtProp("idleTimeout"), 600000));
 
         ds.setConnectionTimeout(resolveConnectionTimeout(dsDesc));
 
@@ -73,6 +81,10 @@ public abstract class AbstractDBConnectPools {
         if(testWhileIdle && StringUtils.isNotBlank(validationQuery)){
             ds.setConnectionTestQuery(validationQuery);
         }
+
+        ds.setLeakDetectionThreshold(NumberBaseOpt.castObjectToInteger(
+            dsDesc.getExtProp("leakDetectionThreshold"), 60000));
+
         return ds;
     }
 
@@ -89,6 +101,65 @@ public abstract class AbstractDBConnectPools {
             return MAX_CONNECTION_TIMEOUT_MS;
         }
         return configured;
+    }
+
+    /**
+     * 根据 DBType 为 JDBC URL 追加 socket/connect 超时参数，防止连接校验在僵尸 TCP 上 hang 到
+     * OS 层 TCP 重传超时（Linux 默认约 940 秒）。
+     * <p>
+     * MySQL/PostgreSQL/KingBase/SQLServer 通过 URL 参数设置；
+     * Oracle/DM/Oscar 不支持 URL 参数，返回原始 URL，由调用方通过 addDataSourceProperty 设置。
+     */
+    private static String buildJdbcUrlWithTimeout(String jdbcUrl, DBType dbType,
+                                                   int socketTimeoutMs, int connectTimeoutMs) {
+        if (jdbcUrl == null || dbType == null) {
+            return jdbcUrl;
+        }
+        switch (dbType) {
+            case MySql:
+                return appendUrlParam(jdbcUrl, false,
+                    "connectTimeout", String.valueOf(connectTimeoutMs),
+                    "socketTimeout", String.valueOf(socketTimeoutMs));
+            case PostgreSql:
+            case KingBase:
+                // PostgreSQL / KingBase 超时单位为秒
+                return appendUrlParam(jdbcUrl, false,
+                    "connectTimeout", String.valueOf(connectTimeoutMs / 1000),
+                    "socketTimeout", String.valueOf(socketTimeoutMs / 1000));
+            case SqlServer:
+                // SQL Server 用分号分隔，超时单位为秒
+                return appendUrlParam(jdbcUrl, true,
+                    "loginTimeout", String.valueOf(connectTimeoutMs / 1000),
+                    "socketTimeout", String.valueOf(socketTimeoutMs / 1000));
+            default:
+                return jdbcUrl;
+        }
+    }
+
+    /**
+     * 为 JDBC URL 追加键值对参数，自动处理分隔符并跳过已存在的同名参数。
+     *
+     * @param url                 原始 JDBC URL
+     * @param semicolonSeparated  true=分号分隔（SQL Server），false=问号/与号分隔（MySQL/PG）
+     * @param kvPairs             key1, value1, key2, value2, ...
+     */
+    private static String appendUrlParam(String url, boolean semicolonSeparated, String... kvPairs) {
+        StringBuilder sb = new StringBuilder(url);
+        boolean hasQuery = url.contains("?");
+        for (int i = 0; i < kvPairs.length; i += 2) {
+            String key = kvPairs[i];
+            String value = kvPairs[i + 1];
+            if (url.contains(key + "=")) {
+                continue;
+            }
+            if (semicolonSeparated) {
+                sb.append(";").append(key).append("=").append(value);
+            } else {
+                sb.append(hasQuery ? "&" : "?").append(key).append("=").append(value);
+                hasQuery = true;
+            }
+        }
+        return sb.toString();
     }
 
     public static void refreshDataSource(ISourceInfo dsDesc) {
@@ -115,8 +186,16 @@ public abstract class AbstractDBConnectPools {
         // 之前的 synchronized 会让所有数据源、所有线程串行获取连接，一旦某个线程因池耗尽而
         // 阻塞（最长 connectionTimeout），其余线程全部被锁死，引发雪崩式超时。
         HikariDataSource ds = DATABASE_SOURCE_POOLS.computeIfAbsent(dsDesc, AbstractDBConnectPools::createDataSource);
+        long start = System.currentTimeMillis();
         try {
             Connection conn = ds.getConnection();
+            long elapsed = System.currentTimeMillis() - start;
+            if (elapsed > 200) {
+                HikariPoolMXBean mx = ds.getHikariPoolMXBean();
+                logger.warn("获取连接较慢 [{}]: {}ms, active={}, idle={}, total={}",
+                    dsDesc.getDatabaseCode(), elapsed,
+                    mx.getActiveConnections(), mx.getIdleConnections(), mx.getTotalConnections());
+            }
             conn.setAutoCommit(false);
             return conn;
         } catch (SQLException e) {

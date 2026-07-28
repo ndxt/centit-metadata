@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -28,8 +29,12 @@ public abstract class AbstractDBConnectPools {
      *  超过此值视为配置错误，夹紧到上限并告警。 */
     private static final int MAX_CONNECTION_TIMEOUT_MS = 60000;
 
+    /** 以稳定的 databaseCode 作为池键。
+     *  SourceInfo.equals/hashCode 包含 databaseUrl/username/password/extProps，若以整个 ISourceInfo 为键，
+     *  配置变更后新对象与旧键不相等，refreshDataSource/delDataSource 会因 containsKey 不命中而跳过关闭，
+     *  导致旧池永久滞留(R-01)。改用 databaseCode 后，同一数据源始终命中同一个池。 */
     private static final
-    ConcurrentHashMap<ISourceInfo, HikariDataSource> DATABASE_SOURCE_POOLS
+    ConcurrentHashMap<String, HikariDataSource> DATABASE_SOURCE_POOLS
         = new ConcurrentHashMap<>();
 
     private AbstractDBConnectPools() {
@@ -38,6 +43,8 @@ public abstract class AbstractDBConnectPools {
 
     private static HikariDataSource createDataSource(ISourceInfo dsDesc) {
         HikariDataSource ds = new HikariDataSource();
+        // poolName 便于日志/监控/JMX 定位到具体数据源(R-07)
+        ds.setPoolName(dsDesc.getDatabaseCode());
         //ds.setConnectionErrorRetryAttempts(3);
         DBType dbType=DBType.mapDBType(dsDesc.getDatabaseUrl());
 
@@ -57,8 +64,10 @@ public abstract class AbstractDBConnectPools {
 
         ds.setMaximumPoolSize(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("maxActive"), 50));
+        // maxLifetime 默认 30 分钟(对齐 Hikari 官方默认)，过短(如 3 分钟)会导致连接频繁重建(R-07)。
+        // 注意应小于数据库 wait_timeout，可在 extProps 中按需覆盖。
         ds.setMaxLifetime(NumberBaseOpt.castObjectToInteger(
-            dsDesc.getExtProp("maxLifetime"), 180000));
+            dsDesc.getExtProp("maxLifetime"), 1800000));
         ds.setIdleTimeout(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("idleTimeout"), 600000));
 
@@ -82,6 +91,8 @@ public abstract class AbstractDBConnectPools {
             ds.setConnectionTestQuery(validationQuery);
         }
 
+        // 泄漏检测：连接借出超过该阈值未归还，Hikari 会打印借出调用栈，便于定位泄漏(R-07)。
+        // 设为 0 可关闭；须 < maxLifetime 且 >= 2000ms。
         ds.setLeakDetectionThreshold(NumberBaseOpt.castObjectToInteger(
             dsDesc.getExtProp("leakDetectionThreshold"), 60000));
 
@@ -162,30 +173,38 @@ public abstract class AbstractDBConnectPools {
         return sb.toString();
     }
 
+    /**
+     * 刷新数据源连接池：按 databaseCode 原子替换旧池并关闭。
+     * 不再以整个 ISourceInfo 判断 containsKey——其多字段 equals 在配置变更后会不命中而漏关旧池(R-01)。
+     */
     public static void refreshDataSource(ISourceInfo dsDesc) {
-        if(DATABASE_SOURCE_POOLS.containsKey(dsDesc)){
-            HikariDataSource ds = createDataSource(dsDesc);
-            HikariDataSource oldDs = DATABASE_SOURCE_POOLS.put(dsDesc, ds);
-            if(oldDs!=null) {
-                oldDs.close();
-            }
-        }
-    }
-    public static void delDataSource(ISourceInfo dsDesc) {
-        if(DATABASE_SOURCE_POOLS.containsKey(dsDesc)){
-            HikariDataSource oldDs = DATABASE_SOURCE_POOLS.get(dsDesc);
-            if(oldDs!=null) {
-                oldDs.close();
-            }
-            DATABASE_SOURCE_POOLS.remove(dsDesc);
+        String code = dsDesc.getDatabaseCode();
+        if (DATABASE_SOURCE_POOLS.containsKey(code)) {
+            HikariDataSource newDs = createDataSource(dsDesc);
+            HikariDataSource oldDs = DATABASE_SOURCE_POOLS.put(code, newDs);
+            closeQuietly(oldDs, code);
         }
     }
 
+    /**
+     * 删除数据源连接池：按 databaseCode 原子移除并关闭。
+     * 使用 remove 原子返回旧值，避免 get/remove 两步间的竞态(R-01)。
+     */
+    public static void delDataSource(ISourceInfo dsDesc) {
+        String code = dsDesc.getDatabaseCode();
+        HikariDataSource oldDs = DATABASE_SOURCE_POOLS.remove(code);
+        closeQuietly(oldDs, code);
+    }
+
     public static Connection getDbcpConnect(ISourceInfo dsDesc) throws SQLException {
-        // 使用 computeIfAbsent 保证池的懒创建线程安全，无需 synchronized 全局锁。
+        String poolKey = dsDesc.getDatabaseCode();
+        if (poolKey == null) {
+            throw new SQLException("数据源 databaseCode 为空，无法获取连接池");
+        }
+        // 池键使用稳定的 databaseCode(R-01)；computeIfAbsent 保证池的懒创建线程安全，无需 synchronized 全局锁。
         // 之前的 synchronized 会让所有数据源、所有线程串行获取连接，一旦某个线程因池耗尽而
         // 阻塞（最长 connectionTimeout），其余线程全部被锁死，引发雪崩式超时。
-        HikariDataSource ds = DATABASE_SOURCE_POOLS.computeIfAbsent(dsDesc, AbstractDBConnectPools::createDataSource);
+        HikariDataSource ds = DATABASE_SOURCE_POOLS.computeIfAbsent(poolKey, k -> createDataSource(dsDesc));
         long start = System.currentTimeMillis();
         try {
             Connection conn = ds.getConnection();
@@ -196,12 +215,16 @@ public abstract class AbstractDBConnectPools {
                     dsDesc.getDatabaseCode(), elapsed,
                     mx.getActiveConnections(), mx.getIdleConnections(), mx.getTotalConnections());
             }
-            conn.setAutoCommit(false);
+            try {
+                conn.setAutoCommit(false);
+            } catch (SQLException sqle) {
+                // setAutoCommit 失败必须立即归还连接，否则池将连接计为 active 直到外部超时回收(R-05)
+                closeConnect(conn);
+                throw sqle;
+            }
             return conn;
         } catch (SQLException e) {
-            // 池耗尽时快速失败并打印池状态，便于定位是连接泄漏还是慢查询。
-            // 不再 sleep+重试：池耗尽期间重试只会再次阻塞 connectionTimeout，
-            // 且原先重试发生在 synchronized 方法内，归还连接的线程也进不来，雪崩被锁死。
+            // 池耗尽或 autoCommit 失败时快速失败并打印池状态，便于定位是连接泄漏还是慢查询。
             logPoolStatus(dsDesc, ds, e);
             throw e;
         }
@@ -240,6 +263,33 @@ public abstract class AbstractDBConnectPools {
             } catch (SQLException e) {
                 logger.error(e.getMessage(), e);
             }
+        }
+    }
+
+    /**
+     * 关闭并清空全部连接池。供应用关闭(@PreDestroy)调用，避免热部署/上下文重启时
+     * 遗留 Hikari housekeeper 线程与数据库会话(R-04)。逐池容错，一个失败不阻断其余。
+     */
+    public static void closeAllDataSources() {
+        int count = DATABASE_SOURCE_POOLS.size();
+        for (Map.Entry<String, HikariDataSource> entry : DATABASE_SOURCE_POOLS.entrySet()) {
+            closeQuietly(entry.getValue(), entry.getKey());
+        }
+        DATABASE_SOURCE_POOLS.clear();
+        logger.info("已关闭全部数据库连接池，共 {} 个", count);
+    }
+
+    /**
+     * 关闭单个连接池，吞掉异常以便逐池清理时一个失败不阻断其余。
+     */
+    private static void closeQuietly(HikariDataSource ds, String databaseCode) {
+        if (ds == null) {
+            return;
+        }
+        try {
+            ds.close();
+        } catch (Exception e) {
+            logger.error("关闭数据源 [{}] 连接池失败: {}", databaseCode, e.getMessage(), e);
         }
     }
 

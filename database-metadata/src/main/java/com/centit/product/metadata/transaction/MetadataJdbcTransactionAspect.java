@@ -36,12 +36,12 @@ public class MetadataJdbcTransactionAspect {
      */
     @AfterThrowing(pointcut = "transactionAspect() && @annotation(transaction)", throwing = "ex")
     public void doAfterThrowing(JoinPoint joinPoint, MetadataJdbcTransaction transaction, Throwable ex) {
-        if (ex instanceof RuntimeException) {
-            try {
-                AbstractSourceConnectThreadHolder.rollbackAndRelease();
-            } catch (SQLException e) {
-                logger.error(e.getLocalizedMessage());
-            }
+        // 无论受检异常、运行时异常还是 Error，都必须回滚并归还连接，
+        // 否则连接会一直挂在 ThreadLocal 上导致连接池耗尽。
+        try {
+            AbstractSourceConnectThreadHolder.rollbackAndRelease();
+        } catch (SQLException e) {
+            logger.error(e.getLocalizedMessage());
         }
     }
 
